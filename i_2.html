@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>虚数単位 i の回転シミュレーション</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            background-color: #f3f4f6;
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen p-3 sm:p-4">
+
+    <div class="bg-white p-4 sm:p-6 rounded-2xl shadow-xl w-full max-w-2xl text-center">
+        <h1 class="text-xl sm:text-2xl font-bold text-gray-800 mb-2">複素数平面と <i>i</i> の掛け算</h1>
+        <p class="text-gray-600 mb-4 sm:mb-6 text-xs sm:text-sm">
+            「数に <i>i</i> を掛ける」ことは、図形的に「反時計回りに90度回転する」ことを意味します。
+        </p>
+
+        <!-- 数式・状態表示エリア -->
+        <div class="h-24 sm:h-20 flex flex-col items-center justify-center mb-4 bg-blue-50 rounded-lg border border-blue-100 px-2">
+            <div id="equationDisplay" class="text-2xl sm:text-3xl font-bold text-blue-700 transition-all duration-300">
+                スタート: 1
+            </div>
+            <div id="explanationDisplay" class="text-xs sm:text-sm text-gray-500 mt-1">
+                実軸の「1」からスタートします
+            </div>
+        </div>
+
+        <!-- Canvas コンテナ (スマホ対応で幅を可変に) -->
+        <div class="relative w-full max-w-[400px] mx-auto border-2 border-gray-200 rounded-lg overflow-hidden bg-white shadow-inner mb-6">
+            <!-- touch-none クラスでスマホのスクロール干渉を防止、w-full h-auto で自動縮小 -->
+            <canvas id="complexPlane" width="400" height="400" class="w-full h-auto block mx-auto touch-none"></canvas>
+        </div>
+
+        <!-- コントロールボタン (スマホでは縦並び、PCでは横並び) -->
+        <div class="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4 w-full max-w-[400px] mx-auto">
+            <button id="multiplyBtn" class="w-full sm:w-auto flex-1 px-4 sm:px-6 py-3 sm:py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-full shadow-md transition-transform transform hover:scale-105 active:scale-95 flex items-center justify-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
+                × i を掛ける
+            </button>
+            <button id="resetBtn" class="w-full sm:w-auto px-4 sm:px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold rounded-full shadow-md transition-transform transform hover:scale-105 active:scale-95">
+                リセット
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('complexPlane');
+        const ctx = canvas.getContext('2d');
+        const multiplyBtn = document.getElementById('multiplyBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const equationDisplay = document.getElementById('equationDisplay');
+        const explanationDisplay = document.getElementById('explanationDisplay');
+
+        // 定数設定 (内部的な描画サイズは400x400のまま固定)
+        const WIDTH = canvas.width;
+        const HEIGHT = canvas.height;
+        const CX = WIDTH / 2;
+        const CY = HEIGHT / 2;
+        const UNIT = 120;
+
+        // 状態変数
+        let currentAngle = 0;
+        let targetAngle = 0;
+        let stepCount = 0;
+        let isAnimating = false;
+
+        const values = ['1', 'i', '-1', '-i'];
+
+        // 数式・テキストの更新 (レスポンシブ対応クラスに変更)
+        function updateUI() {
+            const currentVal = values[stepCount % 4];
+            
+            if (stepCount === 0) {
+                equationDisplay.textContent = 'スタート: 1';
+                equationDisplay.className = 'text-2xl sm:text-3xl font-bold text-blue-700 transition-all duration-300';
+                explanationDisplay.textContent = '実軸の「1」からスタートします';
+            } else if (stepCount === 1) {
+                equationDisplay.innerHTML = '1 &times; i = <span class="text-indigo-600">i</span>';
+                equationDisplay.className = 'text-2xl sm:text-3xl font-bold text-indigo-700 transition-all duration-300 scale-105';
+                explanationDisplay.textContent = '90度回転して虚数「i」になりました';
+            } else if (stepCount === 2) {
+                equationDisplay.innerHTML = 'i &times; i = <span class="text-red-600">-1</span>';
+                equationDisplay.className = 'text-3xl sm:text-4xl font-extrabold text-red-600 transition-all duration-300 scale-110';
+                explanationDisplay.textContent = '180度反転したので -1 になります (i² = -1)';
+            } else {
+                const prevVal = values[(stepCount - 1) % 4];
+                let displayNext = currentVal;
+                if (currentVal === '1') {
+                    displayNext = '1';
+                    equationDisplay.className = 'text-2xl sm:text-3xl font-bold text-blue-700 transition-all duration-300';
+                    explanationDisplay.textContent = '一周回って 1 に戻りました';
+                } else if (currentVal === '-1') {
+                    equationDisplay.className = 'text-3xl sm:text-4xl font-extrabold text-red-600 transition-all duration-300 scale-110';
+                    explanationDisplay.textContent = '実軸のマイナス側です';
+                } else {
+                    equationDisplay.className = 'text-2xl sm:text-3xl font-bold text-indigo-700 transition-all duration-300 scale-105';
+                    explanationDisplay.textContent = '虚軸上です';
+                }
+                equationDisplay.innerHTML = `${prevVal} &times; i = ${displayNext}`;
+            }
+        }
+
+        // 描画メイン関数
+        function draw() {
+            ctx.clearRect(0, 0, WIDTH, HEIGHT);
+            drawAxes();
+            drawUnitCircle();
+
+            if (currentAngle > 0) {
+                drawRotationArc();
+            }
+
+            drawVector(currentAngle);
+
+            if (currentAngle < targetAngle) {
+                isAnimating = true;
+                let diff = targetAngle - currentAngle;
+                let speed = Math.max(0.02, diff * 0.1); 
+                currentAngle += speed;
+                
+                if (currentAngle > targetAngle - 0.01) {
+                    currentAngle = targetAngle;
+                    isAnimating = false;
+                }
+                requestAnimationFrame(draw);
+            } else {
+                isAnimating = false;
+            }
+        }
+
+        // 座標軸の描画
+        function drawAxes() {
+            ctx.save();
+            ctx.strokeStyle = '#cbd5e1';
+            ctx.lineWidth = 2;
+            
+            ctx.beginPath();
+            ctx.moveTo(20, CY);
+            ctx.lineTo(WIDTH - 20, CY);
+            ctx.stroke();
+            drawArrowHead(WIDTH - 20, CY, 0);
+            
+            ctx.beginPath();
+            ctx.moveTo(CX, HEIGHT - 20);
+            ctx.lineTo(CX, 20);
+            ctx.stroke();
+            drawArrowHead(CX, 20, -Math.PI/2);
+
+            ctx.font = 'bold 16px sans-serif';
+            ctx.fillStyle = '#64748b';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            
+            ctx.fillText('Re (実軸)', WIDTH - 40, CY + 20);
+            ctx.fillText('Im (虚軸)', CX + 35, 30);
+
+            ctx.font = '16px sans-serif';
+            ctx.fillStyle = '#334155';
+            
+            ctx.beginPath(); ctx.arc(CX + UNIT, CY, 3, 0, Math.PI*2); ctx.fill();
+            ctx.fillText('1', CX + UNIT + 15, CY + 15);
+            ctx.beginPath(); ctx.arc(CX - UNIT, CY, 3, 0, Math.PI*2); ctx.fill();
+            ctx.fillText('-1', CX - UNIT - 15, CY + 15);
+            ctx.beginPath(); ctx.arc(CX, CY - UNIT, 3, 0, Math.PI*2); ctx.fill();
+            ctx.fillText('i', CX + 15, CY - UNIT - 10);
+            ctx.beginPath(); ctx.arc(CX, CY + UNIT, 3, 0, Math.PI*2); ctx.fill();
+            ctx.fillText('-i', CX + 15, CY + UNIT + 15);
+
+            ctx.restore();
+        }
+
+        function drawUnitCircle() {
+            ctx.save();
+            ctx.strokeStyle = '#e2e8f0';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.arc(CX, CY, UNIT, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        function drawRotationArc() {
+            ctx.save();
+            ctx.fillStyle = 'rgba(59, 130, 246, 0.1)';
+            ctx.beginPath();
+            ctx.moveTo(CX, CY);
+            ctx.arc(CX, CY, UNIT, 0, -currentAngle, true); 
+            ctx.lineTo(CX, CY);
+            ctx.fill();
+            
+            ctx.strokeStyle = 'rgba(59, 130, 246, 0.5)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(CX, CY, UNIT, 0, -currentAngle, true);
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        function drawVector(angle) {
+            ctx.save();
+            const mathX = Math.cos(angle);
+            const mathY = Math.sin(angle);
+            const endX = CX + mathX * UNIT;
+            const endY = CY - mathY * UNIT;
+
+            let color = '#2563eb';
+            if (stepCount % 4 === 2 && !isAnimating && currentAngle === targetAngle) {
+                color = '#dc2626';
+            }
+
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(CX, CY);
+            ctx.lineTo(endX, endY);
+            ctx.stroke();
+
+            drawArrowHead(endX, endY, -angle, color, 12);
+            ctx.restore();
+        }
+
+        function drawArrowHead(x, y, angle, color = '#cbd5e1', size = 10) {
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(angle);
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(-size, -size/2);
+            ctx.lineTo(-size, size/2);
+            ctx.closePath();
+            ctx.fill();
+            ctx.restore();
+        }
+
+        multiplyBtn.addEventListener('click', () => {
+            if (isAnimating) return; 
+            stepCount++;
+            targetAngle += Math.PI / 2;
+            updateUI();
+            draw();
+        });
+
+        resetBtn.addEventListener('click', () => {
+            if (isAnimating) return;
+            stepCount = 0;
+            currentAngle = 0;
+            targetAngle = 0;
+            updateUI();
+            draw();
+        });
+
+        updateUI();
+        draw();
+    </script>
+</body>
+</html>

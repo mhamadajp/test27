@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>虚数単位 i の回転シミュレーション</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* カスタムフォントと基本設定 */
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            background-color: #f3f4f6;
+        }
+        canvas {
+            touch-action: none; /* スマホでのスクロール干渉防止 */
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen p-4">
+
+    <div class="bg-white p-6 rounded-2xl shadow-xl w-full max-w-2xl text-center">
+        <h1 class="text-2xl font-bold text-gray-800 mb-2">複素数平面と <i>i</i> の掛け算</h1>
+        <p class="text-gray-600 mb-6 text-sm">
+            「数に <i>i</i> を掛ける」ことは、図形的に「反時計回りに90度回転する」ことを意味します。
+        </p>
+
+        <!-- 数式・状態表示エリア -->
+        <div class="h-20 flex flex-col items-center justify-center mb-4 bg-blue-50 rounded-lg border border-blue-100">
+            <div id="equationDisplay" class="text-3xl font-bold text-blue-700 transition-all duration-300">
+                スタート: 1
+            </div>
+            <div id="explanationDisplay" class="text-sm text-gray-500 mt-1">
+                実軸の「1」からスタートします
+            </div>
+        </div>
+
+        <!-- Canvas コンテナ -->
+        <div class="relative inline-block border-2 border-gray-200 rounded-lg overflow-hidden bg-white shadow-inner mb-6">
+            <canvas id="complexPlane" width="400" height="400" class="block mx-auto"></canvas>
+        </div>
+
+        <!-- コントロールボタン -->
+        <div class="flex flex-wrap justify-center gap-4">
+            <button id="multiplyBtn" class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-full shadow-md transition-transform transform hover:scale-105 active:scale-95 flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
+                × i を掛ける (90度回転)
+            </button>
+            <button id="resetBtn" class="px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold rounded-full shadow-md transition-transform transform hover:scale-105 active:scale-95">
+                リセット
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('complexPlane');
+        const ctx = canvas.getContext('2d');
+        const multiplyBtn = document.getElementById('multiplyBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const equationDisplay = document.getElementById('equationDisplay');
+        const explanationDisplay = document.getElementById('explanationDisplay');
+
+        // 定数設定
+        const WIDTH = canvas.width;
+        const HEIGHT = canvas.height;
+        const CX = WIDTH / 2; // 中心X
+        const CY = HEIGHT / 2; // 中心Y
+        const UNIT = 120; // 1の長さを何ピクセルにするか
+
+        // 状態変数
+        let currentAngle = 0; // 現在の描画角度（ラジアン）
+        let targetAngle = 0;  // 目標角度（ラジアン）
+        let stepCount = 0;    // iを掛けた回数
+        let isAnimating = false;
+
+        // 値の表示用配列 (1, i, -1, -i)
+        const values = ['1', 'i', '-1', '-i'];
+
+        // 数式・テキストの更新
+        function updateUI() {
+            const currentVal = values[stepCount % 4];
+            
+            if (stepCount === 0) {
+                equationDisplay.textContent = 'スタート: 1';
+                equationDisplay.className = 'text-3xl font-bold text-blue-700 transition-all duration-300';
+                explanationDisplay.textContent = '実軸の「1」からスタートします';
+            } else if (stepCount === 1) {
+                equationDisplay.innerHTML = '1 &times; i = <span class="text-indigo-600">i</span>';
+                equationDisplay.className = 'text-3xl font-bold text-indigo-700 transition-all duration-300 scale-105';
+                explanationDisplay.textContent = '90度回転して虚数「i」になりました';
+            } else if (stepCount === 2) {
+                equationDisplay.innerHTML = 'i &times; i = <span class="text-red-600">-1</span>';
+                equationDisplay.className = 'text-4xl font-extrabold text-red-600 transition-all duration-300 scale-110';
+                explanationDisplay.textContent = 'さらに90度回転！180度反転したので -1 になります (i² = -1)';
+            } else {
+                const prevVal = values[(stepCount - 1) % 4];
+                let displayNext = currentVal;
+                if (currentVal === '1') {
+                    displayNext = '1';
+                    equationDisplay.className = 'text-3xl font-bold text-blue-700 transition-all duration-300';
+                    explanationDisplay.textContent = '一周回って 1 に戻りました';
+                } else if (currentVal === '-1') {
+                    equationDisplay.className = 'text-4xl font-extrabold text-red-600 transition-all duration-300 scale-110';
+                    explanationDisplay.textContent = '実軸のマイナス側です';
+                } else {
+                    equationDisplay.className = 'text-3xl font-bold text-indigo-700 transition-all duration-300 scale-105';
+                    explanationDisplay.textContent = '虚軸上です';
+                }
+                equationDisplay.innerHTML = `${prevVal} &times; i = ${displayNext}`;
+            }
+        }
+
+        // 描画メイン関数
+        function draw() {
+            // キャンバスをクリア
+            ctx.clearRect(0, 0, WIDTH, HEIGHT);
+
+            // 座標系を描画
+            drawAxes();
+
+            // 単位円を描画（軌跡）
+            drawUnitCircle();
+
+            // 回転の軌跡（塗りつぶし扇形）を描画
+            if (currentAngle > 0) {
+                drawRotationArc();
+            }
+
+            // 現在のベクトル（矢印）を描画
+            drawVector(currentAngle);
+
+            // アニメーションの処理
+            if (currentAngle < targetAngle) {
+                isAnimating = true;
+                // イージング（徐々に近づく）か定速か。今回は見やすさ重視で定速+減速
+                let diff = targetAngle - currentAngle;
+                let speed = Math.max(0.02, diff * 0.1); 
+                currentAngle += speed;
+                
+                if (currentAngle > targetAngle - 0.01) {
+                    currentAngle = targetAngle; // ぴったり止める
+                    isAnimating = false;
+                }
+                requestAnimationFrame(draw);
+            } else {
+                isAnimating = false;
+            }
+        }
+
+        // 座標軸の描画
+        function drawAxes() {
+            ctx.save();
+            ctx.strokeStyle = '#cbd5e1'; // gray-300
+            ctx.lineWidth = 2;
+            
+            // X軸 (実軸)
+            ctx.beginPath();
+            ctx.moveTo(20, CY);
+            ctx.lineTo(WIDTH - 20, CY);
+            ctx.stroke();
+            drawArrowHead(WIDTH - 20, CY, 0);
+            
+            // Y軸 (虚軸) - CanvasはYが下向きに増加するので注意
+            ctx.beginPath();
+            ctx.moveTo(CX, HEIGHT - 20);
+            ctx.lineTo(CX, 20);
+            ctx.stroke();
+            drawArrowHead(CX, 20, -Math.PI/2);
+
+            // ラベル
+            ctx.font = 'bold 16px sans-serif';
+            ctx.fillStyle = '#64748b'; // gray-500
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            
+            ctx.fillText('Re (実軸)', WIDTH - 40, CY + 20);
+            ctx.fillText('Im (虚軸)', CX + 35, 30);
+
+            // 目盛りと数字
+            ctx.font = '16px sans-serif';
+            ctx.fillStyle = '#334155'; // gray-700
+            
+            // 1
+            ctx.beginPath(); ctx.arc(CX + UNIT, CY, 3, 0, Math.PI*2); ctx.fill();
+            ctx.fillText('1', CX + UNIT + 15, CY + 15);
+            // -1
+            ctx.beginPath(); ctx.arc(CX - UNIT, CY, 3, 0, Math.PI*2); ctx.fill();
+            ctx.fillText('-1', CX - UNIT - 15, CY + 15);
+            // i
+            ctx.beginPath(); ctx.arc(CX, CY - UNIT, 3, 0, Math.PI*2); ctx.fill();
+            ctx.fillText('i', CX + 15, CY - UNIT - 10);
+            // -i
+            ctx.beginPath(); ctx.arc(CX, CY + UNIT, 3, 0, Math.PI*2); ctx.fill();
+            ctx.fillText('-i', CX + 15, CY + UNIT + 15);
+
+            ctx.restore();
+        }
+
+        // 単位円の描画
+        function drawUnitCircle() {
+            ctx.save();
+            ctx.strokeStyle = '#e2e8f0'; // gray-200
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.arc(CX, CY, UNIT, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        // 回転の軌跡（扇形）の描画
+        function drawRotationArc() {
+            ctx.save();
+            ctx.fillStyle = 'rgba(59, 130, 246, 0.1)'; // blue-500 with opacity
+            ctx.beginPath();
+            ctx.moveTo(CX, CY);
+            // Canvasでは角度は時計回りが正なので、マイナスをつけて反時計回りにする
+            ctx.arc(CX, CY, UNIT, 0, -currentAngle, true); 
+            ctx.lineTo(CX, CY);
+            ctx.fill();
+            
+            // 軌跡の線
+            ctx.strokeStyle = 'rgba(59, 130, 246, 0.5)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(CX, CY, UNIT, 0, -currentAngle, true);
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        // ベクトル（矢印）の描画
+        function drawVector(angle) {
+            ctx.save();
+            // 数学の角度（反時計回り）をCanvasの座標系に変換
+            const mathX = Math.cos(angle);
+            const mathY = Math.sin(angle);
+            const endX = CX + mathX * UNIT;
+            const endY = CY - mathY * UNIT; // Yは上方向がマイナス
+
+            // 線の描画
+            let color = '#2563eb'; // blue-600
+            // i^2 = -1 の時は赤っぽく強調
+            if (stepCount % 4 === 2 && !isAnimating && currentAngle === targetAngle) {
+                color = '#dc2626'; // red-600
+            }
+
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(CX, CY);
+            ctx.lineTo(endX, endY);
+            ctx.stroke();
+
+            // ベクトルの先端の矢印
+            drawArrowHead(endX, endY, -angle, color, 12);
+            ctx.restore();
+        }
+
+        // 矢印の頭を描画する補助関数
+        function drawArrowHead(x, y, angle, color = '#cbd5e1', size = 10) {
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(angle);
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(-size, -size/2);
+            ctx.lineTo(-size, size/2);
+            ctx.closePath();
+            ctx.fill();
+            ctx.restore();
+        }
+
+        // イベントリスナー：iを掛けるボタン
+        multiplyBtn.addEventListener('click', () => {
+            if (isAnimating) return; // アニメーション中は無効化
+            
+            stepCount++;
+            targetAngle += Math.PI / 2; // 90度（π/2ラジアン）追加
+            updateUI();
+            draw(); // アニメーション開始
+        });
+
+        // イベントリスナー：リセットボタン
+        resetBtn.addEventListener('click', () => {
+            if (isAnimating) return;
+            
+            stepCount = 0;
+            currentAngle = 0;
+            targetAngle = 0;
+            updateUI();
+            draw(); // 再描画
+        });
+
+        // 初期描画
+        updateUI();
+        draw();
+
+    </script>
+</body>
+</html>

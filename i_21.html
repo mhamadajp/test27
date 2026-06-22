@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>複素数の掛け算シミュレーション（長さと角度）</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            background-color: #f3f4f6;
+        }
+        canvas {
+            touch-action: none;
+        }
+        /* スライダーの見た目調整 */
+        input[type=range] {
+            accent-color: currentColor;
+        }
+    </style>
+</head>
+<body class="p-2 sm:p-4 md:p-8 min-h-screen flex items-center justify-center">
+
+    <div class="bg-white p-4 sm:p-6 md:p-8 rounded-2xl shadow-xl w-full max-w-5xl flex flex-col md:flex-row gap-6 md:gap-8">
+        
+        <div class="flex-1 flex flex-col items-center">
+            <h1 class="text-xl sm:text-2xl font-bold text-gray-800 mb-2 text-center">複素数の掛け算シミュレーション</h1>
+            <p class="text-xs sm:text-sm text-gray-600 mb-4 text-center">
+                <i>Z</i><sub>1</sub> &times; <i>Z</i><sub>2</sub> を計算するとどうなるか、視覚的に確認しましょう。
+            </p>
+            
+            <div class="relative w-full max-w-[460px] mx-auto border-2 border-gray-200 rounded-lg overflow-hidden bg-white shadow-inner">
+                <canvas id="complexPlane" width="460" height="460" class="w-full h-auto block mx-auto"></canvas>
+            </div>
+
+            <div id="animDescription" class="mt-4 min-h-[4rem] w-full max-w-[460px] flex items-center justify-center text-center p-3 bg-gray-50 rounded-lg border border-gray-200 font-bold text-sm sm:text-base text-gray-700 transition-all duration-300">
+                スライダーで <i>Z</i><sub>1</sub> と <i>Z</i><sub>2</sub> を設定し、「計算開始」を押してください。
+            </div>
+        </div>
+
+        <div class="w-full md:w-80 flex flex-col gap-4 sm:gap-6 mx-auto max-w-[460px] md:max-w-none">
+            
+            <div class="bg-blue-50 border-l-4 border-blue-500 p-3 sm:p-4 rounded-r-lg">
+                <h2 class="text-base sm:text-lg font-bold text-blue-700 mb-3 flex justify-between items-center">
+                    <span><i>Z</i><sub>1</sub> (青)</span>
+                    <span id="z1_math" class="text-xs sm:text-sm font-normal bg-blue-100 px-2 py-1 rounded"></span>
+                </h2>
+                <div class="mb-3">
+                    <label class="flex justify-between items-center text-xs sm:text-sm text-blue-800 mb-1">
+                        <span>長さ (絶対値 <i>r</i><sub>1</sub>)</span>
+                        <input type="number" id="z1r_num" class="w-16 text-right font-bold bg-white border border-blue-300 rounded p-1" min="0.1" max="3.0" step="0.1" value="1.5">
+                    </label>
+                    <input type="range" id="z1r" min="0.1" max="3.0" step="0.1" value="1.5" class="w-full text-blue-500">
+                </div>
+                <div>
+                    <label class="flex justify-between items-center text-xs sm:text-sm text-blue-800 mb-1">
+                        <span>角度 (偏角 <i>&theta;</i><sub>1</sub>)</span>
+                        <div class="flex items-center">
+                            <input type="number" id="z1t_num" class="w-16 text-right font-bold bg-white border border-blue-300 rounded p-1" step="1" value="30">
+                            <span class="ml-1 text-xs sm:text-sm">°</span>
+                        </div>
+                    </label>
+                    <input type="range" id="z1t" min="0" max="360" step="1" value="30" class="w-full text-blue-500">
+                </div>
+            </div>
+
+            <div class="bg-green-50 border-l-4 border-green-500 p-3 sm:p-4 rounded-r-lg">
+                <h2 class="text-base sm:text-lg font-bold text-green-700 mb-3 flex justify-between items-center">
+                    <span><i>Z</i><sub>2</sub> (緑)</span>
+                    <span id="z2_math" class="text-xs sm:text-sm font-normal bg-green-100 px-2 py-1 rounded"></span>
+                </h2>
+                <div class="mb-3">
+                    <label class="flex justify-between items-center text-xs sm:text-sm text-green-800 mb-1">
+                        <span>長さ (絶対値 <i>r</i><sub>2</sub>)</span>
+                        <input type="number" id="z2r_num" class="w-16 text-right font-bold bg-white border border-green-300 rounded p-1" min="0.1" max="3.0" step="0.1" value="1.2">
+                    </label>
+                    <input type="range" id="z2r" min="0.1" max="3.0" step="0.1" value="1.2" class="w-full text-green-500">
+                </div>
+                <div>
+                    <label class="flex justify-between items-center text-xs sm:text-sm text-green-800 mb-1">
+                        <span>角度 (偏角 <i>&theta;</i><sub>2</sub>)</span>
+                        <div class="flex items-center">
+                            <input type="number" id="z2t_num" class="w-16 text-right font-bold bg-white border border-green-300 rounded p-1" step="1" value="60">
+                            <span class="ml-1 text-xs sm:text-sm">°</span>
+                        </div>
+                    </label>
+                    <input type="range" id="z2t" min="0" max="360" step="1" value="60" class="w-full text-green-500">
+                </div>
+            </div>
+
+            <button id="calcBtn" class="w-full py-3 sm:py-4 bg-red-500 hover:bg-red-600 text-white font-bold text-base sm:text-lg rounded-xl shadow-lg transition-transform transform hover:scale-105 active:scale-95 flex items-center justify-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 7-7 7 7"/><path d="M12 19V5"/></svg>
+                <i>Z</i><sub>1</sub> &times; <i>Z</i><sub>2</sub> を計算開始
+            </button>
+            
+            <button id="resetBtn" class="w-full py-2 sm:py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold text-sm sm:text-base rounded-xl shadow transition-colors">
+                位置をリセット
+            </button>
+
+            <div class="text-xs text-gray-500 mt-1 text-center md:text-left">
+                ※ 破線の円は長さ「1」の単位円です。
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('complexPlane');
+        const ctx = canvas.getContext('2d');
+        const animDesc = document.getElementById('animDescription');
+
+        const WIDTH = canvas.width;
+        const HEIGHT = canvas.height;
+        const CX = WIDTH / 2;
+        const CY = HEIGHT / 2;
+        const UNIT = 70; // 1の長さを70pxとする（最大半径3.somethingまで描画可能）
+
+        // 状態
+        let z1 = { r: 1.5, t: 30 };
+        let z2 = { r: 1.2, t: 60 };
+
+        // アニメーション状態
+        let animState = 'idle'; // 'idle', 'rotating', 'scaling', 'done'
+        let animProgress = 0;
+        let animStartTime = 0;
+        const DURATION_ROTATE = 1200; // 回転にかける時間(ms)
+        const DURATION_SCALE = 1200;  // 伸縮にかける時間(ms)
+
+        // UI要素の取得
+        const els = {
+            z1r: document.getElementById('z1r'),
+            z1t: document.getElementById('z1t'),
+            z2r: document.getElementById('z2r'),
+            z2t: document.getElementById('z2t'),
+            z1r_num: document.getElementById('z1r_num'),
+            z1t_num: document.getElementById('z1t_num'),
+            z2r_num: document.getElementById('z2r_num'),
+            z2t_num: document.getElementById('z2t_num'),
+            z1_math: document.getElementById('z1_math'),
+            z2_math: document.getElementById('z2_math'),
+        };
+
+        // スライダーからのイベント
+        function updateFromRange() {
+            els.z1r_num.value = els.z1r.value;
+            els.z1t_num.value = els.z1t.value;
+            els.z2r_num.value = els.z2r.value;
+            els.z2t_num.value = els.z2t.value;
+            updateState();
+        }
+
+        // 数値入力からのイベント
+        function updateFromNum() {
+            els.z1r.value = els.z1r_num.value;
+            els.z1t.value = els.z1t_num.value;
+            els.z2r.value = els.z2r_num.value;
+            els.z2t.value = els.z2t_num.value;
+            updateState();
+        }
+
+        function updateState() {
+            // 入力欄からパース (スライダーの360度制限を超える手入力も許容するため)
+            z1.r = parseFloat(els.z1r_num.value) || 0;
+            z1.t = parseInt(els.z1t_num.value) || 0;
+            z2.r = parseFloat(els.z2r_num.value) || 0;
+            z2.t = parseInt(els.z2t_num.value) || 0;
+            
+            els.z1_math.textContent = `${z1.r.toFixed(1)} (cos ${z1.t}° + i sin ${z1.t}°)`;
+            els.z2_math.textContent = `${z2.r.toFixed(1)} (cos ${z2.t}° + i sin ${z2.t}°)`;
+
+            resetAnimation();
+        }
+
+        ['z1r', 'z1t', 'z2r', 'z2t'].forEach(id => {
+            els[id].addEventListener('input', updateFromRange);
+        });
+
+        ['z1r_num', 'z1t_num', 'z2r_num', 'z2t_num'].forEach(id => {
+            els[id].addEventListener('input', updateFromNum);
+        });
+
+        document.getElementById('calcBtn').addEventListener('click', () => {
+            if (animState === 'idle' || animState === 'done') {
+                animState = 'rotating';
+                animStartTime = performance.now();
+                requestAnimationFrame(animationLoop);
+            }
+        });
+
+        document.getElementById('resetBtn').addEventListener('click', resetAnimation);
+
+        function resetAnimation() {
+            animState = 'idle';
+            animProgress = 0;
+            animDesc.innerHTML = 'スライダーで <i>Z</i><sub>1</sub> と <i>Z</i><sub>2</sub> を設定し、「計算開始」を押してください。';
+            animDesc.className = "mt-4 min-h-[4rem] w-full max-w-[460px] flex items-center justify-center text-center p-3 bg-gray-50 rounded-lg border border-gray-200 font-bold text-sm sm:text-base text-gray-700 transition-all duration-300";
+            draw();
+        }
+
+        // イージング関数（滑らかに動かす）
+        function easeInOutQuad(t) {
+            return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+        }
+
+        // アニメーションループ
+        function animationLoop(time) {
+            if (animState === 'idle') return;
+
+            let elapsed = time - animStartTime;
+
+            if (animState === 'rotating') {
+                animProgress = Math.min(elapsed / DURATION_ROTATE, 1.0);
+                animDesc.innerHTML = '【Step 1】<br class="block sm:hidden"><span class="text-blue-600">Z₁ の角度</span> に <span class="text-green-600">Z₂ の角度を足す</span>（回転）';
+                animDesc.className = "mt-4 min-h-[4rem] w-full max-w-[460px] flex flex-col sm:flex-row items-center justify-center text-center p-3 bg-yellow-50 rounded-lg border border-yellow-200 font-bold text-sm sm:text-base text-yellow-800 transition-all duration-300";
+
+                if (animProgress >= 1.0) {
+                    animState = 'scaling';
+                    animStartTime = time;
+                }
+            } else if (animState === 'scaling') {
+                animProgress = Math.min(elapsed / DURATION_SCALE, 1.0);
+                animDesc.innerHTML = '【Step 2】<br class="block sm:hidden">回転後の <span class="text-blue-600">Z₁ の長さ</span> に <span class="text-green-600">Z₂ の長さを掛ける</span>（伸縮）';
+                animDesc.className = "mt-4 min-h-[4rem] w-full max-w-[460px] flex flex-col sm:flex-row items-center justify-center text-center p-3 bg-orange-50 rounded-lg border border-orange-200 font-bold text-sm sm:text-base text-orange-800 transition-all duration-300";
+
+                if (animProgress >= 1.0) {
+                    animState = 'done';
+                }
+            }
+
+            draw();
+
+            if (animState === 'done') {
+                let ansR = (z1.r * z2.r).toFixed(2);
+                let ansT = (z1.t + z2.t) % 360;
+                animDesc.innerHTML = `【完了】Z₁ × Z₂ は<br class="block sm:hidden">長さ <span class="text-red-600 font-extrabold">${ansR}</span>、角度 <span class="text-red-600 font-extrabold">${ansT}°</span> になりました！`;
+                animDesc.className = "mt-4 min-h-[4rem] w-full max-w-[460px] flex flex-col sm:flex-row items-center justify-center text-center p-3 bg-red-50 rounded-lg border border-red-200 font-bold text-sm sm:text-base text-red-800 transition-all duration-300 scale-105";
+            } else {
+                requestAnimationFrame(animationLoop);
+            }
+        }
+
+        // 描画メイン
+        function draw() {
+            ctx.clearRect(0, 0, WIDTH, HEIGHT);
+            drawAxes();
+            drawUnitCircle();
+
+            // Z1とZ2を常に描画
+            drawVector(z1.r, z1.t, '#3b82f6', 'Z₁'); // blue-500
+            drawVector(z2.r, z2.t, '#22c55e', 'Z₂'); // green-500
+
+            // アニメーション中の描画
+            if (animState !== 'idle') {
+                let currentR = z1.r;
+                let currentT = z1.t;
+
+                if (animState === 'rotating') {
+                    let p = easeInOutQuad(animProgress);
+                    currentT = z1.t + z2.t * p;
+                    
+                    // 角度の足し算を示す扇形
+                    drawArc(z1.t, currentT, z1.r, 'rgba(239, 68, 68, 0.2)', 'rgba(239, 68, 68, 0.5)'); // red
+                } else if (animState === 'scaling' || animState === 'done') {
+                    currentT = z1.t + z2.t;
+                    let p = animState === 'done' ? 1.0 : easeInOutQuad(animProgress);
+                    let targetR = z1.r * z2.r;
+                    currentR = z1.r + (targetR - z1.r) * p;
+
+                    // 扇形は最終状態で固定
+                    drawArc(z1.t, currentT, z1.r, 'rgba(239, 68, 68, 0.1)', 'rgba(239, 68, 68, 0.3)');
+                }
+
+                // 計算中の動くベクトル
+                drawVector(currentR, currentT, '#ef4444', 'Z₁×Z₂', true); // red-500
+            }
+        }
+
+        // --- 描画補助関数 ---
+
+        function polarToCanvas(r, tDeg) {
+            let tRad = tDeg * Math.PI / 180;
+            return {
+                x: CX + r * UNIT * Math.cos(tRad),
+                y: CY - r * UNIT * Math.sin(tRad) // CanvasはY下向きなのでマイナス
+            };
+        }
+
+        function drawAxes() {
+            ctx.save();
+            ctx.strokeStyle = '#cbd5e1';
+            ctx.lineWidth = 1;
+            
+            // X, Y axes
+            ctx.beginPath(); ctx.moveTo(0, CY); ctx.lineTo(WIDTH, CY); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(CX, 0); ctx.lineTo(CX, HEIGHT); ctx.stroke();
+            
+            // 目盛り
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = '12px sans-serif';
+            ctx.textAlign = 'center';
+            for(let i=1; i<=3; i++) {
+                ctx.fillText(i, CX + i*UNIT, CY + 15);
+                ctx.fillText(-i, CX - i*UNIT, CY + 15);
+                if(i !== 0) {
+                    ctx.fillText(i+'i', CX - 15, CY - i*UNIT + 4);
+                    ctx.fillText(-i+'i', CX - 15, CY + i*UNIT + 4);
+                }
+            }
+            ctx.fillText('Re', WIDTH - 15, CY - 10);
+            ctx.fillText('Im', CX + 15, 15);
+            ctx.restore();
+        }
+
+        function drawUnitCircle() {
+            ctx.save();
+            ctx.strokeStyle = '#94a3b8';
+            ctx.lineWidth = 1;
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.arc(CX, CY, UNIT, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        function drawVector(r, tDeg, color, label, isThick = false) {
+            const pos = polarToCanvas(r, tDeg);
+            const tRad = -tDeg * Math.PI / 180; // Canvas用の角度(時計回り正)
+
+            ctx.save();
+            ctx.strokeStyle = color;
+            ctx.lineWidth = isThick ? 4 : 3;
+            
+            // 線
+            ctx.beginPath();
+            ctx.moveTo(CX, CY);
+            ctx.lineTo(pos.x, pos.y);
+            ctx.stroke();
+
+            // 矢印の頭
+            ctx.translate(pos.x, pos.y);
+            ctx.rotate(tRad);
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            let size = isThick ? 14 : 10;
+            ctx.moveTo(0, 0);
+            ctx.lineTo(-size, -size/2);
+            ctx.lineTo(-size, size/2);
+            ctx.closePath();
+            ctx.fill();
+            ctx.restore();
+
+            // ラベルの描画
+            ctx.save();
+            ctx.fillStyle = color;
+            ctx.font = isThick ? 'bold 18px sans-serif' : 'bold 16px sans-serif';
+            // ラベルの位置を少し外側にオフセット
+            const labelPos = polarToCanvas(r + 0.3, tDeg);
+            ctx.fillText(label, labelPos.x - 10, labelPos.y + 5);
+            ctx.restore();
+        }
+
+        function drawArc(startDeg, endDeg, r, fillColor, strokeColor) {
+            let startRad = -startDeg * Math.PI / 180;
+            let endRad = -endDeg * Math.PI / 180;
+            let radius = r * UNIT;
+
+            ctx.save();
+            ctx.fillStyle = fillColor;
+            ctx.beginPath();
+            ctx.moveTo(CX, CY);
+            // Canvasのarcは第4引数=startAngle, 第5引数=endAngle
+            // true を指定すると反時計回りになる
+            ctx.arc(CX, CY, radius, startRad, endRad, true);
+            ctx.closePath();
+            ctx.fill();
+
+            if (strokeColor) {
+                ctx.strokeStyle = strokeColor;
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(CX, CY, radius, startRad, endRad, true);
+                ctx.stroke();
+            }
+            ctx.restore();
+        }
+
+        // 初期化実行
+        updateFromRange();
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>順列・組み合わせシミュレーター</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+        }
+        /* <details>のデフォルトの三角マークを消す */
+        details > summary::-webkit-details-marker {
+            display: none;
+        }
+        /* アニメーション用 */
+        .fade-in {
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col md:flex-row">
+
+    <!-- 左側：コントロールパネル -->
+    <div class="w-full md:w-80 bg-white border-r border-gray-200 flex flex-col flex-shrink-0 md:h-screen md:sticky top-0 overflow-y-auto z-10 shadow-lg md:shadow-none">
+        
+        <div class="p-6 bg-blue-600 text-white">
+            <a href="index.html" class="inline-block mb-4 bg-white text-blue-700 hover:bg-blue-50 px-3 py-1.5 rounded text-xs font-bold shadow-sm transition-colors">
+                ← トップへ戻る
+            </a>
+            <h1 class="text-xl font-bold mb-1">組み合わせシミュレーター</h1>
+            <p class="text-xs text-blue-100 opacity-90">公式を「視覚」で理解しよう</p>
+        </div>
+
+        <div class="p-6 flex flex-col gap-6 flex-1">
+            
+            <!-- モード切替 -->
+            <div class="bg-gray-100 p-1 rounded-lg flex shadow-inner">
+                <button id="modeCBtn" class="flex-1 py-2 text-sm font-bold rounded-md bg-white shadow text-blue-600 transition-all">組み合わせ (C)</button>
+                <button id="modePBtn" class="flex-1 py-2 text-sm font-bold rounded-md text-gray-500 hover:text-gray-700 transition-all">順列 (P)</button>
+            </div>
+
+            <!-- スライダー設定 -->
+            <div class="space-y-4">
+                <div class="bg-gray-50 p-4 rounded border border-gray-200">
+                    <label class="flex justify-between items-center text-sm font-bold text-gray-700 mb-2">
+                        全体の数 <i>n</i>
+                        <span id="nVal" class="text-lg text-blue-600 bg-white px-2 py-0.5 rounded border border-gray-300">5</span>
+                    </label>
+                    <input type="range" id="nSlider" min="2" max="7" value="5" class="w-full accent-blue-600">
+                </div>
+                
+                <div class="bg-gray-50 p-4 rounded border border-gray-200">
+                    <label class="flex justify-between items-center text-sm font-bold text-gray-700 mb-2">
+                        選ぶ数 <i>r</i>
+                        <span id="rVal" class="text-lg text-blue-600 bg-white px-2 py-0.5 rounded border border-gray-300">3</span>
+                    </label>
+                    <input type="range" id="rSlider" min="1" max="5" value="3" class="w-full accent-blue-600">
+                </div>
+            </div>
+
+            <!-- 数式パネル（JavaScriptで動的に更新） -->
+            <div id="mathPanel" class="mt-auto transition-colors duration-300"></div>
+
+        </div>
+    </div>
+
+    <!-- 右側：結果表示エリア -->
+    <div class="flex-1 p-4 md:p-8 bg-gray-50">
+        
+        <div id="headerArea" class="mb-6 fade-in">
+            <!-- 結果の件数などを表示 -->
+        </div>
+
+        <div id="resultArea" class="fade-in">
+            <!-- カードが並ぶエリア -->
+        </div>
+        
+    </div>
+
+    <script>
+        // --- 状態管理 ---
+        let n = 5;
+        let r = 3;
+        let mode = 'C'; // 'C': 組み合わせ, 'P': 順列
+
+        // ボール（要素）の定義
+        const items = [
+            { id: 1, label: '1', color: 'bg-red-500 text-white' },
+            { id: 2, label: '2', color: 'bg-blue-500 text-white' },
+            { id: 3, label: '3', color: 'bg-green-500 text-white' },
+            { id: 4, label: '4', color: 'bg-amber-400 text-amber-900' }, // 黄色は文字を濃く
+            { id: 5, label: '5', color: 'bg-purple-500 text-white' },
+            { id: 6, label: '6', color: 'bg-pink-500 text-white' },
+            { id: 7, label: '7', color: 'bg-teal-500 text-white' }
+        ];
+
+        // --- DOM要素 ---
+        const nSlider = document.getElementById('nSlider');
+        const rSlider = document.getElementById('rSlider');
+        const nValDisplay = document.getElementById('nVal');
+        const rValDisplay = document.getElementById('rVal');
+        const modeCBtn = document.getElementById('modeCBtn');
+        const modePBtn = document.getElementById('modePBtn');
+        const mathPanel = document.getElementById('mathPanel');
+        const headerArea = document.getElementById('headerArea');
+        const resultArea = document.getElementById('resultArea');
+
+        // --- 数学関数 ---
+        function fact(num) {
+            if (num <= 1) return 1;
+            return num * fact(num - 1);
+        }
+
+        // 順列を生成
+        function getPermutations(arr, size) {
+            const result = [];
+            function permute(current, remaining) {
+                if (current.length === size) {
+                    result.push(current);
+                    return;
+                }
+                for (let i = 0; i < remaining.length; i++) {
+                    const next = current.concat([remaining[i]]);
+                    const rest = remaining.slice(0, i).concat(remaining.slice(i + 1));
+                    permute(next, rest);
+                }
+            }
+            permute([], arr);
+            return result;
+        }
+
+        // 組み合わせを生成
+        function getCombinations(arr, size) {
+            const result = [];
+            function combine(current, start) {
+                if (current.length === size) {
+                    result.push(current);
+                    return;
+                }
+                for (let i = start; i < arr.length; i++) {
+                    combine(current.concat([arr[i]]), i + 1);
+                }
+            }
+            combine([], 0);
+            return result;
+        }
+
+        // --- UI更新処理 ---
+
+        // ボールを描画するヘルパー関数
+        function renderBalls(itemArray, sizeClass = "w-8 h-8 text-base") {
+            return `<div class="flex items-center gap-1">` + 
+                   itemArray.map(item => `<div class="${sizeClass} rounded-full shadow-sm border border-black/10 flex items-center justify-center font-bold ${item.color}">${item.label}</div>`).join('') + 
+                   `</div>`;
+        }
+
+        // メインの描画関数
+        function update() {
+            // 表示のリセットとアニメーションの再トリガー
+            headerArea.classList.remove('fade-in');
+            resultArea.classList.remove('fade-in');
+            void headerArea.offsetWidth; // リフローを強制
+            headerArea.classList.add('fade-in');
+            resultArea.classList.add('fade-in');
+
+            const arr = items.slice(0, n);
+            
+            if (mode === 'C') {
+                const combs = getCombinations(arr, r);
+                const rFact = fact(r);
+                
+                headerArea.innerHTML = `
+                    <h2 class="text-xl md:text-2xl font-bold text-gray-800 border-l-4 border-blue-500 pl-3">
+                        組み合わせ (Combination) の結果
+                    </h2>
+                    <p class="text-gray-600 mt-2">順番を区別せずに選ぶと、全部で <b class="text-3xl text-blue-600">${combs.length}</b> 通りあります。</p>
+                `;
+                
+                let html = `<div class="grid grid-cols-1 xl:grid-cols-2 gap-4">`;
+                
+                combs.forEach(comb => {
+                    const subPerms = getPermutations(comb, r);
+                    const otherPerms = subPerms.slice(1);
+                    
+                    let detailsHtml = '';
+                    if (otherPerms.length > 0) {
+                        detailsHtml = `
+                        <details class="group mt-3">
+                            <summary class="text-xs text-gray-500 cursor-pointer hover:text-blue-600 font-bold list-none flex items-center gap-1 bg-gray-50 hover:bg-blue-50 p-2 rounded transition-colors border border-transparent hover:border-blue-100">
+                                <svg class="w-4 h-4 transform group-open:rotate-90 transition-transform text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                                「順番を変えたパターン（あと ${otherPerms.length} 通り）」を見る
+                            </summary>
+                            <div class="mt-3 pl-6 border-l-2 border-blue-200 flex flex-wrap gap-2">
+                                ${otherPerms.map(p => renderBalls(p, "w-6 h-6 text-xs")).join('')}
+                            </div>
+                            <div class="mt-3 ml-6 text-xs text-blue-800 font-bold bg-blue-100 border border-blue-200 p-2 rounded inline-block shadow-sm">
+                                💡 組み合わせ(C)では、上の並べ替えられた ${rFact} 通りを「すべて同じ1つ」としてグループ化してカウントします。
+                            </div>
+                        </details>`;
+                    } else {
+                        detailsHtml = `<div class="mt-3 text-xs text-gray-400 bg-gray-50 p-2 rounded">※選ぶ数が1つなので、並べ替えパターンはありません。</div>`;
+                    }
+
+                    html += `
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 hover:shadow-md transition-shadow relative overflow-hidden">
+                        <div class="absolute top-0 left-0 w-1.5 h-full bg-blue-500"></div>
+                        <div class="ml-2">
+                            ${renderBalls(comb)}
+                            ${detailsHtml}
+                        </div>
+                    </div>`;
+                });
+                html += `</div>`;
+                resultArea.innerHTML = html;
+                
+            } else { // P mode
+                const perms = getPermutations(arr, r);
+                
+                headerArea.innerHTML = `
+                    <h2 class="text-xl md:text-2xl font-bold text-gray-800 border-l-4 border-orange-500 pl-3">
+                        順列 (Permutation) の結果
+                    </h2>
+                    <p class="text-gray-600 mt-2">順番を区別して並べると、全部で <b class="text-3xl text-orange-600">${perms.length}</b> 通りあります。</p>
+                `;
+
+                let html = `<div class="flex flex-wrap gap-3">`;
+                perms.forEach(perm => {
+                    html += `
+                    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-3 hover:border-orange-400 hover:shadow-md transition-all cursor-default">
+                        ${renderBalls(perm)}
+                    </div>`;
+                });
+                html += `</div>`;
+                resultArea.innerHTML = html;
+            }
+            
+            updateMathPanel();
+        }
+
+        // 数式パネルの更新
+        function updateMathPanel() {
+            const pValue = fact(n) / fact(n - r);
+            const cValue = pValue / fact(r);
+            
+            let p_str = [];
+            for(let i=0; i<r; i++) p_str.push(n - i);
+            const p_formula = p_str.join(" &times; ");
+            
+            let r_str = [];
+            for(let i=r; i>=1; i--) r_str.push(i);
+            const r_formula = r_str.join(" &times; ");
+
+            if (mode === 'P') {
+                mathPanel.innerHTML = `
+                    <div class="text-sm font-bold text-orange-800 mb-2 border-b border-orange-200 pb-1">順列の計算式</div>
+                    <div class="text-3xl font-serif text-center my-4 text-gray-800"><sub>${n}</sub>P<sub>${r}</sub></div>
+                    <div class="text-center font-mono text-sm text-gray-700 bg-white/60 p-3 rounded shadow-sm border border-orange-100">
+                        <div class="mb-1 text-xs text-gray-500">n から r 個分かけ算する</div>
+                        ${p_formula} <br> = <b class="text-xl text-orange-600">${pValue}</b>
+                    </div>
+                `;
+                mathPanel.className = "bg-orange-50 p-5 rounded-xl border border-orange-200 transition-colors duration-300";
+            } else {
+                mathPanel.innerHTML = `
+                    <div class="text-sm font-bold text-blue-800 mb-2 border-b border-blue-200 pb-1">組み合わせの計算式</div>
+                    <div class="text-3xl font-serif text-center my-4 text-gray-800"><sub>${n}</sub>C<sub>${r}</sub></div>
+                    <div class="text-center font-mono text-sm text-gray-700 bg-white/60 p-3 rounded shadow-sm border border-blue-100 mb-2 flex items-center justify-center gap-3">
+                        <div class="flex flex-col items-center">
+                            <div class="border-b border-gray-400 pb-1 mb-1 px-2"><sub>${n}</sub>P<sub>${r}</sub> (${pValue})</div>
+                            <div class="px-2"><i>r</i>! (${r_formula} = ${fact(r)})</div>
+                        </div>
+                        <div class="text-xl">= <b class="text-xl text-blue-600">${cValue}</b></div>
+                    </div>
+                    <div class="text-xs text-gray-500 mt-2 text-center">
+                        ※「順列の総数」を「重複する並び方の数」で割っています。
+                    </div>
+                `;
+                mathPanel.className = "bg-blue-50 p-5 rounded-xl border border-blue-200 transition-colors duration-300";
+            }
+        }
+
+        // --- イベントリスナー設定 ---
+
+        function setMode(newMode) {
+            mode = newMode;
+            const baseClass = "flex-1 py-2 text-sm font-bold rounded-md transition-all ";
+            if (mode === 'C') {
+                modeCBtn.className = baseClass + "bg-white shadow text-blue-600";
+                modePBtn.className = baseClass + "text-gray-500 hover:text-gray-700";
+                nSlider.classList.replace('accent-orange-500', 'accent-blue-600');
+                rSlider.classList.replace('accent-orange-500', 'accent-blue-600');
+                nValDisplay.className = "text-lg text-blue-600 bg-white px-2 py-0.5 rounded border border-gray-300";
+                rValDisplay.className = "text-lg text-blue-600 bg-white px-2 py-0.5 rounded border border-gray-300";
+            } else {
+                modePBtn.className = baseClass + "bg-white shadow text-orange-600";
+                modeCBtn.className = baseClass + "text-gray-500 hover:text-gray-700";
+                nSlider.classList.replace('accent-blue-600', 'accent-orange-500');
+                rSlider.classList.replace('accent-blue-600', 'accent-orange-500');
+                nValDisplay.className = "text-lg text-orange-600 bg-white px-2 py-0.5 rounded border border-gray-300";
+                rValDisplay.className = "text-lg text-orange-600 bg-white px-2 py-0.5 rounded border border-gray-300";
+            }
+            update();
+        }
+
+        modeCBtn.addEventListener('click', () => setMode('C'));
+        modePBtn.addEventListener('click', () => setMode('P'));
+
+        nSlider.addEventListener('input', (e) => {
+            n = parseInt(e.target.value);
+            // 選ぶ数 r が 全体の数 n を超えないように調整
+            if (r > n) {
+                r = n;
+                rSlider.value = r;
+            }
+            rSlider.max = n;
+            nValDisplay.textContent = n;
+            rValDisplay.textContent = r;
+            update();
+        });
+
+        rSlider.addEventListener('input', (e) => {
+            r = parseInt(e.target.value);
+            rValDisplay.textContent = r;
+            update();
+        });
+
+        // 初期化
+        update();
+
+    </script>
+</body>
+</html>

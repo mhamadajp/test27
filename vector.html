@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ベクトルのシミュレーション（向きと大きさ）</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            background-color: #f8fafc;
+        }
+        canvas {
+            touch-action: none; /* スマホでのスクロール干渉を防止 */
+            cursor: grab;
+        }
+        canvas:active {
+            cursor: grabbing;
+        }
+        /* スイッチのスタイル */
+        .toggle-checkbox:checked {
+            right: 0;
+            border-color: #3b82f6;
+        }
+        .toggle-checkbox:checked + .toggle-label {
+            background-color: #3b82f6;
+        }
+    </style>
+</head>
+<body class="p-2 sm:p-4 md:p-8 min-h-screen flex items-center justify-center">
+
+    <div class="bg-white p-4 sm:p-6 md:p-8 rounded-2xl shadow-xl w-full max-w-5xl flex flex-col lg:flex-row gap-6 lg:gap-8">
+        
+        <div class="flex-1 flex flex-col items-center">
+            <h1 class="text-xl sm:text-2xl font-bold text-gray-800 mb-2 border-b-2 border-gray-100 pb-3 w-full text-center">
+                ベクトル ＝「向き」と「大きさ」
+            </h1>
+            <p class="text-sm text-gray-600 mb-4 text-center">
+                矢印の<span class="text-blue-600 font-bold">先端（青）</span>や<span class="text-red-600 font-bold">根本（赤）</span>をドラッグして動かしてみましょう。
+            </p>
+            
+            <div class="relative w-full max-w-[400px] mx-auto border-2 border-gray-200 rounded-lg overflow-hidden bg-slate-50 shadow-inner">
+                <canvas id="vectorCanvas" width="400" height="400" class="w-full h-auto block mx-auto"></canvas>
+            </div>
+
+            <div class="mt-6 flex items-center justify-center gap-4 w-full max-w-[400px] bg-blue-50 p-3 rounded-lg border border-blue-100">
+                <span class="text-sm font-bold text-blue-800">🌬️ 風モード（動きを視覚化）</span>
+                <div class="relative inline-block w-12 mr-2 align-middle select-none transition duration-200 ease-in">
+                    <input type="checkbox" name="toggle" id="windToggle" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer transition-transform duration-200 ease-in-out z-10"/>
+                    <label for="windToggle" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+                </div>
+            </div>
+        </div>
+
+        <div class="w-full lg:w-80 flex flex-col gap-5">
+            
+            <div class="bg-white border-2 border-gray-200 p-5 rounded-xl shadow-sm">
+                <h2 class="text-sm font-bold text-gray-500 mb-4 uppercase tracking-wide">現在のベクトルの状態</h2>
+                
+                <div class="flex items-center justify-between mb-4 bg-gray-50 p-3 rounded-lg border border-gray-200">
+                    <div class="text-gray-700 font-bold">大きさ (長さ)</div>
+                    <div class="text-2xl font-extrabold text-blue-600 font-mono" id="val_magnitude">0.0</div>
+                </div>
+                
+                <div class="flex items-center justify-between mb-4 bg-gray-50 p-3 rounded-lg border border-gray-200">
+                    <div class="text-gray-700 font-bold">向き (角度)</div>
+                    <div class="text-2xl font-extrabold text-green-600 font-mono"><span id="val_angle">0</span>°</div>
+                </div>
+
+                <div class="border-t border-gray-200 pt-3">
+                    <div class="text-xs text-gray-500 mb-1">成分表示 (参考)</div>
+                    <div class="flex justify-between text-sm font-bold font-mono text-gray-700">
+                        <span>X方向: <span id="val_x" class="text-indigo-600">0.0</span></span>
+                        <span>Y方向: <span id="val_y" class="text-indigo-600">0.0</span></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-r-xl">
+                <h3 class="font-bold text-yellow-800 mb-2">💡 ここに注目！</h3>
+                <ul class="text-sm text-yellow-900 space-y-2 list-disc ml-4">
+                    <li>先端（青丸）を引っ張ると、「大きさ」と「向き」が変わります。</li>
+                    <li><strong>根本（赤丸）を動かしてみてください。</strong>位置が変わっても、右の数値（大きさ・向き）は一切変わりません。<br><span class="text-xs text-gray-600">＝ ベクトルは「どこにあるか」ではなく「どっちにどれだけか」だけを持つ量だからです（平行移動）。</span></li>
+                </ul>
+            </div>
+
+            <div class="mt-auto">
+                <button id="resetBtn" class="w-full py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold rounded-xl shadow transition-colors">
+                    位置を中央に戻す
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('vectorCanvas');
+        const ctx = canvas.getContext('2d');
+        const resetBtn = document.getElementById('resetBtn');
+        const windToggle = document.getElementById('windToggle');
+
+        // UI要素
+        const ui = {
+            mag: document.getElementById('val_magnitude'),
+            angle: document.getElementById('val_angle'),
+            x: document.getElementById('val_x'),
+            y: document.getElementById('val_y')
+        };
+
+        const WIDTH = canvas.width;
+        const HEIGHT = canvas.height;
+        const GRID_SIZE = 40; // 1マスのピクセル数
+
+        // ベクトルの状態 (キャンバス座標系)
+        let tail = { x: WIDTH / 2, y: HEIGHT / 2 };
+        let tip = { x: WIDTH / 2 + GRID_SIZE * 3, y: HEIGHT / 2 - GRID_SIZE * 2 };
+
+        // ドラッグ状態
+        let dragState = 'none'; // 'none', 'tip', 'tail'
+        const HIT_RADIUS = 15;
+
+        // 風（パーティクル）の状態
+        let isWindMode = false;
+        let particles = [];
+        const NUM_PARTICLES = 50;
+
+        // パーティクルの初期化
+        for (let i = 0; i < NUM_PARTICLES; i++) {
+            particles.push({
+                x: Math.random() * WIDTH,
+                y: Math.random() * HEIGHT,
+                life: Math.random() * 100
+            });
+        }
+
+        // --- マウス・タッチイベント ---
+
+        function getMousePos(evt) {
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            let clientX = evt.clientX;
+            let clientY = evt.clientY;
+
+            if (evt.touches && evt.touches.length > 0) {
+                clientX = evt.touches[0].clientX;
+                clientY = evt.touches[0].clientY;
+            }
+
+            return {
+                x: (clientX - rect.left) * scaleX,
+                y: (clientY - rect.top) * scaleY
+            };
+        }
+
+        function handlePointerDown(e) {
+            const pos = getMousePos(e);
+            const distTip = Math.hypot(pos.x - tip.x, pos.y - tip.y);
+            const distTail = Math.hypot(pos.x - tail.x, pos.y - tail.y);
+
+            if (distTip < HIT_RADIUS * 1.5) {
+                dragState = 'tip';
+            } else if (distTail < HIT_RADIUS * 1.5) {
+                dragState = 'tail';
+            }
+            if(dragState !== 'none') e.preventDefault();
+        }
+
+        function handlePointerMove(e) {
+            if (dragState === 'none') return;
+            e.preventDefault();
+            
+            const pos = getMousePos(e);
+
+            if (dragState === 'tip') {
+                tip.x = pos.x;
+                tip.y = pos.y;
+            } else if (dragState === 'tail') {
+                const dx = pos.x - tail.x;
+                const dy = pos.y - tail.y;
+                tail.x = pos.x;
+                tail.y = pos.y;
+                // 平行移動のため、先端も同じだけ動かす
+                tip.x += dx;
+                tip.y += dy;
+            }
+            updateUI();
+        }
+
+        function handlePointerUp() {
+            dragState = 'none';
+        }
+
+        canvas.addEventListener('mousedown', handlePointerDown);
+        canvas.addEventListener('mousemove', handlePointerMove);
+        window.addEventListener('mouseup', handlePointerUp);
+
+        canvas.addEventListener('touchstart', handlePointerDown, {passive: false});
+        canvas.addEventListener('touchmove', handlePointerMove, {passive: false});
+        window.addEventListener('touchend', handlePointerUp);
+
+        // --- コントロールイベント ---
+
+        resetBtn.addEventListener('click', () => {
+            tail = { x: WIDTH / 2, y: HEIGHT / 2 };
+            tip = { x: WIDTH / 2 + GRID_SIZE * 3, y: HEIGHT / 2 - GRID_SIZE * 2 };
+            updateUI();
+        });
+
+        windToggle.addEventListener('change', (e) => {
+            isWindMode = e.target.checked;
+        });
+
+        // --- 計算とUI更新 ---
+
+        function updateUI() {
+            // キャンバス座標(y下向き)から数学座標(y上向き)への変換
+            const dx = (tip.x - tail.x) / GRID_SIZE;
+            const dy = -(tip.y - tail.y) / GRID_SIZE;
+
+            const mag = Math.hypot(dx, dy);
+            let angle = Math.atan2(dy, dx) * 180 / Math.PI;
+            if (angle < 0) angle += 360; // 0〜360度に正規化
+
+            ui.mag.textContent = mag.toFixed(1);
+            ui.angle.textContent = Math.round(angle);
+            ui.x.textContent = dx.toFixed(1);
+            ui.y.textContent = dy.toFixed(1);
+        }
+
+        // --- 描画 ---
+
+        function drawGrid() {
+            ctx.strokeStyle = '#e2e8f0';
+            ctx.lineWidth = 1;
+            
+            // 縦線
+            for (let x = 0; x <= WIDTH; x += GRID_SIZE) {
+                ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, HEIGHT); ctx.stroke();
+            }
+            // 横線
+            for (let y = 0; y <= HEIGHT; y += GRID_SIZE) {
+                ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(WIDTH, y); ctx.stroke();
+            }
+
+            // 中心軸（うすく）
+            ctx.strokeStyle = '#cbd5e1';
+            ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.moveTo(WIDTH/2, 0); ctx.lineTo(WIDTH/2, HEIGHT); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(0, HEIGHT/2); ctx.lineTo(WIDTH, HEIGHT/2); ctx.stroke();
+        }
+
+        function drawParticles() {
+            if (!isWindMode) return;
+
+            // 風の強さと向きをベクトルから取得
+            const vx = (tip.x - tail.x) * 0.05;
+            const vy = (tip.y - tail.y) * 0.05;
+            const speed = Math.hypot(vx, vy);
+
+            ctx.fillStyle = 'rgba(59, 130, 246, 0.4)'; // blue
+            
+            particles.forEach(p => {
+                p.x += vx;
+                p.y += vy;
+                p.life -= 1;
+
+                // 画面外に出るか寿命が尽きたらリセット
+                if (p.x < 0 || p.x > WIDTH || p.y < 0 || p.y > HEIGHT || p.life <= 0) {
+                    // 風上側に再配置するロジック（簡易版）
+                    p.x = Math.random() * WIDTH;
+                    p.y = Math.random() * HEIGHT;
+                    if (vx > 0) p.x = 0; else if (vx < 0) p.x = WIDTH;
+                    if (vy > 0) p.y = 0; else if (vy < 0) p.y = HEIGHT;
+                    
+                    // スピードが遅い時はランダム配置
+                    if(speed < 1) {
+                         p.x = Math.random() * WIDTH;
+                         p.y = Math.random() * HEIGHT;
+                    }
+                    p.life = 50 + Math.random() * 100;
+                }
+
+                // 線を描画（動いている軌跡のように）
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 2, 0, Math.PI * 2);
+                ctx.fill();
+                
+                if(speed > 0.5) {
+                    ctx.strokeStyle = 'rgba(59, 130, 246, 0.2)';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.moveTo(p.x, p.y);
+                    ctx.lineTo(p.x - vx*3, p.y - vy*3);
+                    ctx.stroke();
+                }
+            });
+        }
+
+        function drawVector() {
+            const dx = tip.x - tail.x;
+            const dy = tip.y - tail.y;
+            const angle = Math.atan2(dy, dx);
+
+            // ベクトルの線
+            ctx.strokeStyle = '#3b82f6'; // blue-500
+            ctx.lineWidth = 5;
+            ctx.lineCap = 'round';
+            ctx.beginPath();
+            ctx.moveTo(tail.x, tail.y);
+            ctx.lineTo(tip.x, tip.y);
+            ctx.stroke();
+
+            // 矢印の頭
+            ctx.save();
+            ctx.translate(tip.x, tip.y);
+            ctx.rotate(angle);
+            ctx.fillStyle = '#3b82f6';
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(-15, -8);
+            ctx.lineTo(-15, 8);
+            ctx.closePath();
+            ctx.fill();
+            ctx.restore();
+
+            // X, Y成分の補助線（点線）
+            ctx.strokeStyle = '#94a3b8'; // slate-400
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 5]);
+            
+            ctx.beginPath();
+            ctx.moveTo(tail.x, tail.y);
+            ctx.lineTo(tip.x, tail.y);
+            ctx.lineTo(tip.x, tip.y);
+            ctx.stroke();
+            ctx.setLineDash([]); // リセット
+
+            // 根本のハンドル（赤丸）
+            ctx.fillStyle = '#ef4444'; // red-500
+            ctx.beginPath();
+            ctx.arc(tail.x, tail.y, 8, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // 先端のハンドル（青丸、矢印の少し先）
+            ctx.fillStyle = '#3b82f6'; // blue-500
+            ctx.beginPath();
+            ctx.arc(tip.x, tip.y, 8, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // 角度の円弧
+            if (Math.hypot(dx, dy) > 20) {
+                ctx.strokeStyle = '#22c55e'; // green-500
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                // 数学的な角度（X軸正の方向からの反時計回り）を描画するため、
+                // canvas座標系(Y下向き)を考慮してarcを描画
+                ctx.arc(tail.x, tail.y, 30, 0, angle, dy < 0);
+                ctx.stroke();
+            }
+        }
+
+        // --- メインループ ---
+
+        function animate() {
+            ctx.clearRect(0, 0, WIDTH, HEIGHT);
+            
+            drawGrid();
+            drawParticles();
+            drawVector();
+
+            requestAnimationFrame(animate);
+        }
+
+        // 初期化
+        updateUI();
+        animate();
+
+    </script>
+</body>
+</html>

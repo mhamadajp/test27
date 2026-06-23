@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>波と回転のつながりビジュアライザー</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: sans-serif; }
+  </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col items-center p-4">
+
+  <div class="max-w-4xl w-full bg-white rounded-2xl shadow-lg overflow-hidden flex flex-col">
+    <!-- ヘッダー部分 -->
+    <div class="bg-slate-800 text-white p-6">
+      <h1 class="text-2xl font-bold mb-2">「回転」と「波」は同じもの？</h1>
+      <p class="text-slate-300 text-sm">
+        複素平面上の点が円をぐるぐる「回転」する様子を、右側の壁（波のグラフ）に投影してみましょう。<br>
+        「波のうねり」の正体は、「円運動（回転）を横から見たもの」だとわかります。
+      </p>
+      <div class="mt-4 flex gap-4">
+        <button id="btn-toggle" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded font-bold transition-colors">
+          一時停止
+        </button>
+        <button id="btn-multiply-i" class="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded font-bold transition-colors">
+          × i (90度回転)
+        </button>
+      </div>
+    </div>
+
+    <!-- ビジュアライザー部分 -->
+    <div class="p-6 flex flex-col md:flex-row items-center justify-center gap-4 bg-slate-50 relative">
+      
+      <!-- 左：複素平面（回転） -->
+      <div class="relative w-[300px] h-[300px] border border-gray-200 bg-white rounded-lg shadow-inner">
+        <div class="absolute top-2 left-2 text-xs font-bold text-gray-500">複素平面 (回転)</div>
+        <svg id="svg-circle" width="300" height="300" viewBox="-150 -150 300 300">
+          <!-- 軸 -->
+          <line x1="-150" y1="0" x2="150" y2="0" stroke="#cbd5e1" stroke-width="2" />
+          <line x1="0" y1="-150" x2="0" y2="150" stroke="#cbd5e1" stroke-width="2" />
+          <text x="130" y="-10" fill="#94a3b8" font-size="12">Re</text>
+          <text x="10" y="-130" fill="#94a3b8" font-size="12">Im</text>
+          
+          <!-- 円軌道 -->
+          <circle cx="0" cy="0" r="100" fill="none" stroke="#e2e8f0" stroke-width="2" stroke-dasharray="4,4" />
+          
+          <!-- 回転する点とベクトル -->
+          <line id="vec-line" x1="0" y1="0" x2="100" y2="0" stroke="#3b82f6" stroke-width="3" />
+          <circle id="point-circle" cx="100" cy="0" r="6" fill="#2563eb" />
+          
+          <!-- 虚部（高さ）を示す線 -->
+          <line id="im-line" x1="100" y1="0" x2="100" y2="0" stroke="#ef4444" stroke-width="2" stroke-dasharray="2,2" />
+        </svg>
+      </div>
+
+      <!-- 接続する点線 -->
+      <div class="hidden md:block w-[50px] h-[300px] relative">
+        <svg width="50" height="300" viewBox="0 0 50 300">
+          <line id="connect-line" x1="0" y1="150" x2="50" y2="150" stroke="#ef4444" stroke-width="1" stroke-dasharray="4,4" />
+        </svg>
+      </div>
+
+      <!-- 右：波のグラフ -->
+      <div class="relative w-[300px] md:w-[400px] h-[300px] border border-gray-200 bg-white rounded-lg shadow-inner overflow-hidden">
+        <div class="absolute top-2 left-2 text-xs font-bold text-gray-500">波のグラフ (虚部 = 高さ)</div>
+        <svg id="svg-wave" width="400" height="300" viewBox="0 -150 400 300">
+          <!-- 時間軸 -->
+          <line x1="0" y1="0" x2="400" y2="0" stroke="#cbd5e1" stroke-width="2" />
+          <text x="360" y="-10" fill="#94a3b8" font-size="12">時間 t</text>
+          
+          <!-- 波のパス -->
+          <path id="wave-path" fill="none" stroke="#ef4444" stroke-width="3" />
+          <!-- 現在の点 -->
+          <circle id="wave-point" cx="0" cy="0" r="6" fill="#ef4444" />
+        </svg>
+      </div>
+
+    </div>
+
+    <!-- 説明メッセージエリア -->
+    <div id="message-area" class="p-4 bg-blue-50 text-blue-800 font-medium text-center border-t border-blue-100 min-h-[60px] flex items-center justify-center">
+      複素平面で点が回転すると、その「高さ（虚部）」はサイン波を描きます。
+    </div>
+  </div>
+
+  <script>
+    let isPlaying = true;
+    let angle = 0;
+    const radius = 100;
+    const speed = 0.03; // 回転スピード
+    
+    // 波の履歴を保存する配列
+    const waveHistory = [];
+    const maxHistory = 400; // グラフの幅
+
+    const pointCircle = document.getElementById('point-circle');
+    const vecLine = document.getElementById('vec-line');
+    const imLine = document.getElementById('im-line');
+    const connectLine = document.getElementById('connect-line');
+    const wavePath = document.getElementById('wave-path');
+    const wavePoint = document.getElementById('wave-point');
+    const btnToggle = document.getElementById('btn-toggle');
+    const btnMultiplyI = document.getElementById('btn-multiply-i');
+    const messageArea = document.getElementById('message-area');
+
+    function animate() {
+      if (isPlaying) {
+        angle += speed;
+        // 角度が大きくなりすぎないようにリセット
+        if (angle > Math.PI * 2) angle -= Math.PI * 2;
+        updateVisuals();
+      }
+      requestAnimationFrame(animate);
+    }
+
+    function updateVisuals() {
+      // 複素平面上の座標 (x, y) = (cos, sin)
+      // ※SVGは下が+yなので、数学の直交座標に合わせるためにyを反転
+      const x = radius * Math.cos(angle);
+      const y = -radius * Math.sin(angle); 
+
+      // 複素平面の更新
+      pointCircle.setAttribute('cx', x);
+      pointCircle.setAttribute('cy', y);
+      vecLine.setAttribute('x2', x);
+      vecLine.setAttribute('y2', y);
+      
+      // 高さを示す赤い点線
+      imLine.setAttribute('x1', x);
+      imLine.setAttribute('y1', 0);
+      imLine.setAttribute('x2', x);
+      imLine.setAttribute('y2', y);
+
+      // 真ん中の接続線（高さyを右のグラフへ送る）
+      // SVGの座標系で調整 (150が中心)
+      const svgY = y + 150; 
+      connectLine.setAttribute('y1', svgY);
+      connectLine.setAttribute('y2', svgY);
+
+      // 波の履歴を更新
+      waveHistory.unshift(y);
+      if (waveHistory.length > maxHistory) {
+        waveHistory.pop();
+      }
+
+      // 波のパスを描画
+      let d = '';
+      for (let i = 0; i < waveHistory.length; i++) {
+        // iが時間軸（x座標）になる
+        if (i === 0) {
+          d += `M ${i} ${waveHistory[i]}`;
+        } else {
+          d += ` L ${i} ${waveHistory[i]}`;
+        }
+      }
+      wavePath.setAttribute('d', d);
+      
+      // 波の先端の点
+      wavePoint.setAttribute('cx', 0);
+      wavePoint.setAttribute('cy', waveHistory[0]);
+    }
+
+    // ボタンのイベント
+    btnToggle.addEventListener('click', () => {
+      isPlaying = !isPlaying;
+      btnToggle.textContent = isPlaying ? "一時停止" : "再生";
+      btnToggle.className = isPlaying 
+        ? "bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded font-bold transition-colors"
+        : "bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded font-bold transition-colors";
+    });
+
+    btnMultiplyI.addEventListener('click', () => {
+      // i を掛ける = 90度（π/2）回転する
+      angle += Math.PI / 2;
+      updateVisuals();
+      
+      messageArea.innerHTML = "<span class='text-purple-600 font-bold'>「× i」しました！</span><br>点が90度回転し、波の形（位相）が1/4周期分ズレたのがわかりますか？";
+      
+      // 波の履歴に「ジャンプ」を描画しないよう、少し隙間を開ける工夫もできるが今回はそのまま繋ぐ
+    });
+
+    // 初期描画とアニメーション開始
+    updateVisuals();
+    requestAnimationFrame(animate);
+
+  </script>
+</body>
+</html>

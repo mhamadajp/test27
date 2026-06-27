@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="ja" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>負の数のかけ算シミュレータ</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+    }
+  </script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap');
+    body {
+      font-family: 'Noto Sans JP', sans-serif;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+    .glow-car {
+      filter: drop-shadow(0 0 12px rgba(99, 102, 241, 0.5));
+    }
+    .glow-mirror {
+      filter: drop-shadow(0 0 4px rgba(129, 140, 248, 0.3));
+    }
+    /* スライダーのカスタマイズ */
+    input[type="range"]::-webkit-slider-thumb {
+      background: #6366f1;
+      border: 2px solid #ffffff;
+      border-radius: 50%;
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+      appearance: none;
+      transition: transform 0.1s ease;
+    }
+    input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.2);
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 dark:bg-slate-900 dark:text-slate-100 min-h-screen flex flex-col justify-between transition-colors duration-300">
+
+  <!-- ヘッダー -->
+  <header class="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 py-4 px-6 shadow-sm dark:shadow-md transition-colors duration-300">
+    <div class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+      <div class="flex items-center gap-3">
+        <div class="bg-gradient-to-tr from-indigo-600 to-violet-500 text-white p-2.5 rounded-xl shadow-lg">
+          <i class="fa-solid fa-arrows-spin text-2xl animate-spin-slow"></i>
+        </div>
+        <div>
+          <h1 class="text-xl md:text-2xl font-bold tracking-wide text-slate-900 dark:text-white flex items-center gap-2">
+            負の数のかけ算シミュレータ
+          </h1>
+          <p class="text-xs text-slate-500 dark:text-slate-400">「マイナス ＝ スピン命令」「数字 ＝ 進む距離」に分解して納得しよう！</p>
+        </div>
+      </div>
+      
+      <div class="flex flex-wrap items-center justify-center gap-2">
+        <a href="../index.html" class="bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-100 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-bold shadow-sm transition-colors">
+          ← トップへ戻る
+        </a>
+
+        <!-- テーマ切り替え -->
+        <div class="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-900 p-1 rounded-xl border border-slate-200 dark:border-slate-800 shadow-inner">
+        <button id="theme-btn-light" onclick="setTheme('light')" class="px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 transition-all duration-200" title="ライトモード">
+          <i class="fa-solid fa-sun"></i> <span class="hidden sm:inline">ライト</span>
+        </button>
+        <button id="theme-btn-dark" onclick="setTheme('dark')" class="px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 transition-all duration-200" title="ダークモード">
+          <i class="fa-solid fa-moon"></i> <span class="hidden sm:inline">ダーク</span>
+        </button>
+        <button id="theme-btn-system" onclick="setTheme('system')" class="px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 transition-all duration-200" title="システム同期">
+          <i class="fa-solid fa-desktop"></i> <span class="hidden sm:inline">システム</span>
+        </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- メインコンテンツ -->
+  <main class="max-w-6xl w-full mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 flex-grow items-start">
+    
+    <!-- 左側：アニメーション＆数式 (8カラム) -->
+    <div class="lg:col-span-8 flex flex-col gap-6">
+      
+      <!-- リアルタイム数式カード（符号と数値を徹底分解） -->
+      <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm dark:shadow-xl flex flex-col items-center justify-center relative overflow-hidden transition-colors duration-300">
+        <div class="absolute top-2 left-3 text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">「スピン命令」と「進む距離」の分解式</div>
+        
+        <div class="flex flex-wrap items-center justify-center gap-3 md:gap-4 my-4">
+          <!-- 元の基準値 -->
+          <div class="flex flex-col items-center bg-slate-50 dark:bg-slate-900/40 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800 text-xs">
+            <span class="text-[9px] text-slate-400 font-bold">最初の向き</span>
+            <span class="font-black text-slate-500">右向き (+1)</span>
+          </div>
+
+          <span class="text-xl font-bold text-slate-400">×</span>
+
+          <!-- 第1の操作 (A) -->
+          <div class="flex flex-col items-center bg-slate-100/80 dark:bg-slate-900/60 p-3 rounded-xl border border-slate-200 dark:border-slate-700 transition-colors duration-300">
+            <div class="flex items-center gap-2">
+              <!-- 符号部 -->
+              <div class="flex flex-col items-center px-2 py-1 rounded bg-rose-100 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 min-w-[45px]">
+                <span class="text-[9px] text-rose-500 dark:text-rose-400 font-bold">スピン</span>
+                <span class="text-xl font-black text-rose-600 dark:text-rose-400" id="eq-sign-v">-</span>
+              </div>
+              <!-- 絶対値部 -->
+              <div class="flex flex-col items-center px-2 py-1 rounded bg-blue-100 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900/60 min-w-[45px]">
+                <span class="text-[9px] text-blue-500 dark:text-blue-400 font-bold">距離</span>
+                <span class="text-xl font-black text-blue-600 dark:text-blue-400" id="eq-abs-v">3</span>
+              </div>
+            </div>
+            <!-- テキストの参照エラーを修正するため説明欄を再定義 -->
+            <span class="text-[10px] text-slate-500 dark:text-slate-400 mt-1.5 font-bold text-center" id="eq-desc-v">設定中...</span>
+          </div>
+
+          <span class="text-xl font-bold text-slate-400">×</span>
+
+          <!-- 第2の操作 (B) -->
+          <div class="flex flex-col items-center bg-slate-100/80 dark:bg-slate-900/60 p-3 rounded-xl border border-slate-200 dark:border-slate-700 transition-colors duration-300">
+            <div class="flex items-center gap-2">
+              <!-- 符号部 -->
+              <div class="flex flex-col items-center px-2 py-1 rounded bg-rose-100 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 min-w-[45px]">
+                <span class="text-[9px] text-rose-500 dark:text-rose-400 font-bold">スピン</span>
+                <span class="text-xl font-black text-rose-600 dark:text-rose-400" id="eq-sign-t">-</span>
+              </div>
+              <!-- 絶対値部 -->
+              <div class="flex flex-col items-center px-2 py-1 rounded bg-orange-100 dark:bg-orange-950/40 border border-orange-200 dark:border-orange-900/60 min-w-[45px]">
+                <span class="text-[9px] text-orange-500 dark:text-orange-400 font-bold">倍率</span>
+                <span class="text-xl font-black text-orange-600 dark:text-orange-400" id="eq-abs-t">2</span>
+              </div>
+            </div>
+            <!-- テキストの参照エラーを修正するため説明欄を再定義 -->
+            <span class="text-[10px] text-slate-500 dark:text-slate-400 mt-1.5 font-bold text-center" id="eq-desc-t">設定中...</span>
+          </div>
+
+          <span class="text-xl font-bold text-slate-400">=</span>
+
+          <!-- 最終結果 -->
+          <div class="flex flex-col items-center bg-indigo-50 dark:bg-indigo-950/40 p-3.5 rounded-xl border border-indigo-100 dark:border-indigo-900/80 min-w-[140px] transition-all duration-300 shadow-md" id="res-box">
+            <span class="text-[10px] text-indigo-500 dark:text-indigo-400 font-bold mb-0.5">最終現在地</span>
+            <div class="text-2xl font-black text-emerald-600 dark:text-emerald-400" id="eq-val-d">+6</div>
+            <!-- テキストの参照エラーを修正するため説明欄を再定義 -->
+            <span class="text-[10px] text-slate-500 dark:text-slate-400 mt-1.5 font-bold text-center" id="eq-desc-d">設定中...</span>
+          </div>
+        </div>
+
+        <!-- アニメーション進捗ステップインジケーター（現在どこを計算中か） -->
+        <div class="w-full max-w-lg mt-2 grid grid-cols-4 gap-2 text-center text-[10px] font-bold">
+          <div id="step-dot-1" class="py-1 rounded bg-slate-100 dark:bg-slate-900 text-slate-400 border border-slate-200 dark:border-slate-800 transition-colors">
+            ① Aのスピン
+          </div>
+          <div id="step-dot-2" class="py-1 rounded bg-slate-100 dark:bg-slate-900 text-slate-400 border border-slate-200 dark:border-slate-800 transition-colors">
+            ② Bのスピン
+          </div>
+          <div id="step-dot-3" class="py-1 rounded bg-slate-100 dark:bg-slate-900 text-slate-400 border border-slate-200 dark:border-slate-800 transition-colors">
+            ③ 進む距離決定
+          </div>
+          <div id="step-dot-4" class="py-1 rounded bg-slate-100 dark:bg-slate-900 text-slate-400 border border-slate-200 dark:border-slate-800 transition-colors">
+            ④ 発車！
+          </div>
+        </div>
+
+        <!-- 納得メッセージ -->
+        <div id="plus-alert" class="hidden text-xs bg-emerald-500/10 border border-emerald-500/20 dark:border-emerald-500/30 text-emerald-600 dark:text-emerald-300 px-4 py-2.5 rounded-lg items-center gap-2 mt-3 animate-pulse font-semibold">
+          <i class="fa-solid fa-sparkles text-emerald-500 dark:text-emerald-400 text-sm"></i>
+          <span>「反転（180度スピン）」を「反転（180度スピン）」させたので、元の<strong>右向き（プラス）</strong>に戻りました！</span>
+        </div>
+      </div>
+
+      <!-- 車と道路のアニメーションビジュアライザ (SVG) -->
+      <div class="bg-white dark:bg-slate-800 rounded-2xl p-4 md:p-6 border border-slate-200 dark:border-slate-700 shadow-sm dark:shadow-xl flex flex-col transition-colors duration-300">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-3">
+          <span class="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider flex items-center gap-1">
+            <i class="fa-solid fa-road text-indigo-500"></i> ひっくり返る車のスピンアニメーション
+          </span>
+          <div class="flex flex-wrap gap-4 text-xs font-medium">
+            <span class="flex items-center gap-1.5"><span class="w-3.5 h-3.5 rounded bg-blue-500"></span> 右側エリア (プラス)</span>
+            <span class="flex items-center gap-1.5"><span class="w-3.5 h-3.5 rounded bg-orange-500"></span> 左側エリア (マイナス)</span>
+          </div>
+        </div>
+
+        <!-- リアルタイム実況ナレーション -->
+        <div class="bg-indigo-50/70 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-800/50 rounded-xl p-3.5 mb-4 text-sm text-slate-700 dark:text-slate-200 flex gap-2.5 items-start transition-colors duration-300 min-h-[64px]">
+          <div class="text-indigo-600 dark:text-indigo-400 mt-0.5"><i class="fa-solid fa-comment-dots text-base"></i></div>
+          <div id="narrative-text" class="leading-relaxed font-medium">
+            設定中...
+          </div>
+        </div>
+
+        <!-- タイムトラベルロード (SVG) -->
+        <div class="relative w-full bg-slate-100 dark:bg-slate-950 rounded-xl p-2 border border-slate-200 dark:border-slate-900 transition-colors duration-300">
+          <svg id="road-svg" viewBox="0 0 800 240" class="w-full h-auto select-none">
+            <!-- グリッド背景 -->
+            <defs>
+              <pattern id="road-grid" width="40" height="40" patternUnits="userSpaceOnUse">
+                <path d="M 40 0 L 0 0 0 40" fill="none" class="stroke-slate-300/40 dark:stroke-slate-800/20" stroke-width="1" />
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#road-grid)" rx="8" />
+
+            <!-- 左・右のエリア境界グラデーション・ラベル -->
+            <rect x="0" y="0" width="400" height="240" fill="rgba(249, 115, 22, 0.02)" />
+            <rect x="400" y="0" width="400" height="240" fill="rgba(59, 130, 246, 0.02)" />
+            <text x="100" y="30" class="fill-orange-600/40 dark:fill-orange-500/30 font-black animate-pulse" font-size="16" letter-spacing="2">◀ 左 (マイナスの世界)</text>
+            <text x="700" y="30" class="fill-blue-600/40 dark:fill-blue-500/30 font-black animate-pulse" font-size="16" letter-spacing="2" text-anchor="end">右 (プラスの世界) ▶</text>
+
+            <!-- スタート地点 (0) の基準線 -->
+            <line x1="400" y1="20" x2="400" y2="220" class="stroke-indigo-400/40 dark:stroke-indigo-400/25 glow-mirror" stroke-width="2.5" stroke-dasharray="6,4" />
+            <g transform="translate(380, 50)" class="opacity-60">
+              <path d="M10 20 L20 10 L30 20 L30 35 L10 35 Z" class="fill-indigo-400 dark:fill-indigo-600" />
+              <rect x="17" y="25" width="6" height="10" class="fill-slate-100 dark:fill-slate-900" />
+              <text x="20" y="47" class="fill-slate-500 dark:fill-slate-400 font-bold" font-size="10" text-anchor="middle">スタート (0)</text>
+            </g>
+
+            <!-- 道路のメインライン -->
+            <rect x="40" y="140" width="720" height="40" class="fill-slate-300 dark:fill-slate-800" rx="4" />
+            <!-- 白い破線（センターライン） -->
+            <line x1="50" y1="160" x2="750" y2="160" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-dasharray="15,15" />
+
+            <!-- 距離目盛り（-10〜10） -->
+            <g id="road-ticks"></g>
+
+            <!-- 車の移動 of 軌跡ライン -->
+            <path id="car-trail" d="" fill="none" stroke-width="4" stroke-dasharray="5,3" opacity="0" />
+
+            <!-- スピンアニメーション用の回転ガイドサークル -->
+            <circle id="spin-guide" cx="400" cy="160" r="30" fill="none" stroke="rgba(99, 102, 241, 0.25)" stroke-width="2" stroke-dasharray="4,4" opacity="0" />
+            <!-- 回転時の矢印エフェクト -->
+            <path id="spin-arrow-1" d="" fill="none" stroke="#6366f1" stroke-width="3" opacity="0" />
+
+            <!-- 決定した最終距離を示す吹き出し/ガイドビジュアル -->
+            <g id="distance-bubble" transform="translate(400, 95)" opacity="0">
+              <rect x="-60" y="-15" width="120" height="26" rx="6" class="fill-indigo-600 text-white" />
+              <polygon points="0,15 -6,11 6,11" class="fill-indigo-600" />
+              <text x="0" y="2" fill="#ffffff" font-size="11" font-weight="bold" text-anchor="middle" id="distance-bubble-text">距離 = 6</text>
+            </g>
+
+            <!-- 投影された目標位置ポインター（接地） -->
+            <circle id="target-pointer" cx="400" cy="160" r="8" class="fill-emerald-500/80 stroke-white" stroke-width="1.5" opacity="0" />
+
+            <!-- アニメーションする車（グループ） -->
+            <g id="car-group" transform="translate(400, 160) rotate(0)" class="cursor-pointer transition-transform duration-75">
+              <!-- 車体ベース（角度・スピンによって色変え） -->
+              <rect id="car-body" x="-26" y="-18" width="52" height="24" rx="6" fill="#3b82f6" class="glow-car transition-colors duration-300" />
+              <rect id="car-cabin" x="-14" y="-28" width="28" height="12" rx="4" fill="#1e3a8a" class="transition-colors duration-300" />
+              <!-- タイヤ -->
+              <circle cx="-16" cy="8" r="7" fill="#0f172a" stroke="#64748b" stroke-width="2" />
+              <circle cx="16" cy="8" r="7" fill="#0f172a" stroke="#64748b" stroke-width="2" />
+              <!-- ヘッドライト（右側が車の「前」です） -->
+              <polygon id="headlight" points="26,-10 40,-14 40,-2 26,-6" fill="#fef08a" opacity="0.8" />
+              <!-- 現在の向きラベル (+ or -) -->
+              <text id="car-sign-label" x="-4" y="-2" fill="#ffffff" font-size="11" font-weight="900" text-anchor="middle">➡️</text>
+            </g>
+
+          </svg>
+        </div>
+
+        <!-- アニメーションコントロール -->
+        <div class="mt-4 flex flex-wrap justify-between items-center gap-3 w-full">
+          <div class="flex gap-2">
+            <!-- 再生ボタン -->
+            <button id="btn-play" class="bg-indigo-600 hover:bg-indigo-500 active:scale-95 transition text-white px-5 py-2.5 rounded-xl text-sm font-bold flex items-center gap-1.5 shadow-md">
+              <i class="fa-solid fa-play animate-pulse"></i> <span>スピン＆前進スタート！</span>
+            </button>
+            <!-- リセットボタン -->
+            <button id="btn-reset" class="bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 px-4 py-2.5 rounded-xl text-sm font-bold flex items-center gap-1.5 transition">
+              <i class="fa-solid fa-arrow-rotate-left"></i> <span>戻す</span>
+            </button>
+          </div>
+          <div class="text-xs text-slate-400 flex items-center gap-2">
+            <span class="flex items-center gap-1"><span class="w-3.5 h-3.5 rounded bg-blue-500"></span> 右向き（前方向）</span>
+            <span class="flex items-center gap-1"><span class="w-3.5 h-3.5 rounded bg-orange-500"></span> 左向き（反対方向）</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- 右側：コントロール＆論理解説パネル (4カラム) -->
+    <div class="lg:col-span-4 flex flex-col gap-6">
+      
+      <!-- 操作コントロール -->
+      <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700 shadow-md dark:shadow-xl flex flex-col gap-5 transition-colors duration-300">
+        <h2 class="text-lg font-bold text-slate-900 dark:text-white border-b border-slate-150 dark:border-slate-700 pb-3 flex items-center gap-2">
+          <i class="fa-solid fa-sliders text-indigo-500 dark:text-indigo-400"></i> 実験コントロール
+        </h2>
+
+        <!-- クイックプリセット -->
+        <div>
+          <label class="text-xs font-bold text-slate-500 dark:text-slate-400 block mb-2">おすすめ実験パターン：</label>
+          <div class="flex flex-col gap-2">
+            <button onclick="setPattern(3, 2)" class="w-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 active:scale-95 transition text-xs py-2 px-3 rounded-lg border border-slate-200 dark:border-slate-600 text-slate-800 dark:text-slate-200 font-bold flex justify-between items-center">
+              <span>① ＋ × ＋ (一度も反転しない)</span>
+              <span class="text-indigo-600 dark:text-indigo-300">+3 × +2 = +6</span>
+            </button>
+            <button onclick="setPattern(-3, 2)" class="w-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 active:scale-95 transition text-xs py-2 px-3 rounded-lg border border-slate-200 dark:border-slate-600 text-slate-800 dark:text-slate-200 font-bold flex justify-between items-center">
+              <span>② － × ＋ (1回だけ反転する)</span>
+              <span class="text-indigo-600 dark:text-indigo-300">-3 × +2 = -6</span>
+            </button>
+            <button onclick="setPattern(-3, -2)" class="w-full bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/50 dark:hover:bg-indigo-900/60 active:scale-95 transition text-xs py-2 px-3 rounded-lg border border-indigo-200 dark:border-indigo-800 text-indigo-800 dark:text-indigo-200 font-bold flex justify-between items-center ring-2 ring-indigo-500/20">
+              <span>③ － × － (2回反転して戻る！)</span>
+              <span class="text-indigo-700 dark:text-indigo-300 font-black">-3 × -2 = +6</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 速度入力 v -->
+        <div class="space-y-1.5">
+          <div class="flex justify-between items-center text-sm">
+            <span class="font-bold text-slate-800 dark:text-slate-300 flex items-center gap-1.5">
+              <span class="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-sm"></span> 第1の操作 (A) の値
+            </span>
+          </div>
+          
+          <!-- 符号と数値を視覚的に分離した入力 -->
+          <div class="grid grid-cols-2 gap-2 bg-slate-50 dark:bg-slate-900/50 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800">
+            <div>
+              <span class="text-[9px] text-slate-400 font-bold block mb-1">向き（符号）</span>
+              <select id="sign-v-select" class="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg p-1.5 font-bold text-center text-rose-500 text-sm">
+                <option value="1">＋ (そのまま)</option>
+                <option value="-1" selected>－ (スピン！)</option>
+              </select>
+            </div>
+            <div>
+              <span class="text-[9px] text-slate-400 font-bold block mb-1">距離（数字）</span>
+              <input type="number" id="abs-v-num" min="0" max="10" step="1" value="3" class="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg p-1.5 font-bold text-center text-blue-500 text-sm">
+            </div>
+          </div>
+        </div>
+
+        <!-- 時間入力 t -->
+        <div class="space-y-1.5">
+          <div class="flex justify-between items-center text-sm">
+            <span class="font-bold text-slate-800 dark:text-slate-300 flex items-center gap-1.5">
+              <span class="w-2.5 h-2.5 rounded-full bg-orange-500 shadow-sm"></span> 第2の操作 (B) の値
+            </span>
+          </div>
+          
+          <!-- 符号と数値を視覚的に分離した入力 -->
+          <div class="grid grid-cols-2 gap-2 bg-slate-50 dark:bg-slate-900/50 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800">
+            <div>
+              <span class="text-[9px] text-slate-400 font-bold block mb-1">倍率向き（符号）</span>
+              <select id="sign-t-select" class="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg p-1.5 font-bold text-center text-rose-500 text-sm">
+                <option value="1">＋ (そのまま)</option>
+                <option value="-1" selected>－ (スピン！)</option>
+              </select>
+            </div>
+            <div>
+              <span class="text-[9px] text-slate-400 font-bold block mb-1">倍率（数字）</span>
+              <input type="number" id="abs-t-num" min="0" max="10" step="1" value="2" class="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg p-1.5 font-bold text-center text-orange-500 text-sm">
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- 理論解説カード -->
+      <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700 shadow-md dark:shadow-xl flex flex-col gap-4 transition-colors duration-300">
+        <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+          <i class="fa-regular fa-lightbulb text-amber-500 dark:text-amber-400"></i> スピンと距離の役割分担
+        </h3>
+        <div class="text-xs md:text-sm text-slate-600 dark:text-slate-300 space-y-3 leading-relaxed">
+          <p>
+            「マイナス」と「1以外の数字」が混ざった計算は、役割を完全に分けて解釈するとかんたんです！
+          </p>
+          <div class="p-3 bg-rose-50 dark:bg-rose-950/20 border border-rose-100 dark:border-rose-900/40 rounded-xl">
+            <span class="font-bold text-rose-600 dark:text-rose-400 block mb-1">①「－」符号（スピン命令）</span>
+            「マイナス」はただの<strong>『180度向きを変えろ！』という方向転換スイッチ</strong>です。スピンする回数だけを数えます。
+          </div>
+          <div class="p-3 bg-blue-50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/40 rounded-xl">
+            <span class="font-bold text-blue-600 dark:text-blue-400 block mb-1">②「3」や「2」（距離・倍率）</span>
+            「絶対値（数字）」は向きに関係なく、<strong>『どれだけの距離を前進させるか』というサイズ</strong>を決めます。
+          </div>
+          <p>
+            この2つを頭の中で別々にこなすだけで、どんな大きさ of 負の数の掛け算もすべて迷わずに計算できるようになります！
+          </p>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- フッター -->
+  <footer class="bg-white dark:bg-slate-950 border-t border-slate-200 dark:border-slate-900 py-4 px-6 text-center text-xs text-slate-500 transition-colors duration-300">
+    <div class="max-w-6xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-2">
+      <p>&copy; 負の数のかけ算シミュレータ - 「ひっくり返る操作」の直感納得ビジュアル</p>
+      <p class="flex items-center gap-1 text-slate-500 dark:text-slate-400">
+        <span class="text-indigo-600 dark:text-indigo-400">●</span> 180度スピン一貫性モデル
+      </p>
+    </div>
+  </footer>
+
+  <!-- JavaScript制御ロジック -->
+  <script>
+    // --- 状態管理 ---
+    const state = {
+      v_sign: -1,       // Aの符号 (1 or -1)
+      v_abs: 3,         // Aの数値部分 (絶対値 0〜10)
+      t_sign: -1,       // Bの符号 (1 or -1)
+      t_abs: 2,         // Bの数値部分 (絶対値 0〜10)
+      v: -3,            // 最終 A の値 (v_sign * v_abs)
+      t: -2,            // 最終 B の値 (t_sign * t_abs)
+      isPlaying: false, // アニメーション中か
+      animProgress: 0,  // 現在のアニメーション進捗 (0.0 から 1.0)
+      animFrameId: null
+    };
+
+    // --- DOM要素の参照 ---
+    const roadTicks = document.getElementById('road-ticks');
+    const carGroup = document.getElementById('car-group');
+    const carBody = document.getElementById('car-body');
+    const carCabin = document.getElementById('car-cabin');
+    const carSignLabel = document.getElementById('car-sign-label');
+    const carTrail = document.getElementById('car-trail');
+    const targetPointer = document.getElementById('target-pointer');
+    const spinGuide = document.getElementById('spin-guide');
+    const spinArrow1 = document.getElementById('spin-arrow-1');
+    const distanceBubble = document.getElementById('distance-bubble');
+    const distanceBubbleText = document.getElementById('distance-bubble-text');
+
+    // 計算中のステップ表示ドット
+    const stepDot1 = document.getElementById('step-dot-1');
+    const stepDot2 = document.getElementById('step-dot-2');
+    const stepDot3 = document.getElementById('step-dot-3');
+    const stepDot4 = document.getElementById('step-dot-4');
+
+    // コントロール
+    const signVSelect = document.getElementById('sign-v-select');
+    const absVNum = document.getElementById('abs-v-num');
+    const signTSelect = document.getElementById('sign-t-select');
+    const absTNum = document.getElementById('abs-t-num');
+    
+    const btnPlay = document.getElementById('btn-play');
+    const narrativeText = document.getElementById('narrative-text');
+
+    // 計算式表示
+    const eqSignV = document.getElementById('eq-sign-v');
+    const eqAbsV = document.getElementById('eq-abs-v');
+    const eqSignT = document.getElementById('eq-sign-t');
+    const eqAbsT = document.getElementById('eq-abs-t');
+    const eqValD = document.getElementById('eq-val-d');
+    const eqDescV = document.getElementById('eq-desc-v');
+    const eqDescT = document.getElementById('eq-desc-t');
+    const eqDescD = document.getElementById('eq-desc-d');
+    const resBox = document.getElementById('res-box');
+    const plusAlert = document.getElementById('plus-alert');
+
+    // --- 定数 ---
+    const SVG_WIDTH = 800;
+    const ORIGIN_X = 400; // スタートライン（0）のX座標
+    const SCALE_X = 32;   // 1目盛りあたりのピクセル幅
+    const BASE_Y = 180;   // 数軸のY座標
+
+    // --- 初期化 ---
+    function init() {
+      initTheme();
+      generateTicks();
+      syncInputs();
+      updateFormula();
+      render();
+
+      // 入力連動 (A)
+      signVSelect.addEventListener('change', () => {
+        resetSimulation();
+        state.v_sign = parseInt(signVSelect.value);
+        updateFormula();
+        render();
+      });
+      absVNum.addEventListener('input', () => {
+        resetSimulation();
+        let val = validateRange(parseInt(absVNum.value));
+        state.v_abs = val;
+        absVNum.value = val;
+        updateFormula();
+        render();
+      });
+
+      // 入力連動 (B)
+      signTSelect.addEventListener('change', () => {
+        resetSimulation();
+        state.t_sign = parseInt(signTSelect.value);
+        updateFormula();
+        render();
+      });
+      absTNum.addEventListener('input', () => {
+        resetSimulation();
+        let val = validateRange(parseInt(absTNum.value));
+        state.t_abs = val;
+        absTNum.value = val;
+        updateFormula();
+        render();
+      });
+
+      // ボタン制御
+      btnPlay.addEventListener('click', togglePlay);
+      document.getElementById('btn-reset').addEventListener('click', resetSimulation);
+    }
+
+    // 範囲制限 (0から10)
+    function validateRange(val) {
+      if (isNaN(val)) return 0;
+      return Math.max(0, Math.min(10, val));
+    }
+
+    // --- 道路の目盛りを生成 ---
+    function generateTicks() {
+      roadTicks.innerHTML = '';
+      const isDarkMode = document.documentElement.classList.contains('dark');
+      const textFill = isDarkMode ? '#94a3b8' : '#64748b';
+      const tickStroke = isDarkMode ? '#475569' : '#cbd5e1';
+
+      for (let i = -10; i <= 10; i++) {
+        if (i === 0) continue;
+        const x = ORIGIN_X + i * SCALE_X;
+        
+        // 目盛り線
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        line.setAttribute('x1', x);
+        line.setAttribute('y1', BASE_Y + 15);
+        line.setAttribute('x2', x);
+        line.setAttribute('y2', BASE_Y + 23);
+        line.setAttribute('stroke', tickStroke);
+        line.setAttribute('stroke-width', '1.5');
+        roadTicks.appendChild(line);
+
+        // 数値ラベル
+        if (i % 2 === 0 || i === -10 || i === 10) {
+          const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+          text.setAttribute('x', x);
+          text.setAttribute('y', BASE_Y + 38);
+          text.setAttribute('fill', textFill);
+          text.setAttribute('font-size', '11');
+          text.setAttribute('font-weight', 'bold');
+          text.setAttribute('text-anchor', 'middle');
+          text.textContent = i > 0 ? `+${i}` : i;
+          roadTicks.appendChild(text);
+        }
+      }
+    }
+
+    // --- 入力値の同期 ---
+    function syncInputs() {
+      state.v_sign = parseInt(signVSelect.value);
+      state.v_abs = parseInt(absVNum.value);
+      state.t_sign = parseInt(signTSelect.value);
+      state.t_abs = parseInt(absTNum.value);
+    }
+
+    // プリセットパターン変更
+    window.setPattern = function(v, t) {
+      resetSimulation();
+      
+      state.v_sign = v < 0 ? -1 : 1;
+      state.v_abs = Math.abs(v);
+      state.t_sign = t < 0 ? -1 : 1;
+      state.t_abs = Math.abs(t);
+
+      signVSelect.value = state.v_sign.toString();
+      absVNum.value = state.v_abs;
+      signTSelect.value = state.t_sign.toString();
+      absTNum.value = state.t_abs;
+
+      updateFormula();
+      render();
+    }
+
+    // --- 計算式とナレーションのリアルタイム更新 ---
+    function updateFormula() {
+      state.v = state.v_sign * state.v_abs;
+      state.t = state.t_sign * state.t_abs;
+      const d = state.v * state.t;
+
+      // 式カードのテキスト更新
+      eqSignV.textContent = state.v_sign < 0 ? '－' : '＋';
+      eqAbsV.textContent = state.v_abs;
+      eqSignT.textContent = state.t_sign < 0 ? '－' : '＋';
+      eqAbsT.textContent = state.t_abs;
+      eqValD.textContent = d > 0 ? `+${d}` : (d === 0 ? '0' : d);
+
+      // 第1の操作 (A) の説明
+      if (state.v_sign < 0) {
+        eqDescV.textContent = `180度スピンして、${state.v_abs}進む`;
+        eqSignV.className = "text-xl font-black text-rose-600 dark:text-rose-400";
+      } else {
+        eqDescV.textContent = `向きを変えず、${state.v_abs}進む`;
+        eqSignV.className = "text-xl font-black text-slate-400 dark:text-slate-500";
+      }
+
+      // 第2の操作 (B) の説明
+      if (state.t_sign < 0) {
+        eqDescT.textContent = `180度スピンして、${state.t_abs}倍`;
+        eqSignT.className = "text-xl font-black text-rose-600 dark:text-rose-400";
+      } else {
+        eqDescT.textContent = `向きを変えず、${state.t_abs}倍`;
+        eqSignT.className = "text-xl font-black text-slate-400 dark:text-slate-500";
+      }
+
+      // 位置の説明と装飾
+      if (d > 0) {
+        resBox.className = "flex flex-col items-center bg-emerald-50 dark:bg-emerald-950/40 p-3.5 rounded-xl border border-emerald-200 dark:border-emerald-800/80 min-w-[140px] transition-all duration-300 shadow-md";
+        if (state.v_sign < 0 && state.t_sign < 0) {
+          plusAlert.classList.remove('hidden');
+          plusAlert.classList.add('flex');
+        } else {
+          plusAlert.classList.add('hidden');
+        }
+      } else if (d < 0) {
+        resBox.className = "flex flex-col items-center bg-rose-50 dark:bg-rose-950/40 p-3.5 rounded-xl border border-rose-200 dark:border-rose-800/80 min-w-[140px] transition-all duration-300 shadow-md";
+        plusAlert.classList.add('hidden');
+      } else {
+        resBox.className = "flex flex-col items-center bg-slate-100 dark:bg-slate-900/60 p-3.5 rounded-xl border border-slate-200 dark:border-slate-700 min-w-[140px] transition-all duration-300 shadow-sm";
+        plusAlert.classList.add('hidden');
+      }
+
+      updateNarrativeText();
+    }
+
+    // --- 実況ナレーション（タイムライン進捗ベース） ---
+    function updateNarrativeText() {
+      const p = state.animProgress;
+      const v_sign = state.v_sign;
+      const t_sign = state.t_sign;
+      const v_abs = state.v_abs;
+      const t_abs = state.t_abs;
+      const dist = v_abs * t_abs;
+      const d = state.v * state.t;
+
+      let text = "";
+
+      if (p === 0) {
+        text = `【出発前】現在、車は0にいて、最初の基準である<strong>「右向き」</strong>を向いています。これから掛け算の命令を順番に実行します。`;
+      } 
+      else if (p < 0.25) {
+        if (v_sign < 0) {
+          text = `【ステップ①】第1の操作のマイナスを検出しました！車を<strong>180度スピンさせて「左向き」</strong>にします。 (スピン1回目)`;
+        } else {
+          text = `【ステップ①】第1の操作はプラスです。向きを変更せずに<strong>「右向き」</strong>のままキープします。`;
+        }
+      } 
+      else if (p < 0.50) {
+        if (t_sign < 0) {
+          const facing = v_sign < 0 ? "右" : "左";
+          text = `【ステップ②】第2の操作のマイナスを検出！<strong>180度スピンして「${facing}向き」</strong>にします。 (スピン2回目)`;
+        } else {
+          text = `【ステップ②】第2 of 操作はプラスです。現在の向きをそのまま維持します。`;
+        }
+      } 
+      else if (p < 0.75) {
+        text = `【ステップ③】向きが決まったので、進む距離（数字同士の掛け算）を計算します。大きさは <strong>${v_abs} × ${t_abs} ＝ ${dist}</strong> です。進む長さは「${dist}」に決定しました！`;
+      } 
+      else {
+        const finalFacing = d >= 0 ? "右" : "左";
+        text = `【ステップ④】前進スタート！決定した<strong>「${finalFacing}向き」</strong>に、決定した距離<strong>「${dist}」</strong>だけ力強く走り進みます！ゴールは <strong>${d > 0 ? '+' : ''}${d}</strong> 地点です！`;
+      }
+
+      narrativeText.innerHTML = text;
+    }
+
+    // --- インジケーター表示の更新 ---
+    function updateStepIndicator() {
+      const p = state.animProgress;
+
+      // 一旦すべてリセット
+      const inactive = "py-1 rounded bg-slate-100 dark:bg-slate-900 text-slate-400 border border-slate-200 dark:border-slate-800 transition-colors";
+      stepDot1.className = inactive;
+      stepDot2.className = inactive;
+      stepDot3.className = inactive;
+      stepDot4.className = inactive;
+
+      if (p > 0 && p < 0.25) {
+        stepDot1.className = "py-1 rounded bg-blue-100 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 border border-blue-300 dark:border-blue-800 text-center font-black animate-pulse";
+      } else if (p >= 0.25 && p < 0.50) {
+        stepDot2.className = "py-1 rounded bg-orange-100 dark:bg-orange-950/50 text-orange-600 dark:text-orange-400 border border-orange-300 dark:border-orange-800 text-center font-black animate-pulse";
+      } else if (p >= 0.50 && p < 0.75) {
+        stepDot3.className = "py-1 rounded bg-indigo-100 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 border border-indigo-300 dark:border-indigo-800 text-center font-black animate-pulse";
+      } else if (p >= 0.75) {
+        stepDot4.className = "py-1 rounded bg-emerald-100 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-800 text-center font-black animate-pulse";
+      }
+    }
+
+    // --- アニメーション制御 ---
+    function togglePlay() {
+      if (state.isPlaying) {
+        stopAnimation();
+      } else {
+        startAnimation();
+      }
+    }
+
+    // アニメーション停止
+    function stopAnimation() {
+      state.isPlaying = false;
+      btnPlay.innerHTML = `<i class="fa-solid fa-play"></i> <span>スピン＆前進スタート！</span>`;
+      btnPlay.className = "bg-indigo-600 hover:bg-indigo-500 active:scale-95 transition text-white px-5 py-2.5 rounded-xl text-sm font-bold flex items-center gap-1.5 shadow-md";
+      
+      if (state.animFrameId) {
+        cancelAnimationFrame(state.animFrameId);
+        state.animFrameId = null;
+      }
+    }
+
+    // アニメーション開始
+    function startAnimation() {
+      state.isPlaying = true;
+      btnPlay.innerHTML = `<i class="fa-solid fa-pause"></i> <span>一時停止</span>`;
+      btnPlay.className = "bg-amber-600 hover:bg-amber-500 active:scale-95 transition text-white px-5 py-2.5 rounded-xl text-sm font-bold flex items-center gap-1.5 shadow-md";
+      
+      const duration = 6000; // 丁寧に見せるため全体で6秒に変更
+      const startTime = performance.now();
+      const startProgress = state.animProgress;
+
+      function loop(currentTime) {
+        if (!state.isPlaying) return;
+
+        const elapsed = currentTime - startTime;
+        let progress = startProgress + (elapsed / duration);
+
+        if (progress >= 1.0) {
+          progress = 1.0;
+          state.animProgress = 1.0;
+          stopAnimation();
+          triggerArrivalEffect();
+        } else {
+          state.animProgress = progress;
+          state.animFrameId = requestAnimationFrame(loop);
+        }
+
+        updateFormula();
+        render();
+      }
+
+      state.animFrameId = requestAnimationFrame(loop);
+    }
+
+    // 到着時の点滅エフェクト
+    function triggerArrivalEffect() {
+      targetPointer.setAttribute('opacity', '1');
+      setTimeout(() => { targetPointer.setAttribute('opacity', '0.2'); }, 150);
+      setTimeout(() => { targetPointer.setAttribute('opacity', '1'); }, 300);
+    }
+
+    // リセット
+    function resetSimulation() {
+      stopAnimation();
+      state.animProgress = 0;
+      updateFormula();
+      render();
+    }
+
+    // --- レンダリングループ (4ステップ連動) ---
+    function render() {
+      const v_sign = state.v_sign;
+      const v_abs = state.v_abs;
+      const t_sign = state.t_sign;
+      const t_abs = state.t_abs;
+      const dist = v_abs * t_abs;
+      const d = state.v * state.t;
+
+      // タイムライン分割
+      // 0.00 ~ 0.25 : [1] Aのスピン (マイナスなら 0 -> 180度)
+      // 0.25 ~ 0.50 : [2] Bのスピン (マイナスなら さらに 180 -> 360度)
+      // 0.50 ~ 0.75 : [3] 数字同士の掛け算 (距離 bubble の表示・ポップアップ)
+      // 0.75 ~ 1.00 : [4] 決定した向きのまま前進
+
+      let targetAngle1 = v_sign < 0 ? 180 : 0;
+      let targetAngle2 = targetAngle1 + (t_sign < 0 ? 180 : 0);
+      
+      let currentAngle = 0;
+      let currentX = ORIGIN_X;
+
+      // 1. 進捗ごとの変位計算
+      if (state.animProgress < 0.25) {
+        // --- 【① Aのスピン】 ---
+        const p1 = state.animProgress / 0.25;
+        currentAngle = targetAngle1 * p1;
+        
+        spinGuide.setAttribute('opacity', v_sign < 0 ? '0.2' : '0');
+        if (v_sign < 0) drawSpinArrow(400, 160, 30, 0, currentAngle);
+        distanceBubble.setAttribute('opacity', '0');
+      } 
+      else if (state.animProgress < 0.50) {
+        // --- 【② Bのスピン】 ---
+        const p2 = (state.animProgress - 0.25) / 0.25;
+        currentAngle = targetAngle1 + (targetAngle2 - targetAngle1) * p2;
+        
+        spinGuide.setAttribute('opacity', t_sign < 0 ? '0.2' : '0');
+        if (t_sign < 0) drawSpinArrow(400, 160, 30, targetAngle1, currentAngle);
+        distanceBubble.setAttribute('opacity', '0');
+      } 
+      else if (state.animProgress < 0.75) {
+        // --- 【③ 距離決定】 ---
+        currentAngle = targetAngle2;
+        spinGuide.setAttribute('opacity', '0');
+        spinArrow1.setAttribute('opacity', '0');
+        
+        // 進む距離吹き出しをフワッと出現させる
+        const p3 = (state.animProgress - 0.50) / 0.25;
+        distanceBubble.setAttribute('opacity', p3.toString());
+        distanceBubbleText.textContent = `進む距離 = ${v_abs} × ${t_abs} ＝ ${dist}`;
+      } 
+      else {
+        // --- 【④ 前進走行】 ---
+        currentAngle = targetAngle2;
+        spinGuide.setAttribute('opacity', '0');
+        spinArrow1.setAttribute('opacity', '0');
+        distanceBubble.setAttribute('opacity', '1');
+        
+        const p4 = (state.animProgress - 0.75) / 0.25; // 0.75〜1.00 の間で移動
+        let destinationX = ORIGIN_X + d * SCALE_X;
+        currentX = ORIGIN_X + (destinationX - ORIGIN_X) * p4;
+      }
+
+      // 2. 車体の角度と位置をSVGに適用
+      carGroup.setAttribute('transform', `translate(${currentX}, ${BASE_Y}) rotate(${currentAngle})`);
+
+      // 3. 車体の見かけの向き・色の更新 (360度は右向きに戻る)
+      const modAngle = Math.round(currentAngle) % 360;
+      const isFacingRight = (modAngle === 0 || modAngle === 360);
+      
+      if (isFacingRight) {
+        carBody.setAttribute('fill', '#3b82f6'); // 右向きは青
+        carSignLabel.textContent = '➡️';
+      } else {
+        carBody.setAttribute('fill', '#f97316'); // 左向きはオレンジ
+        carSignLabel.textContent = '⬅️';
+      }
+
+      // 4. トレールの描画 (前進ステップ中のみ)
+      if (state.animProgress > 0.75) {
+        carTrail.setAttribute('opacity', '0.8');
+        carTrail.setAttribute('stroke', d >= 0 ? '#10b981' : '#f43f5e'); // 到着色に合わせる
+        carTrail.setAttribute('d', `M ${ORIGIN_X} ${BASE_Y} L ${currentX} ${BASE_Y}`);
+      } else {
+        carTrail.setAttribute('opacity', '0');
+      }
+
+      // 5. 接地目標ポインターの更新
+      targetPointer.setAttribute('cx', ORIGIN_X + d * SCALE_X);
+      targetPointer.setAttribute('opacity', state.animProgress > 0.75 ? '0.8' : '0.15');
+
+      // 6. 計算中インジケーターの連動
+      updateStepIndicator();
+    }
+
+    // スピン矢印を動的に描画
+    function drawSpinArrow(cx, cy, r, startAngle, endAngle) {
+      if (startAngle === endAngle) {
+        spinArrow1.setAttribute('opacity', '0');
+        return;
+      }
+      
+      spinArrow1.setAttribute('opacity', '0.7');
+      const startRad = (startAngle - 90) * Math.PI / 180;
+      const endRad = (endAngle - 90) * Math.PI / 180;
+      
+      const x1 = cx + r * Math.cos(startRad);
+      const y1 = cy + r * Math.sin(startRad);
+      const x2 = cx + r * Math.cos(endRad);
+      const y2 = cy + r * Math.sin(endRad);
+      
+      const largeArc = (endAngle - startAngle) > 180 ? 1 : 0;
+      
+      spinArrow1.setAttribute('d', `M ${x1} ${y1} A ${r} ${r} 0 ${largeArc} 1 ${x2} ${y2}`);
+    }
+
+    // --- システムカラー / テーマ管理 ---
+    function initTheme() {
+      const savedTheme = localStorage.getItem('theme') || 'system';
+      setTheme(savedTheme, false);
+      
+      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+        if (localStorage.getItem('theme') === 'system' || !localStorage.getItem('theme')) {
+          applyThemeClass(e.matches ? 'dark' : 'light');
+        }
+      });
+    }
+
+    function setTheme(themeName, save = true) {
+      if (save) {
+        localStorage.setItem('theme', themeName);
+      }
+
+      const lightBtn = document.getElementById('theme-btn-light');
+      const darkBtn = document.getElementById('theme-btn-dark');
+      const systemBtn = document.getElementById('theme-btn-system');
+
+      const activeClasses = 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-white shadow-sm';
+      const inactiveClasses = 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200';
+
+      [lightBtn, darkBtn, systemBtn].forEach(b => {
+        b.className = b.className.replace(activeClasses, '').replace(inactiveClasses, '').trim();
+      });
+
+      if (themeName === 'light') {
+        lightBtn.className += ' ' + activeClasses;
+        [darkBtn, systemBtn].forEach(b => b.className += ' ' + inactiveClasses);
+        applyThemeClass('light');
+      } else if (themeName === 'dark') {
+        darkBtn.className += ' ' + activeClasses;
+        [lightBtn, systemBtn].forEach(b => b.className += ' ' + inactiveClasses);
+        applyThemeClass('dark');
+      } else {
+        systemBtn.className += ' ' + activeClasses;
+        [lightBtn, darkBtn].forEach(b => b.className += ' ' + inactiveClasses);
+        const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        applyThemeClass(systemPrefersDark ? 'dark' : 'light');
+      }
+      
+      generateTicks();
+    }
+
+    function applyThemeClass(resolvedTheme) {
+      const htmlEl = document.documentElement;
+      if (resolvedTheme === 'dark') {
+        htmlEl.classList.add('dark');
+      } else {
+        htmlEl.classList.remove('dark');
+      }
+    }
+
+    // 起動
+    window.onload = init;
+  </script>
+</body>
+</html>

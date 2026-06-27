@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="ja" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>不等式マイナス反転シミュレータ</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    // Tailwindのダークモードを「class」ベースに設定
+    tailwind.config = {
+      darkMode: 'class',
+    }
+  </script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap');
+    body {
+      font-family: 'Noto Sans JP', sans-serif;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+    .glow-blue {
+      filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.6));
+    }
+    .glow-orange {
+      filter: drop-shadow(0 0 8px rgba(249, 115, 22, 0.6));
+    }
+    .glow-mirror {
+      filter: drop-shadow(0 0 4px rgba(129, 140, 248, 0.3));
+    }
+    /* スライダーのカスタマイズ */
+    input[type="range"]::-webkit-slider-thumb {
+      background: #6366f1;
+      border: 2px solid #ffffff;
+      border-radius: 50%;
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+      appearance: none;
+      transition: transform 0.1s ease;
+    }
+    input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.2);
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 dark:bg-slate-900 dark:text-slate-100 min-h-screen flex flex-col justify-between">
+
+  <!-- ヘッダー -->
+  <header class="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 py-4 px-6 shadow-sm dark:shadow-md transition-colors duration-300">
+    <div class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+      <div class="flex items-center gap-3">
+        <div class="bg-indigo-600 text-white p-2 rounded-lg shadow-inner">
+          <i class="fa-solid fa-arrows-left-right text-xl"></i>
+        </div>
+        <div>
+          <h1 class="text-xl md:text-2xl font-bold tracking-wide text-slate-900 dark:text-white flex items-center gap-2">
+            不等式・マイナス反転シミュレータ <span class="text-xs bg-indigo-100 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-500/30 px-2 py-0.5 rounded">Ver 3.0</span>
+          </h1>
+          <p class="text-xs text-slate-500 dark:text-slate-400">「なぜマイナスを掛けると向きが変わるの？」を目で見て納得しよう！</p>
+        </div>
+      </div>
+      
+      <div class="flex flex-wrap items-center justify-center gap-2">
+        <a href="../index.html" class="bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-100 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-bold shadow-sm transition-colors">
+          ← トップへ戻る
+        </a>
+
+        <!-- システムカラー/テーマ切り替えボタン -->
+        <div class="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-900 p-1 rounded-xl border border-slate-200 dark:border-slate-800 shadow-inner">
+        <button id="theme-btn-light" onclick="setTheme('light')" class="px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 transition-all duration-200" title="ライトモード">
+          <i class="fa-solid fa-sun"></i> <span class="hidden sm:inline">ライト</span>
+        </button>
+        <button id="theme-btn-dark" onclick="setTheme('dark')" class="px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 transition-all duration-200" title="ダークモード">
+          <i class="fa-solid fa-moon"></i> <span class="hidden sm:inline">ダーク</span>
+        </button>
+        <button id="theme-btn-system" onclick="setTheme('system')" class="px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 transition-all duration-200" title="システム同期">
+          <i class="fa-solid fa-desktop"></i> <span class="hidden sm:inline">システム</span>
+        </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- メインコンテンツ -->
+  <main class="max-w-6xl w-full mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 flex-grow items-start">
+    
+    <!-- 左側：数式＆数直線ビジュアライザ (8カラム) -->
+    <div class="lg:col-span-8 flex flex-col gap-6">
+      
+      <!-- 数式リアルタイム表示 -->
+      <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700 shadow-md dark:shadow-xl flex flex-col items-center justify-center relative overflow-hidden transition-colors duration-300">
+        <div class="absolute top-2 left-3 text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">リアルタイム不等式</div>
+        
+        <div class="flex flex-wrap items-center justify-center gap-4 md:gap-8 my-4">
+          <!-- 元の数式 -->
+          <div class="flex flex-col items-center bg-slate-100/80 dark:bg-slate-900/60 p-4 rounded-xl border border-slate-200 dark:border-slate-700 min-w-[140px] transition-colors duration-300">
+            <span class="text-xs text-slate-500 dark:text-slate-400 mb-1">元の状態</span>
+            <div class="text-2xl md:text-3xl font-bold flex items-center gap-2">
+              <span class="text-blue-600 dark:text-blue-400" id="eq-orig-a">2</span>
+              <span class="text-slate-400 dark:text-slate-300" id="eq-orig-sign">&lt;</span>
+              <span class="text-orange-600 dark:text-orange-400" id="eq-orig-b">5</span>
+            </div>
+          </div>
+
+          <!-- 掛ける数 -->
+          <div class="flex flex-col items-center justify-center">
+            <div class="bg-indigo-50 dark:bg-indigo-950/80 text-indigo-700 dark:text-indigo-300 border border-indigo-100 dark:border-indigo-700 px-3 py-1 rounded-full text-xs font-bold mb-2 shadow-sm transition-colors duration-300">
+              両辺に掛ける数 (<span id="factor-label" class="text-indigo-600 dark:text-yellow-400">1.0</span>倍)
+            </div>
+            <i class="fa-solid fa-arrow-right text-slate-400 dark:text-slate-500 text-lg hidden md:block"></i>
+            <i class="fa-solid fa-arrow-down text-slate-400 dark:text-slate-500 text-lg block md:hidden"></i>
+          </div>
+
+          <!-- 掛けた後の数式 -->
+          <div class="flex flex-col items-center bg-slate-100/80 dark:bg-slate-900/60 p-4 rounded-xl border border-slate-200 dark:border-slate-700 min-w-[180px] transition-all duration-300 shadow-sm" id="result-box">
+            <span class="text-xs text-slate-500 dark:text-slate-400 mb-1">掛け算後の状態</span>
+            <div class="text-2xl md:text-3xl font-bold flex items-center gap-2">
+              <span class="text-blue-600 dark:text-blue-400" id="eq-res-a">2</span>
+              <span class="text-indigo-600 dark:text-yellow-400 font-extrabold px-1 transition-all duration-300 scale-110" id="eq-res-sign">&lt;</span>
+              <span class="text-orange-600 dark:text-orange-400" id="eq-res-b">5</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 不等号反転アラート -->
+        <div id="flip-alert" class="hidden text-xs bg-rose-500/10 border border-rose-500/20 dark:border-rose-500/30 text-rose-600 dark:text-rose-300 px-4 py-2.5 rounded-lg items-center gap-2 mt-2 animate-bounce">
+          <i class="fa-solid fa-circle-exclamation text-rose-500 dark:text-rose-400 text-sm"></i>
+          <span>マイナスを掛けたので、<strong>不等号の向きが反転（逆転）</strong>しました！</span>
+        </div>
+      </div>
+
+      <!-- 数直線描画エリア (SVG) -->
+      <div class="bg-white dark:bg-slate-800 rounded-2xl p-4 md:p-6 border border-slate-200 dark:border-slate-700 shadow-md dark:shadow-xl flex flex-col transition-colors duration-300">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-3">
+          <span class="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">数直線ビジュアライザ</span>
+          <div class="flex flex-wrap gap-4 text-xs font-medium">
+            <span class="flex items-center gap-1.5"><span class="w-3.5 h-3.5 rounded-full bg-blue-500 shadow-sm"></span>数値A ($a$)</span>
+            <span class="flex items-center gap-1.5"><span class="w-3.5 h-3.5 rounded-full bg-orange-500 shadow-sm"></span>数値B ($b$)</span>
+            <span class="flex items-center gap-1.5"><span class="w-3.5 h-3.5 rounded-full border border-dashed border-slate-400 dark:border-slate-500 bg-slate-200/50 dark:bg-slate-900/40"></span>元の位置</span>
+          </div>
+        </div>
+
+        <!-- 実況解説ナレーションボックス -->
+        <div class="bg-indigo-50/70 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-800/50 rounded-xl p-3.5 mb-4 text-sm text-slate-700 dark:text-slate-200 flex gap-2.5 items-start transition-colors duration-300">
+          <div class="text-indigo-600 dark:text-indigo-400 mt-0.5"><i class="fa-solid fa-comment-dots text-base"></i></div>
+          <div id="narrative-text" class="leading-relaxed">
+            【元の状態 (1倍)】数軸上で、より右側にある数字が「大きい」数です。現在は 2 < 5 です。
+          </div>
+        </div>
+
+        <div class="relative w-full bg-slate-100 dark:bg-slate-950 rounded-xl p-2 border border-slate-200 dark:border-slate-900 transition-colors duration-300">
+          <!-- インタラクティブ数直線 (SVG) -->
+          <svg id="number-line-svg" viewBox="0 0 800 340" class="w-full h-auto select-none">
+            <!-- グリッド背景 -->
+            <defs>
+              <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+                <!-- ライト/ダークで切り替わるグリッド線 -->
+                <path d="M 40 0 L 0 0 0 40" fill="none" class="stroke-slate-300/40 dark:stroke-slate-800/25" stroke-width="1" />
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#grid)" rx="8" />
+
+            <!-- 原点0の縦ガイド線（鏡の役割を果たす対称軸） -->
+            <line x1="400" y1="20" x2="400" y2="300" class="stroke-indigo-400/40 dark:stroke-indigo-400/25 glow-mirror" stroke-width="2" stroke-dasharray="6,4" />
+            <text x="400" y="35" class="fill-indigo-500/80 dark:fill-indigo-400/70" font-size="11" font-weight="bold" text-anchor="middle" letter-spacing="1">鏡 (対称の軸)</text>
+
+            <!-- 原点から180度回転する際の軌跡（点線半円） -->
+            <path id="path-orbit-a" d="" fill="none" stroke="rgba(59, 130, 246, 0.25)" stroke-width="2" stroke-dasharray="4,4" />
+            <path id="path-orbit-b" d="" fill="none" stroke="rgba(249, 115, 22, 0.25)" stroke-width="2" stroke-dasharray="4,4" />
+
+            <!-- メインの数軸 -->
+            <line x1="50" y1="180" x2="750" y2="180" class="stroke-slate-400 dark:stroke-slate-600" stroke-width="3" stroke-linecap="round" />
+            <!-- 数軸の矢印 -->
+            <path d="M 745 174 L 755 180 L 745 186 Z" class="fill-slate-400 dark:fill-slate-600" />
+
+            <!-- 目盛りと数字 (範囲: -10から10) -->
+            <g id="ticks-group"></g>
+            <g id="tick-labels-group"></g>
+
+            <!-- 0（原点）の太い基準線 -->
+            <line x1="400" y1="162" x2="400" y2="198" class="stroke-slate-800 dark:stroke-slate-200" stroke-width="3.5" />
+            <text x="400" y="218" class="fill-slate-800 dark:fill-slate-100 font-bold" font-size="15" text-anchor="middle">0 (原点)</text>
+
+            <!-- 元の位置を示すゴーストノード（点線）- 基準座標を(0,0)に統一 -->
+            <g id="ghost-a" opacity="0.45">
+              <circle cx="0" cy="0" r="10" fill="none" class="stroke-blue-600 dark:stroke-blue-400" stroke-width="2" stroke-dasharray="3,2" />
+              <text id="ghost-a-label" x="0" y="-18" class="fill-blue-600 dark:fill-blue-300 font-bold" font-size="11" text-anchor="middle">元のA</text>
+            </g>
+            <g id="ghost-b" opacity="0.45">
+              <circle cx="0" cy="0" r="10" fill="none" class="stroke-orange-600 dark:stroke-orange-400" stroke-width="2" stroke-dasharray="3,2" />
+              <text id="ghost-b-label" x="0" y="-18" class="fill-orange-600 dark:fill-orange-300 font-bold" font-size="11" text-anchor="middle">元のB</text>
+            </g>
+
+            <!-- 0から各ノードへ伸びる「回転アーム（棒）」ビジュアル -->
+            <line id="arm-a" x1="400" y1="180" x2="400" y2="180" stroke="#3b82f6" stroke-width="3.5" stroke-linecap="round" opacity="0.4" />
+            <line id="arm-b" x1="400" y1="180" x2="400" y2="180" stroke="#f97316" stroke-width="3.5" stroke-linecap="round" opacity="0.4" />
+
+            <!-- 空中のノードから数軸（地面）へ下ろす「投影点線（実際の数値を示す影）」 -->
+            <line id="projection-a" x1="400" y1="180" x2="400" y2="180" stroke="#93c5fd" stroke-width="1.5" stroke-dasharray="3,3" opacity="0.7" />
+            <line id="projection-b" x1="400" y1="180" x2="400" y2="180" stroke="#ffedd5" stroke-width="1.5" stroke-dasharray="3,3" opacity="0.7" />
+
+            <!-- 数軸上に投影された現在の正確な位置を示す「接地ポインター」 -->
+            <circle id="proj-dot-a" cx="400" cy="180" r="5.5" fill="#3b82f6" stroke="#93c5fd" stroke-width="1.5" opacity="0.9" />
+            <circle id="proj-dot-b" cx="400" cy="180" r="5.5" fill="#f97316" stroke="#ffedd5" stroke-width="1.5" opacity="0.9" />
+
+            <!-- 0地点に吸い込まれたときのキラリとした光芒エフェクト -->
+            <g id="origin-glow" opacity="0" transform="translate(400, 180)">
+              <circle cx="0" cy="0" r="15" fill="rgba(253, 224, 71, 0.3)" />
+              <line x1="-25" y1="0" x2="25" y2="0" stroke="#fde047" stroke-width="2" />
+              <line x1="0" y1="-25" x2="0" y2="25" stroke="#fde047" stroke-width="2" />
+            </g>
+
+            <!-- 現在の値を示すアクティブノード (点A: 青, 点B: オレンジ) - 基準座標を(0,0)に統一し、transform干渉を防ぐためtransitionクラスを削除 -->
+            <g id="node-a">
+              <circle id="node-a-circle" cx="0" cy="0" r="13" fill="#3b82f6" class="glow-blue" />
+              <text id="node-a-label" x="0" y="-22" class="fill-blue-600 dark:fill-blue-300 font-bold" font-size="13" text-anchor="middle">A</text>
+            </g>
+
+            <g id="node-b">
+              <circle id="node-b-circle" cx="0" cy="0" r="13" fill="#f97316" class="glow-orange" />
+              <text id="node-b-label" x="0" y="-22" class="fill-orange-600 dark:fill-orange-300 font-bold" font-size="13" text-anchor="middle">B</text>
+            </g>
+          </svg>
+        </div>
+
+        <!-- 段階的ステップ実行用コントローラー -->
+        <div class="mt-5 bg-slate-50 dark:bg-slate-900/60 p-4 rounded-xl border border-slate-200 dark:border-slate-700 transition-colors duration-300">
+          <div class="text-xs font-bold text-slate-500 dark:text-slate-400 mb-3 flex items-center gap-1">
+            <i class="fa-solid fa-magnifying-glass-chart text-indigo-500 dark:text-indigo-400"></i>
+            <span>マイナスになる過程を「段階的（ステップ）」に進める：</span>
+          </div>
+          <div class="grid grid-cols-5 gap-1.5 md:gap-2">
+            <button onclick="animateToK(1.0)" class="step-btn bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 active:scale-95 transition-all text-[11px] md:text-xs py-2 px-1 rounded-lg border border-slate-200 dark:border-slate-600 font-semibold text-center" data-k="1.0">
+              <div class="text-blue-600 dark:text-blue-400">1.0倍</div>
+              <div class="text-[9px] text-slate-400 dark:text-slate-500 font-normal">元の位置</div>
+            </button>
+            <button onclick="animateToK(0.5)" class="step-btn bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 active:scale-95 transition-all text-[11px] md:text-xs py-2 px-1 rounded-lg border border-slate-200 dark:border-slate-600 font-semibold text-center" data-k="0.5">
+              <div class="text-indigo-600 dark:text-indigo-300">0.5倍</div>
+              <div class="text-[9px] text-slate-400 dark:text-slate-500 font-normal">半分に縮む</div>
+            </button>
+            <button onclick="animateToK(0.0)" class="step-btn bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 active:scale-95 transition-all text-[11px] md:text-xs py-2 px-1 rounded-lg border border-slate-200 dark:border-slate-600 font-semibold text-center" data-k="0.0">
+              <div class="text-amber-500 dark:text-yellow-400">0.0倍</div>
+              <div class="text-[9px] text-slate-400 dark:text-slate-500 font-normal">原点に集まる</div>
+            </button>
+            <button onclick="animateToK(-0.5)" class="step-btn bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 active:scale-95 transition-all text-[11px] md:text-xs py-2 px-1 rounded-lg border border-slate-200 dark:border-slate-600 font-semibold text-center" data-k="-0.5">
+              <div class="text-indigo-500 dark:text-indigo-400"> -0.5倍</div>
+              <div class="text-[9px] text-slate-400 dark:text-slate-500 font-normal">反対へ進む</div>
+            </button>
+            <button onclick="animateToK(-1.0)" class="step-btn bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 active:scale-95 transition-all text-[11px] md:text-xs py-2 px-1 rounded-lg border border-slate-200 dark:border-slate-600 font-semibold text-center" data-k="-1.0">
+              <div class="text-orange-600 dark:text-orange-400">-1.0倍</div>
+              <div class="text-[9px] text-slate-400 dark:text-slate-500 font-normal">完全に反転</div>
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- 右側：コントロール＆解説パネル (4カラム) -->
+    <div class="lg:col-span-4 flex flex-col gap-6">
+      
+      <!-- 操作パネル -->
+      <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700 shadow-md dark:shadow-xl flex flex-col gap-5 transition-colors duration-300">
+        <h2 class="text-lg font-bold text-slate-900 dark:text-white border-b border-slate-150 dark:border-slate-700 pb-3 flex items-center gap-2">
+          <i class="fa-solid fa-sliders text-indigo-500 dark:text-indigo-400"></i> 操作コントロール
+        </h2>
+
+        <!-- クイックプリセット -->
+        <div>
+          <label class="text-xs font-bold text-slate-500 dark:text-slate-400 block mb-2">おすすめ初期値 (プリセット)：</label>
+          <div class="grid grid-cols-3 gap-2">
+            <button onclick="setPreset(2, 5)" class="bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 active:scale-95 transition text-xs py-1.5 px-2 rounded-lg border border-slate-200 dark:border-slate-600 text-slate-800 dark:text-slate-200 font-medium">
+              2 と 5
+            </button>
+            <button onclick="setPreset(-3, 4)" class="bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 active:scale-95 transition text-xs py-1.5 px-2 rounded-lg border border-slate-200 dark:border-slate-600 text-slate-800 dark:text-slate-200 font-medium">
+              -3 と 4
+            </button>
+            <button onclick="setPreset(-6, -2)" class="bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 active:scale-95 transition text-xs py-1.5 px-2 rounded-lg border border-slate-200 dark:border-slate-600 text-slate-800 dark:text-slate-200 font-medium">
+              -6 と -2
+            </button>
+          </div>
+        </div>
+
+        <!-- 数値入力 A -->
+        <div class="space-y-1.5">
+          <div class="flex justify-between items-center text-sm">
+            <span class="font-bold text-blue-600 dark:text-blue-300 flex items-center gap-1.5">
+              <span class="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-sm"></span> 数値Aの値 ($a$)
+            </span>
+          </div>
+          <div class="flex gap-3 items-center">
+            <!-- スライダー -->
+            <input type="range" id="input-a" min="-10" max="10" step="1" value="2" class="flex-grow h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer">
+            <!-- 直接入力ボックス -->
+            <input type="number" id="num-a" min="-10" max="10" step="1" value="2" class="w-16 bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-2 py-1 text-center font-bold text-blue-600 dark:text-blue-400 focus:outline-none focus:border-blue-500 dark:focus:border-blue-500 text-sm">
+          </div>
+        </div>
+
+        <!-- 数値入力 B -->
+        <div class="space-y-1.5">
+          <div class="flex justify-between items-center text-sm">
+            <span class="font-bold text-orange-600 dark:text-orange-300 flex items-center gap-1.5">
+              <span class="w-2.5 h-2.5 rounded-full bg-orange-500 shadow-sm"></span> 数値Bの値 ($b$)
+            </span>
+          </div>
+          <div class="flex gap-3 items-center">
+            <!-- スライダー -->
+            <input type="range" id="input-b" min="-10" max="10" step="1" value="5" class="flex-grow h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer">
+            <!-- 直接入力ボックス -->
+            <input type="number" id="num-b" min="-10" max="10" step="1" value="5" class="w-16 bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-2 py-1 text-center font-bold text-orange-600 dark:text-orange-400 focus:outline-none focus:border-orange-500 dark:focus:border-orange-500 text-sm">
+          </div>
+        </div>
+
+        <!-- メインアクションボタン -->
+        <div class="pt-2 border-t border-slate-150 dark:border-slate-700 flex flex-col gap-3">
+          <button id="btn-multiply" class="w-full bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white font-bold py-3 px-4 rounded-xl shadow-md transition-all duration-300 flex items-center justify-center gap-2 group transform active:scale-95">
+            <i class="fa-solid fa-rotate group-hover:rotate-180 transition-transform duration-500"></i>
+            <span id="btn-multiply-text">「 -1 」を掛ける！ (反転)</span>
+          </button>
+        </div>
+
+        <!-- 連続コントロールスライダー (掛ける数) -->
+        <div class="space-y-1.5 bg-slate-50 dark:bg-slate-900/50 p-3 rounded-xl border border-slate-200 dark:border-slate-700 transition-colors duration-300">
+          <div class="flex justify-between items-center text-xs text-slate-500 dark:text-slate-400">
+            <span>じっくり手動で動かす：</span>
+            <span class="font-bold text-indigo-600 dark:text-indigo-400">掛ける数：<span id="multiplier-display">1.00</span>倍</span>
+          </div>
+          <input type="range" id="input-k" min="-1" max="1" step="0.01" value="1" class="w-full h-1.5 bg-slate-250 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer">
+          <div class="flex justify-between text-[10px] text-slate-400 dark:text-slate-500 px-1 font-medium">
+            <span>-1倍 (反転)</span>
+            <span>0倍 (原点)</span>
+            <span>1倍 (元の位置)</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- 学習解説カード -->
+      <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700 shadow-md dark:shadow-xl flex flex-col gap-4 transition-colors duration-300">
+        <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+          <i class="fa-regular fa-lightbulb text-amber-500 dark:text-amber-400"></i> 数直線を見るポイント
+        </h3>
+        <div class="text-sm text-slate-600 dark:text-slate-300 space-y-3 leading-relaxed">
+          <ul class="list-disc list-inside space-y-2 text-slate-600 dark:text-slate-300">
+            <li><strong>ゴースト（点線）との比較：</strong><br>
+            マイナスに変化すると、元の位置と比べて「正反対」の場所へきれいに移動していく様子が確認できます。</li>
+            <li><strong>原点を鏡にした対称性：</strong><br>
+            中央の「鏡（対称軸）」から、AとBのゴーストまでの距離と、移動後の点までの距離は、常にまったく同じになります。</li>
+            <li><strong>すれ違う瞬間：</strong><br>
+            掛ける数が <code class="text-amber-600 dark:text-yellow-400 font-bold">0倍</code> になったとき、すべての数は原点の「0」に吸い込まれます。ここを境界に左右が完全に入れ替わります。</li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- フッター -->
+  <footer class="bg-white dark:bg-slate-950 border-t border-slate-200 dark:border-slate-900 py-4 px-6 text-center text-xs text-slate-500 transition-colors duration-300">
+    <div class="max-w-6xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-2">
+      <p>&copy; 不等式のマイナス反転を視覚的に理解するシミュレータ</p>
+      <p class="flex items-center gap-1 text-slate-500 dark:text-slate-400">
+        <span class="text-indigo-600 dark:text-indigo-400">●</span> 鏡を意識した美しい数学の世界
+      </p>
+    </div>
+  </footer>
+
+  <!-- JavaScript制御ロジック -->
+  <script>
+    // --- 状態管理 ---
+    const state = {
+      a: 2,           // 数値Aの初期値
+      b: 5,           // 数値Bの初期値
+      k: 1.0,         // 現在の掛け算係数 (1.0 から -1.0)
+      isAnimating: false,
+      targetK: 1.0,   // 目標とする係数
+    };
+
+    // --- DOM要素の参照 ---
+    const svg = document.getElementById('number-line-svg');
+    const ticksGroup = document.getElementById('ticks-group');
+    const tickLabelsGroup = document.getElementById('tick-labels-group');
+    
+    const nodeA = document.getElementById('node-a');
+    const nodeACircle = document.getElementById('node-a-circle');
+    const nodeALabel = document.getElementById('node-a-label');
+    
+    const nodeB = document.getElementById('node-b');
+    const nodeBCircle = document.getElementById('node-b-circle');
+    const nodeBLabel = document.getElementById('node-b-label');
+
+    const ghostA = document.getElementById('ghost-a');
+    const ghostB = document.getElementById('ghost-b');
+    const ghostALabel = document.getElementById('ghost-a-label');
+    const ghostBLabel = document.getElementById('ghost-b-label');
+
+    const orbitA = document.getElementById('path-orbit-a');
+    const orbitB = document.getElementById('path-orbit-b');
+    const originGlow = document.getElementById('origin-glow');
+
+    // 新たに追加したビジュアル要素
+    const armA = document.getElementById('arm-a');
+    const armB = document.getElementById('arm-b');
+    const projectionA = document.getElementById('projection-a');
+    const projectionB = document.getElementById('projection-b');
+    const projDotA = document.getElementById('proj-dot-a');
+    const projDotB = document.getElementById('proj-dot-b');
+    const narrativeText = document.getElementById('narrative-text');
+
+    // コントロール
+    const inputA = document.getElementById('input-a');
+    const inputB = document.getElementById('input-b');
+    const numA = document.getElementById('num-a');
+    const numB = document.getElementById('num-b');
+    
+    const inputK = document.getElementById('input-k');
+    const multiplierDisplay = document.getElementById('multiplier-display');
+    const factorLabel = document.getElementById('factor-label');
+    
+    const btnMultiply = document.getElementById('btn-multiply');
+    const btnMultiplyText = document.getElementById('btn-multiply-text');
+
+    // 数式表示
+    const eqOrigA = document.getElementById('eq-orig-a');
+    const eqOrigSign = document.getElementById('eq-orig-sign');
+    const eqOrigB = document.getElementById('eq-orig-b');
+    
+    const eqResA = document.getElementById('eq-res-a');
+    const eqResSign = document.getElementById('eq-res-sign');
+    const eqResB = document.getElementById('eq-res-b');
+    const resultBox = document.getElementById('result-box');
+    const flipAlert = document.getElementById('flip-alert');
+
+    // --- 定数 ---
+    const SVG_WIDTH = 800;
+    const ORIGIN_X = 400; // 0の位置
+    const SCALE_X = 32;   // 1目盛りあたりのピクセル幅
+    const BASE_Y = 180;   // 数軸のY座標
+
+    // --- システムカラー / テーマ管理 ---
+    function initTheme() {
+      const savedTheme = localStorage.getItem('theme') || 'system';
+      setTheme(savedTheme, false); // 初回呼び出し（保存しない）
+      
+      // システムのダークモード変更を監視して即時適用する
+      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+        if (localStorage.getItem('theme') === 'system' || !localStorage.getItem('theme')) {
+          applyThemeClass(e.matches ? 'dark' : 'light');
+        }
+      });
+    }
+
+    function setTheme(themeName, save = true) {
+      if (save) {
+        localStorage.setItem('theme', themeName);
+      }
+
+      // ボタンの見た目のアクティブ表示切り替え
+      const lightBtn = document.getElementById('theme-btn-light');
+      const darkBtn = document.getElementById('theme-btn-dark');
+      const systemBtn = document.getElementById('theme-btn-system');
+
+      const activeClasses = 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-white shadow-sm';
+      const inactiveClasses = 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200';
+
+      [lightBtn, darkBtn, systemBtn].forEach(b => {
+        b.className = b.className.replace(activeClasses, '').replace(inactiveClasses, '').trim();
+      });
+
+      if (themeName === 'light') {
+        lightBtn.className += ' ' + activeClasses;
+        [darkBtn, systemBtn].forEach(b => b.className += ' ' + inactiveClasses);
+        applyThemeClass('light');
+      } else if (themeName === 'dark') {
+        darkBtn.className += ' ' + activeClasses;
+        [lightBtn, systemBtn].forEach(b => b.className += ' ' + inactiveClasses);
+        applyThemeClass('dark');
+      } else {
+        systemBtn.className += ' ' + activeClasses;
+        [lightBtn, darkBtn].forEach(b => b.className += ' ' + inactiveClasses);
+        const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        applyThemeClass(systemPrefersDark ? 'dark' : 'light');
+      }
+      
+      // テーマ変更時にSVG目盛りなどを再描写して色合いを整える
+      generateTicks();
+    }
+
+    function applyThemeClass(resolvedTheme) {
+      const htmlEl = document.documentElement;
+      if (resolvedTheme === 'dark') {
+        htmlEl.classList.add('dark');
+      } else {
+        htmlEl.classList.remove('dark');
+      }
+    }
+
+    // --- 初期化 ---
+    function init() {
+      initTheme();
+      generateTicks();
+      updateFromInputs();
+      render();
+
+      // --- 数値変更時にkを1.0(元の状態)に即座にリセットする関数 ---
+      function resetKToDefault() {
+        if (state.k !== 1.0) {
+          state.k = 1.0;
+          state.targetK = 1.0;
+          inputK.value = 1.0;
+          multiplierDisplay.textContent = "1.00";
+          factorLabel.textContent = "1.00";
+          updateButtonText();
+          updateActiveStepButton();
+        }
+      }
+
+      // イベントリスナー登録 (A同期)
+      inputA.addEventListener('input', () => {
+        resetKToDefault();
+        state.a = parseInt(inputA.value) || 0;
+        numA.value = state.a;
+        updateFormula();
+        render();
+      });
+
+      numA.addEventListener('input', () => {
+        resetKToDefault();
+        let val = parseInt(numA.value);
+        if (isNaN(val)) {
+          state.a = 0;
+        } else {
+          val = validateRange(val);
+          state.a = val;
+          inputA.value = val;
+        }
+        updateFormula();
+        render();
+      });
+
+      numA.addEventListener('blur', () => {
+        let val = parseInt(numA.value);
+        val = validateRange(isNaN(val) ? 0 : val);
+        numA.value = val;
+        inputA.value = val;
+        state.a = val;
+        updateFormula();
+        render();
+      });
+
+      // イベントリスナー登録 (B同期)
+      inputB.addEventListener('input', () => {
+        resetKToDefault();
+        state.b = parseInt(inputB.value) || 0;
+        numB.value = state.b;
+        updateFormula();
+        render();
+      });
+
+      numB.addEventListener('input', () => {
+        resetKToDefault();
+        let val = parseInt(numB.value);
+        if (isNaN(val)) {
+          state.b = 0;
+        } else {
+          val = validateRange(val);
+          state.b = val;
+          inputB.value = val;
+        }
+        updateFormula();
+        render();
+      });
+
+      numB.addEventListener('blur', () => {
+        let val = parseInt(numB.value);
+        val = validateRange(isNaN(val) ? 0 : val);
+        numB.value = val;
+        inputB.value = val;
+        state.b = val;
+        updateFormula();
+        render();
+      });
+
+      // 倍率コントロール
+      inputK.addEventListener('input', () => {
+        state.k = parseFloat(inputK.value);
+        state.targetK = state.k;
+        multiplierDisplay.textContent = state.k.toFixed(2);
+        factorLabel.textContent = state.k.toFixed(2);
+        updateButtonText();
+        updateActiveStepButton();
+        render();
+      });
+
+      btnMultiply.addEventListener('click', toggleMultiply);
+      updateActiveStepButton();
+    }
+
+    // 入力値バリデーション (-10 から 10)
+    function validateRange(val) {
+      if (isNaN(val)) return 0;
+      return Math.max(-10, Math.min(10, val));
+    }
+
+    // --- 数直線の目盛りを生成 ---
+    function generateTicks() {
+      ticksGroup.innerHTML = '';
+      tickLabelsGroup.innerHTML = '';
+
+      const isDarkMode = document.documentElement.classList.contains('dark');
+      const tickStroke = isDarkMode ? '#475569' : '#cbd5e1';
+      const tickStrokeMajor = isDarkMode ? '#94a3b8' : '#64748b';
+      const textFill = isDarkMode ? '#94a3b8' : '#64748b';
+
+      for (let i = -10; i <= 10; i++) {
+        if (i === 0) continue; // 0は基準線として描画するためスキップ
+
+        const x = ORIGIN_X + i * SCALE_X;
+        
+        // 目盛り線
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        line.setAttribute('x1', x);
+        line.setAttribute('y1', BASE_Y - 8);
+        line.setAttribute('x2', x);
+        line.setAttribute('y2', BASE_Y + 8);
+        line.setAttribute('stroke', i % 5 === 0 ? tickStrokeMajor : tickStroke);
+        line.setAttribute('stroke-width', i % 5 === 0 ? '2' : '1.5');
+        ticksGroup.appendChild(line);
+
+        // ラベル (5刻み、または端)
+        if (i % 5 === 0 || i === -10 || i === 10) {
+          const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+          text.setAttribute('x', x);
+          text.setAttribute('y', BASE_Y + 28);
+          text.setAttribute('fill', textFill);
+          text.setAttribute('font-size', '14');
+          text.setAttribute('font-weight', '500');
+          text.setAttribute('text-anchor', 'middle');
+          text.textContent = i;
+          tickLabelsGroup.appendChild(text);
+        }
+      }
+    }
+
+    // --- 入力フォームから値を同期 ---
+    function updateFromInputs() {
+      state.a = parseInt(inputA.value);
+      state.b = parseInt(inputB.value);
+      state.k = parseFloat(inputK.value);
+      state.targetK = state.k;
+      
+      numA.value = state.a;
+      numB.value = state.b;
+      multiplierDisplay.textContent = state.k.toFixed(2);
+      factorLabel.textContent = state.k.toFixed(2);
+      
+      updateFormula();
+    }
+
+    // プリセット用
+    window.setPreset = function(a, b) {
+      inputA.value = a;
+      inputB.value = b;
+      numA.value = a;
+      numB.value = b;
+      inputK.value = 1.0; 
+      state.k = 1.0;
+      state.targetK = 1.0;
+      
+      updateFromInputs();
+      updateButtonText();
+      updateActiveStepButton();
+      render();
+    }
+
+    // --- 不等号の判定テキスト ---
+    function getInequalitySign(val1, val2) {
+      if (val1 < val2) return '<';
+      if (val1 > val2) return '>';
+      return '=';
+    }
+
+    // --- 実況ナレーションの更新 ---
+    function updateNarrative() {
+      let text = "";
+      const k = state.k;
+      const origSign = getInequalitySign(state.a, state.b);
+      const resA = parseFloat((state.a * k).toFixed(1));
+      const resB = parseFloat((state.b * k).toFixed(1));
+      const resSign = getInequalitySign(resA, resB);
+
+      let signHTML = `<span class="font-bold text-indigo-600 dark:text-yellow-400 text-base">${resSign}</span>`;
+
+      if (k === 1.0) {
+        text = `<span class="text-blue-600 dark:text-blue-400 font-bold">【元の状態 (1倍)】</span> 数直線上で、より右側にある数字が「大きい」数です。現在は <strong>${state.a} <span class="text-indigo-600 dark:text-indigo-400 font-bold">${origSign}</span> ${state.b}</strong> です。`;
+      } else if (k > 0.0) {
+        text = `<span class="text-indigo-500 dark:text-indigo-300 font-bold">【0に向かって縮小中 (${k.toFixed(2)}倍)】</span> 掛ける数を小さくすると、アームが縮むように、両方の点が原点(0)に向かってスライドし、お互いの幅が縮まっていきます。`;
+      } else if (k === 0.0) {
+        text = `<span class="text-amber-600 dark:text-yellow-400 font-bold">【原点に集合 (0倍)】</span> $0$ を掛けたので、アームの長さが完全にゼロになり、すべての数は $0$ に吸い込まれました。大小関係はなくなり <strong>0 ＝ 0</strong> になります。`;
+      } else if (k > -1.0) {
+        text = `<span class="text-pink-600 dark:text-pink-400 font-bold">【マイナスの世界へ裏返し中 (${k.toFixed(2)}倍)】</span> 原点(0)を突き抜けて反対側（マイナス領域）へ！0から伸びるアームが、鏡に映したようにパタパタと左右に180度回転し始めています。`;
+      } else if (k <= -1.0) {
+        text = `<span class="text-rose-600 dark:text-rose-400 font-bold">【完全反転 (-1倍)】</span> 完全に180度ひっくり返りました！元々右（大きかった）にあった数は、原点から遠かったぶん、左（小さかった）へ一番遠く移動しました。大小関係が逆転し、不等号が <strong>${resA.toFixed(0)} ${signHTML} ${resB.toFixed(0)}</strong> に変わりました！`;
+      }
+      narrativeText.innerHTML = text;
+    }
+
+    // --- 数式表示のアップデート ---
+    function updateFormula() {
+      // 元の式
+      eqOrigA.textContent = state.a;
+      eqOrigB.textContent = state.b;
+      const origSign = getInequalitySign(state.a, state.b);
+      eqOrigSign.textContent = origSign;
+      eqOrigSign.className = "text-slate-400 dark:text-slate-300 text-2xl font-bold transition-all duration-300";
+
+      // 掛け算後の計算値
+      const resA = parseFloat((state.a * state.k).toFixed(2));
+      const resB = parseFloat((state.b * state.k).toFixed(2));
+      
+      eqResA.textContent = resA;
+      eqResB.textContent = resB;
+      
+      const resSign = getInequalitySign(resA, resB);
+      eqResSign.textContent = resSign;
+
+      // 反転が起きているかどうかをチェック
+      const hasFlipped = (origSign !== '=' && resSign !== '=' && origSign !== resSign);
+      
+      if (hasFlipped) {
+        eqResSign.className = "text-rose-500 dark:text-rose-400 text-4xl font-extrabold px-2 scale-125 transition-all duration-300 glow-orange animate-pulse";
+        resultBox.className = "flex flex-col items-center bg-rose-50 dark:bg-rose-950/40 p-4 rounded-xl border border-rose-200 dark:border-rose-800/80 min-w-[180px] shadow-md dark:shadow-lg dark:shadow-rose-950/50 transition-all duration-300";
+        flipAlert.classList.remove('hidden');
+        flipAlert.classList.add('flex');
+      } else {
+        eqResSign.className = "text-indigo-600 dark:text-yellow-400 text-3xl font-bold px-1 transition-all duration-300";
+        resultBox.className = "flex flex-col items-center bg-slate-100/80 dark:bg-slate-900/60 p-4 rounded-xl border border-slate-200 dark:border-slate-700 min-w-[180px] transition-all duration-300";
+        flipAlert.classList.add('hidden');
+        flipAlert.classList.remove('flex');
+      }
+
+      updateNarrative();
+    }
+
+    // --- ボタンのテキスト切り替え ---
+    function updateButtonText() {
+      if (state.k <= -0.99) {
+        btnMultiplyText.textContent = "「 1倍 」に戻す！ (元の状態)";
+      } else {
+        btnMultiplyText.textContent = "「 -1 」を掛ける！ (反転)";
+      }
+    }
+
+    // --- ステップボタンのアクティブ状態更新 ---
+    function updateActiveStepButton() {
+      const buttons = document.querySelectorAll('.step-btn');
+      buttons.forEach(btn => {
+        const kVal = parseFloat(btn.getAttribute('data-k'));
+        if (Math.abs(state.k - kVal) < 0.01) {
+          btn.className = "step-btn bg-indigo-600 dark:bg-indigo-600 text-white shadow-md dark:shadow-lg dark:shadow-indigo-950/50 scale-105 transition-all text-[11px] md:text-xs py-2 px-1 rounded-lg border border-indigo-400 dark:border-indigo-400 font-bold text-center";
+        } else {
+          btn.className = "step-btn bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 active:scale-95 transition-all text-[11px] md:text-xs py-2 px-1 rounded-lg border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-300 font-semibold text-center";
+        }
+      });
+    }
+
+    // --- ステップボタン用のトリガー ---
+    window.animateToK = function(targetVal) {
+      if (state.isAnimating) return;
+      state.targetK = targetVal;
+      animateTransition();
+    }
+
+    // --- 「-1を掛ける」アニメーション発火 ---
+    function toggleMultiply() {
+      if (state.isAnimating) return;
+      state.targetK = (state.k > 0) ? -1.0 : 1.0;
+      animateTransition();
+    }
+
+    // イージング関数 (Smooth Step)
+    function easeInOutQuad(t) {
+      return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+    }
+
+    // --- 数値をスムーズに変位させるアニメーションループ ---
+    function animateTransition() {
+      state.isAnimating = true;
+      btnMultiply.disabled = true;
+      btnMultiply.classList.add('opacity-50', 'cursor-not-allowed');
+
+      const duration = 1500; // 回転スピード(1.5秒)
+      const startTime = performance.now();
+      const startK = state.k;
+      const distance = state.targetK - startK;
+
+      function updateAnim(currentTime) {
+        const elapsedTime = currentTime - startTime;
+        const progress = Math.min(elapsedTime / duration, 1.0);
+        
+        // イージング適用
+        const easeProgress = easeInOutQuad(progress);
+        state.k = startK + distance * easeProgress;
+        
+        // 表示のアップデート
+        inputK.value = state.k;
+        multiplierDisplay.textContent = state.k.toFixed(2);
+        factorLabel.textContent = state.k.toFixed(2);
+        
+        updateFormula();
+        render();
+
+        if (progress < 1.0) {
+          requestAnimationFrame(updateAnim);
+        } else {
+          // アニメーション完了
+          state.k = state.targetK;
+          inputK.value = state.k;
+          multiplierDisplay.textContent = state.k.toFixed(2);
+          factorLabel.textContent = state.k.toFixed(2);
+          state.isAnimating = false;
+          
+          btnMultiply.disabled = false;
+          btnMultiply.classList.remove('opacity-50', 'cursor-not-allowed');
+          updateButtonText();
+          updateActiveStepButton();
+          updateFormula();
+          render();
+        }
+      }
+
+      requestAnimationFrame(updateAnim);
+    }
+
+    // --- レンダリングループ (数直線と点の更新) ---
+    function render() {
+      // 1. 角度の計算 (kが 1 から -1 に動くにつれて、角度を 0 から PI(180度)まで変化させる)
+      const theta = Math.acos(Math.max(-1.0, Math.min(1.0, state.k)));
+
+      // Y軸方向の軌跡の高さ (楕円を描くためのスケーラー)
+      const shrinkY = 0.45; 
+
+      // 点Aの現在座標 (上側に持ち上げる)
+      const xa = ORIGIN_X + state.a * SCALE_X * Math.cos(theta);
+      const ya = BASE_Y - Math.abs(state.a) * SCALE_X * Math.sin(theta) * shrinkY;
+
+      // 点Bの現在座標 (下側に落とす)
+      const xb = ORIGIN_X + state.b * SCALE_X * Math.cos(theta);
+      const yb = BASE_Y + Math.abs(state.b) * SCALE_X * Math.sin(theta) * shrinkY;
+
+      // 2. DOMの更新 (点A)
+      nodeA.setAttribute('transform', `translate(${xa}, ${ya})`);
+      nodeALabel.textContent = `A: ${(state.a * state.k).toFixed(1)}`;
+      const scaleA = 1 + (Math.sin(theta) * 0.25);
+      nodeACircle.setAttribute('r', 13 * scaleA);
+
+      // DOMの更新 (点B)
+      nodeB.setAttribute('transform', `translate(${xb}, ${yb})`);
+      nodeBLabel.textContent = `B: ${(state.b * state.k).toFixed(1)}`;
+      const scaleB = 1 + (Math.sin(theta) * 0.25);
+      nodeBCircle.setAttribute('r', 13 * scaleB);
+
+      // 3. 回転アーム（原点から伸びる太い棒）の更新
+      armA.setAttribute('x2', xa);
+      armA.setAttribute('y2', ya);
+      armB.setAttribute('x2', xb);
+      armB.setAttribute('y2', yb);
+
+      // 4. 投影点線（空中のノードから数直線へ下ろす垂直ガイド）
+      projectionA.setAttribute('x1', xa);
+      projectionA.setAttribute('y1', ya);
+      projectionA.setAttribute('x2', xa);
+      projectionA.setAttribute('y2', BASE_Y);
+
+      projectionB.setAttribute('x1', xb);
+      projectionB.setAttribute('y1', yb);
+      projectionB.setAttribute('x2', xb);
+      projectionB.setAttribute('y2', BASE_Y);
+
+      // 5. 接地ポインター（実際の一次元の数直線上の位置を示す影の丸）
+      projDotA.setAttribute('cx', xa);
+      projDotB.setAttribute('cx', xb);
+
+      // 6. ゴースト(元の位置)の更新 - 常に k=1.0（元の位置）に固定されて描画
+      const ghostXa = ORIGIN_X + state.a * SCALE_X;
+      const ghostXb = ORIGIN_X + state.b * SCALE_X;
+      ghostA.setAttribute('transform', `translate(${ghostXa}, ${BASE_Y})`);
+      ghostB.setAttribute('transform', `translate(${ghostXb}, ${BASE_Y})`);
+      ghostALabel.textContent = `元のA: ${state.a}`;
+      ghostBLabel.textContent = `元のB: ${state.b}`;
+
+      // 7. 0倍（全員原点集合）のときのキラッと光るエフェクト制御
+      const distToZero = Math.abs(state.k);
+      if (distToZero < 0.15) {
+        const opacity = (0.15 - distToZero) / 0.15;
+        originGlow.setAttribute('opacity', opacity);
+        originGlow.setAttribute('transform', `translate(400, 180) scale(${1 + (1 - distToZero) * 0.5})`);
+      } else {
+        originGlow.setAttribute('opacity', 0);
+      }
+
+      // 8. 180度反転のガイド用点線パスを描く
+      // Aの半円パス： Aは常に上側
+      const startXa = ORIGIN_X + state.a * SCALE_X;
+      const endXa = ORIGIN_X - state.a * SCALE_X;
+      const rXa = Math.abs(state.a) * SCALE_X;
+      const rYa = rXa * shrinkY;
+      const sweepA = state.a > 0 ? 0 : 1;
+      orbitA.setAttribute('d', `M ${startXa} ${BASE_Y} A ${rXa} ${rYa} 0 0 ${sweepA} ${endXa} ${BASE_Y}`);
+
+      // Bの半円パス： Bは常に下側
+      const startXb = ORIGIN_X + state.b * SCALE_X;
+      const endXb = ORIGIN_X - state.b * SCALE_X;
+      const rXb = Math.abs(state.b) * SCALE_X;
+      const rYb = rXb * shrinkY;
+      const sweepB = state.b > 0 ? 1 : 0;
+      orbitB.setAttribute('d', `M ${startXb} ${BASE_Y} A ${rXb} ${rYb} 0 0 ${sweepB} ${endXb} ${BASE_Y}`);
+    }
+
+    // 起動
+    window.onload = init;
+  </script>
+</body>
+</html>

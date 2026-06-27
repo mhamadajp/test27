@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ITパスポート 過去問演習ツール (完全版250問)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .option-btn { transition: all 0.2s ease-in-out; }
+        .option-btn:hover:not(:disabled) { transform: translateX(8px); background-color: #f3f4f6; }
+        .option-btn:disabled { cursor: not-allowed; opacity: 0.8; }
+        .correct-ans { background-color: #dcfce7 !important; border-color: #22c55e !important; color: #166534 !important; }
+        .incorrect-ans { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #991b1b !important; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .fade-in { animation: fadeIn 0.4s ease-out forwards; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans min-h-screen p-4 md:p-8">
+
+    <div class="max-w-3xl mx-auto">
+        <h1 class="text-2xl md:text-3xl font-bold text-center text-blue-700 mb-8 tracking-tight">ITパスポート 過去問演習ツール <span class="text-sm bg-blue-100 text-blue-800 py-1 px-2 rounded-full align-middle">全250問収録</span></h1>
+
+        <div class="bg-white rounded-xl shadow-lg p-5 md:p-8">
+            <div class="flex flex-col sm:flex-row justify-between items-center mb-6 pb-4 border-b border-slate-200 gap-4">
+                <div class="w-full sm:w-auto">
+                    <label for="category-select" class="block text-sm font-medium text-slate-600 mb-1">カテゴリ選択</label>
+                    <select id="category-select" onchange="startQuiz()" class="w-full bg-slate-50 border border-slate-300 text-slate-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5">
+                        <option value="テクノロジ系">テクノロジ系（100問）</option>
+                        <option value="ストラテジ系">ストラテジ系（75問）</option>
+                        <option value="マネジメント系">マネジメント系（75問）</option>
+                        <option value="all">全分野ランダム（250問）</option>
+                    </select>
+                </div>
+                <div class="text-right bg-blue-50 px-4 py-2 rounded-lg border border-blue-100">
+                    <span class="text-sm text-blue-800 font-semibold">正答状況</span><br>
+                    <span class="text-xl font-bold text-blue-600" id="score">0</span> 
+                    <span class="text-slate-500 mx-1">/</span> 
+                    <span class="text-lg text-slate-700" id="total-answered">0</span>
+                </div>
+            </div>
+
+            <div id="quiz-area">
+                <div id="category-badge" class="inline-block px-3 py-1 mb-4 text-xs font-semibold rounded-full bg-slate-100 text-slate-600 border border-slate-200"></div>
+                
+                <h2 class="text-lg md:text-xl font-bold mb-6 leading-relaxed" id="question-text"></h2>
+                
+                <div class="flex flex-col gap-3" id="options-container"></div>
+
+                <div id="explanation-box" class="hidden mt-6 p-5 bg-slate-50 border-l-4 border-blue-500 rounded-r-lg fade-in">
+                    <h3 class="font-bold text-blue-800 mb-2 flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        解説
+                    </h3>
+                    <p id="explanation-text" class="text-slate-700 leading-relaxed text-sm md:text-base whitespace-pre-wrap"></p>
+                </div>
+
+                <div id="next-btn-container" class="hidden mt-6 text-right fade-in">
+                    <button onclick="nextQuestion()" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 transition-colors">
+                        次の問題へ
+                        <svg class="ml-2 -mr-1 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    </button>
+                </div>
+            </div>
+            
+            <div id="result-area" class="hidden text-center py-10 fade-in">
+                <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-100 text-green-500 mb-4">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                </div>
+                <h2 class="text-2xl font-bold text-slate-800 mb-2">演習終了！</h2>
+                <div class="bg-slate-50 rounded-lg p-6 max-w-sm mx-auto mb-8 border border-slate-200">
+                    <p class="text-lg">最終スコア</p>
+                    <p class="text-3xl font-bold text-blue-600 my-2" id="final-score-text"></p>
+                    <p class="text-sm font-medium text-slate-500" id="final-rate-text"></p>
+                </div>
+                <button onclick="startQuiz()" class="inline-flex items-center px-6 py-3 border border-slate-300 shadow-sm text-base font-medium rounded-md text-slate-700 bg-white hover:bg-slate-50 transition-colors">
+                    最初からやり直す
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 問題データ格納配列
+        const questionDatabase = [
+            // ==========================================
+            // 【テクノロジ系 100問】
+            // ==========================================
+            { category: "テクノロジ系", question: "10進数の「11」を2進数で表したものはどれか。", options: ["1011", "1101", "1001", "1111"], answerIndex: 0, explanation: "10進数の11は、2で割った余りを下から並べるか、8+2+1の組み合わせで考えます。(1×8)+(0×4)+(1×2)+(1×1) = 1011 となります。" },
+            { category: "テクノロジ系", question: "1バイト(Byte)は何ビット(Bit)か。", options: ["4ビット", "8ビット", "16ビット", "32ビット"], answerIndex: 1, explanation: "1バイトは8ビットです。ビットは情報を表す最小単位（0か1）です。" },
+            { category: "テクノロジ系", question: "論理演算において、2つの入力がともに「1（真）」のときだけ出力が「1」になる演算はどれか。", options: ["論理和 (OR)", "論理積 (AND)", "排他的論理和 (XOR)", "否定 (NOT)"], answerIndex: 1, explanation: "論理積(AND)は両方が条件を満たす(1)の時のみ1になります。" },
+            { category: "テクノロジ系", question: "アナログ音声をデジタル化するプロセスにおいて、連続する波形を一定の時間間隔で区切って読み取る処理を何というか。", options: ["量子化", "符号化", "標本化（サンプリング）", "復号化"], answerIndex: 2, explanation: "音声のデジタル化は「標本化（時間で区切る）」→「量子化（段階的な数値にする）」→「符号化（2進数にする）」の順に行われます。" },
+            { category: "テクノロジ系", question: "英数字や記号を1文字あたり7ビット（または8ビット）で表現する、アメリカで規格化された基本的な文字コードはどれか。", options: ["Shift_JIS", "EUC-JP", "ASCII", "Unicode"], answerIndex: 2, explanation: "ASCII（アスキー）コードは、英数字や一部の記号を表現する最も基本的な文字コードです。" },
+            { category: "テクノロジ系", question: "世界中の様々な言語の文字を、一つの文字コード体系で扱えるようにした国際的な文字コードはどれか。", options: ["ASCII", "Shift_JIS", "Unicode", "EUC"], answerIndex: 2, explanation: "Unicode（ユニコード）は、多言語を統一的に扱うための文字コードで、UTF-8などのエンコーディング方式がWebで広く使われています。" },
+            { category: "テクノロジ系", question: "コンピュータの「五大装置」に含まれないものはどれか。", options: ["演算装置", "制御装置", "通信装置", "記憶装置"], answerIndex: 2, explanation: "五大装置は「演算・制御（CPU）」「記憶（メモリ・HDD）」「入力（キーボード等）」「出力（ディスプレイ等）」の5つです。" },
+            { category: "テクノロジ系", question: "CPU（中央処理装置）の性能指標の一つで、1秒間に発生する電気信号の波の回数を表すものはどれか。", options: ["CPI", "MIPS", "FLOPS", "クロック周波数"], answerIndex: 3, explanation: "クロック周波数は「GHz（ギガヘルツ）」などの単位で表され、数値が大きいほどCPUの処理速度が速くなります。" },
+            { category: "テクノロジ系", question: "CPUと主記憶装置（メインメモリ）の間の処理速度の差を埋めるため、CPU内部などに設けられる高速なメモリはどれか。", options: ["フラッシュメモリ", "仮想メモリ", "キャッシュメモリ", "ROM"], answerIndex: 2, explanation: "キャッシュメモリは頻繁に使うデータを一時的に保存し、処理の高速化を図ります。" },
+            { category: "テクノロジ系", question: "電源を切ると記憶内容が消えてしまう（揮発性）メモリであり、主にパソコンの主記憶装置（メインメモリ）として利用されるものはどれか。", options: ["ROM", "DRAM", "SRAM", "フラッシュメモリ"], answerIndex: 1, explanation: "DRAM(Dynamic RAM)は安価で大容量化しやすくメインメモリに使われます。リフレッシュ（再書き込み）動作が必要です。" },
+            { category: "テクノロジ系", question: "電源を切っても記憶内容が保持される（不揮発性）メモリであり、USBメモリやSSD、スマートフォンの記憶媒体として広く使われているものはどれか。", options: ["SRAM", "フラッシュメモリ", "DRAM", "キャッシュメモリ"], answerIndex: 1, explanation: "フラッシュメモリは電気的にデータの書き換えができる不揮発性メモリです。" },
+            { category: "テクノロジ系", question: "磁気ディスク（HDD）の代わりに、フラッシュメモリを用いてデータを記憶する補助記憶装置はどれか。", options: ["DVD-ROM", "SSD", "Blu-ray Disc", "CD-R"], answerIndex: 1, explanation: "SSD (Solid State Drive) はHDDに比べて読み書きが非常に高速で、衝撃に強く、静音性に優れています。" },
+            { category: "テクノロジ系", question: "パソコン周辺機器の接続インターフェースで、キーボードやマウス、プリンタなど幅広い機器の接続に使われ、ハブを使ってツリー状に接続できるものはどれか。", options: ["HDMI", "Bluetooth", "USB", "NFC"], answerIndex: 2, explanation: "USB (Universal Serial Bus) は最も普及しているシリアルインターフェースです。" },
+            { category: "テクノロジ系", question: "映像・音声・制御信号を1本のケーブルでデジタル伝送できる、テレビやディスプレイの接続規格はどれか。", options: ["USB", "VGA", "HDMI", "LAN"], answerIndex: 2, explanation: "HDMI (High-Definition Multimedia Interface) はデジタル家電やPCとディスプレイの接続に広く使われます。" },
+            { category: "テクノロジ系", question: "近距離無線通信技術の一つで、Suicaなどの交通系ICカードや、スマートフォンの「おサイフケータイ」に利用されている規格はどれか。", options: ["Bluetooth", "NFC", "Wi-Fi", "IrDA"], answerIndex: 1, explanation: "NFC (Near Field Communication) は数センチの近距離で通信を行う技術です。" },
+            { category: "テクノロジ系", question: "電波を用いて、ICタグ（RFタグ）のデータを非接触で読み書きする技術システム全体を何というか。", options: ["Bluetooth", "RFID", "GPS", "Wi-Fi"], answerIndex: 1, explanation: "RFIDは、商品管理（セルフレジ）や物流管理などに広く応用されています。" },
+            { category: "テクノロジ系", question: "OS（オペレーティングシステム）の主な役割として、最も適切なものはどれか。", options: ["表計算や文書作成を行う", "ハードウェアやリソースを管理し、アプリケーションに共通の機能を提供する", "コンピュータウイルスを駆除する", "インターネット上のWebサイトを閲覧する"], answerIndex: 1, explanation: "OSはWindowsやmacOS、iOSなどに代表される基本ソフトウェアで、システム全体を管理します。" },
+            { category: "テクノロジ系", question: "主記憶装置（メインメモリ）の容量が不足した際、補助記憶装置（HDDやSSD）の一部をあたかも主記憶装置のように見せかけて、見かけ上の容量を拡大する仕組みはどれか。", options: ["キャッシュメモリ", "フラッシュメモリ", "仮想記憶（仮想メモリ）", "マルチタスク"], answerIndex: 2, explanation: "仮想記憶を利用することで、物理メモリ以上の大きなプログラムを実行できるようになります。" },
+            { category: "テクノロジ系", question: "ファイルやディレクトリの管理において、一番上の階層にある基準となるディレクトリを何というか。", options: ["カレントディレクトリ", "サブディレクトリ", "ルートディレクトリ", "パスディレクトリ"], answerIndex: 2, explanation: "ルート(Root:根)ディレクトリは、木構造（ツリー構造）のファイルシステムにおいて大元となるディレクトリです。" },
+            { category: "テクノロジ系", question: "前回のバックアップ以降に変更・追加されたデータのみを保存するバックアップ方式を何というか。", options: ["フルバックアップ", "差分バックアップ", "増分バックアップ", "システムバックアップ"], answerIndex: 2, explanation: "増分バックアップは処理時間が短くて済みますが、復旧時には「フル＋すべての増分」を順に適用する必要があります。" },
+            { category: "テクノロジ系", question: "ソフトウェアの設計図であるソースコードが公開されており、誰でも自由に利用・改変・再配布ができるソフトウェアを何というか。", options: ["シェアウェア", "フリーウェア", "オープンソースソフトウェア(OSS)", "商用ソフトウェア"], answerIndex: 2, explanation: "OSSの代表例として、Linux（OS）やMySQL（データベース）などがあります。フリーウェアは無料で使えますがソースコードは非公開のものが多いです。" },
+            { category: "テクノロジ系", question: "表（テーブル）の形式でデータを管理し、行と列によって構成される現在最も主流なデータベースのモデルはどれか。", options: ["階層型データベース", "ネットワーク型データベース", "リレーショナルデータベース(関係データベース)", "NoSQL"], answerIndex: 2, explanation: "リレーショナルデータベース（RDB）は、複数の表を関連付けてデータを管理します。" },
+            { category: "テクノロジ系", question: "リレーショナルデータベースにおいて、表の中の行（レコード）を一意に識別するための項目（列）を何というか。", options: ["外部キー", "主キー", "インデックス", "ポインタ"], answerIndex: 1, explanation: "主キー（プライマリキー）には、「重複した値を持たない」「空（NULL）であってはならない」という制約があります。" },
+            { category: "テクノロジ系", question: "別の表の「主キー」を参照し、表と表を関連付ける（リレーションを結ぶ）役割を持つ項目を何というか。", options: ["外部キー", "主キー", "複合キー", "候補キー"], answerIndex: 0, explanation: "外部キー（フォーリンキー）を用いることで、データの整合性を保ちながら表同士を結合できます。" },
+            { category: "テクノロジ系", question: "データベースの設計において、データの重複や矛盾を排除し、管理しやすいように表を分割して最適化する作業を何というか。", options: ["インデックス作成", "正規化", "排他制御", "バックアップ"], answerIndex: 1, explanation: "正規化を行うことで、データ更新時の不整合（一部だけ修正漏れが起きるなど）を防ぐことができます。" },
+            { category: "テクノロジ系", question: "リレーショナルデータベースの操作や定義を行うための標準的な言語はどれか。", options: ["HTML", "Java", "SQL", "Python"], answerIndex: 2, explanation: "SQLは、データの検索(SELECT)、追加(INSERT)、更新(UPDATE)、削除(DELETE)などに使用されます。" },
+            { category: "テクノロジ系", question: "データベースにおいて、複数の処理を一つのまとまりとして扱い、「すべて成功する」か「すべて失敗（取り消し）する」のどちらかしか起こらないことを保証する特性を何というか。", options: ["一貫性", "独立性", "耐久性", "原子性（Atomicity）"], answerIndex: 3, explanation: "原子性を含むデータベースのトランザクションの4つの特性を「ACID特性」と呼びます。" },
+            { category: "テクノロジ系", question: "トランザクション処理がすべて正常に完了し、データベースの変更を確定させる処理を何というか。", options: ["コミット", "ロールバック", "デッドロック", "排他制御"], answerIndex: 0, explanation: "コミット(Commit)を行うことで、処理結果がデータベースに恒久的に保存されます。" },
+            { category: "テクノロジ系", question: "トランザクション処理の途中でエラーが発生した際、処理開始前の状態に戻す（取り消す）処理を何というか。", options: ["コミット", "ロールバック", "排他制御", "リストア"], answerIndex: 1, explanation: "ロールバック(Rollback)により、中途半端なデータがデータベースに記録されるのを防ぎます。" },
+            { category: "テクノロジ系", question: "複数のユーザーが同時に同じデータを更新しようとした際、データの矛盾を防ぐために、先アクセスした人が処理を終えるまで他の人に待機させる仕組みはどれか。", options: ["排他制御（ロック）", "トランザクション", "正規化", "インデックス"], answerIndex: 0, explanation: "排他制御を行わないと、後から書き込んだデータで上書きされてしまうなどの不具合が生じます。" },
+            { category: "テクノロジ系", question: "OSI基本参照モデルは、通信に必要な機能をいくつの階層に分けて定義しているか。", options: ["3階層", "4階層", "5階層", "7階層"], answerIndex: 3, explanation: "OSI基本参照モデルは、物理層からアプリケーション層までの7階層（レイヤ）で構成されています。" },
+            { category: "テクノロジ系", question: "ネットワーク機器やパソコンのLANカードなどに、製造段階で割り当てられる世界で一意の物理アドレスはどれか。", options: ["IPアドレス", "MACアドレス", "URL", "ドメイン名"], answerIndex: 1, explanation: "MACアドレスは48ビットで構成され、原則として変更できません。隣接する機器との通信に使われます。" },
+            { category: "テクノロジ系", question: "インターネットなどのTCP/IPネットワークにおいて、コンピュータを識別するための論理的なアドレス（住所）はどれか。", options: ["MACアドレス", "ポート番号", "IPアドレス", "ドメイン名"], answerIndex: 2, explanation: "IPアドレスはネットワーク上の住所にあたり、現在はIPv4(32ビット)とIPv6(128ビット)が使われています。" },
+            { category: "テクノロジ系", question: "企業内や家庭内のLANなどの限られたネットワーク内でのみ使用できるIPアドレスを何というか。", options: ["グローバルIPアドレス", "プライベートIPアドレス", "固定IPアドレス", "動的IPアドレス"], answerIndex: 1, explanation: "プライベートIPアドレスは、ルータの内部で自由に割り当てることができますが、直接インターネットとは通信できません。" },
+            { category: "テクノロジ系", question: "家庭や企業のLAN（プライベートIPアドレス）からインターネット（グローバルIPアドレス）へ接続する際、アドレスを自動的に変換する技術はどれか。", options: ["DHCP", "DNS", "NAT / NAPT", "VPN"], answerIndex: 2, explanation: "NATやNAPT（IPマスカレード）はルータに搭載されており、限られたグローバルIPアドレスを複数の機器で共有可能にします。" },
+            { category: "テクノロジ系", question: "ネットワークに接続されたPCやスマートフォンに対し、IPアドレスなどの必要なネットワーク設定情報を自動的に割り当てるプロトコル（仕組み）はどれか。", options: ["DHCP", "DNS", "NAT", "HTTP"], answerIndex: 0, explanation: "DHCP(Dynamic Host Configuration Protocol)により、ユーザーは手動でIPアドレスを設定する手間が省けます。" },
+            { category: "テクノロジ系", question: "人間が覚えやすい「ドメイン名（例: example.com）」と、コンピュータが処理する「IPアドレス」を相互に変換するシステムはどれか。", options: ["DHCP", "NAT", "DNS", "FTP"], answerIndex: 2, explanation: "DNS(Domain Name System)は、インターネット上の「電話帳」のような役割を果たします。" },
+            { category: "テクノロジ系", question: "異なるネットワーク同士を接続し、IPアドレスをもとにデータの最適な宛先経路（ルート）を選択して転送するネットワーク機器はどれか。", options: ["リピータ", "スイッチングハブ", "ルータ", "モデム"], answerIndex: 2, explanation: "ルータはネットワークの交差点のような役割を果たし、経路選択（ルーティング）を行います。" },
+            { category: "テクノロジ系", question: "無線LAN（Wi-Fi）において、接続先のアクセスポイントを識別するためにつけられるネットワークの名前を何というか。", options: ["MACアドレス", "IPアドレス", "SSID", "WEP"], answerIndex: 2, explanation: "スマートフォン等でWi-Fiに接続する際、一覧に表示される名前がSSIDです。" },
+            { category: "テクノロジ系", question: "現在の無線LAN（Wi-Fi）で推奨されている、強固な暗号化方式（規格）はどれか。", options: ["WEP", "WPA2 / WPA3", "SSL", "RSA"], answerIndex: 1, explanation: "WEPは古い規格で簡単に解読されてしまうため、現在はWPA2やさらに安全なWPA3が使われています。" },
+            { category: "テクノロジ系", question: "家電、自動車、工場のセンサーなど、様々な「モノ」がインターネットに接続され、情報交換や遠隔制御を行う仕組みを何というか。", options: ["IoT", "AI", "VR", "ブロックチェーン"], answerIndex: 0, explanation: "IoT (Internet of Things：モノのインターネット) により、スマート家電や自動運転などが実現されています。" },
+            { category: "テクノロジ系", question: "IoT機器の近く（エッジ）にサーバを配置し、端末側で一定のデータ処理を行うことで、通信遅延を減らしリアルタイム性を高めるネットワーク技術はどれか。", options: ["クラウドコンピューティング", "エッジコンピューティング", "グリッドコンピューティング", "量子コンピューティング"], answerIndex: 1, explanation: "エッジコンピューティングは、すべてのデータをクラウドに送らず、現場近くで処理を分散させます。" },
+            { category: "テクノロジ系", question: "インターネット経由で、ソフトウェア、サーバ、ストレージなどのITリソースを必要な時に必要なだけ利用できるサービスの形態を何というか。", options: ["オンプレミス", "クラウドコンピューティング", "ピアツーピア (P2P)", "スタンドアロン"], answerIndex: 1, explanation: "クラウドコンピューティングにより、自社でサーバ機器を持たずにシステムを構築・利用できます。（対義語：オンプレミス）" },
+            { category: "テクノロジ系", question: "クラウドサービスのうち、アプリケーションソフトウェアの機能をネットワーク経由で提供する形態（例：Gmail、Salesforceなど）を何というか。", options: ["IaaS", "PaaS", "SaaS", "DaaS"], answerIndex: 2, explanation: "SaaS (Software as a Service) は、ユーザー側でのインストールや管理が不要なソフトウェア提供形態です。" },
+            { category: "テクノロジ系", question: "クラウドサービスのうち、仮想サーバやネットワーク、ストレージなどの「ITインフラ（基盤）」を提供する形態（例：AWS EC2など）を何というか。", options: ["IaaS", "PaaS", "SaaS", "DaaS"], answerIndex: 0, explanation: "IaaS (Infrastructure as a Service) は、OSやアプリは利用者が自由に構築できる自由度の高い形態です。" },
+            { category: "テクノロジ系", question: "情報セキュリティの3大要素（CIA）とは、「機密性」「完全性」とあと一つは何か。", options: ["可用性", "真正性", "信頼性", "責任追跡性"], answerIndex: 0, explanation: "情報セキュリティの3要素は、Confidentiality(機密性)、Integrity(完全性)、Availability(可用性)です。" },
+            { category: "テクノロジ系", question: "情報セキュリティの要素のうち、「情報が書き換えられたり、破壊されたりせず、正確で最新の状態であること」を指すものはどれか。", options: ["機密性", "完全性", "可用性", "真正性"], answerIndex: 1, explanation: "完全性（Integrity）が損なわれると、Webサイトの改ざんやデータの消失などが起こります。" },
+            { category: "テクノロジ系", question: "悪意のあるソフトウェアの総称（コンピュータウイルス、ワーム、トロイの木馬など）を何というか。", options: ["アドウェア", "マルウェア", "ランサムウェア", "スパイウェア"], answerIndex: 1, explanation: "マルウェア(Malware)は、Malicious(悪意のある)とSoftwareを組み合わせた造語です。" },
+            { category: "テクノロジ系", question: "マルウェアの一種で、感染したPCのデータを暗号化して使えなくし、元に戻すための身代金（金銭）を要求するものはどれか。", options: ["トロイの木馬", "スパイウェア", "ランサムウェア", "ワーム"], answerIndex: 2, explanation: "ランサムウェア（Ransomware）のRansomは「身代金」という意味です。" },
+            { category: "テクノロジ系", question: "マルウェアの一種で、自己増殖はしないが、有用なプログラムのふりをして侵入し、裏で悪質な動作（情報の窃取やバックドアの作成など）を行うものはどれか。", options: ["ワーム", "トロイの木馬", "マクロウイルス", "ボット"], answerIndex: 1, explanation: "トロイの木馬は、ギリシャ神話の逸話に由来し、正体を隠してシステムに潜伏します。" },
+            { category: "テクノロジ系", question: "感染したコンピュータを外部から操るために、攻撃者の命令（C&Cサーバからの指示）を待ち受ける状態にするマルウェアはどれか。", options: ["ボット (Bot)", "スパイウェア", "アドウェア", "ランサムウェア"], answerIndex: 0, explanation: "ボットに感染したPC群のネットワークを「ボットネット」と呼び、DDoS攻撃の踏み台などに悪用されます。" },
+            { category: "テクノロジ系", question: "ソフトウェアの脆弱性（セキュリティの穴）が発見されてから、修正プログラム（パッチ）が提供されるより前に、その脆弱性を突いて行われるサイバー攻撃を何というか。", options: ["標的型攻撃", "ゼロデイ攻撃", "DoS攻撃", "辞書攻撃"], answerIndex: 1, explanation: "ゼロデイ攻撃は、対策する猶予（日数）が「ゼロ」であることから名付けられました。" },
+            { category: "テクノロジ系", question: "特定の企業や組織を狙い撃ちにし、業務関連のメールを装ってウイルス付きの添付ファイルを開かせたり、悪意のあるサイトへ誘導したりする攻撃はどれか。", options: ["無差別攻撃", "水飲み場型攻撃", "標的型攻撃", "総当たり攻撃"], answerIndex: 2, explanation: "標的型攻撃メールは、件名や本文が巧妙に作り込まれており、見破るのが難しいのが特徴です。" },
+            { category: "テクノロジ系", question: "標的の組織の従業員がよく利用する正規のWebサイトを改ざんし、ウイルスを仕込んでおき、ターゲットがアクセスしてくるのを待ち伏せする攻撃はどれか。", options: ["標的型攻撃", "水飲み場型攻撃", "フィッシング", "SQLインジェクション"], answerIndex: 1, explanation: "肉食獣が水飲み場で獲物を待ち伏せする様子に例えられた攻撃手法です。" },
+            { category: "テクノロジ系", question: "攻撃者が事前に入手した他サイトのIDとパスワードのリストを用いて、別のWebサイトに対して連続的にログインを試みる攻撃はどれか。", options: ["ブルートフォース攻撃", "辞書攻撃", "パスワードリスト攻撃", "クロスサイトスクリプティング"], answerIndex: 2, explanation: "ユーザーが複数のサイトで「同じパスワードを使い回している」心理を突いた攻撃です。" },
+            { category: "テクノロジ系", question: "パスワードを解読するために、文字の組み合わせを片っ端からすべて試す攻撃手法（総当たり攻撃）はどれか。", options: ["パスワードリスト攻撃", "ブルートフォース攻撃", "辞書攻撃", "SQLインジェクション"], answerIndex: 1, explanation: "ブルートフォース攻撃を防ぐには、パスワードを長く複雑にする、アカウントロック機能を設けるなどの対策が有効です。" },
+            { category: "テクノロジ系", question: "パスワードの解読において、人名や英単語、よく使われるパスワードの組み合わせなどを集めたファイルを用いて、効率的にパスワードを推測する攻撃はどれか。", options: ["辞書攻撃", "ブルートフォース攻撃", "パスワードリスト攻撃", "ゼロデイ攻撃"], answerIndex: 0, explanation: "辞書攻撃（ディクショナリアタック）を防ぐため、意味のある単語をそのままパスワードにしないことが推奨されます。" },
+            { category: "テクノロジ系", question: "Webサイトの入力フォームに悪意のあるプログラム（スクリプト）を埋め込み、そのサイトを閲覧したユーザーのブラウザ上でスクリプトを実行させる攻撃はどれか。", options: ["SQLインジェクション", "クロスサイトスクリプティング (XSS)", "ディレクトリトラバーサル", "セッションハイジャック"], answerIndex: 1, explanation: "XSSにより、ユーザーのCookie情報が盗まれたり、偽サイトへ誘導されたりする被害が発生します。" },
+            { category: "テクノロジ系", question: "データベースと連携するWebサイトの入力フォームに、不正なSQL文を入力して、データベースのデータを不正に読み取ったり改ざんしたりする攻撃はどれか。", options: ["クロスサイトスクリプティング", "SQLインジェクション", "バッファオーバーフロー", "DoS攻撃"], answerIndex: 1, explanation: "SQLインジェクションは情報漏洩の大きな原因となります。対策として入力値のエスケープ処理などが必要です。" },
+            { category: "テクノロジ系", question: "標的となるサーバに対して大量のデータやリクエストを送りつけ、過負荷状態にしてサービスを停止（ダウン）させる攻撃はどれか。", options: ["DoS攻撃", "フィッシング", "ランサムウェア", "ゼロデイ攻撃"], answerIndex: 0, explanation: "DoS(Denial of Service)攻撃。複数のPC（ボットなど）を操って一斉に攻撃する手法を「DDoS攻撃」と呼びます。" },
+            { category: "テクノロジ系", question: "IT技術を使わず、人間の心理的な隙や行動のミスにつけ込んで、パスワードなどの機密情報を盗み出す手法の総称はどれか。", options: ["ソーシャルエンジニアリング", "サイバーテロ", "フィッシング", "スパム"], answerIndex: 0, explanation: "肩越しにパスワードを盗み見る（ショルダーハック）、ゴミ箱を漁る（トラッシュマカク）、電話で管理者を装って聞き出すなどの手法が含まれます。" },
+            { category: "テクノロジ系", question: "内部ネットワークと外部ネットワーク（インターネット）の境界に設置され、あらかじめ設定したルールに基づいて、不正な通信を遮断するシステムはどれか。", options: ["WAF", "IDS", "ファイアウォール", "ルータ"], answerIndex: 2, explanation: "ファイアウォール（防火壁）は、IPアドレスやポート番号を見て通信を許可・拒否する基本的な防護壁です。" },
+            { category: "テクノロジ系", question: "ファイアウォールでは防ぎきれない、Webアプリケーションに対する攻撃（SQLインジェクションやXSSなど）を検知・遮断することに特化したシステムはどれか。", options: ["IDS", "IPS", "WAF", "VPN"], answerIndex: 2, explanation: "WAF (Web Application Firewall) は、Webサイトへの通信の中身（データ）を解析して攻撃を防ぎます。" },
+            { category: "テクノロジ系", question: "ネットワーク上を流れる通信を監視し、不正侵入の兆候を検知して管理者に通知するシステムはどれか。（※通信の遮断は行わない）", options: ["WAF", "ファイアウォール", "IPS", "IDS"], answerIndex: 3, explanation: "IDS (Intrusion Detection System) は「侵入検知システム」です。検知に加えて自動で通信を遮断するものは「IPS (侵入防御システム)」と呼ばれます。" },
+            { category: "テクノロジ系", question: "インターネットにも内部ネットワークにも直接属さない、Webサーバやメールサーバなどを配置するための隔離されたネットワーク領域を何というか。", options: ["VPN", "DMZ", "VLAN", "プロキシ"], answerIndex: 1, explanation: "DMZ (非武装地帯) に公開サーバを置くことで、万が一サーバが乗っ取られても内部ネットワークへの被害を防ぎます。" },
+            { category: "テクノロジ系", question: "暗号化と復号に「同じ鍵」を使用する暗号方式で、処理速度が速いが、鍵を安全に相手に渡す仕組みが必要なものはどれか。", options: ["公開鍵暗号方式", "共通鍵暗号方式", "ハイブリッド暗号方式", "ハッシュ関数"], answerIndex: 1, explanation: "共通鍵暗号方式（秘密鍵暗号方式）は、同じ鍵を送信者と受信者で共有して使います。" },
+            { category: "テクノロジ系", question: "暗号化と復号に「対になる2つの異なる鍵（公開鍵と秘密鍵）」を使用する暗号方式はどれか。", options: ["共通鍵暗号方式", "ハイブリッド暗号方式", "公開鍵暗号方式", "ブロック暗号"], answerIndex: 2, explanation: "公開鍵暗号方式では、「公開鍵」で暗号化し、受信者だけが持つ「秘密鍵」で復号します。鍵の配送問題を解決します。" },
+            { category: "テクノロジ系", question: "送信するデータを「共通鍵」で暗号化し、その「共通鍵」を相手の「公開鍵」で暗号化して送ることで、処理速度と安全性を両立させた暗号方式はどれか。", options: ["ハイブリッド暗号方式", "公開鍵暗号方式", "共通鍵暗号方式", "SSL/TLS"], answerIndex: 0, explanation: "ハイブリッド暗号方式は、共通鍵暗号方式の「速さ」と、公開鍵暗号方式の「鍵の安全な受け渡し」のメリットを組み合わせたものです。" },
+            { category: "テクノロジ系", question: "電子文書に対して、作成者が本人であることと、改ざんされていないこと（完全性）を証明するための仕組みはどれか。", options: ["デジタル署名", "ハッシュ関数", "生体認証", "ファイアウォール"], answerIndex: 0, explanation: "デジタル署名では、送信者の「秘密鍵」で暗号化した署名を添付し、受信者は送信者の「公開鍵」で検証します。" },
+            { category: "テクノロジ系", question: "元のデータから固定長の不規則な文字列（ハッシュ値）を生成する関数で、改ざん検知やパスワードの保存に利用されるものはどれか。", options: ["公開鍵暗号", "デジタル署名", "ハッシュ関数", "共通鍵暗号"], answerIndex: 2, explanation: "ハッシュ関数は、「元のデータが1ビットでも変わると全く違うハッシュ値になる」「ハッシュ値から元のデータは復元できない（不可逆性）」という特徴があります。" },
+            { category: "テクノロジ系", question: "インターネット上で通信を暗号化し、盗聴や改ざん、なりすましを防ぐプロトコルで、HTTPS通信で利用されるものはどれか。", options: ["FTP", "SSL/TLS", "SSH", "VPN"], answerIndex: 1, explanation: "SSL/TLSは、Webサイトの閲覧やネットショッピングなどで安全にデータをやり取りするための標準的な暗号化プロトコルです。" },
+            { category: "テクノロジ系", question: "インターネットなどの公衆回線上に、仮想的な専用線（トンネル）を構築し、通信を暗号化して安全にデータをやり取りする技術はどれか。", options: ["VLAN", "DMZ", "VPN", "プロキシ"], answerIndex: 2, explanation: "VPN (Virtual Private Network：仮想プライベートネットワーク) は、テレワークで自宅から会社のネットワークに安全に接続する際などに利用されます。" },
+            { category: "テクノロジ系", question: "パスワードなどの「知識」、スマートフォンなどの「所持情報」、指紋などの「生体情報」のうち、2つ以上を組み合わせて本人確認を行う方式を何というか。", options: ["シングルサインオン", "バイオメトリクス認証", "多要素認証 (MFA)", "二段階認証"], answerIndex: 2, explanation: "多要素認証(Multi-Factor Authentication)は、パスワードが漏洩しても他の要素がないとログインできないため、安全性が高まります。" },
+            { category: "テクノロジ系", question: "一度のユーザー認証（ログイン）で、独立した複数のシステムやサービスを利用できるようにする仕組みを何というか。", options: ["多要素認証", "シングルサインオン (SSO)", "バイオメトリクス認証", "パスワードリスト攻撃"], answerIndex: 1, explanation: "シングルサインオンを導入すると、ユーザーはシステムごとにパスワードを覚える必要がなくなり、利便性が向上します。" },
+            { category: "テクノロジ系", question: "Webサイトの問い合わせフォームなどで、プログラムによる自動投稿（スパム）を防ぐため、ゆがんだ文字の画像を読み取らせて入力させるテストを何というか。", options: ["CAPTCHA", "Cookie", "SSL証明書", "ワンタイムパスワード"], answerIndex: 0, explanation: "CAPTCHA（キャプチャ）は、相手が人間かコンピュータ（Bot）かを判別するための仕組みです。「信号機の画像を選択してください」などもその一種です。" },
+            { category: "テクノロジ系", question: "コンピュータシステムやソフトウェアに関する「脆弱性情報」を収集し、一意の識別番号を付与して公開している国際的なデータベース（リスト）はどれか。", options: ["ISMS", "CVE", "CERT", "CSIRT"], answerIndex: 1, explanation: "CVE (Common Vulnerabilities and Exposures) は、世界中の脆弱性情報を標準化して提供しています。" },
+            { category: "テクノロジ系", question: "ネットワーク上の複数のコンピュータにデータを分散して記録し、改ざんを極めて困難にする技術で、仮想通貨（暗号資産）の基盤となっているものはどれか。", options: ["メタバース", "ブロックチェーン", "ディープラーニング", "エッジコンピューティング"], answerIndex: 1, explanation: "ブロックチェーンは「分散型台帳技術」とも呼ばれ、参加者全員で取引履歴を監視・共有します。" },
+            { category: "テクノロジ系", question: "インターネット上に構築された3次元の仮想空間で、アバターを通じて他のユーザーと交流したり、経済活動を行ったりできる仕組みを何というか。", options: ["ブロックチェーン", "VR", "メタバース", "AR"], answerIndex: 2, explanation: "メタバース(Metaverse)は、超越(Meta)と宇宙(Universe)を組み合わせた造語です。" },
+            { category: "テクノロジ系", question: "現実の風景に、コンピュータで生成したCGなどのデジタル情報を重ね合わせて表示し、現実世界を拡張する技術はどれか。", options: ["VR (仮想現実)", "AR (拡張現実)", "MR (複合現実)", "メタバース"], answerIndex: 1, explanation: "AR (Augmented Reality) の身近な例として、スマートフォン越しにキャラクターが現実風景に現れるゲームなどがあります。" },
+            { category: "テクノロジ系", question: "人工知能(AI)の機械学習の手法の一つで、人間の脳の神経回路の仕組みを模した「ニューラルネットワーク」を多層にして、複雑な学習を行う技術はどれか。", options: ["エキスパートシステム", "ディープラーニング (深層学習)", "クラスタリング", "ブロックチェーン"], answerIndex: 1, explanation: "ディープラーニングにより、画像認識や自然言語処理の精度が飛躍的に向上しました。" },
+            { category: "テクノロジ系", question: "機械学習のうち、入力データと一緒に「正解データ（ラベル）」をAIに与え、その関係性を学習させる手法はどれか。", options: ["教師あり学習", "教師なし学習", "強化学習", "ディープラーニング"], answerIndex: 0, explanation: "教師あり学習は、迷惑メールの判定や、画像に写っているものが猫か犬かの判別などに適しています。" },
+            { category: "テクノロジ系", question: "機械学習のうち、AIに「正解データ」を与えず、データの中にある規則性や類似性を見つけ出してグループ分けさせる手法はどれか。", options: ["教師あり学習", "教師なし学習", "強化学習", "ディープラーニング"], answerIndex: 1, explanation: "教師なし学習は、顧客の購買データからのセグメント分け（クラスタリング）などに用いられます。" },
+            { category: "テクノロジ系", question: "第5世代移動通信システム（5G）の主な特徴に含まれないものはどれか。", options: ["超高速・大容量", "超低遅延", "多数同時接続", "長距離・低消費電力 (LPWA)"], answerIndex: 3, explanation: "5Gの特徴は「超高速・大容量」「超低遅延」「多数同時接続」です。長距離・低消費電力はIoT向けの通信規格「LPWA」の特徴です。" },
+            { category: "テクノロジ系", question: "IoT機器向けの無線通信技術で、「省電力で遠距離通信ができる」が「通信速度は遅い」という特徴を持つものはどれか。", options: ["5G", "Wi-Fi", "Bluetooth", "LPWA"], answerIndex: 3, explanation: "LPWA (Low Power Wide Area) は、電池一つで数年間稼働し、数kmの通信が可能なため、スマート農業やスマートメーターに適しています。" },
+            { category: "テクノロジ系", question: "地球上の現在位置を、複数の人工衛星からの電波を受信して測定するシステムはどれか。", options: ["GPS", "GIS", "ETC", "ETC2.0"], answerIndex: 0, explanation: "GPS (Global Positioning System) は、カーナビゲーションやスマートフォンの地図アプリに不可欠な技術です。" },
+            { category: "テクノロジ系", question: "3DCADなどで作成されたデジタルデータをもとに、樹脂や金属などの材料を層状に積み重ねて、立体物を造形する機器はどれか。", options: ["ドローン", "3Dプリンタ", "NC工作機械", "スキャナ"], answerIndex: 1, explanation: "3Dプリンタは試作品の製作や、複雑な形状の部品製造（ラピッドプロトタイピング）などに活用されています。" },
+            { category: "テクノロジ系", question: "人間がパソコン上で行う定型的な事務作業（データ入力や転記など）を、ソフトウェアのロボットが自動化する仕組みはどれか。", options: ["AI", "RPA", "ERP", "IoT"], answerIndex: 1, explanation: "RPA (Robotic Process Automation) は「デジタルレイバー（仮想知的労働者）」とも呼ばれ、働き方改革に貢献しています。" },
+            { category: "テクノロジ系", question: "あるソフトウェアが持つ機能やデータを、外部の別のプログラムから呼び出して利用するためのインターフェース（仕様）を何というか。", options: ["GUI", "CUI", "API", "OS"], answerIndex: 2, explanation: "API (Application Programming Interface) を公開することで、自社のサービスに他社の機能（地図連携やSNSログインなど）を簡単に組み込むことができます。" },
+            { category: "テクノロジ系", question: "ソフトウェアの開発手法のうち、プログラムの設計より前に「テストコード（自動テスト）」を書き、そのテストを通過するようにプログラムを実装していく手法を何というか。", options: ["テスト駆動開発 (TDD)", "オブジェクト指向開発", "リファクタリング", "ウォーターフォール"], answerIndex: 0, explanation: "テスト駆動開発(Test-Driven Development)は、アジャイル開発でよく用いられ、バグの少ない品質の高いコードを維持しやすくなります。" },
+            { category: "テクノロジ系", question: "データとそれを操作する手続き（メソッド）を一つのまとまり（オブジェクト）として扱い、それらを組み合わせてシステムを構築する開発手法はどれか。", options: ["構造化プログラミング", "オブジェクト指向", "アジャイル開発", "プロトタイピング"], answerIndex: 1, explanation: "オブジェクト指向の三大要素として「カプセル化」「継承」「ポリモーフィズム（多様性）」があります。" },
+            { category: "テクノロジ系", question: "オブジェクト指向プログラミングにおいて、データとメソッドを一つにまとめ、外部から直接データを書き換えられないように隠蔽する仕組みを何というか。", options: ["継承 (インヘリタンス)", "多様性 (ポリモーフィズム)", "カプセル化", "クラス"], answerIndex: 2, explanation: "カプセル化により、意図しないデータの変更を防ぎ、プログラムの保守性を高めます。" },
+            { category: "テクノロジ系", question: "関係データベース(RDB)において、「SELECT * FROM 社員表 WHERE 年齢 >= 30」というSQL文を実行したときに行われる操作はどれか。", options: ["選択", "射影", "結合", "和"], answerIndex: 0, explanation: "条件に合致する「行（レコード）」を抽出する操作を「選択（Selection）」と呼びます。「列（フィールド）」を抽出するのは「射影」です。" },
+            { category: "テクノロジ系", question: "ディスプレイやプリンタなどで色を表現する際、光の三原色である「RGB」は何の略か。", options: ["Red, Green, Black", "Red, Green, Blue", "Red, Gray, Blue", "Red, Gold, Blue"], answerIndex: 1, explanation: "RGB（赤・緑・青）は、混ぜるほど白に近づく「加法混色」です。インクの三原色は「CMY（シアン・マゼンタ・イエロー）」で「減法混色」です。" },
+            { category: "テクノロジ系", question: "画像の圧縮形式のうち、写真などのフルカラー画像の保存に適しており、非可逆圧縮（圧縮すると元の画質には戻らない）を採用している形式はどれか。", options: ["GIF", "PNG", "JPEG", "BMP"], answerIndex: 2, explanation: "JPEGは写真に適しています。イラストなどには可逆圧縮で透過処理ができるPNGやGIFが適しています。" },
+            { category: "テクノロジ系", question: "電子メールのプロトコルにおいて、メールサーバから自分のパソコンやスマホにメールを「受信（ダウンロード）」するための標準的なプロトコルはどれか。", options: ["SMTP", "POP3", "FTP", "HTTP"], answerIndex: 1, explanation: "受信用のプロトコルはPOP3（またはIMAP4）です。メールの「送信・転送」にはSMTPを使用します。" },
+            { category: "テクノロジ系", question: "WebブラウザとWebサーバ間で、HTMLなどのデータを送受信するための通信プロトコルはどれか。", options: ["FTP", "SMTP", "HTTP", "DNS"], answerIndex: 2, explanation: "HTTP (Hypertext Transfer Protocol) はWebサイトを閲覧する際の通信ルールです。暗号化されたものがHTTPSです。" },
+            { category: "テクノロジ系", question: "PC起動時に最初に実行され、OSを記憶装置から読み込んで起動させるための、マザーボード上のROMに書き込まれたプログラムを何というか。", options: ["デバイスドライバ", "BIOS (UEFI)", "OS", "ブートローダ"], answerIndex: 1, explanation: "BIOS（または新しい規格のUEFI）は、キーボードやディスクなどのハードウェアの初期設定とOSの起動を行います。" },
+            { category: "テクノロジ系", question: "周辺機器（プリンタやグラフィックボードなど）をOSから制御し、動作させるために必要な専用のソフトウェアを何というか。", options: ["ファームウェア", "ミドルウェア", "デバイスドライバ", "ユーティリティ"], answerIndex: 2, explanation: "新しい機器を接続した際、「ドライバのインストール」が必要になるのはこのためです（最近はOSに標準搭載されていることも多いです）。" },
+
+            // ==========================================
+            // 【ストラテジ系 75問】
+            // ==========================================
+            { category: "ストラテジ系", question: "企業が法令を遵守し、倫理的な事業活動を行うことを何というか。", options: ["コンプライアンス", "コーポレートガバナンス", "ディスクロージャー", "アライアンス"], answerIndex: 0, explanation: "コンプライアンス（法令遵守）は、法律だけでなく社内規程や企業倫理などの社会規範に従って活動することです。" },
+            { category: "ストラテジ系", question: "企業の経営資源である「情報」の特性として最も適切なものはどれか。", options: ["使用すると消費されてなくなる", "他人に譲渡すると自分の手元からはなくなる", "容易に複製でき、複数の人が同時に利用できる", "物理的な保管スペースが必ず必要になる"], answerIndex: 2, explanation: "情報は他の経営資源（ヒト・モノ・カネ）と異なり、「消費されない」「複製が容易」「同時利用が可能」という特性を持ちます。" },
+            { category: "ストラテジ系", question: "企業の社会的責任と訳され、利益追求だけでなく、環境保全や社会貢献などにも責任を持つべきとする考え方はどれか。", options: ["CSR", "BPR", "TQM", "SRI"], answerIndex: 0, explanation: "CSR (Corporate Social Responsibility) は企業の社会的責任のことです。" },
+            { category: "ストラテジ系", question: "企業統治と訳され、経営者の暴走を防ぎ、企業を健全に運営するための監視・統制の仕組みはどれか。", options: ["コンプライアンス", "コーポレートガバナンス", "コアコンピタンス", "内部統制"], answerIndex: 1, explanation: "コーポレートガバナンスは企業統治のこと。社外取締役の設置などがこれに該当します。" },
+            { category: "ストラテジ系", question: "災害やシステム障害などの緊急事態時に、事業の継続や早期復旧を図る計画はどれか。", options: ["BCP", "BRP", "BPM", "BPO"], answerIndex: 0, explanation: "BCP（事業継続計画）は、不測の事態でも重要な業務を中断させないための計画です。" },
+            { category: "ストラテジ系", question: "複数の企業が互いの独立性を保ちながら、技術や販売などで協力関係を築くことを何というか。", options: ["M&A", "アライアンス", "TOB", "スピンオフ"], answerIndex: 1, explanation: "アライアンス（Alliance）は企業間の提携・協力関係のことです。" },
+            { category: "ストラテジ系", question: "他社の株式を買い集めたり、合併したりすることで、企業の買収や統合を行う手法はどれか。", options: ["MBO", "TOB", "M&A", "OEM"], answerIndex: 2, explanation: "M&A (Mergers and Acquisitions) は企業の合併・買収を指します。" },
+            { category: "ストラテジ系", question: "株式公開買付と訳され、買付期間、価格、株数を公告し、不特定多数の株主から株式を買い集める手法はどれか。", options: ["TOB", "MBO", "EBO", "LBO"], answerIndex: 0, explanation: "TOB (Takeover Bid) は株式公開買付のことです。" },
+            { category: "ストラテジ系", question: "会社の経営陣が、自社の株式を買い取って独立する手法はどれか。", options: ["M&A", "TOB", "MBO", "LBO"], answerIndex: 2, explanation: "MBO (Management Buyout) は経営陣による企業買収・独立のことです。" },
+            { category: "ストラテジ系", question: "実際の業務を通じて、上司や先輩が部下に対して仕事に必要な知識や技術を指導する教育手法はどれか。", options: ["Off-JT", "e-ラーニング", "OJT", "ケーススタディ"], answerIndex: 2, explanation: "OJT (On-the-Job Training) は職場内訓練のことです。" },
+            { category: "ストラテジ系", question: "売上高と総費用が等しくなり、利益も損失も出ない点（金額や数量）を何というか。", options: ["損益分岐点", "キャッシュフロー", "売上総利益", "営業利益"], answerIndex: 0, explanation: "損益分岐点（Break-Even Point）は、利益がちょうどゼロになる売上高です。" },
+            { category: "ストラテジ系", question: "自己資本に対する当期純利益の割合を示し、株主の投資額を使ってどれだけ効率的に利益を上げたかを示す指標はどれか。", options: ["ROA", "ROE", "ROI", "PER"], answerIndex: 1, explanation: "ROE (Return On Equity) は自己資本利益率のことです。" },
+            { category: "ストラテジ系", question: "特定の事業や施策に対する投資額に対して、どれだけの利益が得られたかを示す投資対効果の指標はどれか。", options: ["ROE", "ROA", "ROI", "TCO"], answerIndex: 2, explanation: "ROI (Return On Investment) は投資利益率のことです。" },
+            { category: "ストラテジ系", question: "パレート図を用いて、商品を売上高の多い順にA・B・Cの3つのグループに分類し、重点管理を行う手法はどれか。", options: ["SWOT分析", "ABC分析", "RFM分析", "3C分析"], answerIndex: 1, explanation: "ABC分析は、売上や在庫などを重要度に応じてA・B・Cにランク付けする手法です。" },
+            { category: "ストラテジ系", question: "建物やコンピュータなどの固定資産の購入費用を、購入した年だけでなく、耐用年数にわたって分割して費用計上する手続きはどれか。", options: ["キャピタルゲイン", "キャッシュフロー", "減価償却", "引当金"], answerIndex: 2, explanation: "減価償却は、長期にわたって使用する資産の費用を分割して計上する会計処理です。" },
+            { category: "ストラテジ系", question: "売上の増減に関わらず、毎月一定額発生する費用（家賃や人件費など）を何というか。", options: ["変動費", "固定費", "直接費", "間接費"], answerIndex: 1, explanation: "固定費は売上高に関係なく発生する費用です。対して材料費などは変動費と呼ばれます。" },
+            { category: "ストラテジ系", question: "ある一定時点（決算日など）における企業の資産、負債、純資産の状態を表した財務諸表はどれか。", options: ["損益計算書", "キャッシュフロー計算書", "貸借対照表", "株主資本等変動計算書"], answerIndex: 2, explanation: "貸借対照表（バランスシート/B/S）は企業の財政状態を表します。" },
+            { category: "ストラテジ系", question: "ある一定期間における企業の収益と費用の状態を表し、どれだけ利益が出たかを示す財務諸表はどれか。", options: ["貸借対照表", "損益計算書", "キャッシュフロー計算書", "資金繰り表"], answerIndex: 1, explanation: "損益計算書（P/L）は企業の経営成績（利益の状況）を表します。" },
+            { category: "ストラテジ系", question: "企業の一定期間における現金の流入（イン）と流出（アウト）を「営業」「投資」「財務」の3活動に分けて表したものはどれか。", options: ["キャッシュフロー計算書", "貸借対照表", "損益計算書", "製造原価報告書"], answerIndex: 0, explanation: "キャッシュフロー計算書（C/F）は企業のお金の流れを把握するための書類です。" },
+            { category: "ストラテジ系", question: "プログラムやデータベース、マニュアルなど、思想や感情を創作的に表現したものを保護する権利はどれか。", options: ["特許権", "商標権", "意匠権", "著作権"], answerIndex: 3, explanation: "著作権は創作物を保護する権利で、ソフトウェアのプログラムコードも対象となります。" },
+            { category: "ストラテジ系", question: "産業財産権に含まれないものはどれか。", options: ["特許権", "実用新案権", "著作権", "意匠権"], answerIndex: 2, explanation: "産業財産権は「特許権・実用新案権・意匠権・商標権」の4つです。著作権は含まれません。" },
+            { category: "ストラテジ系", question: "自然法則を利用した高度な技術的「発明」を保護する権利はどれか。", options: ["特許権", "実用新案権", "商標権", "意匠権"], answerIndex: 0, explanation: "特許権は高度な発明を保護し、出願から原則20年間保護されます。" },
+            { category: "ストラテジ系", question: "物品の形状、構造又は組合せに係る「考案」を保護する権利はどれか。", options: ["特許権", "実用新案権", "意匠権", "商標権"], answerIndex: 1, explanation: "実用新案権は特許ほど高度ではない、ちょっとした工夫（考案）を保護します。" },
+            { category: "ストラテジ系", question: "物品のデザイン（形状、模様、色彩など）を保護する権利はどれか。", options: ["特許権", "実用新案権", "意匠権", "商標権"], answerIndex: 2, explanation: "意匠権は工業的に量産できる製品のデザインを保護する権利です。" },
+            { category: "ストラテジ系", question: "自社の商品やサービスを他社のものと区別するための「マーク（文字、図形など）」を保護する権利はどれか。", options: ["特許権", "意匠権", "著作権", "商標権"], answerIndex: 3, explanation: "商標権はブランド名やロゴマークなどを保護する権利です。" },
+            { category: "ストラテジ系", question: "不正競争防止法において「営業秘密」として保護されるための3要件とは、「秘密管理性」「有用性」とあと一つは何か。", options: ["新規性", "非公知性", "独自性", "進歩性"], answerIndex: 1, explanation: "営業秘密の3要件は「秘密管理性」「有用性」「非公知性（世間に知られていない）」です。" },
+            { category: "ストラテジ系", question: "個人情報保護法において、特定の個人を識別できる情報に該当しないものはどれか。", options: ["氏名と生年月日", "防犯カメラの顔映像", "マイナンバー", "統計的に処理され個人が特定できないデータ"], answerIndex: 3, explanation: "匿名加工情報や統計データなど、特定の個人を識別できない情報は個人情報に該当しません。" },
+            { category: "ストラテジ系", question: "他人のIDとパスワードを無断で使用してネットワークシステムにログインする行為を禁止している法律はどれか。", options: ["不正アクセス行為の禁止等に関する法律", "個人情報保護法", "プロバイダ責任制限法", "サイバーセキュリティ基本法"], answerIndex: 0, explanation: "不正アクセス禁止法は、他人の認証情報の悪用やセキュリティホールを突く行為を罰します。" },
+            { category: "ストラテジ系", question: "労働者派遣と請負の違いについて適切なものはどれか。", options: ["請負では、発注者が労働者に直接指揮命令を行う。", "労働者派遣では、派遣先企業が労働者に直接指揮命令を行う。", "労働者派遣では、完成した成果物に対して報酬が支払われる。", "請負契約は、労働基準法の適用を受けない。"], answerIndex: 1, explanation: "労働者派遣は派遣先が指揮命令を行います。一方、請負は受託者自身が労働者に指揮命令を行い、成果物に対して報酬が発生します。" },
+            { category: "ストラテジ系", question: "業務委託などで、互いに知り得た相手の機密情報を第三者に漏らさないことを約束する契約はどれか。", options: ["SLA", "NDA", "RFP", "OEM"], answerIndex: 1, explanation: "NDA (Non-Disclosure Agreement) は秘密保持契約のことです。" },
+            { category: "ストラテジ系", question: "自社の「強み」「弱み」、市場の「機会」「脅威」の4つから経営環境を分析する手法はどれか。", options: ["3C分析", "SWOT分析", "PPM", "バリューチェーン"], answerIndex: 1, explanation: "SWOT分析は内部環境（強み・弱み）と外部環境（機会・脅威）を整理するフレームワークです。" },
+            { category: "ストラテジ系", question: "PPM(プロダクトポートフォリオマネジメント)において、市場成長率が高く、市場シェアも高い事業領域を何というか。", options: ["花形", "金のなる木", "問題児", "負け犬"], answerIndex: 0, explanation: "「花形(Star)」は成長率もシェアも高く、将来の大きな収益源ですが、競争が激しいため多額の投資が必要です。" },
+            { category: "ストラテジ系", question: "PPMにおいて、市場成長率は低いが、市場シェアが高い事業領域を何というか。", options: ["花形", "金のなる木", "問題児", "負け犬"], answerIndex: 1, explanation: "「金のなる木(Cash Cow)」は追加投資が少なくても安定した利益を生み出す事業です。" },
+            { category: "ストラテジ系", question: "PPMにおいて、市場成長率は高いが、市場シェアが低い事業領域を何というか。", options: ["花形", "金のなる木", "問題児", "負け犬"], answerIndex: 2, explanation: "「問題児(Problem Child)」はシェア拡大のために多くの資金が必要ですが、成功すれば花形になります。" },
+            { category: "ストラテジ系", question: "PPMにおいて、市場成長率も低く、市場シェアも低い事業領域を何というか。", options: ["花形", "金のなる木", "問題児", "負け犬"], answerIndex: 3, explanation: "「負け犬(Dog)」は利益が見込めないため、原則として撤退を検討すべき事業です。" },
+            { category: "ストラテジ系", question: "購買、製造、出荷、販売、サービスなどの企業活動を連鎖として捉え、どの工程で付加価値が生み出されているかを分析する手法はどれか。", options: ["バリューチェーン", "サプライチェーン", "コアコンピタンス", "ベンチマーキング"], answerIndex: 0, explanation: "バリューチェーン（価値連鎖）は、企業の競争優位性を分析する手法です。" },
+            { category: "ストラテジ系", question: "他社が真似できない、その企業ならではの独自の強みや中核となる技術のことを何というか。", options: ["ブルーオーシャン", "コアコンピタンス", "アライアンス", "ベストプラクティス"], answerIndex: 1, explanation: "コアコンピタンスは「中核となる能力」の意味で、ホンダのエンジン技術などが代表例です。" },
+            { category: "ストラテジ系", question: "自社の製品やプロセスを、最強の競合他社や優良企業の優れた事例（ベストプラクティス）と比較して改善を図る手法はどれか。", options: ["ブレーンストーミング", "ベンチマーキング", "リバースエンジニアリング", "デルファイ法"], answerIndex: 1, explanation: "ベンチマーキングは優良企業を指標（ベンチマーク）として自社を評価・改善する手法です。" },
+            { category: "ストラテジ系", question: "競争が激しい既存市場を避け、競争相手のいない未開拓の新しい市場を創出する戦略はどれか。", options: ["ニッチ戦略", "ブルーオーシャン戦略", "レッドオーシャン戦略", "コストリーダーシップ戦略"], answerIndex: 1, explanation: "ブルーオーシャン戦略は、血みどろの競争（レッドオーシャン）を抜け出し、新たな価値を創造する戦略です。" },
+            { category: "ストラテジ系", question: "製品が市場に投入されてから姿を消すまでの過程を「導入期・成長期・成熟期・衰退期」の4つに分ける考え方はどれか。", options: ["プロダクトポートフォリオマネジメント", "プロダクトライフサイクル", "イノベーションのジレンマ", "テクノロジハイプサイクル"], answerIndex: 1, explanation: "プロダクトライフサイクル（製品ライフサイクル）は、時期に応じたマーケティング戦略を立てるために使われます。" },
+            { category: "ストラテジ系", question: "マーケティングの4Pに含まれないものはどれか。", options: ["Product (製品)", "Price (価格)", "Process (プロセス)", "Promotion (販売促進)"], answerIndex: 2, explanation: "4Pは Product(製品), Price(価格), Place(流通/チャネル), Promotion(販売促進) の4つです。" },
+            { category: "ストラテジ系", question: "顧客を「最新購買日」「購買頻度」「購買金額」の3つの指標で分類し、優良顧客を見つけ出す分析手法はどれか。", options: ["ABC分析", "RFM分析", "SWOT分析", "3C分析"], answerIndex: 1, explanation: "RFM分析は Recency(最新購買日), Frequency(購買頻度), Monetary(購買金額)の頭文字をとったものです。" },
+            { category: "ストラテジ系", question: "実店舗、オンラインショップ、SNSなど、すべての販売チャネルを統合し、顧客に一貫した購買体験を提供する戦略はどれか。", options: ["マルチチャネル", "クロスチャネル", "オムニチャネル", "O2O"], answerIndex: 2, explanation: "オムニチャネルは、チャネル間の垣根をなくし、どこでも同じように買い物ができる環境を作ります。" },
+            { category: "ストラテジ系", question: "検索エンジンの検索結果において、自社のWebサイトが上位に表示されるように工夫する取り組みを何というか。", options: ["SNS", "SEO", "SEM", "LPO"], answerIndex: 1, explanation: "SEO (Search Engine Optimization) は検索エンジン最適化のことです。" },
+            { category: "ストラテジ系", question: "自分のWebサイトやブログに企業の広告を掲載し、そこから商品が購入された場合に成果報酬を受け取る仕組みはどれか。", options: ["リスティング広告", "バナー広告", "アフィリエイト", "ステルスマーケティング"], answerIndex: 2, explanation: "アフィリエイトは成果報酬型広告の代表的な仕組みです。" },
+            { category: "ストラテジ系", question: "検索エンジンでユーザーが検索したキーワードに関連した広告を検索結果画面に表示する手法はどれか。", options: ["アフィリエイト", "リスティング広告", "動画広告", "リターゲティング広告"], answerIndex: 1, explanation: "リスティング広告（検索連動型広告）は、検索キーワードに連動して表示されるテキスト広告です。" },
+            { category: "ストラテジ系", question: "インターネット通販において、販売機会の少ないニッチな商品の売上合計が、ヒット商品の売上合計を上回る現象を何というか。", options: ["パレートの法則", "ロングテール", "バンドワゴン効果", "フリーミアム"], answerIndex: 1, explanation: "ロングテールは、恐竜の尻尾のように売上の低い商品群が長く連なるグラフから名付けられました。" },
+            { category: "ストラテジ系", question: "顧客の趣味嗜好や購買履歴などの情報を一元管理し、顧客との長期的な関係を構築して売上拡大を目指す手法はどれか。", options: ["SCM", "ERP", "CRM", "SFA"], answerIndex: 2, explanation: "CRM (Customer Relationship Management) は顧客関係管理のことです。" },
+            { category: "ストラテジ系", question: "部品の調達から製造、配送、販売に至るまでの一連のモノの流れを全体最適化し、納期短縮や在庫削減を図る手法はどれか。", options: ["CRM", "SCM", "ERP", "MRP"], answerIndex: 1, explanation: "SCM (Supply Chain Management) は供給連鎖管理のことです。" },
+            { category: "ストラテジ系", question: "企業の経営資源（ヒト・モノ・カネ・情報）を全社的に統合管理し、経営の効率化を図るシステムはどれか。", options: ["CRM", "SCM", "ERP", "SFA"], answerIndex: 2, explanation: "ERP (Enterprise Resource Planning) は企業資源計画のこと。統合基幹業務システムとも呼ばれます。" },
+            { category: "ストラテジ系", question: "企業と企業の間の電子商取引を指す用語はどれか。", options: ["BtoB", "BtoC", "CtoC", "O2O"], answerIndex: 0, explanation: "BtoB (Business to Business) は企業間取引のことです。" },
+            { category: "ストラテジ系", question: "Amazonや楽天のような、企業が一般消費者に向けて商品を販売する電子商取引を指す用語はどれか。", options: ["BtoB", "BtoC", "CtoC", "GtoC"], answerIndex: 1, explanation: "BtoC (Business to Consumer) は企業対消費者取引のことです。" },
+            { category: "ストラテジ系", question: "メルカリやヤフオク!のような、一般消費者同士が行う電子商取引を指す用語はどれか。", options: ["BtoB", "BtoC", "CtoC", "GtoB"], answerIndex: 2, explanation: "CtoC (Consumer to Consumer) は消費者間取引のことです。" },
+            { category: "ストラテジ系", question: "インターネットを通じて、不特定多数の人に業務を委託する働き方やサービスの形態を何というか。", options: ["クラウドコンピューティング", "クラウドソーシング", "クラウドファンディング", "シェアリングエコノミー"], answerIndex: 1, explanation: "クラウドソーシング (Crowdsourcing) は、群衆(Crowd)に業務委託(Sourcing)することです。" },
+            { category: "ストラテジ系", question: "個人が保有している使っていないモノ、場所、スキルなどを、インターネットを介して他人に貸し出したり提供したりする経済の仕組みはどれか。", options: ["シェアリングエコノミー", "サブスクリプション", "フリーミアム", "オムニチャネル"], answerIndex: 0, explanation: "シェアリングエコノミーは、Airbnb(民泊)やUber(配車)などが代表例です。" },
+            { category: "ストラテジ系", question: "金融(Finance)と技術(Technology)を組み合わせた造語で、スマートフォン決済や仮想通貨など、ITを活用した新しい金融サービスを何というか。", options: ["FinTech", "EdTech", "AgriTech", "HealthTech"], answerIndex: 0, explanation: "FinTech（フィンテック）は金融とITの融合です。" },
+            { category: "ストラテジ系", question: "企業がデータやデジタル技術を活用し、製品やサービス、ビジネスモデル、組織文化などを変革することを何というか。", options: ["ITガバナンス", "DX", "BPR", "CSR"], answerIndex: 1, explanation: "DX (Digital Transformation) は、デジタル技術による根本的な事業変革のことです。" },
+            { category: "ストラテジ系", question: "新しいアイデアや技術が実現可能かどうか、効果があるかどうかを、本格的な開発の前に小規模に試作して検証することを何というか。", options: ["PoC", "RFP", "RFI", "SLA"], answerIndex: 0, explanation: "PoC (Proof of Concept) は概念実証のことです。" },
+            { category: "ストラテジ系", question: "将来の技術動向や事業の目標を達成するための行程表（計画表）を時間軸に沿って表したものはどれか。", options: ["ガントチャート", "PERT図", "ロードマップ", "WBS"], answerIndex: 2, explanation: "ロードマップは、将来の目標に向けたマイルストーンを時系列で示した図です。" },
+            { category: "ストラテジ系", question: "巨大な組織において、業務とシステムを統一的な手法でモデル化し、全体最適化を図るためのアーキテクチャはどれか。", options: ["EA", "SOA", "ERP", "SCM"], answerIndex: 0, explanation: "EA (Enterprise Architecture) は、組織全体の業務とシステムを整理し最適化する手法です。" },
+            { category: "ストラテジ系", question: "EA（エンタープライズアーキテクチャ）を構成する4つの体系に含まれないものはどれか。", options: ["ビジネスアーキテクチャ", "データアーキテクチャ", "アプリケーションアーキテクチャ", "ネットワークアーキテクチャ"], answerIndex: 3, explanation: "EAの4階層は ビジネス、データ、アプリケーション、テクノロジ（ネットワーク等を含む基盤）です。" },
+            { category: "ストラテジ系", question: "経営課題を解決するために、システム化の対象範囲や目的、全体スケジュールや費用対効果を検討し、文書化する工程はどれか。", options: ["システム要件定義", "システム化構想（計画）", "外部設計", "プログラミング"], answerIndex: 1, explanation: "システム化構想・計画は、開発の最上流工程でシステム導入の方向性を決めるプロセスです。" },
+            { category: "ストラテジ系", question: "システムを導入するにあたり、対象となる業務の流れを分析し、システムで実現すべき機能や業務手順を明確にする工程はどれか。", options: ["業務要件定義", "非機能要件定義", "システムテスト", "運用テスト"], answerIndex: 0, explanation: "業務要件定義は、利用者の立場で「システムで何をしたいか」を明確にする重要な工程です。" },
+            { category: "ストラテジ系", question: "企業がシステム開発などを外部に委託する際、ベンダー（開発会社）に対して具体的なシステム要件を示し、提案書や見積書の提出を依頼する文書はどれか。", options: ["RFI", "RFP", "SLA", "NDA"], answerIndex: 1, explanation: "RFP (Request for Proposal) は提案依頼書のことです。" },
+            { category: "ストラテジ系", question: "RFP（提案依頼書）を作成する前段階で、ベンダーに対して実績や技術動向などの情報提供を依頼する文書はどれか。", options: ["RFI", "RFP", "RFQ", "NDA"], answerIndex: 0, explanation: "RFI (Request for Information) は情報提供依頼書のことです。" },
+            { category: "ストラテジ系", question: "コンピュータシステムなどの導入時にかかる初期費用だけでなく、導入後の維持・運用にかかる費用も含めた総費用のことを何というか。", options: ["ROI", "TCO", "ランニングコスト", "イニシャルコスト"], answerIndex: 1, explanation: "TCO (Total Cost of Ownership) は総所有コストのことで、運用保守費用を含みます。" },
+            { category: "ストラテジ系", question: "PCやサーバの省電力化、電子化によるペーパーレス化など、ITを活用して環境保護やエネルギー消費の削減を図る取り組みはどれか。", options: ["グリーンIT", "スマートグリッド", "デジタルトランスフォーメーション", "オープンイノベーション"], answerIndex: 0, explanation: "グリーンITは、環境に優しいIT機器の利用や、ITによる環境負荷低減の取り組みです。" },
+            { category: "ストラテジ系", question: "従業員が個人で所有しているスマートフォンやPCを、会社の許可を得て業務に利用することを何というか。", options: ["MDM", "BYOD", "テレワーク", "シャドーIT"], answerIndex: 1, explanation: "BYOD (Bring Your Own Device) は私的端末の業務利用のことです。" },
+            { category: "ストラテジ系", question: "会社の許可を得ずに、従業員が勝手に個人のスマートフォンやクラウドサービスを業務で利用する行為を何というか。", options: ["BYOD", "シャドーIT", "ソーシャルエンジニアリング", "不正アクセス"], answerIndex: 1, explanation: "シャドーITは情報漏洩のリスクが高いため、企業にとって管理上の課題となります。" },
+            { category: "ストラテジ系", question: "プログラマーやデザイナーがチームを組み、短期間（数日〜1週間程度）で集中的にソフトウェアを開発し、アイデアや成果を競い合うイベントはどれか。", options: ["アイデアソン", "ハッカソン", "ブレインストーミング", "アジャイル開発"], answerIndex: 1, explanation: "ハッカソンは、ハック(Hack)とマラソン(Marathon)を組み合わせた造語です。" },
+            { category: "ストラテジ系", question: "デザイナーがデザインを行う際の思考プロセスを活用し、顧客の視点から根本的な課題を見つけ出し、解決策を創出するアプローチはどれか。", options: ["ロジカルシンキング", "デザイン思考", "クリティカルシンキング", "システム思考"], answerIndex: 1, explanation: "デザイン思考は、共感・定義・概念化・試作・テストのプロセスを通じてイノベーションを生み出す手法です。" },
+            { category: "ストラテジ系", question: "必要最小限の機能を持つ製品（MVP）を短期間で作成して市場に投入し、顧客の反応を見ながら改善を繰り返して事業を成長させる手法はどれか。", options: ["ウォーターフォールモデル", "リーンスタートアップ", "リバースエンジニアリング", "トップダウンアプローチ"], answerIndex: 1, explanation: "リーンスタートアップは、無駄（リーン）を省き、素早く顧客のニーズを検証する起業手法です。" },
+            { category: "ストラテジ系", question: "自社の技術やアイデアだけでなく、社外の企業、大学、研究機関などが持つ技術やアイデアを組み合わせて、革新的な製品やサービスを創出する取り組みはどれか。", options: ["オープンイノベーション", "クローズドイノベーション", "コアコンピタンス", "自前主義"], answerIndex: 0, explanation: "オープンイノベーションは、外部の知見を積極的に取り入れることでイノベーションを加速させる手法です。" },
+            { category: "ストラテジ系", question: "自社で生産工場を持たず、製品の企画・設計やマーケティングに特化し、製造は外部の企業に委託する企業形態はどれか。", options: ["フランチャイズ", "ファブレス", "コングロマリット", "ジョイントベンチャー"], answerIndex: 1, explanation: "ファブレス（Fabless）は「工場(fabrication facility)を持たない」という意味です。" },
+            { category: "ストラテジ系", question: "本部が加盟店に対して商標の使用権や経営ノウハウを提供し、その対価としてロイヤリティを受け取るビジネスモデルはどれか。", options: ["OEM", "ファブレス", "フランチャイズチェーン", "クラウドファンディング"], answerIndex: 2, explanation: "フランチャイズ（FC）は、コンビニエンスストアや飲食店などで広く採用されている経営形態です。" },
+
+            // ==========================================
+            // 【マネジメント系 75問】
+            // ==========================================
+            { category: "マネジメント系", question: "プロジェクトのスケジュール管理において、作業の順序や所要時間を視覚的に表し、進捗状況を把握しやすくする帯状の図はどれか。", options: ["パレート図", "ガントチャート", "レーダーチャート", "散布図"], answerIndex: 1, explanation: "ガントチャートは、縦軸に作業項目、横軸に時間をとり、帯状のグラフでスケジュールの予定と実績を示す図です。" },
+            { category: "マネジメント系", question: "ITサービスマネジメントのベストプラクティス（成功事例）を集めた世界的なフレームワークはどれか。", options: ["ISMS", "WBS", "ITIL", "SLA"], answerIndex: 2, explanation: "ITIL (Information Technology Infrastructure Library) は、ITサービス管理のベストプラクティスを体系化したガイドラインです。" },
+            { category: "マネジメント系", question: "SLA(Service Level Agreement)で合意する内容として、適切なものはどれか。", options: ["システム開発の要件定義と開発費用", "提供するITサービスの品質基準や対応時間", "従業員の労働時間と給与条件", "製品の販売価格と納品時期"], answerIndex: 1, explanation: "SLA（サービスレベル協定）は、ITサービスの提供者と利用者の間で、サービスの品質水準を明確にする合意です。" },
+            { category: "マネジメント系", question: "システム開発において、短い期間で設計・実装・テストのサイクルを繰り返し、柔軟に仕様変更に対応する開発手法はどれか。", options: ["ウォーターフォールモデル", "スパイラルモデル", "アジャイル開発", "プロトタイピングモデル"], answerIndex: 2, explanation: "アジャイル開発は、小さな単位で開発サイクル（イテレーション）を繰り返し、変化に迅速に対応することを重視します。" },
+            { category: "マネジメント系", question: "プロジェクト管理において、作業を階層的に細分化し、管理可能な単位に分割する手法はどれか。", options: ["WBS", "PERT", "CPM", "EVM"], answerIndex: 0, explanation: "WBS (Work Breakdown Structure) は、プロジェクトの成果物や作業をツリー状に分解し、作業範囲を明確にする手法です。" },
+            { category: "マネジメント系", question: "システム開発を「要件定義」「設計」「プログラミング」「テスト」のように、工程を上から下へ後戻りしない前提で順次進めていく開発モデルはどれか。", options: ["アジャイルモデル", "スパイラルモデル", "ウォーターフォールモデル", "プロトタイピングモデル"], answerIndex: 2, explanation: "ウォーターフォールモデルは、水が高いところから低いところへ落ちるように、工程を順番に完了させながら進める伝統的な手法です。" },
+            { category: "マネジメント系", question: "システムを独立性の高い部分ごとに分割し、設計・プログラミング・テストの工程を繰り返しながら、徐々にシステムを完成させていく開発モデルはどれか。", options: ["ウォーターフォール", "スパイラル", "リバースエンジニアリング", "RAD"], answerIndex: 1, explanation: "スパイラルモデルは、試作と評価のサイクルを繰り返しながら、渦巻き（スパイラル）状にシステムの完成度を高めていく手法です。" },
+            { category: "マネジメント系", question: "開発の初期段階でシステムの試作品を作成し、利用者の要望や操作感を確認しながら開発を進める手法はどれか。", options: ["プロトタイピング", "ウォーターフォール", "オブジェクト指向", "リバースエンジニアリング"], answerIndex: 0, explanation: "プロトタイプ（試作品）を作成してユーザーに見せることで、要件の認識ズレを早期に防ぐことができます。" },
+            { category: "マネジメント系", question: "開発担当者と運用担当者が互いに協調・連携し、システム開発から本番運用までのサイクルを迅速かつ継続的に行う考え方はどれか。", options: ["DevOps", "BPO", "SLA", "ITIL"], answerIndex: 0, explanation: "DevOpsはDevelopment（開発）とOperations（運用）を組み合わせた造語で、両者の連携を重視します。" },
+            { category: "マネジメント系", question: "既存のプログラムを解析して、その仕様書や設計図を作成する手法はどれか。", options: ["フォワードエンジニアリング", "リバースエンジニアリング", "コンカレントエンジニアリング", "ソーシャルエンジニアリング"], answerIndex: 1, explanation: "リバースエンジニアリングは、完成品から設計情報を「逆（リバース）」に解析・抽出する手法です。" },
+            { category: "マネジメント系", question: "システム開発を短期間で行うために、開発ツール（CASEツールなど）を活用し、少人数で効率的に開発を進める手法はどれか。", options: ["RAD", "BPR", "TQM", "SFA"], answerIndex: 0, explanation: "RAD (Rapid Application Development) は、開発支援ツールやプロトタイプを用いて迅速にシステムを構築する手法です。" },
+            { category: "マネジメント系", question: "外部から見たシステムの動作や振る舞いを変えずに、プログラムの内部構造を整理して保守性を高めることを何というか。", options: ["デバッグ", "リバースエンジニアリング", "リファクタリング", "コンパイル"], answerIndex: 2, explanation: "リファクタリングは、プログラムの可読性や保守性を向上させるためにソースコードを整理・改善することです。" },
+            { category: "マネジメント系", question: "システム開発において、利用者がシステムに求めている機能や性能を明確にする工程はどれか。", options: ["外部設計", "内部設計", "要件定義", "運用テスト"], answerIndex: 2, explanation: "要件定義は、システム化の目的や業務要件を満たすために、システムが持つべき機能を定義する最上流の工程です。" },
+            { category: "マネジメント系", question: "利用者の視点から、画面のレイアウトや帳票の形式など、システムのユーザーインターフェース部分の仕様を決める工程はどれか。", options: ["要件定義", "外部設計", "内部設計", "プログラミング"], answerIndex: 1, explanation: "外部設計（基本設計）は、ユーザーから見える部分（画面、帳票、操作方法など）を設計する工程です。" },
+            { category: "マネジメント系", question: "外部設計の結果を受けて、システムをどのようにコンピュータ上で実現するか、プログラムの内部構造やデータの処理手順を設計する工程はどれか。", options: ["要件定義", "外部設計", "内部設計", "システムテスト"], answerIndex: 2, explanation: "内部設計（詳細設計）は、開発者の視点でプログラムのモジュール分割や物理データ設計を行う工程です。" },
+            { category: "マネジメント系", question: "プログラムがモジュール（部品）単位で正しく動作するかどうかを検証するテストはどれか。", options: ["結合テスト", "システムテスト", "運用テスト", "単体テスト"], answerIndex: 3, explanation: "単体テストは、作成したプログラムの最小単位（モジュールや関数など）を対象に行う最初のテストです。" },
+            { category: "マネジメント系", question: "複数のモジュールを組み合わせて、モジュール間のインターフェース（データの受け渡し）が正しく行われるかを検証するテストはどれか。", options: ["単体テスト", "結合テスト", "システムテスト", "運用テスト"], answerIndex: 1, explanation: "結合テストは、単体テストを終えたモジュールを連結し、連携して正しく動作するかを確認します。" },
+            { category: "マネジメント系", question: "開発したシステム全体が、要件定義で定められた機能や性能を満たしているか、開発側が総合的に検証するテストはどれか。", options: ["単体テスト", "結合テスト", "システムテスト", "運用テスト"], answerIndex: 2, explanation: "システムテスト（総合テスト）は、システム全体を対象に、仕様書通りに機能・性能が発揮されるかを確認します。" },
+            { category: "マネジメント系", question: "システムの本番稼働直前に、実際の業務環境で利用者が主体となって行い、業務に支障がないかを確認するテストはどれか。", options: ["単体テスト", "結合テスト", "システムテスト", "運用テスト"], answerIndex: 3, explanation: "運用テスト（受入テスト）は、発注者（ユーザー）が実際の運用と同じ環境で行う最終的なテストです。" },
+            { category: "マネジメント系", question: "プログラムの内部構造を考慮せず、入力に対して正しい出力が得られるかどうかを仕様書に基づいて検証するテスト手法はどれか。", options: ["ホワイトボックステスト", "ブラックボックステスト", "トップダウンテスト", "ボトムアップテスト"], answerIndex: 1, explanation: "ブラックボックステストは、システムの中身を「ブラックボックス（見えない箱）」として扱い、入出力の関係に注目します。" },
+            { category: "マネジメント系", question: "プログラムの内部構造や処理の流れ（ロジック）を把握した上で、すべての経路が正しく実行されるかを検証するテスト手法はどれか。", options: ["ホワイトボックステスト", "ブラックボックステスト", "アルファテスト", "ベータテスト"], answerIndex: 0, explanation: "ホワイトボックステストは、システムの中身（ソースコードなど）が「見える（ホワイトボックス）」状態で行うテストです。" },
+            { category: "マネジメント系", question: "プログラムの一部を修正したことで、他の正常だった部分に予期せぬ不具合が生じていないかを確認するテストはどれか。", options: ["ストレステスト", "リグレッションテスト", "ユーザビリティテスト", "パフォーマンステスト"], answerIndex: 1, explanation: "リグレッションテスト（退行テスト・回帰テスト）は、プログラムの修正による副作用がないかを確認するために行われます。" },
+            { category: "マネジメント系", question: "プログラムの作成者が主体となり、関係者を集めて設計書やソースコードのレビューを行い、誤りを発見する手法はどれか。", options: ["インスペクション", "ウォークスルー", "ペアプログラミング", "デバッグ"], answerIndex: 1, explanation: "ウォークスルーは、作成者が説明役となって参加者と共に机上でプログラムを順番に確認していくレビュー手法です。" },
+            { category: "マネジメント系", question: "あらかじめ決められたチェックリストを用い、進行役（モデレータ）の主導のもとで公式に行われる厳密なレビュー手法はどれか。", options: ["ウォークスルー", "インスペクション", "机上デバッグ", "プロトタイピング"], answerIndex: 1, explanation: "インスペクションは、ウォークスルーよりもフォーマルで、第三者（モデレータ）が主導してチェックを行う手法です。" },
+            { category: "マネジメント系", question: "システムが提供する画面や帳票、ファイルの数などから、システムの機能の量（ポイント）を算出し、開発規模や工数を見積もる手法はどれか。", options: ["COCOMO", "ファンクションポイント法", "プログラムステップ法", "類推見積法"], answerIndex: 1, explanation: "ファンクションポイント(FP)法は、システムの「機能（ファンクション）」の数や複雑さに着目して規模を見積もる手法です。" },
+            { category: "マネジメント系", question: "開発するプログラムのソースコードの行数（ステップ数）を基準にして、開発規模や工数を見積もる手法はどれか。", options: ["ファンクションポイント法", "類推見積法", "ボトムアップ見積法", "プログラムステップ法"], answerIndex: 3, explanation: "プログラムステップ法は、ソースコードの行数をベースにするため、開発者のスキルや言語によって見積もりが変動しやすい特徴があります。" },
+            { category: "マネジメント系", question: "過去に開発した類似のシステムの実績データを参考に、これから開発するシステムの工数やコストを見積もる手法はどれか。", options: ["COCOMO", "ファンクションポイント法", "類推見積法", "ボトムアップ見積法"], answerIndex: 2, explanation: "類推見積法は、過去の類似プロジェクトの経験や実績から「大体これくらい」と推測する手法です。" },
+            { category: "マネジメント系", question: "組織のソフトウェア開発プロセスの成熟度を、1（初期）から5（最適化している）の5段階で評価するモデルはどれか。", options: ["ITIL", "ISMS", "CMMI", "PMBOK"], answerIndex: 2, explanation: "CMMI (Capability Maturity Model Integration) は、能力成熟度モデル統合と呼ばれ、組織の開発プロセス改善の指標となります。" },
+            { category: "マネジメント系", question: "プロジェクトマネジメントの知識を体系化した世界標準のガイドラインはどれか。", options: ["ITIL", "PMBOK", "SWEBOK", "BABOK"], answerIndex: 1, explanation: "PMBOK (Project Management Body of Knowledge) は、プロジェクト管理に関するノウハウやベストプラクティスをまとめたものです。" },
+            { category: "マネジメント系", question: "プロジェクトを正式に認可し、プロジェクトマネージャに組織の資源を割り当てる権限を与える文書はどれか。", options: ["プロジェクト憲章", "WBS", "提案依頼書 (RFP)", "サービスレベル協定 (SLA)"], answerIndex: 0, explanation: "プロジェクト憲章（Project Charter）は、プロジェクトの立ち上げ時に作成され、その存在を公式に承認する文書です。" },
+            { category: "マネジメント系", question: "プロジェクトの活動や結果に影響を与えたり、逆に影響を受けたりするすべての個人や組織（顧客、スポンサー、チームメンバーなど）を何というか。", options: ["ベンダー", "スポンサー", "ステークホルダー", "コンシューマ"], answerIndex: 2, explanation: "ステークホルダー（利害関係者）の要求や期待を適切に管理することがプロジェクト成功の鍵となります。" },
+            { category: "マネジメント系", question: "プロジェクトで作成する成果物や、実施すべき作業の範囲（どこからどこまでをプロジェクトで行うか）のことを何というか。", options: ["マイルストーン", "プロジェクトスコープ", "クリティカルパス", "ベースライン"], answerIndex: 1, explanation: "プロジェクトスコープを明確にすることで、作業の抜け漏れや不要な作業の発生を防ぎます。" },
+            { category: "マネジメント系", question: "プロジェクトのスケジュールにおいて、重要な節目や区切りとなるポイント（外部設計完了、テスト開始など）を何というか。", options: ["マイルストーン", "クリティカルパス", "バッファ", "リードタイム"], answerIndex: 0, explanation: "マイルストーンを設定することで、進捗状況の把握や目標達成に向けた動機付けがしやすくなります。" },
+            { category: "マネジメント系", question: "プロジェクトの各作業を矢印（アロー）と丸（結合点）で結び、作業の順序関係や全体の所要日数をネットワーク図として表したものはどれか。", options: ["ガントチャート", "パレート図", "アローダイアグラム", "特性要因図"], answerIndex: 2, explanation: "アローダイアグラム（PERT図）は、作業の依存関係や最短の完了日数を視覚的に把握するのに適しています。" },
+            { category: "マネジメント系", question: "アローダイアグラムにおいて、プロジェクトの開始から終了までを結ぶ経路の中で、最も所要日数が長く、プロジェクト全体の工期を決定づける経路を何というか。", options: ["ダミー作業", "クリティカルパス", "フロート", "マイルストーン"], answerIndex: 1, explanation: "クリティカルパス上の作業が遅れると、プロジェクト全体の完了も遅れてしまうため、重点的な管理が必要です。" },
+            { category: "マネジメント系", question: "プロジェクトのスケジュールを短縮するために、クリティカルパス上の作業に要員や資金を追加投入する手法はどれか。", options: ["クラッシング", "ファストトラッキング", "レベリング", "スコーピング"], answerIndex: 0, explanation: "クラッシング（Crashing）は、コストを追加してでも作業期間を「押しつぶす（短縮する）」手法です。" },
+            { category: "マネジメント系", question: "プロジェクトのスケジュールを短縮するために、通常は順番に行う作業を、前の作業が完了する前に並行して開始する手法はどれか。", options: ["クラッシング", "ファストトラッキング", "リバースエンジニアリング", "アジャイル"], answerIndex: 1, explanation: "ファストトラッキングは追加コストはかかりませんが、手戻りが発生するリスクが高まる点に注意が必要です。" },
+            { category: "マネジメント系", question: "プロジェクトの進捗管理において、計画時の予算（PV）、実際に発生したコスト（AC）、達成した作業の予算価値（EV）の3つの指標を用いて状況を定量評価する手法はどれか。", options: ["EVM", "WBS", "PERT", "CPM"], answerIndex: 0, explanation: "EVM (Earned Value Management) は、進捗を「金額（価値）」に換算して一元的に管理・評価する手法です。" },
+            { category: "マネジメント系", question: "プロジェクトの目標達成に悪影響を及ぼす可能性のある事象を特定し、その発生確率や影響度を分析して、適切な対策を計画・実行する活動はどれか。", options: ["スコープマネジメント", "品質マネジメント", "リスクマネジメント", "調達マネジメント"], answerIndex: 2, explanation: "リスクマネジメントは、問題が起きる前に事前に対策を講じるための活動です。" },
+            { category: "マネジメント系", question: "リスク対応戦略の一つで、リスクの原因となる作業そのものを中止したり、プロジェクトの計画を変更してリスクが起こらないようにする対応はどれか。", options: ["リスク回避", "リスク転嫁", "リスク軽減", "リスク受容"], answerIndex: 0, explanation: "リスク回避は、リスクの根源を絶つ最も確実な対応策です。（例：新技術の導入を見送るなど）" },
+            { category: "マネジメント系", question: "リスク対応戦略の一つで、保険に加入したり、業務を外部に委託したりすることで、リスクの影響や責任を第三者に移す対応はどれか。", options: ["リスク回避", "リスク転嫁", "リスク軽減", "リスク受容"], answerIndex: 1, explanation: "リスク転嫁（移転）は、リスクそのものをなくすわけではありませんが、金銭的な損失などを他者に負担してもらいます。" },
+            { category: "マネジメント系", question: "リスク対応戦略の一つで、リスクが発生する確率を下げたり、発生した時の被害（影響）を小さくするための予防策を講じる対応はどれか。", options: ["リスク回避", "リスク転嫁", "リスク軽減", "リスク受容"], answerIndex: 2, explanation: "リスク軽減（低減）は、完全に防ぐことはできなくても、被害を許容範囲内に収めるための対策です。（例：こまめにバックアップをとる）" },
+            { category: "マネジメント系", question: "リスク対応戦略の一つで、発生確率や影響度が小さいため、特に対策を講じず、発生した時にその場で対応する対応はどれか。", options: ["リスク回避", "リスク転嫁", "リスク軽減", "リスク受容"], answerIndex: 3, explanation: "リスク受容は、対策費用がリスクの被害額を上回る場合などに選択されます。" },
+            { category: "マネジメント系", question: "ITサービスの利用者（ユーザー）からの問い合わせや障害報告などを一元的に受け付ける単一の窓口（SPOC）を何というか。", options: ["ヘルプデスク", "サービスデスク", "インシデント管理", "問題管理"], answerIndex: 1, explanation: "ITILにおいては、単なる問い合わせ対応だけでなく、サービス全般の窓口となる「サービスデスク」という機能が定義されています。" },
+            { category: "マネジメント系", question: "サービスデスクの担当者で解決できない難しい問い合わせや障害対応を、より専門的な知識を持つ上位の技術者や管理者に引き継ぐことを何というか。", options: ["インシデント", "ワークアラウンド", "エスカレーション", "デプロイ"], answerIndex: 2, explanation: "エスカレーション（段階的拡大）は、迅速な問題解決のために適切なスキルを持つ人員へパスする仕組みです。" },
+            { category: "マネジメント系", question: "利用者のよくある質問に対して、あらかじめ用意された回答データベースやAIを用いて、テキストベースで自動応答するシステムはどれか。", options: ["FAQ", "チャットボット", "サービスデスク", "ナレッジマネジメント"], answerIndex: 1, explanation: "チャットボットは「チャット（会話）」と「ロボット」を組み合わせた言葉で、サービスデスクの業務効率化に役立ちます。" },
+            { category: "マネジメント系", question: "システム障害などによりITサービスが中断・低下した際に、根本原因の究明よりも「可能な限り早くサービスを通常の状態に復旧させること」を目的とするプロセスはどれか。", options: ["問題管理", "インシデント管理", "変更管理", "構成管理"], answerIndex: 1, explanation: "インシデント管理は、ユーザーの業務への影響を最小限に抑え、いち早く「使える状態」に戻すことが最優先されます。" },
+            { category: "マネジメント系", question: "システム障害が発生した際、根本的な原因が解決するまでの間、一時的にサービスを復旧・継続させるための「応急処置」や「回避策」のことを何というか。", options: ["エスカレーション", "インシデント", "ワークアラウンド", "パッチ"], answerIndex: 2, explanation: "ワークアラウンド（Workaround）は、PCを再起動する、別のプリンタを使うなどの一時的な対応策です。" },
+            { category: "マネジメント系", question: "インシデントの根本原因を究明し、再発を防止するための恒久的な解決策を策定するプロセスはどれか。", options: ["インシデント管理", "問題管理", "変更管理", "リリース管理"], answerIndex: 1, explanation: "インシデント管理が「応急処置」なら、問題管理は「原因究明と根本治療」を目的とします。" },
+            { category: "マネジメント系", question: "システムに機能追加や修正を行う際、その変更が他のサービスに悪影響を及ぼさないよう、変更のリスクを評価し、承認・スケジュール管理を行うプロセスはどれか。", options: ["問題管理", "構成管理", "変更管理", "リリース管理"], answerIndex: 2, explanation: "変更管理は、安全かつ確実にシステムを変更するために、勝手な修正を防ぎ、影響をコントロールします。" },
+            { category: "マネジメント系", question: "変更管理で承認されたシステムの変更を、実際に本番環境（稼働環境）に安全に導入・移行するプロセスはどれか。", options: ["インシデント管理", "構成管理", "変更管理", "リリース・展開管理"], answerIndex: 3, explanation: "リリース・展開管理は、テスト済みのプログラムを本番環境へ配布（デプロイ）し、利用可能な状態にする活動です。" },
+            { category: "マネジメント系", question: "ITサービスを構成するすべての要素（ハード・ソフト・マニュアルなど）の情報を正確に記録し、常に最新の状態に維持・管理するプロセスはどれか。", options: ["構成管理", "変更管理", "可用性管理", "キャパシティ管理"], answerIndex: 0, explanation: "構成管理データベース(CMDB)などを用いて、IT資産の構成品目(CI)の状況を正確に把握します。" },
+            { category: "マネジメント系", question: "ITサービスが「必要な時にいつでも利用できる状態」を維持するために、システムの稼働率や障害からの復旧時間を監視・改善するプロセスはどれか。", options: ["セキュリティ管理", "キャパシティ管理", "可用性管理", "ITサービス継続性管理"], answerIndex: 2, explanation: "可用性（Availability）は、システムがダウンせずに継続して稼働し続ける能力のことです。" },
+            { category: "マネジメント系", question: "システムのCPU、メモリ、ネットワークなどのITリソースが、現在および将来の需要に対して十分であるか（不足していないか）を監視・計画するプロセスはどれか。", options: ["可用性管理", "キャパシティ管理", "構成管理", "パフォーマンス管理"], answerIndex: 1, explanation: "キャパシティ（容量・能力）管理は、リソース不足による性能低下を防ぐための活動です。" },
+            { category: "マネジメント系", question: "地震や火災などの大規模な災害が発生した際でも、ITサービスを一定の期間内に復旧・継続できるよう、事前の計画（BCPなど）を策定・維持するプロセスはどれか。", options: ["可用性管理", "キャパシティ管理", "ITサービス継続性管理", "インシデント管理"], answerIndex: 2, explanation: "ITサービス継続性管理(ITSCM)は、事業継続計画(BCP)をITの側面から支援するプロセスです。" },
+            { category: "マネジメント系", question: "提供するITサービスの品質について合意したSLAに基づき、その目標水準を維持・改善していくための継続的な管理活動（PDCAサイクル）はどれか。", options: ["SLM", "CRM", "SCM", "BPM"], answerIndex: 0, explanation: "SLM (Service Level Management) は、SLAで定めた約束が守られているかを評価し、サービスの向上を図る活動です。" },
+            { category: "マネジメント系", question: "企業が保有する建物、設備、空間などの施設を、経営的な視点から最適に維持・管理する活動はどれか。", options: ["プロジェクトマネジメント", "ITサービスマネジメント", "ファシリティマネジメント", "サプライチェーンマネジメント"], answerIndex: 2, explanation: "ファシリティマネジメントは、オフィスのレイアウト最適化や、データセンターの空調・電源設備の管理などを含みます。" },
+            { category: "マネジメント系", question: "落雷などによる突然の停電の際、サーバやパソコンに一定時間電力を供給し続け、安全にシャットダウンする時間を作るための装置はどれか。", options: ["UPS", "USB", "SSD", "ルータ"], answerIndex: 0, explanation: "UPS (Uninterruptible Power Supply：無停電電源装置) は、内蔵バッテリーにより一時的に電力をバックアップします。" },
+            { category: "マネジメント系", question: "落雷によって電源ケーブルや通信ケーブルから過大な電圧が侵入し、IT機器が破壊されるのを防ぐための機器はどれか。", options: ["UPS", "サージ防護機器", "ファイアウォール", "スマートメーター"], answerIndex: 1, explanation: "サージ防護機器（サージプロテクタ）は、異常な高電圧を吸収し、接続された機器を保護します。" },
+            { category: "マネジメント系", question: "重要な施設への入退室管理において、指紋や静脈、顔、虹彩など、人間の身体的特徴を用いて本人確認を行う認証方式はどれか。", options: ["パスワード認証", "スマートカード認証", "ワンタイムパスワード", "バイオメトリクス認証"], answerIndex: 3, explanation: "バイオメトリクス（生体）認証は、忘失や盗難のリスクが低く、高いセキュリティが求められる場所で利用されます。" },
+            { category: "マネジメント系", question: "セキュリティで保護された部屋へ、正規の権限を持つ人がドアを開けた隙に、権限を持たない人が後ろに付いて不正に侵入する手口を何というか。", options: ["ソーシャルエンジニアリング", "スニッフィング", "共連れ（ピギーバック）", "ショルダーハック"], answerIndex: 2, explanation: "共連れ（テールゲーティング/ピギーバック）を防ぐために、一人ずつしか通れないゲート（アンチパスバック）などを設置します。" },
+            { category: "マネジメント系", question: "組織のシステムが安全かつ有効に活用されているか、独立した専門的な立場の者が客観的に評価し、改善のための助言・勧告を行う活動はどれか。", options: ["システム開発", "プロジェクトマネジメント", "システム監査", "ITサービスマネジメント"], answerIndex: 2, explanation: "システム監査は、第三者の目線からITのリスクコントロールが適切に行われているかをチェックする活動です。" },
+            { category: "マネジメント系", question: "システム監査を公正かつ客観的に実施するために、システム監査人に最も強く求められる性質（要件）はどれか。", options: ["監査対象のシステムを開発した経験", "監査対象の部門からの独立性", "経営トップとの親密な関係", "高度なプログラミングスキル"], answerIndex: 1, explanation: "システム監査人は、監査対象となる部門やプロジェクトから独立した（利害関係のない）立場である必要があります。" },
+            { category: "マネジメント系", question: "システム監査において、監査人が監査意見を形成する根拠となる事実やデータ（システムの設定値、操作ログ、ヒアリング記録など）を何というか。", options: ["監査調書", "監査報告書", "監査証拠", "監査計画書"], answerIndex: 2, explanation: "監査証拠は、監査報告書で指摘する内容の裏付けとなる客観的な証拠です。" },
+            { category: "マネジメント系", question: "システム監査人が、監査の実施手順、収集した監査証拠、発見した問題点などを整理して記録した文書（作業記録）はどれか。", options: ["監査調書", "監査報告書", "監査証拠", "監査計画書"], answerIndex: 0, explanation: "監査調書は、監査が適切に行われたことを証明する記録であり、監査意見の根拠をまとめたものです。" },
+            { category: "マネジメント系", question: "システム監査の実施結果として、システムの現状評価や発見された問題点、改善に向けた勧告をまとめ、依頼者（経営トップ等）に提出する文書はどれか。", options: ["監査調書", "監査証拠", "監査報告書", "監査手続書"], answerIndex: 2, explanation: "監査報告書は監査の最終成果物です。監査人は改善の「勧告」は行いますが、改善の「実行・命令」は行いません。" },
+            { category: "マネジメント系", question: "システム監査の結果報告後、監査対象部門が勧告に基づいて適切に改善措置を講じているかどうかを、監査人が後日確認する活動を何というか。", options: ["フォローアップ", "キックオフ", "レビュー", "エスカレーション"], answerIndex: 0, explanation: "フォローアップを行うことで、監査報告書の指摘が放置されず、確実に改善につながるようにします。" },
+            { category: "マネジメント系", question: "企業が業務の有効性や効率性、財務報告の信頼性、法令遵守などを達成するために、組織内部に構築・運用する仕組みはどれか。", options: ["コーポレートガバナンス", "内部統制", "ITガバナンス", "システム監査"], answerIndex: 1, explanation: "内部統制は、企業が自らを健全にコントロールするための社内ルールやプロセスのことです。" },
+            { category: "マネジメント系", question: "企業の経営戦略に沿ってIT戦略を策定し、IT投資が適切に行われ、リスクが管理されるよう、経営陣が組織のITを統制・指導する仕組みはどれか。", options: ["システム監査", "ITサービスマネジメント", "ITガバナンス", "プロジェクトマネジメント"], answerIndex: 2, explanation: "ITガバナンスは、ITを経営に役立てるためのトップマネジメント（経営陣）による統治のことです。" },
+            { category: "マネジメント系", question: "内部統制において、システムの開発・変更、運用、セキュリティ管理など、複数の業務システムに共通して適用されるIT基盤に関する統制活動はどれか。", options: ["IT業務処理統制", "IT全般統制", "アプリケーション統制", "マニュアル統制"], answerIndex: 1, explanation: "IT全般統制は、IT環境全体が健全に機能しているかを担保する活動です。" },
+            { category: "マネジメント系", question: "内部統制において、特定の業務システムの中で、データの入力・処理・出力が正確かつ完全に行われるようシステムに組み込まれた自動的な統制はどれか。", options: ["IT全般統制", "物理的統制", "IT業務処理統制", "環境統制"], answerIndex: 2, explanation: "IT業務処理統制は、入力値の桁数チェックや必須入力チェックなど、アプリケーション内で行われる制御を指します。" },
+            { category: "マネジメント系", question: "不正やミスを防ぐために、一つの業務（開発と運用など）を一人に兼任させず、複数の担当者に分けて相互牽制を働かせる考え方を何というか。", options: ["職務の分離", "権限移譲", "アクセス制御", "多要素認証"], answerIndex: 0, explanation: "職務の分離は、内部統制の基本原則です。開発者が本番環境のデータを直接修正できないようにするのもこの例です。" },
+            { category: "マネジメント系", question: "システムが稼働した後に、発見されたバグを修正したり、法律の変更に合わせて機能を追加・変更したりする工程はどれか。", options: ["システムテスト", "ソフトウェア保守", "システム運用", "要件定義"], answerIndex: 1, explanation: "ソフトウェア保守（メンテナンス）は、システムを長期間にわたって正常かつ最新の要件に合わせて維持する活動です。" },
+            { category: "マネジメント系", question: "システムの可用性を評価する指標として、SLA（サービスレベル協定）に記載する項目として最も適切なものはどれか。", options: ["開発プロジェクトの完了予定日", "システムの月間稼働率（例えば99.9%以上）", "ヘルプデスク担当者の平均年齢", "プログラムのソースコード行数"], answerIndex: 1, explanation: "可用性の指標としては「稼働率」や「システム停止時間の上限」などがSLAの項目としてよく用いられます。" },
+            { category: "マネジメント系", question: "組織の情報セキュリティ対策が、法令や社内規程に照らして適切に運用されているかを独立した立場で検証・評価する活動はどれか。", options: ["リスクアセスメント", "情報セキュリティ監査", "ペネトレーションテスト", "脆弱性スキャン"], answerIndex: 1, explanation: "情報セキュリティ監査は、セキュリティマネジメントが正しく機能しているかを客観的にチェックし、改善を促します。" }
+        ];
+
+        let currentQuestions = [];
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let answeredQuestions = 0;
+
+        function startQuiz() {
+            const category = document.getElementById('category-select').value;
+            score = 0;
+            answeredQuestions = 0;
+            currentQuestionIndex = 0;
+            updateScoreDisplay();
+
+            document.getElementById('result-area').classList.add('hidden');
+            document.getElementById('quiz-area').classList.remove('hidden');
+
+            if (category === "all") {
+                currentQuestions = [...questionDatabase];
+            } else {
+                currentQuestions = questionDatabase.filter(q => q.category === category);
+            }
+
+            // 問題をランダムにシャッフル
+            currentQuestions.sort(() => Math.random() - 0.5);
+
+            displayQuestion();
+        }
+
+        function displayQuestion() {
+            const q = currentQuestions[currentQuestionIndex];
+            
+            document.getElementById('category-badge').innerText = `【${q.category}】 問題 ${currentQuestionIndex + 1} / ${currentQuestions.length}`;
+            document.getElementById('question-text').innerText = q.question;
+            
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = '';
+
+            const prefixes = ['ア', 'イ', 'ウ', 'エ'];
+
+            q.options.forEach((optionText, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn text-left w-full border border-slate-300 rounded-lg p-4 bg-white text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-start';
+                btn.innerHTML = `
+                    <span class="inline-flex items-center justify-center w-6 h-6 mr-3 rounded-full bg-slate-100 text-slate-600 font-bold text-sm shrink-0 mt-0.5">${prefixes[index]}</span>
+                    <span>${optionText}</span>
+                `;
+                btn.onclick = () => checkAnswer(index, btn);
+                optionsContainer.appendChild(btn);
+            });
+
+            document.getElementById('explanation-box').classList.add('hidden');
+            document.getElementById('next-btn-container').classList.add('hidden');
+        }
+
+        function checkAnswer(selectedIndex, clickedBtn) {
+            const q = currentQuestions[currentQuestionIndex];
+            const optionsBtns = document.querySelectorAll('.option-btn');
+            
+            optionsBtns.forEach(btn => {
+                btn.disabled = true;
+                btn.classList.remove('hover:bg-slate-50', 'focus:ring-2', 'focus:ring-blue-500');
+            });
+
+            if (selectedIndex === q.answerIndex) {
+                clickedBtn.classList.add('correct-ans');
+                score++;
+            } else {
+                clickedBtn.classList.add('incorrect-ans');
+                optionsBtns[q.answerIndex].classList.add('correct-ans');
+            }
+
+            answeredQuestions++;
+            updateScoreDisplay();
+
+            document.getElementById('explanation-text').innerText = q.explanation;
+            
+            setTimeout(() => {
+                document.getElementById('explanation-box').classList.remove('hidden');
+                document.getElementById('next-btn-container').classList.remove('hidden');
+            }, 150);
+        }
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < currentQuestions.length) {
+                displayQuestion();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } else {
+                document.getElementById('quiz-area').classList.add('hidden');
+                document.getElementById('result-area').classList.remove('hidden');
+                
+                const rate = Math.round((score / answeredQuestions) * 100);
+                document.getElementById('final-score-text').innerText = `${score} / ${answeredQuestions}`;
+                document.getElementById('final-rate-text').innerText = `正答率: ${rate}%`;
+                
+                const scoreText = document.getElementById('final-score-text');
+                if(rate >= 80) {
+                    scoreText.className = "text-3xl font-bold text-green-600 my-2";
+                } else if(rate >= 60) {
+                    scoreText.className = "text-3xl font-bold text-blue-600 my-2";
+                } else {
+                    scoreText.className = "text-3xl font-bold text-orange-500 my-2";
+                }
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+
+        function updateScoreDisplay() {
+            document.getElementById('score').innerText = score;
+            document.getElementById('total-answered').innerText = answeredQuestions;
+        }
+
+        window.onload = startQuiz;
+    </script>
+</body>
+</html>

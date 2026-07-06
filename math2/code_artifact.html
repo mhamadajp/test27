@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>領域と直線の動きシミュレーター</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+
+  <div class="flex flex-col items-center p-6 w-full max-w-2xl mx-auto font-sans bg-slate-50 rounded-xl shadow-md">
+    <h2 class="text-2xl font-bold text-slate-800 mb-2">領域と直線の動きシミュレーター</h2>
+    <p class="text-slate-600 mb-6 text-sm">
+      kの値をスライダーで動かして、直線が領域とどのように交わるか確認しましょう。<br/>
+      青い半円の領域と直線が<span class="font-bold text-red-500">ギリギリ触れる瞬間</span>が最大・最小です。
+    </p>
+
+    <!-- コントロールパネル -->
+    <div class="w-full bg-white p-4 rounded-lg shadow-sm border border-slate-200 mb-6">
+      <div class="flex items-center justify-between mb-4">
+        <label class="font-bold text-slate-700">
+          k の値: <span id="k-display" class="text-xl text-blue-600 w-12 inline-block text-right">0.0</span>
+        </label>
+        <div class="space-x-2">
+          <button id="btn-max" class="px-3 py-1 bg-orange-100 text-orange-700 rounded-md hover:bg-orange-200 transition font-medium text-sm border border-orange-300">
+            最大値 (k=8)
+          </button>
+          <button id="btn-min" class="px-3 py-1 bg-purple-100 text-purple-700 rounded-md hover:bg-purple-200 transition font-medium text-sm border border-purple-300">
+            最小値 (k=-10)
+          </button>
+          <button id="btn-reset" class="px-3 py-1 bg-slate-100 text-slate-700 rounded-md hover:bg-slate-200 transition font-medium text-sm border border-slate-300">
+            リセット
+          </button>
+        </div>
+      </div>
+      <input 
+        type="range" id="k-slider" min="-15" max="15" step="0.1" value="0" 
+        class="w-full cursor-pointer accent-blue-500"
+      />
+      <div class="mt-3 text-center text-slate-600 bg-slate-50 p-2 rounded">
+        直線の方程式： <span class="font-mono font-bold" id="formula-display">y = (3/4)x - (0.0) / 4</span>
+        <br />
+        <span class="text-xs">※ y切片 (y軸との交点) が直線と一緒に上下に動くことに注目！</span>
+      </div>
+    </div>
+
+    <!-- グラフ描画エリア -->
+    <div class="relative border-2 border-slate-300 bg-white shadow-sm overflow-hidden" style="width: 400px; height: 400px;">
+      <div id="svg-container"></div>
+      <div id="message-container"></div>
+    </div>
+  </div>
+
+  <script>
+    // 状態変数
+    let k = 0;
+
+    // 定数と座標計算関数
+    const scale = 50;
+    const cx = (x) => 200 + x * scale;
+    const cy = (y) => 200 - y * scale;
+    const yAtX = (x_val) => (3 / 4) * x_val - k / 4;
+
+    // DOM要素の取得
+    const kDisplay = document.getElementById('k-display');
+    const slider = document.getElementById('k-slider');
+    const formulaDisplay = document.getElementById('formula-display');
+    const svgContainer = document.getElementById('svg-container');
+    const messageContainer = document.getElementById('message-container');
+
+    // SVGコンテンツを生成する関数
+    function getSvgContent() {
+      let svg = `<svg width="400" height="400" class="absolute top-0 left-0">`;
+      
+      // グリッド線
+      for (let i = 0; i < 9; i++) {
+        const val = i - 4;
+        svg += `<line x1="${cx(val)}" y1="0" x2="${cx(val)}" y2="400" stroke="#e2e8f0" stroke-width="1" />`;
+        svg += `<line x1="0" y1="${cy(val)}" x2="400" y2="${cy(val)}" stroke="#e2e8f0" stroke-width="1" />`;
+      }
+
+      // X軸, Y軸
+      svg += `
+        <line x1="0" y1="200" x2="400" y2="200" stroke="#64748b" stroke-width="2" />
+        <line x1="200" y1="0" x2="200" y2="400" stroke="#64748b" stroke-width="2" />
+        <text x="380" y="190" font-size="12" fill="#64748b" font-weight="bold">x</text>
+        <text x="210" y="20" font-size="12" fill="#64748b" font-weight="bold">y</text>
+        <text x="205" y="215" font-size="12" fill="#64748b">O</text>
+      `;
+
+      // 領域 (x^2 + y^2 <= 4 かつ x <= 0)
+      svg += `<path d="M ${cx(0)} ${cy(2)} A 100 100 0 0 0 ${cx(0)} ${cy(-2)} L ${cx(0)} ${cy(2)} Z" fill="rgba(59, 130, 246, 0.2)" stroke="#3b82f6" stroke-width="2" />`;
+
+      // 動く直線 3x - 4y = k
+      const lineX1 = -4;
+      const lineY1 = yAtX(-4);
+      const lineX2 = 4;
+      const lineY2 = yAtX(4);
+      svg += `<line x1="${cx(lineX1)}" y1="${cy(lineY1)}" x2="${cx(lineX2)}" y2="${cy(lineY2)}" stroke="#ef4444" stroke-width="2" />`;
+
+      // y切片のポイント
+      svg += `<circle cx="${cx(0)}" cy="${cy(-k/4)}" r="4" fill="#ef4444" />`;
+      
+      // 最大値の点 (0, -2)
+      const maxOpacity = (k === 8) ? "1" : "0.4";
+      svg += `
+        <circle cx="${cx(0)}" cy="${cy(-2)}" r="5" fill="#f97316" />
+        <text x="${cx(0) + 10}" y="${cy(-2) + 15}" font-size="12" fill="#c2410c" font-weight="bold" opacity="${maxOpacity}">最大値点 (0, -2)</text>
+      `;
+
+      // 最小値の点 (-6/5, 8/5) = (-1.2, 1.6)
+      const minOpacity = (k === -10) ? "1" : "0.4";
+      svg += `
+        <circle cx="${cx(-1.2)}" cy="${cy(1.6)}" r="5" fill="#a855f7" />
+        <text x="${cx(-1.2) - 120}" y="${cy(1.6) - 10}" font-size="12" fill="#7e22ce" font-weight="bold" opacity="${minOpacity}">最小値点 (-6/5, 8/5)</text>
+      `;
+
+      svg += `</svg>`;
+      return svg;
+    }
+
+    // 画面を更新する関数
+    function render() {
+      // 値の表示更新
+      kDisplay.textContent = k.toFixed(1);
+      slider.value = k;
+      
+      // 数式の表示更新
+      const kStr = k > 0 ? k.toFixed(1) : `(${k.toFixed(1)})`;
+      formulaDisplay.innerHTML = `y = (3/4)x - ${kStr} / 4`;
+      
+      // SVGの描画
+      svgContainer.innerHTML = getSvgContent();
+      
+      // メッセージの表示更新
+      if (k === 8) {
+        messageContainer.innerHTML = `<div class="absolute top-4 left-4 bg-orange-100 border border-orange-400 text-orange-800 px-3 py-2 rounded-lg shadow-md font-bold text-sm animate-pulse">★ k = 8 (最大値)<br/>直線のy切片が一番「下」になる瞬間</div>`;
+      } else if (k === -10) {
+        messageContainer.innerHTML = `<div class="absolute top-4 left-4 bg-purple-100 border border-purple-400 text-purple-800 px-3 py-2 rounded-lg shadow-md font-bold text-sm animate-pulse">★ k = -10 (最小値)<br/>直線のy切片が一番「上」になる瞬間</div>`;
+      } else {
+        messageContainer.innerHTML = ``;
+      }
+    }
+
+    // イベントリスナーの設定
+    document.getElementById('btn-max').addEventListener('click', () => { k = 8; render(); });
+    document.getElementById('btn-min').addEventListener('click', () => { k = -10; render(); });
+    document.getElementById('btn-reset').addEventListener('click', () => { k = 0; render(); });
+
+    slider.addEventListener('input', (e) => {
+      k = parseFloat(e.target.value);
+      render();
+    });
+
+    // 初期描画の実行
+    render();
+  </script>
+</body>
+</html>

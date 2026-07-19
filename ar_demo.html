@@ -3,37 +3,72 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>カメラAR体験：画面固定と空間固定を比べよう</title>
+<title>カメラAR体験：画面固定と疑似空間固定を比べよう</title>
 <style>
-:root{--bg:#0b1020;--panel:#ffffff;--ink:#172033;--muted:#5e6879;--accent:#2563eb;--line:#dce3ec;--good:#0f766e}
+:root{
+  --panel:#ffffff;--ink:#172033;--muted:#5e6879;--accent:#2563eb;
+  --line:#dce3ec;--good:#0f766e;--warn:#b45309;
+}
 *{box-sizing:border-box}
 body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans JP",sans-serif;background:#f4f6fa;color:var(--ink)}
 header{background:white;padding:14px 18px;border-bottom:1px solid var(--line)}
 h1{font-size:20px;margin:0 0 5px} header p{margin:0;color:var(--muted);font-size:14px}
-main{max-width:1060px;margin:auto;padding:14px;display:grid;grid-template-columns:minmax(0,1.5fr) minmax(280px,.8fr);gap:14px}
+main{max-width:1080px;margin:auto;padding:14px;display:grid;grid-template-columns:minmax(0,1.5fr) minmax(290px,.82fr);gap:14px}
 .card{background:white;border:1px solid var(--line);border-radius:16px;padding:14px}
-.viewer{position:relative;aspect-ratio:16/10;background:#111827;border-radius:14px;overflow:hidden}
+.viewer{position:relative;aspect-ratio:16/10;background:#111827;border-radius:14px;overflow:hidden;perspective:900px}
 video{width:100%;height:100%;object-fit:cover}
 .fallback{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:30px;color:white;background:linear-gradient(135deg,#1e293b,#334155)}
-.object{position:absolute;left:50%;top:58%;font-size:86px;transform:translate(-50%,-50%) scale(1);filter:drop-shadow(0 10px 5px rgba(0,0,0,.45));user-select:none;touch-action:none;cursor:grab}
-.target{position:absolute;left:50%;top:58%;width:105px;height:32px;border-radius:50%;border:3px dashed rgba(255,255,255,.85);transform:translate(-50%,-50%)}
-.hud{position:absolute;left:10px;top:10px;background:rgba(0,0,0,.68);color:white;padding:8px 10px;border-radius:10px;font-size:13px}
+.anchor{
+  position:absolute;left:50%;top:61%;width:118px;height:38px;border-radius:50%;
+  border:3px dashed rgba(255,255,255,.95);transform:translate(-50%,-50%);
+  box-shadow:0 0 0 2px rgba(0,0,0,.15)
+}
+.anchor::after{content:"置いた場所";position:absolute;left:50%;top:42px;transform:translateX(-50%);white-space:nowrap;color:white;font-size:12px;text-shadow:0 1px 3px #000}
+.object-wrap{
+  position:absolute;left:50%;top:57%;width:120px;height:130px;
+  transform:translate(-50%,-50%);transform-style:preserve-3d;
+  pointer-events:none
+}
+.object{
+  position:absolute;left:50%;top:50%;font-size:92px;line-height:1;
+  transform:translate(-50%,-50%) rotateY(0deg) rotateZ(0deg) scale(1);
+  transform-origin:50% 80%;filter:drop-shadow(0 12px 6px rgba(0,0,0,.45));
+  user-select:none;will-change:transform
+}
+.shadow{
+  position:absolute;left:50%;top:87%;width:88px;height:20px;border-radius:50%;
+  transform:translate(-50%,-50%);background:rgba(0,0,0,.34);
+  filter:blur(2px);will-change:transform,opacity
+}
+.hud{position:absolute;left:10px;top:10px;background:rgba(0,0,0,.7);color:white;padding:8px 10px;border-radius:10px;font-size:13px;line-height:1.55}
+.mode-note{
+  position:absolute;right:10px;top:10px;max-width:48%;
+  background:rgba(255,255,255,.9);padding:7px 9px;border-radius:9px;
+  font-size:12px;color:#172033
+}
 .controls{display:grid;gap:12px}
-label{display:block;font-size:14px;font-weight:600} input[type=range],select{width:100%;margin-top:6px}
+label{display:block;font-size:14px;font-weight:600}
+input[type=range],select{width:100%;margin-top:6px}
 button{border:0;border-radius:12px;padding:11px 13px;font-weight:700;cursor:pointer}
 .primary{background:var(--accent);color:white}.secondary{background:#e9eef6;color:var(--ink)}.danger{background:#fee2e2;color:#991b1b}
 .toggle{display:grid;grid-template-columns:1fr 1fr;gap:8px}.toggle button.active{background:var(--good);color:white}
-.note{font-size:13px;color:var(--muted);line-height:1.6}.callout{padding:10px 12px;background:#eef4ff;border-left:4px solid var(--accent);border-radius:9px;line-height:1.6}
+.note{font-size:13px;color:var(--muted);line-height:1.6}
+.callout{padding:10px 12px;background:#eef4ff;border-left:4px solid var(--accent);border-radius:9px;line-height:1.6}
+.warning{padding:10px 12px;background:#fff7ed;border-left:4px solid var(--warn);border-radius:9px;line-height:1.6;font-size:13px}
 .status{font-size:14px;min-height:25px;color:var(--good)}
 textarea{width:100%;min-height:80px;border:1px solid var(--line);border-radius:10px;padding:10px;font:inherit}
-@media(max-width:760px){main{grid-template-columns:1fr}.viewer{aspect-ratio:4/3}}
+.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:8px}
+.metric{background:#f2f5f9;border-radius:10px;padding:8px;text-align:center}
+.metric strong{display:block;font-size:18px}.metric span{font-size:11px;color:var(--muted)}
+@media(max-width:760px){main{grid-template-columns:1fr}.viewer{aspect-ratio:4/3}.metrics{grid-template-columns:repeat(3,1fr)}}
 </style>
 </head>
 <body>
 <header>
-<h1>カメラAR体験：画面固定と空間固定を比べよう</h1>
-<p>カメラ映像に物体を重ね、端末の向きに応じた表示の変化を観察します。</p>
+<h1>カメラAR体験：画面固定と疑似空間固定を比べよう</h1>
+<p>物体の位置だけでなく、向き・傾き・大きさの変化も観察できます。</p>
 </header>
+
 <main>
 <section class="card">
   <div class="viewer" id="viewer">
@@ -41,11 +76,17 @@ textarea{width:100%;min-height:80px;border:1px solid var(--line);border-radius:1
     <div class="fallback" id="fallback">
       <div><strong>カメラはまだ開始されていません</strong><br><small>「カメラを開始」を押し、許可してください。</small></div>
     </div>
-    <div class="target"></div>
-    <div class="object" id="object">🦖</div>
-    <div class="hud" id="hud">モード：画面固定<br>端末角度：0°</div>
+
+    <div class="anchor" id="anchor"></div>
+    <div class="object-wrap" id="objectWrap">
+      <div class="shadow" id="shadow"></div>
+      <div class="object" id="object">🦖</div>
+    </div>
+
+    <div class="hud" id="hud">モード：画面固定<br>左右：0°　上下：0°</div>
+    <div class="mode-note" id="modeNote">画面固定：端末を動かしても、物体は画面上の同じ位置・向きです。</div>
   </div>
-  <p class="note">この教材は簡易ARです。机や床の平面を自動認識する本格ARではありません。端末の向きと物体表示の関係を比較するための授業用モデルです。</p>
+  <p class="note">白い点線は「物体を置いた場所」の基準です。疑似空間固定では、端末を動かすと物体が基準位置から見え方を変えます。</p>
 </section>
 
 <aside class="controls">
@@ -53,17 +94,26 @@ textarea{width:100%;min-height:80px;border:1px solid var(--line);border-radius:1
   <button id="startCamera" class="primary" type="button">カメラを開始</button>
   <button id="stopCamera" class="danger" type="button">カメラを停止</button>
   <div class="status" id="status" aria-live="polite"></div>
+
   <label>使用するカメラ
     <select id="facing">
       <option value="environment">背面カメラ</option>
       <option value="user">前面カメラ</option>
     </select>
   </label>
+
   <label>物体
-    <select id="objectSelect"><option>🦖</option><option>🪑</option><option>📦</option><option>🌍</option></select>
+    <select id="objectSelect">
+      <option value="🦖">恐竜</option>
+      <option value="🪑">椅子</option>
+      <option value="📦">箱</option>
+      <option value="🌍">地球</option>
+      <option value="🚗">車</option>
+    </select>
   </label>
-  <label>物体の大きさ
-    <input id="size" type="range" min="0.5" max="1.8" value="1" step="0.1">
+
+  <label>基本の大きさ
+    <input id="size" type="range" min="0.6" max="1.8" value="1" step="0.1">
   </label>
 </section>
 
@@ -72,98 +122,260 @@ textarea{width:100%;min-height:80px;border:1px solid var(--line);border-radius:1
     <button id="screenBtn" class="active" type="button">画面固定</button>
     <button id="worldBtn" class="secondary" type="button">疑似空間固定</button>
   </div>
+
   <button id="motionBtn" class="secondary" type="button">端末の向きを利用する</button>
-  <p class="note">iPhone・iPadでは、端末の向きの利用に追加許可が必要な場合があります。許可されない場合も、下の手動スライダーで体験できます。</p>
-  <label>手動で視点を動かす：<span id="yawValue">0</span>°
+
+  <p class="note">iPhone・iPadでは追加許可が必要な場合があります。利用できないときは、下の2本のスライダーで同じ効果を確認できます。</p>
+
+  <label>左右に視点を動かす：<span id="yawValue">0</span>°
     <input id="yaw" type="range" min="-45" max="45" value="0">
   </label>
+
+  <label>上下に視点を動かす：<span id="pitchValue">0</span>°
+    <input id="pitch" type="range" min="-30" max="30" value="0">
+  </label>
+
+  <div class="metrics">
+    <div class="metric"><strong id="moveMetric">0</strong><span>横移動 px</span></div>
+    <div class="metric"><strong id="turnMetric">0</strong><span>向き °</span></div>
+    <div class="metric"><strong id="scaleMetric">1.00</strong><span>見かけの倍率</span></div>
+  </div>
+
+  <button id="demoBtn" class="primary" type="button">自動デモを再生</button>
 </section>
 
 <section class="card">
-  <p class="callout"><strong>観察：</strong>「画面固定」では端末を動かしても物体は画面上の同じ位置です。「疑似空間固定」では、端末を右へ向けると物体は画面左へ移動します。</p>
+  <p class="callout"><strong>観察：</strong>疑似空間固定では、端末を右へ向けると物体は画面左へ移動し、物体の側面が見えるように向きも変化します。上下に傾けると、物体の傾きと大きさも変わります。</p>
   <textarea placeholder="同じ場所に置かれているように見せるために、端末は何を知る必要があるか書こう。"></textarea>
   <p class="callout"><strong>三角比への問い：</strong>カメラの高さと見下ろす角度が分かれば、机上の物体までの水平距離を求められるだろうか。</p>
+  <p class="warning">これは本格的な平面認識ARではありません。授業で「位置・向き・角度・距離」の必要性を体験するための簡易モデルです。</p>
 </section>
 </aside>
 </main>
+
 <script>
 (() => {
-  const video=document.getElementById('video'), fallback=document.getElementById('fallback');
-  const status=document.getElementById('status'), obj=document.getElementById('object');
-  const yaw=document.getElementById('yaw'), yawValue=document.getElementById('yawValue');
-  const hud=document.getElementById('hud'), screenBtn=document.getElementById('screenBtn'), worldBtn=document.getElementById('worldBtn');
-  let stream=null, mode='screen', sensorYaw=0, baseSensorYaw=null, motionActive=false;
+  const video = document.getElementById('video');
+  const fallback = document.getElementById('fallback');
+  const status = document.getElementById('status');
+  const obj = document.getElementById('object');
+  const objWrap = document.getElementById('objectWrap');
+  const shadow = document.getElementById('shadow');
+  const anchor = document.getElementById('anchor');
+  const yaw = document.getElementById('yaw');
+  const pitch = document.getElementById('pitch');
+  const yawValue = document.getElementById('yawValue');
+  const pitchValue = document.getElementById('pitchValue');
+  const hud = document.getElementById('hud');
+  const modeNote = document.getElementById('modeNote');
+  const screenBtn = document.getElementById('screenBtn');
+  const worldBtn = document.getElementById('worldBtn');
+  const moveMetric = document.getElementById('moveMetric');
+  const turnMetric = document.getElementById('turnMetric');
+  const scaleMetric = document.getElementById('scaleMetric');
 
-  async function startCamera(){
+  let stream = null;
+  let mode = 'screen';
+  let sensorYaw = 0;
+  let sensorPitch = 0;
+  let baseAlpha = null;
+  let baseBeta = null;
+  let motionActive = false;
+  let demoTimer = null;
+
+  async function startCamera() {
     stopCamera();
-    if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
-      status.textContent='このブラウザではカメラAPIを利用できません。HTTPSまたはlocalhostで開いてください。';
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      status.textContent = 'このブラウザではカメラAPIを利用できません。HTTPSまたはlocalhostで開いてください。';
       return;
     }
-    try{
-      stream=await navigator.mediaDevices.getUserMedia({
-        video:{facingMode:{ideal:document.getElementById('facing').value}},audio:false
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: document.getElementById('facing').value } },
+        audio: false
       });
-      video.srcObject=stream; fallback.style.display='none';
-      status.textContent='カメラを開始しました。机や床に向けてください。';
-    }catch(e){
-      status.textContent='カメラを開始できませんでした。ブラウザのカメラ許可とHTTPS接続を確認してください。';
+      video.srcObject = stream;
+      fallback.style.display = 'none';
+      status.textContent = 'カメラを開始しました。机や床に向けてください。';
+    } catch (e) {
+      status.textContent = 'カメラを開始できませんでした。ブラウザのカメラ許可とHTTPS接続を確認してください。';
     }
   }
-  function stopCamera(){
-    if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;}
-    video.srcObject=null;fallback.style.display='grid';
+
+  function stopCamera() {
+    if (stream) {
+      stream.getTracks().forEach(t => t.stop());
+      stream = null;
+    }
+    video.srcObject = null;
+    fallback.style.display = 'grid';
   }
-  function render(){
-    const manual=Number(yaw.value);
-    const angle=motionActive ? sensorYaw : manual;
-    yawValue.textContent=Math.round(angle);
-    const shift=mode==='world' ? -angle*0.75 : 0;
-    const scale=Number(document.getElementById('size').value);
-    obj.style.left=`calc(50% + ${shift}px)`;
-    obj.style.transform=`translate(-50%,-50%) scale(${scale})`;
-    hud.innerHTML=`モード：${mode==='screen'?'画面固定':'疑似空間固定'}<br>端末角度：${Math.round(angle)}°`;
+
+  function getAngles() {
+    return {
+      y: motionActive ? sensorYaw : Number(yaw.value),
+      p: motionActive ? sensorPitch : Number(pitch.value)
+    };
   }
-  function setMode(m){
-    mode=m;
-    screenBtn.className=m==='screen'?'active':'secondary';
-    worldBtn.className=m==='world'?'active':'secondary';
+
+  function render() {
+    const { y, p } = getAngles();
+    const baseScale = Number(document.getElementById('size').value);
+
+    yawValue.textContent = Math.round(y);
+    pitchValue.textContent = Math.round(p);
+
+    let shiftX = 0;
+    let shiftY = 0;
+    let rotateY = 0;
+    let rotateZ = 0;
+    let scale = baseScale;
+
+    if (mode === 'world') {
+      // Larger parallax so the difference is obvious on small screens.
+      shiftX = -y * 3.2;
+      shiftY = p * 2.0;
+
+      // Change the visible orientation as the viewpoint moves.
+      rotateY = y * 1.35;
+      rotateZ = -p * 0.35;
+
+      // Simple perspective cue: looking downward makes it slightly smaller,
+      // looking upward makes it slightly larger.
+      scale = baseScale * (1 - p * 0.006);
+      scale = Math.max(0.55, Math.min(2.0, scale));
+    }
+
+    objWrap.style.left = `calc(50% + ${shiftX}px)`;
+    objWrap.style.top = `calc(57% + ${shiftY}px)`;
+    obj.style.transform =
+      `translate(-50%,-50%) rotateY(${rotateY}deg) rotateZ(${rotateZ}deg) scale(${scale})`;
+
+    const shadowScale = Math.max(0.45, 1 - Math.abs(p) * 0.012);
+    shadow.style.transform = `translate(-50%,-50%) scale(${shadowScale})`;
+    shadow.style.opacity = String(Math.max(0.18, 0.38 - Math.abs(p) * 0.004));
+
+    anchor.style.opacity = mode === 'world' ? '1' : '0.35';
+
+    hud.innerHTML =
+      `モード：${mode === 'screen' ? '画面固定' : '疑似空間固定'}<br>` +
+      `左右：${Math.round(y)}°　上下：${Math.round(p)}°`;
+
+    moveMetric.textContent = Math.round(shiftX);
+    turnMetric.textContent = Math.round(rotateY);
+    scaleMetric.textContent = scale.toFixed(2);
+  }
+
+  function setMode(m) {
+    mode = m;
+    screenBtn.className = m === 'screen' ? 'active' : 'secondary';
+    worldBtn.className = m === 'world' ? 'active' : 'secondary';
+    modeNote.textContent = m === 'screen'
+      ? '画面固定：端末を動かしても、物体は画面上の同じ位置・向きです。'
+      : '疑似空間固定：端末を動かすと、物体の位置・向き・大きさが変わります。';
     render();
   }
-  function orientationHandler(e){
-    if(baseSensorYaw===null && e.alpha!=null) baseSensorYaw=e.alpha;
-    if(e.alpha!=null){
-      let delta=e.alpha-baseSensorYaw;
-      if(delta>180)delta-=360;if(delta<-180)delta+=360;
-      sensorYaw=Math.max(-45,Math.min(45,delta));
-      render();
+
+  function orientationHandler(e) {
+    if (baseAlpha === null && e.alpha != null) baseAlpha = e.alpha;
+    if (baseBeta === null && e.beta != null) baseBeta = e.beta;
+
+    if (e.alpha != null) {
+      let delta = e.alpha - baseAlpha;
+      if (delta > 180) delta -= 360;
+      if (delta < -180) delta += 360;
+      sensorYaw = Math.max(-45, Math.min(45, delta));
     }
+    if (e.beta != null) {
+      let deltaB = e.beta - baseBeta;
+      sensorPitch = Math.max(-30, Math.min(30, deltaB));
+    }
+    render();
   }
-  async function enableMotion(){
-    try{
-      if(typeof DeviceOrientationEvent!=='undefined' && typeof DeviceOrientationEvent.requestPermission==='function'){
-        const result=await DeviceOrientationEvent.requestPermission();
-        if(result!=='granted') throw new Error('not granted');
+
+  async function enableMotion() {
+    try {
+      if (typeof DeviceOrientationEvent !== 'undefined' &&
+          typeof DeviceOrientationEvent.requestPermission === 'function') {
+        const result = await DeviceOrientationEvent.requestPermission();
+        if (result !== 'granted') throw new Error('not granted');
       }
-      window.addEventListener('deviceorientation',orientationHandler);
-      motionActive=true;baseSensorYaw=null;
-      status.textContent='端末の向きを利用します。端末を左右にゆっくり動かしてください。';
-      render();
-    }catch(e){
-      motionActive=false;
-      status.textContent='端末の向きの利用が許可されませんでした。手動スライダーを使ってください。';
+      window.addEventListener('deviceorientation', orientationHandler);
+      motionActive = true;
+      baseAlpha = null;
+      baseBeta = null;
+      status.textContent = '端末の向きを利用します。端末を左右・上下にゆっくり動かしてください。';
+      setMode('world');
+    } catch (e) {
+      motionActive = false;
+      status.textContent = '端末の向きの利用が許可されませんでした。手動スライダーを使ってください。';
     }
   }
-  document.getElementById('startCamera').addEventListener('click',startCamera);
-  document.getElementById('stopCamera').addEventListener('click',()=>{stopCamera();status.textContent='カメラを停止しました。';});
-  document.getElementById('facing').addEventListener('change',()=>{if(stream)startCamera();});
-  document.getElementById('objectSelect').addEventListener('change',e=>obj.textContent=e.target.value);
-  document.getElementById('size').addEventListener('input',render);
-  yaw.addEventListener('input',()=>{motionActive=false;render();});
-  screenBtn.addEventListener('click',()=>setMode('screen'));
-  worldBtn.addEventListener('click',()=>setMode('world'));
-  document.getElementById('motionBtn').addEventListener('click',enableMotion);
-  window.addEventListener('beforeunload',stopCamera);
+
+  function stopDemo() {
+    if (demoTimer) {
+      clearInterval(demoTimer);
+      demoTimer = null;
+    }
+  }
+
+  function playDemo() {
+    stopDemo();
+    motionActive = false;
+    setMode('world');
+    let t = 0;
+    status.textContent = '自動デモ中です。物体の位置・向き・大きさに注目してください。';
+
+    demoTimer = setInterval(() => {
+      t += 0.06;
+      yaw.value = Math.round(Math.sin(t) * 38);
+      pitch.value = Math.round(Math.cos(t * 0.72) * 20);
+      render();
+
+      if (t > Math.PI * 4) {
+        stopDemo();
+        yaw.value = 0;
+        pitch.value = 0;
+        render();
+        status.textContent = '自動デモが終了しました。';
+      }
+    }, 35);
+  }
+
+  document.getElementById('startCamera').addEventListener('click', startCamera);
+  document.getElementById('stopCamera').addEventListener('click', () => {
+    stopCamera();
+    status.textContent = 'カメラを停止しました。';
+  });
+  document.getElementById('facing').addEventListener('change', () => {
+    if (stream) startCamera();
+  });
+  document.getElementById('objectSelect').addEventListener('change', e => {
+    obj.textContent = e.target.value;
+  });
+  document.getElementById('size').addEventListener('input', render);
+
+  yaw.addEventListener('input', () => {
+    motionActive = false;
+    stopDemo();
+    render();
+  });
+  pitch.addEventListener('input', () => {
+    motionActive = false;
+    stopDemo();
+    render();
+  });
+
+  screenBtn.addEventListener('click', () => setMode('screen'));
+  worldBtn.addEventListener('click', () => setMode('world'));
+  document.getElementById('motionBtn').addEventListener('click', enableMotion);
+  document.getElementById('demoBtn').addEventListener('click', playDemo);
+
+  window.addEventListener('beforeunload', () => {
+    stopDemo();
+    stopCamera();
+  });
+
   render();
 })();
 </script>

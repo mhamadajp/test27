@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>生成AIパスポート 100本ノック（完成版）</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --accent: #3498db;
+            --success: #2ecc71;
+            --error: #e74c3c;
+            --bg: #f4f7f6;
+            --card-bg: #ffffff;
+            --text: #333333;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        header {
+            background-color: var(--primary);
+            color: white;
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .container {
+            flex-grow: 1;
+            width: 100%;
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 20px 15px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 画面制御（重要） */
+        .screen {
+            display: none;
+        }
+        .screen.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* カテゴリ選択画面 */
+        .category-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        @media (max-width: 500px) {
+            .category-grid { grid-template-columns: 1fr; }
+        }
+
+        .cat-btn {
+            background-color: #fff;
+            border: 2px solid var(--accent);
+            color: var(--accent);
+            padding: 20px;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .cat-btn:hover {
+            background-color: var(--accent);
+            color: white;
+        }
+        .cat-btn.all-btn {
+            grid-column: 1 / -1;
+            background-color: var(--accent);
+            color: white;
+        }
+
+        /* クイズ画面 */
+        .progress-bar-container {
+            background-color: #e2e8f0;
+            border-radius: 5px;
+            height: 10px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        .progress-bar-fill {
+            background-color: var(--accent);
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s;
+        }
+        .status-text {
+            display: flex;
+            justify-content: space-between;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: var(--primary);
+        }
+
+        .quiz-box {
+            background-color: var(--card-bg);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        
+        .q-header {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--accent);
+            margin-bottom: 15px;
+            border-bottom: 2px solid #f0f4f8;
+            padding-bottom: 10px;
+        }
+        .q-text {
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-bottom: 25px;
+        }
+
+        .options-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .opt-btn {
+            background-color: #fff;
+            border: 2px solid #e2e8f0;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            text-align: left;
+            transition: 0.2s;
+        }
+        .opt-btn:hover:not(:disabled) {
+            background-color: #f8fafc;
+            border-color: #cbd5e1;
+        }
+
+        /* 判定カラー */
+        .opt-btn.correct { background-color: #e8f5e9; border-color: var(--success); color: #2e7d32; font-weight: bold; }
+        .opt-btn.wrong { background-color: #ffebee; border-color: var(--error); color: #c62828; }
+        .opt-btn.disabled { opacity: 0.6; cursor: not-allowed; }
+
+        /* 解説 */
+        .explanation {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            background-color: #f8fafc;
+            display: none;
+            border-left: 5px solid #ccc;
+        }
+        .explanation.show { display: block; animation: fadeIn 0.4s ease; }
+        .explanation.is-correct { border-left-color: var(--success); }
+        .explanation.is-wrong { border-left-color: var(--error); }
+        
+        .res-title { font-weight: bold; font-size: 1.1rem; margin-bottom: 8px; }
+        .is-correct .res-title { color: var(--success); }
+        .is-wrong .res-title { color: var(--error); }
+
+        /* ナビゲーションボタン */
+        .nav-btn {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            border: none;
+            margin-top: 20px;
+        }
+        .next-btn {
+            background-color: var(--accent);
+            color: white;
+            display: none;
+        }
+        .next-btn.show { display: block; }
+        .home-link {
+            background-color: transparent;
+            color: var(--primary);
+            border: 1px solid var(--primary);
+        }
+
+        /* 結果画面 */
+        .result-box {
+            text-align: center;
+            background-color: white;
+            padding: 40px 20px;
+            border-radius: 12px;
+        }
+        .score-display {
+            font-size: 3rem;
+            font-weight: bold;
+            color: var(--success);
+            margin: 20px 0;
+        }
+        .retry-btn {
+            background-color: var(--primary);
+            color: white;
+        }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <a href="../index2.html" style="display:inline-block;margin-bottom:10px;color:white;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.24);padding:8px 12px;border-radius:999px;text-decoration:none;font-weight:700;font-size:.9rem">← index2.htmlに戻る</a>
+        <h1>生成AIパスポート 練習アプリ</h1>
+    </header>
+
+    <div class="container">
+        
+        <!-- ホーム画面 -->
+        <div id="screen-home" class="screen active">
+            <h2 style="text-align: center; color: var(--primary);">カテゴリを選んでください</h2>
+            <div class="category-grid">
+                <!-- セキュリティ上の理由で onclick は使用せず、data-cat属性を使用 -->
+                <button class="cat-btn" data-cat="基礎知識">基礎知識 (20問)</button>
+                <button class="cat-btn" data-cat="ビジネス活用">ビジネス活用 (30問)</button>
+                <button class="cat-btn" data-cat="法律・倫理">法律・倫理 (30問)</button>
+                <button class="cat-btn" data-cat="技術・仕組み">技術・仕組み (20問)</button>
+                <button class="cat-btn all-btn" data-cat="すべて">全100問 総合テスト</button>
+            </div>
+        </div>
+
+        <!-- クイズ画面 -->
+        <div id="screen-quiz" class="screen">
+            <div class="status-text">
+                <span id="score-text">正解: 0</span>
+                <span id="progress-text">1 / 100</span>
+            </div>
+            <div class="progress-bar-container">
+                <div class="progress-bar-fill" id="progress-bar"></div>
+            </div>
+
+            <div class="quiz-box">
+                <div class="q-header" id="q-header">第1問</div>
+                <div class="q-text" id="q-text">問題文</div>
+                
+                <div class="options-list" id="options-container">
+                    <!-- JSでボタンを生成 -->
+                </div>
+
+                <div class="explanation" id="explanation-box">
+                    <div class="res-title" id="res-title">結果</div>
+                    <div id="exp-text">解説文</div>
+                </div>
+
+                <button class="nav-btn next-btn" id="next-btn">次の問題へ進む</button>
+                <button class="nav-btn home-link" id="home-btn-1">途中でやめてホームに戻る</button>
+            </div>
+        </div>
+
+        <!-- 結果画面 -->
+        <div id="screen-result" class="screen">
+            <div class="result-box">
+                <h2 id="result-title">完了！</h2>
+                <div class="score-display" id="final-score">0 / 0</div>
+                <p id="eval-msg" style="font-weight: bold; font-size: 1.2rem; margin-bottom: 30px;"></p>
+                <button class="nav-btn retry-btn" id="retry-btn">同じカテゴリをやり直す</button>
+                <button class="nav-btn home-link" id="home-btn-2">トップに戻る</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+    document.addEventListener("DOMContentLoaded", () => {
+        // --- 100問のデータ ---
+        const allData = [
+            // 基礎知識 (20)
+            { c: "基礎知識", q: "大規模言語モデル（LLM）が、事実とは異なる情報を出力する現象は？", o: ["過学習", "ハルシネーション", "ディープフェイク", "データドリフト"], a: 1, e: "ハルシネーション（幻覚）は、AIが事実に基づかない情報を流暢に出力する現象です。" },
+            { c: "基礎知識", q: "2022年秋に一般公開され、生成AIブームの契機となった対話型AIは？", o: ["BERT", "ChatGPT", "Gemini", "Claude"], a: 1, e: "OpenAI社が開発したChatGPTです。" },
+            { c: "基礎知識", q: "テキスト、画像、音声など複数種類のデータを統合して扱える性質は？", o: ["シングルタスク", "マルチモーダル", "ナローAI", "汎用モデル"], a: 1, e: "複数の情報の種類を扱える性質をマルチモーダルと呼びます。" },
+            { c: "基礎知識", q: "AIの挙動を人間の意図や倫理的価値観に合致させる調整プロセスは？", o: ["トークナイズ", "アライメント", "ベクトライズ", "標準化"], a: 1, e: "安全基準に沿うようにAIを調整することをアライメントと呼びます。" },
+            { c: "基礎知識", q: "2017年の論文で提唱された、現在のLLMの基盤となるアーキテクチャは？", o: ["CNN", "RNN", "Transformer", "GAN"], a: 2, e: "Transformerアーキテクチャです。" },
+            { c: "基礎知識", q: "LLMの「パラメータ数」とは何を意味する？", o: ["処理速度", "神経の結びつきの強さ（変数）の総数", "最大行数", "ファイルサイズ"], a: 1, e: "AIの脳の複雑さや表現力を決める設定値です。" },
+            { c: "基礎知識", q: "人間と同じようにあらゆる知的タスクをこなせる未来の「汎用人工知能」の略称は？", o: ["AGI", "ANI", "API", "ASI"], a: 0, e: "AGI (Artificial General Intelligence) の略です。" },
+            { c: "基礎知識", q: "様々な専門タスクに応用できる、現在の生成AIの土台となる大規模モデルは？", o: ["決定木モデル", "ルールベース", "基盤モデル", "線形回帰"], a: 2, e: "基盤モデル（ファウンデーションモデル）と呼ばれます。" },
+            { c: "基礎知識", q: "従来の識別系AIと生成AIの一般的な違いは？", o: ["従来AIは予測を得意とし、生成AIは新コンテンツの創出を得意とする", "従来AIはテキストのみ", "生成AIは学習不要", "生成AIは専用機器が必要"], a: 0, e: "生成系は新しいデータの創造を得意とします。" },
+            { c: "基礎知識", q: "生成AIがデータの「確率分布」を学習するアプローチは？", o: ["同時確率分布", "線形回帰", "単純パーセプトロン", "決定境界"], a: 0, e: "データの全体分布を学習し、そこから新しいデータを「生成」します。" },
+            { c: "基礎知識", q: "人間の評価を報酬としてAIにフィードバックし、安全化する手法は？", o: ["RLHF", "自己監督あり学習", "知識蒸留", "GAN"], a: 0, e: "RLHF（人間のフィードバックによる強化学習）です。" },
+            { c: "基礎知識", q: "2012年のコンペで優勝し、ディープラーニングブームの起点となったAIモデルは？", o: ["AlexNet", "ResNet", "LeNet", "Transformer"], a: 0, e: "AlexNetの登場が第3次AIブームの幕開けとなりました。" },
+            { c: "基礎知識", q: "現実世界のデータの傾向が変わり、AIの予測精度が時間とともに低下する現象は？", o: ["データドリフト", "過学習", "幻覚", "忘却"], a: 0, e: "現実との乖離をデータドリフトと呼びます。" },
+            { c: "基礎知識", q: "入力データと「正解ラベル」のペアを与え、法則性を学ばせる学習手法は？", o: ["教師あり学習", "教師なし学習", "強化学習", "ルールベース"], a: 0, e: "正解を与えて学習させるアプローチを教師あり学習と呼びます。" },
+            { c: "基礎知識", q: "AIが人間の知能を超え、技術進化が爆発的に進む未来の転換点は？", o: ["シンギュラリティ", "ムーアの法則", "ジレンマ", "ブロックチェーン"], a: 0, e: "技術的特異点（シンギュラリティ）と呼ばれます。" },
+            { c: "基礎知識", q: "AIが試行錯誤を繰り返し、目的達成時に「報酬」を与える学習手法は？", o: ["強化学習", "教師あり学習", "教師なし学習", "クラスタリング"], a: 0, e: "プラスのスコア（報酬）を与えて自律学習させる手法です。" },
+            { c: "基礎知識", q: "特定の用途やタスクに特化して設計された現在のAIを指す言葉は？", o: ["弱いAI（特化型AI）", "強いAI", "超人工知能", "意識を持つAI"], a: 0, e: "現在のAIは「弱いAI」に分類されます。" },
+            { c: "基礎知識", q: "AIの開発・運用において、倫理的な原則を策定・遵守する仕組みは？", o: ["AIガバナンス", "アライメント", "レギュレーション", "コンプライアンス"], a: 0, e: "AIを適切に管理する仕組みを「AIガバナンス」と呼びます。" },
+            { c: "基礎知識", q: "深層学習が従来の機械学習と大きく異なる点は？", o: ["ニューラルネットワークが多層構造になっている点", "学習データが不要な点", "PCを使わない点", "画像専用な点"], a: 0, e: "脳の神経回路を模したネットワークを多層にしたものです。" },
+            { c: "基礎知識", q: "現在の主要な生成AIモデルの事前学習データの主な出所は？", o: ["インターネット上の公開データ", "社外秘データのみ", "国連のデータのみ", "AIが作り出したデータ"], a: 0, e: "Web上の大規模なデータが使われています。" },
+
+            // ビジネス活用 (30)
+            { c: "ビジネス活用", q: "プロンプトに「具体的な出力例」を含めて精度を上げる手法は？", o: ["Zero-shot", "Few-shotプロンプティング", "微調整", "RAG"], a: 1, e: "少数の具体例を提示する手法をFew-shotと呼びます。" },
+            { c: "ビジネス活用", q: "AIに「あなたは編集者です」など役割を与える手法は？", o: ["Zero-shot", "ペルソナプロンプティング", "ネガティブ", "RAG"], a: 1, e: "役割（ペルソナ）を与えて回答のトーンを調整します。" },
+            { c: "ビジネス活用", q: "「ステップバイステップで考えて」と指示し推論精度を上げる手法は？", o: ["Chain-of-Thought (CoT)", "Few-shot", "メタ", "自己矛盾検証"], a: 0, e: "思考プロセスを一段階ずつ出力させる手法です。" },
+            { c: "ビジネス活用", q: "外部データベースを検索し、AIの回答に組み込む仕組みは？", o: ["RAG", "微調整", "事前学習", "知識蒸留"], a: 0, e: "外部知識を参照しながら回答する仕組みがRAGです。" },
+            { c: "ビジネス活用", q: "生成AIがビジネスで費用対効果を発揮しやすい用途は？", o: ["厳密な計算", "文章要約やアイデア出し", "完全な未来予測", "ロボット制御"], a: 1, e: "文章生成や要約などにおいて高い効果を発揮します。" },
+            { c: "ビジネス活用", q: "プログラムのコードを自動生成するツールの代表例は？", o: ["GitHub Copilot", "Midjourney", "Stable Diffusion", "Salesforce"], a: 0, e: "エンジニアを支援する強力なツールです。" },
+            { c: "ビジネス活用", q: "従業員がAIを安全に利用するため、企業が策定すべきルールは？", o: ["AI利用ガイドライン", "業務委託契約書", "特許出願", "ソースコード"], a: 0, e: "機密情報の入力禁止などを定めたガイドラインが重要です。" },
+            { c: "ビジネス活用", q: "見出し記号を用いてAIへの指示を整理するプロンプトの書き方は？", o: ["構造化プロンプト", "フリーテキスト", "バイナリコマンド", "自動生成"], a: 0, e: "指示やデータを明確に分けて記述する手法です。" },
+            { c: "ビジネス活用", q: "機密漏洩を防ぐ対策として最も【不適切】なものは？", o: ["無料AIに未公開の仕様書を入力する", "オプトアウトを利用する", "ガイドラインを策定する", "マスキングする"], a: 0, e: "無料AIはデータが再学習されるリスクがあります。" },
+            { c: "ビジネス活用", q: "ソースコード生成AI導入時、最も注意すべきリスクは？", o: ["生成コードに脆弱性が含まれる可能性", "コンパイル不可になる", "IDEロック", "全公開される"], a: 0, e: "過去の脆弱なコードを出力することがありレビューが必須です。" },
+            { c: "ビジネス活用", q: "導入前に行う、小規模な試行運用「PoC」の主な目的は？", o: ["実際の業務で効果を発揮するか検証する", "アルゴリズムを作る", "一斉導入する", "全面禁止する"], a: 0, e: "本格導入前に有効性を低コストで検証します。" },
+            { c: "ビジネス活用", q: "LLMのAPI利用時の一般的なコスト計算方法は？", o: ["入出力の「トークン数」に応じた従量課金", "処理時間課金", "定額制", "入力のみ課金"], a: 0, e: "トークン消費量に基づいた従量課金制が主流です。" },
+            { c: "ビジネス活用", q: "AI内部で「複数のペルソナ」に議論させる手法のメリットは？", o: ["多角的な視点で検証され回答品質が向上する", "トークン削減", "幻覚0%", "処理速度UP"], a: 0, e: "対話によりリスクチェックやアイデアの向上が期待できます。" },
+            { c: "ビジネス活用", q: "RAGにおいて、文章をベクトル化して高速検索するデータベースは？", o: ["ベクトルデータベース", "RDB", "キャッシュ", "KVS"], a: 0, e: "セマンティック検索を行うための専用データベースです。" },
+            { c: "ビジネス活用", q: "AIの人格やルールを規定する、最優先の指示文を何と呼ぶ？", o: ["システムプロンプト", "ネガティブ", "メタ記述", "バリア"], a: 0, e: "AIの行動基盤を定義します。" },
+            { c: "ビジネス活用", q: "情報検証において、驚くような回答に直面した際、最初に取るべき行動は？", o: ["一度立ち止まり出所を確認する", "すぐに共有する", "再質問する", "コピーする"], a: 0, e: "情報の真偽を疑う際には、まず拡散を止めることが重要です。" },
+            { c: "ビジネス活用", q: "AIチャットボット導入の「定量的」な評価指標として適切なものは？", o: ["対応時間の短縮度や自己解決率", "プロンプト文字数", "楽しさ", "サーバー面積"], a: 0, e: "時間やコストに換算できる数値で評価します。" },
+            { c: "ビジネス活用", q: "画像生成で「描いてほしくない要素」を明示的に指示する手法は？", o: ["ネガティブプロンプト", "ポジティブ", "メタ", "逆サンプリング"], a: 0, e: "不要な要素を除外するために使用します。" },
+            { c: "ビジネス活用", q: "教育現場でアナログ教育が見直されている方針の根底にあるものは？", o: ["人間の深い思考力や基礎的な読み書きの力を育てる方針", "AI利用を完全廃止する", "プログラミング先行", "暗算訓練倍増"], a: 0, e: "AIをツールとして乗りこなすための基礎的リテラシー強化が目的です。" },
+            { c: "ビジネス活用", q: "現場の非IT職種が自らプロンプトを工夫し業務効率化を進める活動は？", o: ["エンドユーザー・プロンプティング", "フルスタック開発", "シャドーIT", "ガバナンス"], a: 0, e: "現場主導のAI活用が組織の生産性向上の鍵となります。" },
+            { c: "ビジネス活用", q: "AIの出力に依存せず自らファクトチェックを行うスキルを指す概念は？", o: ["クリティカル・シンキング", "デザイン思考", "ブレインストーミング", "アジャイル"], a: 0, e: "情報を批判的に検証するクリティカル・シンキングが重要です。" },
+            { c: "ビジネス活用", q: "探究学習でAIを「壁打ち相手」として活用するアプローチの利点は？", o: ["多様な視点を得て生徒自身の深い探究が促進される", "課題提出時間をゼロにできる", "失敗を排除", "検索能力退化"], a: 0, e: "AIを思考の外部化ツールとして使います。" },
+            { c: "ビジネス活用", q: "AIを活用してプログラムのバグの原因を見つけ修正案を出させるプロセスは？", o: ["AIデバッグ", "コンパイル", "デプロイ", "スクレイピング"], a: 0, e: "デバッグ支援は開発者の作業効率を飛躍的に高めます。" },
+            { c: "ビジネス活用", q: "アイデアを大量に出させた後、絞り込むプロセスの組み合わせは？", o: ["発散と収束", "アジャイルとウォーターフォール", "教師あり・なし", "イン・アウトバウンド"], a: 0, e: "アイデアを広げる「発散」と、絞り込む「収束」です。" },
+            { c: "ビジネス活用", q: "長文を分割し、部分要約を最後に結合する処理手法は？", o: ["Map-Reduce（チャンク化）", "ゼロショット", "敵対的生成", "ポイズニング"], a: 0, e: "文字数制限を回避するため、長文を分割して処理します。" },
+            { c: "ビジネス活用", q: "サーバーの障害ログをAIに分析させる活用法が解決する課題は？", o: ["熟練技術者の属人化解消と復旧時間の短縮", "物理的増強", "マーケコスト削減", "福利厚生"], a: 0, e: "障害対応を標準化・迅速化できます。" },
+            { c: "ビジネス活用", q: "生成AI時代において、身につけるべき最も本質的なAIリテラシーは？", o: ["限界を理解し、人間の思考を拡張するパートナーとして安全に使いこなす", "一切拒絶する", "丸投げする", "リスクを無視する"], a: 0, e: "人間中心のツールとして安全に活用する力が求められます。" },
+            { c: "ビジネス活用", q: "特定の部署だけで小さく成功体験を作り、他部署へ横展開していく進め方は？", o: ["スモールスタート", "ビッグバン導入", "トップダウン", "ウォーターフォール"], a: 0, e: "リスクを抑えつつノウハウを蓄積するために推奨されます。" },
+            { c: "ビジネス活用", q: "問い合わせの一次返信文を生成AIに任せる際、最も重要なポイントは？", o: ["送信前に必ず人間が内容を確認（レビュー）するフローを設ける", "自動送信にする", "文字数を制限する", "過去のクレーム履歴を全て含める"], a: 0, e: "Human in the loop（人間の確認）が不可欠です。" },
+            { c: "ビジネス活用", q: "AIによる自動化に向いていない、人間が担うべき業務の特性は？", o: ["共感や高度な倫理的判断を伴う対人業務", "大量のデータ集計", "外国語の翻訳", "定型メールの作成"], a: 0, e: "感情的サポートや倫理的判断は人間が担うべき領域です。" },
+
+            // 法律・倫理 (30)
+            { c: "法律・倫理", q: "著作権法第30条の4におけるAIの「学習段階」でのデータ利用は？", o: ["許可が必須", "非営利のみ", "著作権者の利益を不当に害さない限り原則許諾不要", "全て自由"], a: 2, e: "原則許諾なしで利用可能ですが、利益を不当に害する場合は例外となります。" },
+            { c: "法律・倫理", q: "機密情報をパブリックなAIに入力する際、情報漏洩を防ぐ対策は？", o: ["秘密厳守を約束させる", "オプトアウト設定等を利用する", "深夜に入力", "翻訳する"], a: 1, e: "無料AIは学習に再利用されるリスクがあるため、オプトアウトが必須です。" },
+            { c: "法律・倫理", q: "学習データに偏りがあり、出力に差別的な表現が現れる問題は？", o: ["AIバイアス", "ハルシネーション", "ディープフェイク", "データドリフト"], a: 0, e: "予測や出力に偏りが生じる現象をAIバイアスと呼びます。" },
+            { c: "法律・倫理", q: "EUの個人データ保護に関する厳格な規則は？", o: ["GDPR", "CCPA", "DSA", "著作権法"], a: 0, e: "GDPR（一般データ保護規則）です。" },
+            { c: "法律・倫理", q: "著名キャラのイラストを大量出力し商用利用した際、侵害する権利は？", o: ["著作権", "特許権", "肖像権", "財産権"], a: 0, e: "類似性と依拠性が認められる場合、著作権侵害にあたる可能性が高いです。" },
+            { c: "法律・倫理", q: "日本のAI生成物の「利用段階」における著作権侵害の判断基準は？", o: ["侵害にならない", "人間が作った場合と同様に類似性と依拠性で判断", "商用のみ侵害", "プロンプトで判断"], a: 1, e: "既存著作物と似ており、参考にした場合、侵害となります。" },
+            { c: "法律・倫理", q: "簡単な指示を出しただけでAIが自動生成した絵の著作権は？", o: ["指示者に帰属", "開発企業に帰属", "創作的寄与がなく原則発生しない", "国に帰属"], a: 2, e: "人間の創作的寄与がない自動生成物には原則著作権は発生しません。" },
+            { c: "法律・倫理", q: "他社ブランドのロゴと酷似した画像を生成し販売した場合に抵触する法律は？", o: ["商標法・不正競争防止法", "労基法", "電波法", "個人情報保護法"], a: 0, e: "他社のブランドや商品名を勝手に使う行為は商標法違反等になります。" },
+            { c: "法律・倫理", q: "悪意ある指示で安全フィルターを回避させる攻撃手法は？", o: ["プロンプトインジェクション", "ポイズニング", "インバージョン", "DoS攻撃"], a: 0, e: "システムプロンプトの指示を上書き・悪用する攻撃手法です。" },
+            { c: "法律・倫理", q: "企業がAIを利用する際の個人情報保護法における適切なルールは？", o: ["利用目的の範囲内でのみ利用する", "生成データなら自由開示", "公開情報なら無制限", "社内なら同意不要"], a: 0, e: "AIの利用であっても、目的外利用は原則禁止されています。" },
+            { c: "法律・倫理", q: "学習データに悪意のある不正データを意図的に混入させる攻撃は？", o: ["データポイズニング", "プロンプトリーク", "ランサムウェア", "フィッシング"], a: 0, e: "学習データに「毒」を混ぜるように細工する攻撃です。" },
+            { c: "法律・倫理", q: "日本の「AI事業者ガイドライン」の根幹となる基本的な原則は？", o: ["自律性の完全容認", "技術開発一辺倒", "人間中心の原則", "規制一律撤廃"], a: 2, e: "AIは人間の幸福や可能性を広げるための道具とする原則です。" },
+            { c: "法律・倫理", q: "実在の人物が言っていない発言をしているように偽造された動画は？", o: ["ディープフェイク", "ハルシネーション", "データドリフト", "敵対的サンプル"], a: 0, e: "深層学習を用いた偽造メディアです。" },
+            { c: "法律・倫理", q: "パブリックAIへの入力が「厳格に禁止」されるべきデータの例は？", o: ["未公開のインサイダー情報や個人情報", "公開済みのリリース", "時候の挨拶", "公的な統計データ"], a: 0, e: "未公開機密や個人情報の入力は情報漏洩に直結します。" },
+            { c: "法律・倫理", q: "AIで作成したロゴを商標出願する際、最も注意すべきリスクは？", o: ["既存の他社商標と酷似し意図せず侵害するリスク", "全面開示義務", "出願禁止", "有効期限半減"], a: 0, e: "AIは既存データから似たものを出力するリスクがあり事前の調査が不可欠です。" },
+            { c: "法律・倫理", q: "EUの「AI法」において、一律で禁止されるAIのリスクカテゴリーは？", o: ["容認できないリスク", "高リスク", "限定的なリスク", "最小限のリスク"], a: 0, e: "基本的人権を侵害するAI利用は全面禁止です。" },
+            { c: "法律・倫理", q: "商品のパッケージデザインなど、物品の形状や模様を保護する法律は？", o: ["意匠法", "商標法", "特許法", "不正競争防止法"], a: 0, e: "デザイン（意匠）を保護するのは意匠法です。" },
+            { c: "法律・倫理", q: "コンテンツの出所やAI使用履歴を記録し、改ざんを証明する国際標準は？", o: ["C2PA", "GDPR", "NDA", "デジタル署名法"], a: 0, e: "来歴情報の記録規格です。" },
+            { c: "法律・倫理", q: "著作権法第30条の4の「不当に害する場合」の例外に該当する可能性が高い行為は？", o: ["販売用データベースを海賊版と知りながら学習させる行為", "無料ブログの要約", "風景の背景写り込み", "著作権切れ古典学習"], a: 0, e: "著作権者の市場を直接侵害する利用は例外（違法）に該当しやすいです。" },
+            { c: "法律・倫理", q: "AIに初期のシステム命令（ルール）を書き出させようとする攻撃は？", o: ["プロンプトリーク", "ポイズニング", "ランサムウェア", "DDos攻撃"], a: 0, e: "機密情報を漏洩させるプロンプトインジェクションの一種です。" },
+            { c: "法律・倫理", q: "AIが単独で新しい発明を行った場合、AI自身を「発明者」として特許出願できるか？", o: ["不可能（発明者は自然人に限られる）", "可能（国庫帰属）", "可能（共同発明者のみ）", "不可能だが商標は可"], a: 0, e: "機械であるAIは権利主体にはなれません。" },
+            { c: "法律・倫理", q: "通信経路上の盗聴・傍受を防ぐための最も基本的なセキュリティ対策は？", o: ["SSL/TLSによる通信の暗号化（HTTPS化）", "ディスプレイ輝度制限", "パラメータ削減", "オプトアウト申請"], a: 0, e: "データの傍受を防ぐ基本は通信の暗号化です。" },
+            { c: "法律・倫理", q: "著作権法第35条の「教育現場における特例」について適切なのは？", o: ["授業目的であれば一定条件下で著作物をAI入力に利用できる", "常に使用料が必要", "著作権切れのみ可", "特例は廃止された"], a: 0, e: "教育活動の範囲内であれば、一定の制限下で著作物の利用が認められます。" },
+            { c: "法律・倫理", q: "企業に対するディープフェイク動画の拡散が引き起こす法的な権利侵害は？", o: ["信用毀損および名誉毀損", "特許権侵害", "意匠権侵害", "独禁法違反"], a: 0, e: "社会的評価の低下は信用毀損や名誉毀損に直結します。" },
+            { c: "法律・倫理", q: "著作権侵害リスクを低減するルールとして【不適切】なものは？", o: ["AI生成物を人間が確認せず自動公開する", "公開前に類似検索する", "特定作家風の指示を禁止", "補償制度のあるAIを利用"], a: 0, e: "人間の目によるチェックなしでの自動公開はリスクが極めて高いです。" },
+            { c: "法律・倫理", q: "AI倫理における「透明性」の原則に合致する行動は？", o: ["相手が「AIである」ことをシステム上で開示する", "ソースコードを無条件公開", "フェイクを隠す", "個人情報を公開"], a: 0, e: "利用者がAIと接していることを理解できる状態にすることが透明性です。" },
+            { c: "法律・倫理", q: "AIのサーバー稼働が引き起こす、環境問題からの大きな懸念事項は？", o: ["莫大な電力消費と水資源消費", "騒音による地盤沈下", "電波によるオゾン層破壊", "物理的森林伐採"], a: 0, e: "AIの計算処理に伴う電力・水資源の大量消費が世界的課題となっています。" },
+            { c: "法律・倫理", q: "AIによる採用評価に性別等の偏りが判明した際、取るべき行動は？", o: ["過去の偏見を監査し人間の監視体制を敷く", "偏りを無視して採用", "特定属性を事前排除", "すべてAIに一任"], a: 0, e: "重要な判断には人間による監視が倫理的に求められます。" },
+            { c: "法律・倫理", q: "著作権侵害を立証するために法的に問われる重要な要件は「類似性」と何か？", o: ["依拠性", "収益性", "匿名性", "永続性"], a: 0, e: "既存の作品に似ていること（類似性）と、参考にしたこと（依拠性）が必要です。" },
+            { c: "法律・倫理", q: "生命に直接関わるAIシステムの開発において最も重視すべきAI倫理の原則は？", o: ["安全性と堅牢性", "処理の高速性", "開発コスト最小化", "デザインの美しさ"], a: 0, e: "高リスク分野では、システムが誤作動しない「安全性」と「堅牢性」が最優先されます。" },
+
+            // 技術・仕組み (20)
+            { c: "技術・仕組み", q: "テキストの指示から画像を生成する技術を何と呼ぶ？", o: ["TTS", "Text-to-Image (T2I)", "I2T", "STT"], a: 1, e: "Text-to-Image（テキストから画像へ）の略です。" },
+            { c: "技術・仕組み", q: "LLMが一度に処理できる最大のデータ量（文字数の上限）を何と呼ぶ？", o: ["パラメータサイズ", "コンテキストウィンドウ", "スループット", "レイテンシ"], a: 1, e: "コンテキストウィンドウを超えた情報はAIが忘れてしまいます。" },
+            { c: "技術・仕組み", q: "テキストを数値のベクトルに変換し、意味の近さを計算できるようにする技術は？", o: ["エンベディング", "トークナイズ", "ファインチューニング", "ディザリング"], a: 0, e: "言葉の意味を空間上の座標として表現する技術です。" },
+            { c: "技術・仕組み", q: "「RAG」の特徴として適切なのは？", o: ["外部情報を検索するため情報更新が容易", "パラメータを書き換える", "幻覚をゼロにする", "文字数制限を無くす"], a: 0, e: "モデルを変更せずに外部知識を参照させるためタイムリーな情報対応に向きます。" },
+            { c: "技術・仕組み", q: "AIがなぜその結論に至ったのか、根拠を人間が理解できるようにする技術は？", o: ["説明可能なAI（XAI）", "AGI", "自律型AI", "量子機械学習"], a: 0, e: "XAIは予測根拠を人間に説明可能にする技術分野です。" },
+            { c: "技術・仕組み", q: "LLMのパラメータを全て書き換えず、小さな追加層だけを学習させコストを抑える微調整は？", o: ["LoRA", "RAG", "Few-shot", "ワンショット"], a: 0, e: "LoRAは既存モデルを効率的にカスタマイズする代表的な手法です。" },
+            { c: "技術・仕組み", q: "テキストに基づき新規の動画を生成する技術の略称は？", o: ["T2V (Text-to-Video)", "V2T", "I2V", "TTS"], a: 0, e: "Text-to-Videoの略で、リアルな動画生成AIが各社から発表されています。" },
+            { c: "技術・仕組み", q: "AI出力のランダム性（創造性）をコントロールするパラメータは？", o: ["Temperature（温度）", "Top-P", "Max Tokens", "ペナルティ"], a: 0, e: "Temperatureの値を調整することで回答の「硬さ・柔らかさ」を制御します。" },
+            { c: "技術・仕組み", q: "オープンソースのLLMを企業が自社環境（オンプレミス）に導入する最大のメリットは？", o: ["データ流洩リスクを自社で完全にコントロールできる", "構築コストゼロ", "幻覚無し", "プロンプト不要"], a: 0, e: "オンプレミス環境で運用することで、機密情報を外部に出さずに済みます。" },
+            { c: "技術・仕組み", q: "対話型AIが「最初の方の会話」を忘れる主な原因は？", o: ["コンテキストウィンドウの上限を超えたため", "HDD容量一杯", "深夜の再学習", "通信速度低下"], a: 0, e: "LLMには一度に記憶・処理できるトークン数の限界（窓の大きさ）があります。" },
+            { c: "技術・仕組み", q: "AIモデルの「内部パラメータ（重み）の書き換え」を伴う手法は？", o: ["ファインチューニング", "RAG", "Few-shot", "構造化プロンプト"], a: 0, e: "ファインチューニングは実際にデータを学習させてモデル自体を書き換えます。" },
+            { c: "技術・仕組み", q: "最も確率が高い次の単語だけを選び続ける単純なテキスト生成アルゴリズムは？", o: ["グリーディ探索（貪欲法）", "ビーム探索", "ランダムサンプリング", "拡散プロセス"], a: 0, e: "最も確率の高い単語を貪欲に選ぶ手法です。" },
+            { c: "技術・仕組み", q: "クラウドを使わず、自社が管理するサーバー内部でAIを稼働させる運用形態は？", o: ["オンプレミス運用", "マルチテナントSaaS", "パブリックAPI", "サーバーレス"], a: 0, e: "情報漏洩リスクを遮断できるオンプレミス環境での運用が注目されています。" },
+            { c: "技術・仕組み", q: "誰もが二次利用できる状態で公開される、行政等の公共データは？", o: ["オープンデータ", "ダークデータ", "トランザクション", "個人情報"], a: 0, e: "オープンデータはAI学習やシビックテックで広く活用されます。" },
+            { c: "技術・仕組み", q: "AIの並列計算を高速に行うために必須となる半導体チップは？", o: ["GPU", "HDD", "メモリモジュール", "光学ドライブ"], a: 0, e: "GPUの並列処理能力がAIの行列計算に最適であり、AIインフラに不可欠です。" },
+            { c: "技術・仕組み", q: "API利用において、単位時間あたりの通信回数などの上限を制限する仕組みは？", o: ["レートリミット", "ロードバランシング", "ファイアウォール", "キャッシュ制御"], a: 0, e: "システムの過負荷やコスト暴走を防ぐためにレートリミットを設定します。" },
+            { c: "技術・仕組み", q: "AIの出力文字数（トークン）が長くなると、サーバーの計算資源はどうなるか？", o: ["消費量は増大する", "消費量は変わらない", "処理は軽くなる", "入力時間帯に依存"], a: 0, e: "出力が長くなるほど計算量が増大し、サーバー負荷やコストが高くなります。" },
+            { c: "技術・仕組み", q: "生成器と識別器を競わせるように学習させ、高精度のデータを生成する技術は？", o: ["GAN（敵対的生成ネットワーク）", "Transformer", "CNN", "RNN"], a: 0, e: "偽物を作るAIと見破るAIを競争させ、互いの性能を高めるアーキテクチャです。" },
+            { c: "技術・仕組み", q: "知識の概念と関係性をグラフ構造として体系化したデータベースは？", o: ["ナレッジグラフ", "ブロックチェーン", "データレイク", "フラットファイル"], a: 0, e: "事物同士の関係性を構造化し、LLMの事実関係の正確性を補完します。" },
+            { c: "技術・仕組み", q: "コードの自動生成において、「テストケース」まで作成させるアプローチの利点は？", o: ["生成されたコードのバグや品質を検証・担保しやすくなる点", "実行速度が100倍になる", "プログラマーが不要になる", "電気代が無料になる"], a: 0, e: "テストコードも一緒に生成させることで、プログラムが正しく動くかの確認が効率化できます。" }
+        ];
+
+        let currentList = [];
+        let currentIndex = 0;
+        let score = 0;
+        let isAnswered = false;
+        let selectedCategory = '';
+
+        // DOM要素の取得
+        const screenHome = document.getElementById('screen-home');
+        const screenQuiz = document.getElementById('screen-quiz');
+        const screenResult = document.getElementById('screen-result');
+
+        const qHeader = document.getElementById('q-header');
+        const qText = document.getElementById('q-text');
+        const optContainer = document.getElementById('options-container');
+        const expBox = document.getElementById('explanation-box');
+        const resTitle = document.getElementById('res-title');
+        const expText = document.getElementById('exp-text');
+        
+        const nextBtn = document.getElementById('next-btn');
+        const scoreText = document.getElementById('score-text');
+        const progText = document.getElementById('progress-text');
+        const progBar = document.getElementById('progress-bar');
+
+        // 画面切り替え関数
+        function showScreen(targetScreen) {
+            screenHome.classList.remove('active');
+            screenQuiz.classList.remove('active');
+            screenResult.classList.remove('active');
+            targetScreen.classList.add('active');
+        }
+
+        // シャッフル関数
+        function shuffleArray(arr) {
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+        }
+
+        // イベントリスナーの登録（インライン onclick を完全に排除）
+        document.querySelectorAll('.cat-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const category = btn.getAttribute('data-cat');
+                startQuiz(category);
+            });
+        });
+
+        document.getElementById('next-btn').addEventListener('click', () => {
+            currentIndex++;
+            renderQuestion();
+        });
+
+        document.getElementById('home-btn-1').addEventListener('click', goHome);
+        document.getElementById('home-btn-2').addEventListener('click', goHome);
+        
+        document.getElementById('retry-btn').addEventListener('click', () => {
+            startQuiz(selectedCategory);
+        });
+
+        function goHome() {
+            showScreen(screenHome);
+        }
+
+        // クイズ開始ロジック
+        function startQuiz(category) {
+            selectedCategory = category;
+            
+            if (category === 'すべて') {
+                currentList = [...allData];
+            } else {
+                currentList = allData.filter(d => d.c === category);
+            }
+            
+            shuffleArray(currentList);
+            currentIndex = 0;
+            score = 0;
+
+            showScreen(screenQuiz);
+            renderQuestion();
+        }
+
+        function renderQuestion() {
+            // 終了判定
+            if (currentIndex >= currentList.length) {
+                showResult();
+                return;
+            }
+
+            isAnswered = false;
+            const qData = currentList[currentIndex];
+
+            // UIの初期化
+            expBox.classList.remove('show', 'is-correct', 'is-wrong');
+            nextBtn.classList.remove('show');
+            optContainer.innerHTML = '';
+
+            // 問題文セット
+            qHeader.innerText = `第 ${currentIndex + 1} 問 （${qData.c}）`;
+            qText.innerText = qData.q;
+            
+            // 進捗バー更新
+            scoreText.innerText = `正解: ${score}`;
+            progText.innerText = `${currentIndex + 1} / ${currentList.length}`;
+            progBar.style.width = `${((currentIndex + 1) / currentList.length) * 100}%`;
+
+            // 選択肢の生成
+            let options = qData.o.map((text, idx) => ({ text: text, isCorrect: idx === qData.a }));
+            shuffleArray(options);
+
+            options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'opt-btn';
+                btn.innerText = opt.text;
+                
+                btn.addEventListener('click', () => {
+                    if (isAnswered) return;
+                    isAnswered = true;
+
+                    // 全ボタンを無効化
+                    const allBtns = optContainer.querySelectorAll('.opt-btn');
+                    allBtns.forEach(b => {
+                        b.disabled = true;
+                        b.classList.add('disabled');
+                    });
+
+                    btn.classList.remove('disabled');
+
+                    if (opt.isCorrect) {
+                        score++;
+                        btn.classList.add('correct');
+                        resTitle.innerText = "◯ 正解！";
+                        expBox.classList.add('is-correct');
+                    } else {
+                        btn.classList.add('wrong');
+                        resTitle.innerText = "× 不正解...";
+                        expBox.classList.add('is-wrong');
+                        
+                        // 正解のボタンをハイライト
+                        allBtns.forEach((b, idx) => {
+                            if (options[idx].isCorrect) {
+                                b.classList.remove('disabled');
+                                b.classList.add('correct');
+                                b.style.borderWidth = '3px';
+                            }
+                        });
+                    }
+
+                    // スコア再更新
+                    scoreText.innerText = `正解: ${score}`;
+
+                    // 解説と次へボタン表示
+                    expText.innerText = qData.e;
+                    expBox.classList.add('show');
+                    
+                    nextBtn.innerText = (currentIndex === currentList.length - 1) ? "結果を見る" : "次の問題へ進む";
+                    nextBtn.classList.add('show');
+                });
+
+                optContainer.appendChild(btn);
+            });
+        }
+
+        function showResult() {
+            showScreen(screenResult);
+            const total = currentList.length;
+            
+            document.getElementById('result-title').innerText = `${selectedCategory} 完了！`;
+            document.getElementById('final-score').innerText = `${score} / ${total}`;
+            
+            let p = score / total;
+            let msg = "復習しましょう！";
+            if(p >= 0.9) msg = "完璧です！合格ライン突破！";
+            else if(p >= 0.7) msg = "素晴らしい！あと少しで完璧です。";
+            else if(p >= 0.5) msg = "基礎は身についています。間違えた箇所を復習しましょう。";
+            
+            document.getElementById('eval-msg').innerText = msg;
+        }
+
+    });
+    </script>
+</body>
+</html>

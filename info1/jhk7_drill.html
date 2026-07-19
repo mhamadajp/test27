@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>情報の表現と管理 ドリルWebアプリ</title>
+<style>
+  :root{
+    --bg:#f6f8fb; --card:#ffffff; --ink:#172033; --muted:#5b667a;
+    --line:#d9e1ee; --accent:#2f6fed; --accent2:#10a37f;
+    --bad:#d64545; --warn:#f4a261; --good:#0b8f6f;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",Meiryo,sans-serif;background:var(--bg);color:var(--ink);line-height:1.65}
+  header{background:linear-gradient(135deg,#1f4aa8,#2f6fed 58%,#10a37f);color:white;padding:22px 16px}
+  header .wrap{max-width:1100px;margin:0 auto}
+  h1{margin:0;font-size:clamp(22px,4vw,36px);letter-spacing:.03em}
+  .sub{margin-top:6px;opacity:.92;font-size:15px}
+  main{max-width:1100px;margin:18px auto;padding:0 14px 40px}
+  .grid{display:grid;grid-template-columns:1.15fr .85fr;gap:16px}
+  @media(max-width:860px){.grid{grid-template-columns:1fr}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:0 8px 24px rgba(23,32,51,.06);padding:18px}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  button,.btn{border:0;border-radius:12px;padding:10px 14px;font-weight:700;cursor:pointer;background:#e8eefb;color:#193b80}
+  button.primary{background:var(--accent);color:white}
+  button.good{background:var(--accent2);color:white}
+  button.ghost{background:white;border:1px solid var(--line);color:var(--ink)}
+  button.danger{background:#ffecec;color:#9f2424}
+  button:disabled{opacity:.5;cursor:not-allowed}
+  select,input[type=number]{border:1px solid var(--line);border-radius:10px;padding:9px 10px;background:white;font:inherit}
+  .pill{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:5px 10px;background:#eef4ff;color:#244a92;font-size:13px;font-weight:700}
+  .pill.green{background:#e9faf5;color:#08775e}.pill.orange{background:#fff3df;color:#945e00}.pill.gray{background:#f0f2f5;color:#596173}
+  .progress{height:12px;background:#e7ecf5;border-radius:999px;overflow:hidden}
+  .bar{height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:.25s}
+  .qtitle{font-size:20px;font-weight:800;margin:6px 0 10px}
+  .qbody{font-size:18px;background:#f9fbff;border:1px solid var(--line);border-radius:14px;padding:14px;margin:12px 0}
+  .choices{display:grid;gap:10px;margin-top:14px}
+  .choice{width:100%;text-align:left;background:white;border:2px solid var(--line);color:var(--ink);font-weight:700}
+  .choice:hover{border-color:#97b3f6;background:#f7faff}
+  .choice.correct{border-color:var(--good);background:#eafaf5}
+  .choice.wrong{border-color:var(--bad);background:#fff0f0}
+  .explain{margin-top:14px;border-left:5px solid var(--accent2);background:#f2fbf8;border-radius:12px;padding:14px;white-space:pre-wrap}
+  .mini{font-size:13px;color:var(--muted)}
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  .stat{background:#f8fafc;border:1px solid var(--line);border-radius:14px;padding:12px;text-align:center}
+  .stat b{display:block;font-size:24px}
+  .tabs{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+  .tab{padding:8px 11px;border-radius:999px;background:#eef2f8;color:#41506a;font-weight:800;font-size:13px}
+  .tab.on{background:#183b80;color:white}
+  .weaklist{display:grid;gap:8px;margin-top:10px}
+  .weakitem{display:flex;justify-content:space-between;gap:8px;border:1px solid var(--line);border-radius:12px;background:#fafcff;padding:9px}
+  .wavebox{background:#fff;border:1px dashed #b7c4d8;border-radius:12px;padding:8px;margin-top:8px;overflow:auto}
+  svg{max-width:100%;height:auto}
+  details{border:1px solid var(--line);border-radius:12px;padding:10px;background:#fbfcff}
+  summary{cursor:pointer;font-weight:800}
+  .kbd{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;background:#edf2f7;border:1px solid #d7e0ea;border-radius:6px;padding:1px 5px}
+  .footer-note{color:#667085;font-size:13px;margin-top:16px}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <a href="../index2.html" style="display:inline-block;margin:0 0 12px;padding:8px 12px;border-radius:999px;background:rgba(255,255,255,.16);color:white;text-decoration:none;font-weight:800;font-size:14px">← index2.htmlに戻る</a>
+    <h1>情報の表現と管理｜定着ドリル</h1>
+    <div class="sub">フォント・メディア分類・文書ファイル・音のデジタル化を、毎回ちがう類似問題で練習します。</div>
+  </div>
+</header>
+
+<main>
+  <div class="grid">
+    <section class="card">
+      <div class="row" style="justify-content:space-between">
+        <div>
+          <span class="pill" id="modeLabel">準備中</span>
+          <span class="pill green" id="countLabel">0問</span>
+          <span class="pill orange" id="streakLabel">連続 0</span>
+        </div>
+        <button class="ghost" onclick="showHome()">設定へ</button>
+      </div>
+      <div class="progress" style="margin:14px 0"><div class="bar" id="bar"></div></div>
+      <div id="app"></div>
+    </section>
+
+    <aside class="card">
+      <h2 style="margin:0 0 8px">学習状況</h2>
+      <div class="stats">
+        <div class="stat"><span class="mini">正答率</span><b id="rate">-</b></div>
+        <div class="stat"><span class="mini">解いた数</span><b id="total">0</b></div>
+        <div class="stat"><span class="mini">最高連続</span><b id="best">0</b></div>
+      </div>
+      <h3>弱点タグ</h3>
+      <div id="weaklist" class="weaklist"></div>
+      <details style="margin-top:14px">
+        <summary>このドリルの使い方</summary>
+        <p>最初は「全範囲10問」、次に「弱点集中」を使うと効率的です。解説は必ず読み、間違えたときは「なぜ他の選択肢が違うのか」を確認してください。</p>
+        <p>問題は元の確認テストの問題ではなく、同じ知識・考え方を使う類似問題です。</p>
+      </details>
+      <details style="margin-top:10px">
+        <summary>試験直前チェック</summary>
+        <ol>
+          <li>フォント：フォント／欧文・和文／ウエイト／フォントファミリー／斜体・傾体</li>
+          <li>メディア：表現・情報・通信、マス・インタラクティブ・記録・オウンド・マルチ</li>
+          <li>文書：docx・PDF・EPUB・DTP・リフロー・ワープロソフト</li>
+          <li>音：標本化→量子化→符号化、サンプリング周波数、量子化ビット数、ビットレート</li>
+          <li>音楽：PCM・MIDI・GM・MP3の違い</li>
+        </ol>
+      </details>
+      <div class="footer-note">端末内のlocalStorageに学習履歴を保存します。サーバ送信はありません。</div>
+    </aside>
+  </div>
+</main>
+
+<script>
+const $ = id => document.getElementById(id);
+const LS_KEY = "joho_hyogen_kanri_drill_v1";
+const tags = {
+  font:"フォント",
+  media:"メディア分類",
+  document:"文書・ファイル形式",
+  sound:"音のデジタル化",
+  music:"PCM/MIDI/MP3",
+  visual:"図・見分け"
+};
+let state = loadState();
+let session = {questions:[], idx:0, correct:0, streak:0, answered:false, mode:""};
+
+function loadState(){
+  try{return JSON.parse(localStorage.getItem(LS_KEY)) || {total:0, correct:0, bestStreak:0, byTag:{}}}
+  catch(e){return {total:0, correct:0, bestStreak:0, byTag:{}}}
+}
+function saveState(){localStorage.setItem(LS_KEY, JSON.stringify(state)); renderStats();}
+function shuffle(a){return [...a].sort(()=>Math.random()-.5)}
+function pick(a){return a[Math.floor(Math.random()*a.length)]}
+function sample(a,n){return shuffle(a).slice(0,n)}
+function escapeHtml(s){return String(s).replace(/[&<>"']/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m]))}
+
+function makeQ({tag, type="choice", title, body, choices, answer, explanation, visual=""}){
+  return {id:Math.random().toString(36).slice(2), tag, type, title, body, choices, answer, explanation, visual};
+}
+
+const defs = {
+  "フォント":"印刷や画面表示で使う文字の形・デザインのこと。",
+  "欧文フォント":"主にアルファベットや数字などの欧文文字を対象にしたフォント。",
+  "和文フォント":"ひらがな・カタカナ・漢字など日本語文字を含むフォント。",
+  "ウエイト":"文字の線の太さ。Light、Regular、Medium、Boldなどがある。",
+  "フォントファミリー":"同じ基本デザインで、太さ・幅・傾きなどの違いをまとめた一群。",
+  "斜体":"文字を右に傾けた書体。欧文ではItalicと呼ぶことが多い。",
+  "傾体":"日本語で、文字を機械的に傾けた書体を指すことが多い。",
+  "プロポーショナルフォント":"文字ごとに幅が異なるフォント。iは狭く、Wは広い。",
+  "等幅フォント":"すべての文字を同じ幅で表示するフォント。コードや表の桁ぞろえに向く。",
+  "ビットマップフォント":"文字を点の集まりとして表すフォント。拡大するとギザギザが目立ちやすい。",
+  "アウトラインデータ":"文字の輪郭を数式的な線や曲線で表すデータ。拡大しても形が崩れにくい。",
+  "明朝系のフォント":"横線が細く、縦線が太めで、端にうろこがある日本語フォント系統。",
+  "マスメディア":"テレビ・ラジオ・新聞・雑誌など、不特定多数へ一方向に情報を届ける媒体。",
+  "インタラクティブメディア":"利用者が相互に情報をやり取りできるメディア。SNSやチャットなど。",
+  "記録メディア":"情報を保存するための媒体。SSD、USBメモリ、光ディスク、紙など。",
+  "オウンドメディア":"企業・学校・個人などが自分で所有・運営して情報発信するメディア。",
+  "マルチメディア":"文字・音声・画像・動画など複数種類の表現を組み合わせること。",
+  "表現メディア":"情報の表し方。文字・音声・静止画・動画など。",
+  "情報メディア":"情報を人に伝えるための媒体・手段。新聞、雑誌、Webページなど。",
+  "通信メディア":"情報を離れた場所へ伝送する仕組みや経路。電話回線、電波、ネットワークなど。",
+  "PDF":"紙面に近い見た目を保ちやすい文書形式。国際標準化され、配布や印刷確認に向く。",
+  "docx":"Microsoft Wordなどで使われる文書ファイル形式。ISO/IEC 29500として標準化されたOffice Open XML系の拡張子。",
+  "EPUB":"電子書籍向けの標準的なファイル形式。リフロー表示に向く。",
+  "リフロー機能":"画面サイズや文字サイズに合わせて、行送り・改行・配置を自動で組み直す機能。",
+  "DTP":"Desktop Publishing。パソコンで印刷物の紙面データを作ること。",
+  "ワードプロセッサソフトウェア":"文書作成・編集を行うソフトウェア。例：Wordなど。",
+  "標本化":"アナログ波形を一定時間ごとに測定し、時間方向を区切る処理。サンプリングともいう。",
+  "量子化":"測定した値を、決められた段階の数値に丸める処理。振幅方向を区切る。",
+  "符号化":"量子化した数値を0と1のビット列に置き換える処理。",
+  "サンプリング周波数":"1秒間に何回標本化するか。単位はHz。高いほど細かく測定できる。",
+  "量子化ビット数":"1回の標本を何ビットで表すか。大きいほど振幅を細かく表せる。",
+  "ビットレート":"1秒間あたりのデータ量。音では サンプリング周波数×量子化ビット数×チャンネル数。",
+  "PCM":"音の波を標本化・量子化・符号化してデジタルデータにする方式。",
+  "MIDI":"音そのものではなく、音の高さ・長さ・強さ・楽器など演奏情報をやり取りする規格。",
+  "General MIDI":"MIDI機器で音色番号などの対応をそろえ、同じデータを近い音色で再生できるようにした規格。",
+  "MP3":"音声を圧縮する形式。人が聞き取りにくい成分を利用してデータ量を小さくする非可逆圧縮。"
+};
+
+function termQuestion(){
+  const entries = Object.entries(defs);
+  const [term, def] = pick(entries);
+  const wrong = sample(entries.filter(x=>x[0]!==term).map(x=>x[0]),3);
+  const choices = shuffle([term,...wrong]);
+  let tag = "font";
+  if(["マスメディア","インタラクティブメディア","記録メディア","オウンドメディア","マルチメディア","表現メディア","情報メディア","通信メディア"].includes(term)) tag="media";
+  if(["PDF","docx","EPUB","リフロー機能","DTP","ワードプロセッサソフトウェア"].includes(term)) tag="document";
+  if(["標本化","量子化","符号化","サンプリング周波数","量子化ビット数","ビットレート"].includes(term)) tag="sound";
+  if(["PCM","MIDI","General MIDI","MP3"].includes(term)) tag="music";
+  return makeQ({
+    tag, title:"用語を選ぶ",
+    body:`次の説明に最もよく当てはまる用語はどれですか。\n\n${def}`,
+    choices, answer:term,
+    explanation:`正解は「${term}」です。\n\nポイント：${def}\n\n試験では、用語そのものを暗記するだけでなく、「何を対象にしているか」を見ると判断しやすくなります。たとえば、音なら時間方向は標本化、振幅方向は量子化、0と1への置き換えは符号化です。`
+  });
+}
+
+const fontPairs = [
+  ["欧文フォント","アルファベットや数字を中心にした文字デザイン"],
+  ["和文フォント","ひらがな・カタカナ・漢字を含む文字デザイン"],
+  ["ウエイト","線の太さ"],
+  ["フォントファミリー","同じ基本デザインで太さや幅などが違う一群"],
+  ["斜体","右に傾いた書体。Italicと対応しやすい"],
+  ["プロポーショナルフォント","文字ごとに幅が異なる"],
+  ["等幅フォント","文字幅が一定で桁をそろえやすい"],
+  ["アウトラインデータ","輪郭線で文字の形を表す"],
+  ["ビットマップフォント","点の集まりで文字の形を表す"],
+  ["明朝系のフォント","縦横の太さに差があり、うろこがある"]
+];
+function fontFillQuestion(){
+  const target = pick(fontPairs);
+  const choices = shuffle([target[0], ...sample(fontPairs.filter(x=>x[0]!==target[0]).map(x=>x[0]),3)]);
+  return makeQ({
+    tag:"font", title:"フォントの知識",
+    body:`「${target[1]}」に当てはまる用語を選びなさい。`,
+    choices, answer:target[0],
+    explanation:`正解は「${target[0]}」です。\n\n考え方：フォント分野では、①文字の種類（欧文・和文）、②線の太さ（ウエイト）、③同じデザインのまとまり（フォントファミリー）、④文字幅（プロポーショナル・等幅）、⑤文字データの持ち方（アウトライン・ビットマップ）を区別します。\n\nこの問題は「${target[1]}」なので「${target[0]}」を選びます。`
+  });
+}
+
+const mediaScenarios = [
+  ["市の広報課が公式Webサイトで防災情報を公開した。","オウンドメディア","自分たちが所有・運営する場所で発信しているため。"],
+  ["テレビ局が全国ニュースで新制度を紹介した。","マスメディア","不特定多数へ一方向に情報を届ける代表例だから。"],
+  ["友人同士がチャットアプリで写真を送り合った。","インタラクティブメディア","双方向・相互作用があるから。"],
+  ["講演動画に文字テロップと音声と図を組み合わせた。","マルチメディア","文字・音・映像など複数の表現を組み合わせているから。"],
+  ["USBメモリに発表資料を保存した。","記録メディア","情報を保存する媒体だから。"],
+  ["学校新聞を地域の各家庭へ配布した。","マスメディア","多くの人へ同じ情報を届ける媒体として考えられるから。"],
+  ["企業が自社ブログで製品の使い方を連載した。","オウンドメディア","企業自身が管理する媒体で発信しているから。"],
+  ["オンライン掲示板で参加者が質問と回答を投稿し合った。","インタラクティブメディア","投稿・返信という相互のやり取りがあるから。"],
+  ["SDカードに写真データを保存した。","記録メディア","データを記録・保存する役割だから。"],
+  ["音声、図表、アニメーションを使った教材を作成した。","マルチメディア","複数の表現形式を組み合わせているから。"]
+];
+function mediaScenarioQuestion(){
+  const s = pick(mediaScenarios);
+  const choices = shuffle([s[1], ...sample(["記録メディア","マルチメディア","オウンドメディア","マスメディア","インタラクティブメディア","メディア"].filter(x=>x!==s[1]),3)]);
+  return makeQ({
+    tag:"media", title:"メディア分類",
+    body:`次の事例は、どの分類として考えるのが最も適切ですか。\n\n${s[0]}`,
+    choices, answer:s[1],
+    explanation:`正解は「${s[1]}」です。\n\n理由：${s[2]}\n\n見分け方：\n・保存が中心 → 記録メディア\n・大量の人へ一方向 → マスメディア\n・相互にやり取り → インタラクティブメディア\n・自分で所有して発信 → オウンドメディア\n・文字・音・画像・動画の組み合わせ → マルチメディア`
+  });
+}
+
+const comboMedia = [
+  ["電話","通信メディアのみ","離れた相手へ情報を伝送する手段です。試験では、新聞や雑誌のような不特定多数への媒体とは区別します。"],
+  ["雑誌","情報メディア と マスメディア","情報を人へ伝える媒体であり、多くの読者へ届けるマスメディアです。"],
+  ["新聞","情報メディア と マスメディア","情報を載せて人へ伝える媒体で、不特定多数へ届ける代表的なマスメディアです。"],
+  ["電波","通信メディアのみ","情報を伝送するための経路・手段です。内容を表現する媒体そのものではありません。"],
+  ["動画広告","表現メディア と マルチメディア","動画は表現のしかたで、音・映像・文字を含めればマルチメディアになります。"],
+  ["Webニュースサイト","情報メディア と マスメディア","ニュースを広い読者に届ける情報媒体として考えられます。"]
+];
+function mediaComboQuestion(){
+  const s = pick(comboMedia);
+  const opts = ["表現メディア と マルチメディア","表現メディア と マスメディア","情報メディア と マルチメディア","情報メディア と マスメディア","通信メディア と マルチメディア","通信メディア と マスメディア","通信メディアのみ","情報メディア と インタラクティブメディア"];
+  return makeQ({
+    tag:"media", title:"メディアの組み合わせ",
+    body:`「${s[0]}」は、メディアの分類としてどれに当てはまりますか。`,
+    choices:shuffle([s[1], ...sample(opts.filter(x=>x!==s[1]),3)]),
+    answer:s[1],
+    explanation:`正解は「${s[1]}」です。\n\n理由：${s[2]}\n\n考え方：\n表現メディア＝文字・音声・画像・動画など「表し方」。\n情報メディア＝新聞・雑誌・Webなど「情報を伝える媒体」。\n通信メディア＝電話回線・電波・ネットワークなど「伝送の仕組み」。\nマスメディア＝多くの人に同じ情報を届ける媒体です。`
+  });
+}
+
+const docScenarios = [
+  ["印刷したときの見た目を崩さず、相手に配布したい。","PDF","紙面に近い見た目を保ちやすいため。"],
+  ["電子書籍として、スマートフォンの画面幅に合わせて読みやすく表示したい。","EPUB","電子書籍向けで、リフロー表示と相性がよいため。"],
+  ["Wordで編集できる文書ファイルとして提出したい。","docx","Wordなどで使われる編集用の文書形式だから。"],
+  ["雑誌の紙面データをパソコン上で作り込みたい。","DTP","Desktop Publishing、卓上出版のことだから。"],
+  ["画面サイズや文字サイズに合わせて自動で改行を変えたい。","リフロー機能","端末に合わせてレイアウトを再構成する機能だから。"],
+  ["文章の入力、編集、表作成、印刷などを行うソフトを使いたい。","ワードプロセッサソフトウェア","文書処理ソフトウェアの代表だから。"]
+];
+function docQuestion(){
+  const s = pick(docScenarios);
+  const choices = shuffle([s[1], ...sample(["PDF","docx","EPUB","リフロー機能","DTP","ワードプロセッサソフトウェア"].filter(x=>x!==s[1]),3)]);
+  return makeQ({
+    tag:"document", title:"文書・ファイル形式",
+    body:`次の目的に最も合う用語を選びなさい。\n\n${s[0]}`,
+    choices, answer:s[1],
+    explanation:`正解は「${s[1]}」です。\n\n理由：${s[2]}\n\n整理：\n・PDF：見た目を保って配布・印刷確認\n・docx：Word系の編集可能な文書\n・EPUB：電子書籍向け\n・リフロー：画面に合わせてレイアウト調整\n・DTP：印刷物の紙面制作\n・ワープロソフト：文書を作成・編集するソフト`
+  });
+}
+
+function trueFalseQuestion(){
+  const qs = [
+    ["サンプリング周波数は、1秒間に何回標本化するかを表す。", true, "サンプリング周波数はHzで表され、1秒あたりの測定回数です。"],
+    ["量子化ビット数が大きいほど、振幅をより細かい段階で表せる。", true, "8ビットなら256段階、16ビットなら65536段階です。段階が多いほど細かく表せます。"],
+    ["符号化とは、量子化した数値を0と1の列に置き換えることである。", true, "標本化→量子化→符号化の最後の処理です。"],
+    ["音を忠実に表すには、サンプリング周波数は低いほどよい。", false, "低いほど測定回数が少なくなり、細かい変化を拾いにくくなります。"],
+    ["ビットレートは1秒間あたりに処理するデータ量を表す。", true, "単位はbpsなどで表されます。音では周波数×ビット数×チャンネル数で考えます。"],
+    ["量子化ビット数は、1秒間に何回測るかを表す。", false, "1秒間に何回測るかはサンプリング周波数です。量子化ビット数は1回の測定値を何ビットで表すかです。"],
+    ["PCMは、音の波形をデジタルデータに変換する代表的な方式である。", true, "Pulse Code Modulationの略で、標本化・量子化・符号化によって音をデジタル化します。"],
+    ["MIDIは音声波形そのものを録音したデータである。", false, "MIDIは演奏情報です。音そのものではなく、音の高さや長さ、楽器などの指示を持ちます。"],
+    ["General MIDIは、音色番号などの対応をそろえるための規格である。", true, "同じMIDIデータを別の機器で再生しても近い音色になるようにする考え方です。"],
+    ["MP3は音声データを圧縮する形式の一つである。", true, "人が聞き取りにくい成分を利用し、音声ファイルの容量を小さくします。"],
+    ["PDFは、相手の環境によって紙面の見た目が大きく変わることを目的にした形式である。", false, "PDFはむしろ見た目を保つことに向いています。"],
+    ["EPUBは電子書籍でよく使われる形式である。", true, "画面サイズに応じたリフロー表示と相性がよい形式です。"],
+    ["等幅フォントでは、iとWの表示幅は同じになる。", true, "等幅なので文字ごとの幅がそろいます。"],
+    ["プロポーショナルフォントは、すべての文字を同じ幅で表示する。", false, "文字ごとに幅が異なるのがプロポーショナルフォントです。"]
+  ];
+  const q = pick(qs);
+  return makeQ({
+    tag: q[0].includes("MIDI")||q[0].includes("MP3")||q[0].includes("PCM")||q[0].includes("General") ? "music" : q[0].includes("PDF")||q[0].includes("EPUB") ? "document" : q[0].includes("フォント") ? "font" : "sound",
+    title:"正誤問題",
+    body:q[0],
+    choices:["正しい","誤り"],
+    answer:q[1] ? "正しい" : "誤り",
+    explanation:`正解は「${q[1] ? "正しい" : "誤り"}」です。\n\n${q[2]}\n\n正誤問題では、文の一部だけが違っていることがあります。特に「高いほど／低いほど」「サンプリング周波数／量子化ビット数」「音そのもの／演奏情報」の入れ替えに注意してください。`
+  });
+}
+
+function bitrateQuestion(){
+  const rates = [8000,11025,22050,44100,48000];
+  const bits = [8,16,24];
+  const chs = [1,2];
+  const r = pick(rates), b = pick(bits), c = pick(chs);
+  const ans = r*b*c;
+  const kbps = ans/1000;
+  const choices = shuffle([ans, r*b, b*c, r*c].map(x=>`${x.toLocaleString()} bps`));
+  return makeQ({
+    tag:"sound", title:"ビットレート計算",
+    body:`音声データについて、サンプリング周波数 ${r.toLocaleString()} Hz、量子化ビット数 ${b} bit、チャンネル数 ${c} のとき、ビットレートはいくらですか。`,
+    choices, answer:`${ans.toLocaleString()} bps`,
+    explanation:`正解は ${ans.toLocaleString()} bps です。\n\n計算式：\nビットレート = サンプリング周波数 × 量子化ビット数 × チャンネル数\n= ${r.toLocaleString()} × ${b} × ${c}\n= ${ans.toLocaleString()} bps\n\n約 ${kbps.toFixed(1)} kbps です。\n\nポイント：\n・サンプリング周波数は「1秒に何回測るか」\n・量子化ビット数は「1回の測定を何ビットで表すか」\n・ステレオなら左右2チャンネルなので2倍になります。`
+  });
+}
+
+function soundStepQuestion(){
+  const patterns = [
+    ["アナログ波形を一定時間ごとに測る処理","標本化"],
+    ["測った振幅を近い段階の数値に丸める処理","量子化"],
+    ["数値を0と1のビット列にする処理","符号化"],
+    ["連続的な元の音の波","アナログ波形"]
+  ];
+  const p = pick(patterns);
+  return makeQ({
+    tag:"sound", title:"音のデジタル化の手順",
+    body:`次の説明に当てはまるものを選びなさい。\n\n${p[0]}`,
+    choices:shuffle([p[1], ...sample(["標本化","量子化","符号化","アナログ波形"].filter(x=>x!==p[1]),3)]),
+    answer:p[1],
+    explanation:`正解は「${p[1]}」です。\n\n音のデジタル化の基本順序は、\nアナログ波形 → 標本化 → 量子化 → 符号化\nです。\n\n覚え方：\n標本化：時間を区切る\n量子化：高さを段階に丸める\n符号化：0と1にする`
+  });
+}
+
+function waveformSVG(kind){
+  if(kind==="analog") return `<svg width="520" height="150" viewBox="0 0 520 150" role="img" aria-label="滑らかなアナログ波形"><line x1="30" y1="120" x2="500" y2="120" stroke="#999"/><line x1="40" y1="15" x2="40" y2="125" stroke="#999"/><path d="M40 75 C90 5, 130 5, 180 75 S270 145, 320 75 S410 5, 500 75" fill="none" stroke="#2f6fed" stroke-width="4"/><text x="44" y="20" font-size="13">振幅</text><text x="468" y="137" font-size="13">時間</text></svg>`;
+  if(kind==="sample") return `<svg width="520" height="150" viewBox="0 0 520 150"><line x1="30" y1="120" x2="500" y2="120" stroke="#999"/><line x1="40" y1="15" x2="40" y2="125" stroke="#999"/><path d="M40 75 C90 5, 130 5, 180 75 S270 145, 320 75 S410 5, 500 75" fill="none" stroke="#bfd0ff" stroke-width="3"/><g stroke="#2f6fed" stroke-width="2" fill="#2f6fed">${[50,90,130,170,210,250,290,330,370,410,450,490].map(x=>{let y=75-50*Math.sin((x-40)/460*Math.PI*4);return `<line x1="${x}" y1="120" x2="${x}" y2="${y}"/><circle cx="${x}" cy="${y}" r="4"/>`}).join("")}</g><text x="44" y="20" font-size="13">標本点</text></svg>`;
+  if(kind==="quant") return `<svg width="520" height="150" viewBox="0 0 520 150"><line x1="30" y1="120" x2="500" y2="120" stroke="#999"/><line x1="40" y1="15" x2="40" y2="125" stroke="#999"/><g stroke="#e1e7f2">${[30,45,60,75,90,105].map(y=>`<line x1="40" y1="${y}" x2="500" y2="${y}"/>`).join("")}</g><polyline points="40,75 80,45 120,45 160,75 200,105 240,105 280,75 320,45 360,45 400,75 440,105 480,105" fill="none" stroke="#10a37f" stroke-width="4"/><text x="44" y="20" font-size="13">段階値に丸める</text></svg>`;
+  return `<svg width="520" height="150" viewBox="0 0 520 150"><line x1="30" y1="120" x2="500" y2="120" stroke="#999"/><line x1="40" y1="15" x2="40" y2="125" stroke="#999"/><text x="50" y="35" font-size="18" font-family="monospace">010 111 101 011 001 100 110</text><path d="M50 105 h25 v-35 h25 v35 h25 v-35 h25 v35 h25 v-35 h25 v35 h25" fill="none" stroke="#172033" stroke-width="3"/><text x="44" y="137" font-size="13">0と1の列にする</text></svg>`;
+}
+function visualSoundQuestion(){
+  const kinds = [
+    ["analog","アナログ波形","連続的になめらかな波形です。"],
+    ["sample","標本化","一定時間ごとに点で測っています。時間方向を区切る処理です。"],
+    ["quant","量子化","値が階段状の段階に丸められています。振幅方向を区切る処理です。"],
+    ["code","符号化","0と1のビット列に置き換えられています。"]
+  ];
+  const k = pick(kinds);
+  return makeQ({
+    tag:"visual", title:"図で見分ける",
+    body:"次の図が表しているものとして最も適切なものを選びなさい。",
+    visual:`<div class="wavebox">${waveformSVG(k[0])}</div>`,
+    choices:shuffle([k[1], ...sample(kinds.map(x=>x[1]).filter(x=>x!==k[1]),3)]),
+    answer:k[1],
+    explanation:`正解は「${k[1]}」です。\n\n理由：${k[2]}\n\n図の見分け方：\n・なめらかな連続波 → アナログ波形\n・縦線や点で一定間隔に測定 → 標本化\n・階段状・段階値 → 量子化\n・0101の列 → 符号化`
+  });
+}
+
+function fontVisualQuestion(){
+  const qs = [
+    {
+      body:"文字ごとの幅が違う例として適切なのはどれですか。",
+      visual:`<div class="wavebox"><div style="font-size:28px;font-family:Arial,sans-serif">A：iiii WWWW</div><div style="font-size:28px;font-family:monospace">B：iiii WWWW</div></div>`,
+      answer:"A",
+      exp:"Aはiが狭くWが広く見えます。文字ごとに幅が異なるのでプロポーショナルフォントです。Bは各文字幅がそろう等幅フォントです。"
+    },
+    {
+      body:"コードや表で桁をそろえたいときに向く例はどれですか。",
+      visual:`<div class="wavebox"><div style="font-size:24px;font-family:Arial,sans-serif">A：11:  apple<br>222: banana<br>3:   cat</div><hr><div style="font-size:24px;font-family:monospace">B：11:  apple<br>222: banana<br>3:   cat</div></div>`,
+      answer:"B",
+      exp:"Bは等幅フォントなので、文字の幅がそろい、コードや表で桁を合わせやすくなります。"
+    },
+    {
+      body:"拡大してもなめらかに表示しやすい文字データの考え方はどれですか。",
+      visual:`<div class="wavebox"><div style="font-size:18px">A：点のマス目で文字を作る　／　B：輪郭線で文字の形を作る</div></div>`,
+      answer:"B",
+      exp:"輪郭線で表すアウトラインデータは、拡大しても再計算してなめらかに表示しやすいです。点で表すビットマップフォントは拡大時にギザギザが目立つことがあります。"
+    }
+  ];
+  const q = pick(qs);
+  return makeQ({
+    tag:"visual", title:"フォントを見分ける",
+    body:q.body,
+    visual:q.visual,
+    choices: q.body.includes("文字データ") ? ["A","B","どちらでもない","両方"] : ["A","B","どちらでもない"],
+    answer:q.answer,
+    explanation:`正解は「${q.answer}」です。\n\n${q.exp}\n\n試験では見た目だけでなく、用語の意味と結びつけることが大切です。`
+  });
+}
+
+function musicQuestion(){
+  const qs = [
+    ["ピアノの音を録音した波形データではなく、「ドをこの強さでこの長さ鳴らす」という演奏情報を扱う規格は？","MIDI","MIDIは音そのものではなく演奏指示を扱います。"],
+    ["音色番号などをそろえ、別の機器でも近い楽器音で再生できるようにした規格は？","General MIDI","General MIDIはMIDIの音色などの対応を標準化します。"],
+    ["音の波を標本化・量子化・符号化してデジタルデータにする方式は？","PCM","PCMは音波をデジタル化する代表的方式です。"],
+    ["音声データを圧縮し、ファイルサイズを小さくする形式として有名なものは？","MP3","MP3は音声圧縮形式です。"]
+  ];
+  const q = pick(qs);
+  return makeQ({
+    tag:"music", title:"音楽・音声データ",
+    body:q[0],
+    choices:shuffle([q[1], ...sample(["PCM","MIDI","General MIDI","MP3"].filter(x=>x!==q[1]),3)]),
+    answer:q[1],
+    explanation:`正解は「${q[1]}」です。\n\n${q[2]}\n\n区別の軸：\n・PCM：音の波形をデジタル化\n・MIDI：演奏情報。音そのものは持たない\n・General MIDI：MIDIの音色対応などをそろえる\n・MP3：音声を圧縮して容量を小さくする`
+  });
+}
+
+function sequenceQuestion(){
+  return makeQ({
+    tag:"sound", title:"手順の並べ替え",
+    body:"音をデジタルデータにする流れとして、正しい順番を選びなさい。",
+    choices:shuffle([
+      "アナログ波形 → 標本化 → 量子化 → 符号化",
+      "アナログ波形 → 量子化 → 標本化 → 符号化",
+      "符号化 → 量子化 → 標本化 → アナログ波形",
+      "標本化 → アナログ波形 → 符号化 → 量子化"
+    ]),
+    answer:"アナログ波形 → 標本化 → 量子化 → 符号化",
+    explanation:"正解は「アナログ波形 → 標本化 → 量子化 → 符号化」です。\n\n考え方：\n最初にあるのは連続的なアナログ波形です。\n①標本化：時間ごとに測る\n②量子化：測った値を段階に丸める\n③符号化：数値を0と1で表す\n\nこの順序は図の問題で非常に重要です。"
+  });
+}
+
+function buildPool(){
+  let arr = [];
+  for(let i=0;i<35;i++) arr.push(termQuestion());
+  for(let i=0;i<25;i++) arr.push(fontFillQuestion());
+  for(let i=0;i<25;i++) arr.push(mediaScenarioQuestion());
+  for(let i=0;i<18;i++) arr.push(mediaComboQuestion());
+  for(let i=0;i<22;i++) arr.push(docQuestion());
+  for(let i=0;i<25;i++) arr.push(trueFalseQuestion());
+  for(let i=0;i<18;i++) arr.push(bitrateQuestion());
+  for(let i=0;i<20;i++) arr.push(soundStepQuestion());
+  for(let i=0;i<16;i++) arr.push(visualSoundQuestion());
+  for(let i=0;i<10;i++) arr.push(fontVisualQuestion());
+  for(let i=0;i<18;i++) arr.push(musicQuestion());
+  for(let i=0;i<8;i++) arr.push(sequenceQuestion());
+  return arr;
+}
+let pool = buildPool();
+
+function getWeakTags(){
+  const arr = Object.keys(tags).map(k=>{
+    const s = state.byTag[k] || {total:0, correct:0};
+    const miss = s.total - s.correct;
+    const rate = s.total ? s.correct/s.total : 0;
+    return {tag:k, total:s.total, miss, rate};
+  });
+  return arr.sort((a,b)=> (b.miss-a.miss) || (a.rate-b.rate));
+}
+
+function start(mode){
+  pool = buildPool();
+  let n = Number($("num").value || 10);
+  let qs = [];
+  if(mode==="weak"){
+    const weak = getWeakTags().filter(x=>x.miss>0).slice(0,3).map(x=>x.tag);
+    qs = weak.length ? pool.filter(q=>weak.includes(q.tag)) : pool;
+    session.mode = weak.length ? "弱点集中" : "弱点なし→全範囲";
+  } else if(mode==="all"){
+    qs = pool; session.mode = "全範囲";
+  } else {
+    qs = pool.filter(q=>q.tag===mode); session.mode = tags[mode];
+  }
+  session.questions = sample(qs, Math.min(n, qs.length));
+  session.idx = 0; session.correct = 0; session.streak = 0; session.answered = false;
+  renderQuestion();
+}
+function showHome(){
+  $("modeLabel").textContent = "設定";
+  $("countLabel").textContent = `${pool.length}問以上`;
+  $("streakLabel").textContent = `連続 ${session.streak}`;
+  $("bar").style.width="0%";
+  $("app").innerHTML = `
+    <h2 style="margin-top:0">練習モードを選ぶ</h2>
+    <p>このアプリは、前期確認テスト範囲の知識で解ける問題をランダムに出します。前期確認テストの練習問題として活用しましょう。</p>
+    <div class="card" style="box-shadow:none;background:#fbfcff">
+      <label>問題数：
+        <select id="num">
+          <option value="10">10問</option>
+          <option value="15">15問</option>
+          <option value="20">20問</option>
+          <option value="30">30問</option>
+          <option value="50">50問</option>
+        </select>
+      </label>
+      <div class="tabs">
+        <button class="primary" onclick="start('all')">全範囲</button>
+        <button onclick="start('weak')">弱点集中</button>
+        <button onclick="start('font')">フォント</button>
+        <button onclick="start('media')">メディア分類</button>
+        <button onclick="start('document')">文書・ファイル</button>
+        <button onclick="start('sound')">音のデジタル化</button>
+        <button onclick="start('music')">PCM/MIDI/MP3</button>
+        <button onclick="start('visual')">図で見分ける</button>
+      </div>
+    </div>
+    <h3>飽きにくくする仕組み</h3>
+    <ul>
+      <li>同じテーマでも、事例・数値・選択肢が毎回変わります。</li>
+      <li>間違えたタグは「弱点集中」で出やすくなります。</li>
+      <li>解答後に、正解理由・見分け方・ひっかけポイントを表示します。</li>
+    </ul>
+  `;
+  renderStats();
+}
+function renderQuestion(){
+  const q = session.questions[session.idx];
+  session.answered = false;
+  $("modeLabel").textContent = session.mode;
+  $("countLabel").textContent = `${session.idx+1}/${session.questions.length}`;
+  $("streakLabel").textContent = `連続 ${session.streak}`;
+  $("bar").style.width = `${(session.idx)/session.questions.length*100}%`;
+  $("app").innerHTML = `
+    <div class="row" style="justify-content:space-between">
+      <span class="pill gray">${tags[q.tag]}</span>
+      <span class="mini">正解 ${session.correct} / ${session.idx}</span>
+    </div>
+    <div class="qtitle">${escapeHtml(q.title)}</div>
+    <div class="qbody">${escapeHtml(q.body).replace(/\n/g,"<br>")}${q.visual || ""}</div>
+    <div class="choices">
+      ${q.choices.map((c,i)=>`<button class="choice" onclick="answer(${i})">${String.fromCharCode(65+i)}. ${escapeHtml(c)}</button>`).join("")}
+    </div>
+    <div id="feedback"></div>
+  `;
+}
+function answer(i){
+  if(session.answered) return;
+  session.answered = true;
+  const q = session.questions[session.idx];
+  const selected = q.choices[i];
+  const ok = selected === q.answer;
+  const buttons = [...document.querySelectorAll(".choice")];
+  buttons.forEach((b,idx)=>{
+    const val = q.choices[idx];
+    if(val===q.answer) b.classList.add("correct");
+    if(idx===i && !ok) b.classList.add("wrong");
+    b.disabled = true;
+  });
+  if(ok){ session.correct++; session.streak++; }
+  else { session.streak = 0; }
+  state.total++; if(ok) state.correct++;
+  state.bestStreak = Math.max(state.bestStreak || 0, session.streak);
+  state.byTag[q.tag] = state.byTag[q.tag] || {total:0, correct:0};
+  state.byTag[q.tag].total++; if(ok) state.byTag[q.tag].correct++;
+  saveState();
+  $("streakLabel").textContent = `連続 ${session.streak}`;
+  $("feedback").innerHTML = `
+    <div class="explain"><b>${ok ? "正解です。" : "ここで定着させましょう。"}</b>
+
+あなたの答え：${escapeHtml(selected)}
+正解：${escapeHtml(q.answer)}
+
+${escapeHtml(q.explanation)}</div>
+    <div class="row" style="margin-top:14px">
+      <button class="primary" onclick="nextQ()">${session.idx+1===session.questions.length ? "結果を見る" : "次の問題へ"}</button>
+      <button class="ghost" onclick="renderQuestion()">同じ問題をもう一度</button>
+    </div>
+  `;
+}
+function nextQ(){
+  if(session.idx+1 >= session.questions.length){ showResult(); return; }
+  session.idx++;
+  renderQuestion();
+}
+function showResult(){
+  $("bar").style.width = "100%";
+  const rate = Math.round(session.correct/session.questions.length*100);
+  $("app").innerHTML = `
+    <h2>結果</h2>
+    <div class="stats">
+      <div class="stat"><span class="mini">今回の正答率</span><b>${rate}%</b></div>
+      <div class="stat"><span class="mini">正解数</span><b>${session.correct}</b></div>
+      <div class="stat"><span class="mini">問題数</span><b>${session.questions.length}</b></div>
+    </div>
+    <h3>次にやること</h3>
+    <p>${rate>=85 ? "かなり定着しています。次は問題数を増やして、図で見分ける問題と計算問題を混ぜてください。" : rate>=60 ? "基本は見えています。間違えたタグを「弱点集中」で10問だけ追加練習しましょう。" : "用語の区別がまだ不安定です。まずは各解説の「見分け方」を読みながら、弱点集中を短く繰り返してください。"}</p>
+    <div class="row">
+      <button class="primary" onclick="start('weak')">弱点集中を続ける</button>
+      <button onclick="start('all')">全範囲でもう一度</button>
+      <button class="ghost" onclick="showHome()">設定へ戻る</button>
+    </div>
+  `;
+  renderStats();
+}
+function renderStats(){
+  $("rate").textContent = state.total ? `${Math.round(state.correct/state.total*100)}%` : "-";
+  $("total").textContent = state.total || 0;
+  $("best").textContent = state.bestStreak || 0;
+  const weak = getWeakTags();
+  $("weaklist").innerHTML = weak.map(w=>{
+    const label = tags[w.tag];
+    const txt = w.total ? `${w.correct}/${w.total} 正解` : "未学習";
+    const pct = w.total ? `${Math.round(w.rate*100)}%` : "-";
+    return `<div class="weakitem"><span>${label}</span><span class="mini">${txt}（${pct}）</span></div>`;
+  }).join("");
+}
+showHome();
+</script>
+</body>
+</html>

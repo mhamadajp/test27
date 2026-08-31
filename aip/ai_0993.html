@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AIプロンプト設計 練習アプリ</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --accent: #e67e22;
+            --success: #27ae60;
+            --error: #c0392b;
+            --bg: #fdfbf7;
+            --card-bg: #ffffff;
+            --text: #333333;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        header {
+            background-color: var(--primary);
+            color: white;
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .container {
+            flex-grow: 1;
+            width: 100%;
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 20px 15px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 画面の切り替え */
+        .screen {
+            display: none;
+            width: 100%;
+        }
+        
+        .show-screen {
+            display: block !important;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* カテゴリ選択画面 */
+        .category-select-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 30px 20px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+        
+        .category-select-card h2 {
+            color: var(--primary);
+            margin-bottom: 10px;
+            font-size: 1.3rem;
+        }
+
+        .category-desc {
+            color: #666;
+            margin-bottom: 25px;
+            font-size: 0.95rem;
+        }
+        
+        .category-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 500px) {
+            .category-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .cat-btn {
+            background-color: #fff;
+            border: 2px solid var(--accent);
+            color: var(--accent);
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .cat-btn:hover {
+            background-color: var(--accent);
+            color: white;
+        }
+        
+        .cat-btn.all-btn {
+            grid-column: 1 / -1;
+            background-color: var(--accent);
+            color: white;
+        }
+        
+        .cat-btn.all-btn:hover {
+            background-color: #d35400;
+        }
+
+        /* 進捗バー */
+        .progress-box {
+            margin-bottom: 20px;
+        }
+        .progress-labels {
+            display: flex;
+            justify-content: space-between;
+            font-weight: bold;
+            font-size: 0.9rem;
+            color: var(--primary);
+            margin-bottom: 8px;
+        }
+        .bar-bg {
+            background-color: #e2e8f0;
+            height: 10px;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        .bar-fill {
+            background-color: var(--accent);
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        /* クイズカード */
+        .quiz-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        .quiz-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #f0f4f8;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .q-num {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--primary);
+        }
+        .q-cat {
+            background-color: #fdf2e9;
+            color: #d35400;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .q-text {
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-bottom: 25px;
+            color: #1a202c;
+            line-height: 1.5;
+        }
+
+        /* 選択肢ボタン */
+        .options-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .opt-btn {
+            background-color: #fff;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 15px;
+            font-size: 1rem;
+            text-align: left;
+            cursor: pointer;
+            color: var(--text);
+            transition: all 0.2s;
+            line-height: 1.4;
+        }
+        .opt-btn:hover:not(:disabled) {
+            background-color: #fcfcfc;
+            border-color: #cbd5e1;
+        }
+        .opt-btn:disabled {
+            cursor: default;
+        }
+
+        /* 判定後のスタイル */
+        .opt-btn.correct-ans {
+            background-color: #e8f5e9;
+            border-color: var(--success);
+            color: #1e8449;
+            font-weight: bold;
+        }
+        .opt-btn.wrong-ans {
+            background-color: #fdedf0;
+            border-color: var(--error);
+            color: #a93226;
+            opacity: 0.8;
+        }
+        .opt-btn.dimmed {
+            opacity: 0.5;
+        }
+
+        /* 解説エリア */
+        .exp-box {
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 8px;
+            background-color: #f8fafc;
+            border-left: 5px solid #ccc;
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+        
+        .show-element {
+            display: block !important;
+        }
+        
+        .exp-box.is-correct { border-left-color: var(--success); background-color: #f0fff4; }
+        .exp-box.is-wrong { border-left-color: var(--error); background-color: #fff5f5; }
+
+        .res-title {
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin-bottom: 12px;
+        }
+        .is-correct .res-title { color: var(--success); }
+        .is-wrong .res-title { color: var(--error); }
+
+        .exp-text { 
+            font-size: 1rem; 
+            color: #2c3e50; 
+            line-height: 1.6;
+        }
+
+        /* ボタン類 */
+        .action-btn {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+            border: none;
+        }
+        .next-btn {
+            background-color: var(--accent);
+            color: white;
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .next-btn:hover { background-color: #d35400; }
+        
+        .home-btn {
+            background-color: transparent;
+            color: var(--primary);
+            border: 1px solid var(--primary);
+            margin-top: 15px;
+            padding: 10px;
+            font-size: 0.9rem;
+        }
+        .home-btn:hover { background-color: #f0f4f8; }
+
+        /* 完了画面 */
+        .finish-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 40px 20px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+        .score-circle {
+            width: 140px; height: 140px;
+            border-radius: 50%;
+            border: 8px solid var(--success);
+            background-color: #e8f5e9;
+            display: flex; justify-content: center; align-items: center;
+            font-size: 2rem; font-weight: bold; color: #1e8449;
+            margin: 20px auto;
+        }
+        .restart-btn {
+            background-color: var(--primary);
+            color: white; 
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>AIに伝わる指示を設計する</h1>
+    </header>
+
+    <div class="container">
+
+        <!-- 1. ホーム画面 -->
+        <div id="screen-home" class="screen show-screen category-select-card">
+            <h2>学習カテゴリの選択</h2>
+            <p class="category-desc">PDF解説資料の内容に完全対応した50本ノックです。</p>
+            <div class="category-grid">
+                <button class="cat-btn" onclick="startQuiz('LLMの基本と仕組み')">LLMの基本と仕組み (10問)</button>
+                <button class="cat-btn" onclick="startQuiz('プロンプトの4要素')">プロンプトの4要素 (15問)</button>
+                <button class="cat-btn" onclick="startQuiz('Zero/Few-Shot')">Zero / Few-Shot (10問)</button>
+                <button class="cat-btn" onclick="startQuiz('パラメータと実践')">パラメータと実践 (15問)</button>
+                <button class="cat-btn all-btn" onclick="startQuiz('すべて')">全50問 総合テスト</button>
+            </div>
+        </div>
+
+        <!-- 2. クイズ画面 -->
+        <div id="screen-quiz" class="screen">
+            <div class="progress-box">
+                <div class="progress-labels">
+                    <span id="score-label">正解: 0</span>
+                    <span id="count-label">1 / 50</span>
+                </div>
+                <div class="bar-bg">
+                    <div class="bar-fill" id="bar-fill"></div>
+                </div>
+            </div>
+
+            <div class="quiz-card">
+                <div class="quiz-header">
+                    <div class="q-num" id="q-num"></div>
+                    <div class="q-cat" id="q-cat"></div>
+                </div>
+                <div class="q-text" id="q-text"></div>
+                
+                <div class="options-list" id="opt-list"></div>
+
+                <div class="exp-box" id="exp-box">
+                    <div class="res-title" id="res-title"></div>
+                    <div class="exp-text" id="exp-text"></div>
+                </div>
+
+                <button class="action-btn next-btn" id="next-btn" onclick="nextQuestion()">次の問題へ進む</button>
+                <button class="action-btn home-btn" onclick="returnToHome()">途中でやめてホームに戻る</button>
+            </div>
+        </div>
+
+        <!-- 3. 結果画面 -->
+        <div id="screen-result" class="screen finish-card">
+            <h2 id="finish-title">完了！</h2>
+            <div class="score-circle" id="final-score"></div>
+            <p id="eval-msg" style="font-weight:bold; color:var(--primary); margin-bottom: 20px;"></p>
+            <button class="action-btn restart-btn" onclick="retryCategory()">同じカテゴリをやり直す</button>
+            <button class="action-btn home-btn" onclick="returnToHome()">ホームに戻る</button>
+        </div>
+
+    </div>
+
+    <script>
+    const allData = [
+        // --- 1. LLMの基本と仕組み (10問) ---
+        { c: "LLMの基本と仕組み", q: "LLM（大規模言語モデル）の文章生成の基本的な仕組みとして、最も適切な説明はどれか？", o: [
+            "入力文脈をもとに、次に続く語などの候補を確率的に予測しながら文章を生成する",
+            "インターネット上のデータベースから常に最新の情報を検索し、それらを切り貼りして回答する",
+            "人間と同じように意味を完全に理解し、論理的な思考のみで回答を組み立てる",
+            "あらかじめ用意された無数の定型文テンプレートに、単語を当てはめて出力する"
+        ], a: 0, e: "LLMは入力文脈をもとに、次に続く語などの候補を予測しながら文章を生成します。「LLMそのもの＝必ず検索機能を持つ」わけではありません。" },
+        { c: "LLMの基本と仕組み", q: "生成AIの出力結果が毎回少しずつ変わる（ブレる）主な理由は何か？", o: [
+            "次に続く単語を確率的に予測して選ぶ仕組みを持っているから",
+            "インターネットの通信速度によって処理能力が変わるから",
+            "AIがユーザーの機嫌を推測して回答を変えているから",
+            "入力されたプロンプトが短すぎるから"
+        ], a: 0, e: "LLMは「次に来る確率が高い単語の候補」の中から確率的に選択を行うため、出力に多様性（ブレ）が生まれます。" },
+        { c: "LLMの基本と仕組み", q: "AIに「分かりやすい文章にして」と指示を出力する際のリスクとして、最も適切なものはどれか？", o: [
+            "「分かりやすい」の基準（誰向けか、長さなど）が人によって異なるため、意図と違う出力になる",
+            "文字数が必ずオーバーしてしまう",
+            "AIが処理を拒否してフリーズしてしまう",
+            "著作権を侵害する確率が高まる"
+        ], a: 0, e: "「分かりやすい」は中学生向けなのか、専門家向けなのか、短くするのかでAIの判断が変わります。AIが判断に必要な条件を追加することがプロンプト改善の本質です。" },
+        { c: "LLMの基本と仕組み", q: "プロンプトを作成する際、前提となる「情報（材料）」が不足している場合のAIの挙動として懸念されることは何か？", o: [
+            "AIが一般知識や推測で情報を補ってしまい、意図しない内容（ハルシネーション等）を生成する可能性がある",
+            "AIは必ず「情報が足りません」と自発的にエラーを返す",
+            "不足分を無視して、記号だけの回答を返す",
+            "処理速度が10倍以上遅くなる"
+        ], a: 0, e: "材料が不明だと、AIが一般知識や推測で補い、意図しない内容を生成する可能性が高まります。Input Dataを明確にすることが重要です。" },
+        { c: "LLMの基本と仕組み", q: "「文化祭の企画案を考えて。ただし予算や人数は未定です」というタスクにおいて、最も安全で実務的なプロンプトの工夫はどれか？", o: [
+            "「未定情報は推測せず、必要な条件を先に質問してください」と指示する",
+            "「予算は10万円と仮定して考えて」と嘘の情報を入力する",
+            "予算や人数の話をプロンプトから一切削除する",
+            "AIに「人間らしく考えて」とだけ指示する"
+        ], a: 0, e: "AIに不足情報を推測（幻覚）させるより、「不明なら質問する」と決める方が実務では安全です。" },
+        { c: "LLMの基本と仕組み", q: "プロンプトの「長さ」に関する考え方として、適切なものはどれか？", o: [
+            "短くても、必要な条件がそろっていれば十分な出力が得られることがある",
+            "文字数が長いほど、AIは必ず賢く正確に回答する",
+            "長いプロンプトに矛盾があっても、AIが自動で補正してくれる",
+            "プロンプトは必ず100文字以内でなければならない"
+        ], a: 0, e: "長いだけで、条件が矛盾していたり不要情報が多かったりすれば出力は良くなりません。「言葉を飾る」のではなく「必要な条件を追加する」ことが重要です。" },
+        { c: "LLMの基本と仕組み", q: "プロンプトで「あなたは高校の広報担当です」のような『Role（役割）』を与えることの実務的な効果は何か？", o: [
+            "望ましい語彙・視点・説明レベルを絞る「Context」として働く",
+            "AIの計算速度を物理的に向上させる",
+            "ハルシネーション（幻覚）を完全にゼロにする魔法のスイッチになる",
+            "外部のインターネット検索機能を強制的にオンにする"
+        ], a: 0, e: "役割そのものが魔法のスイッチなのではありません。その立場にふさわしい語彙や視点に絞り込む「Context（背景）」として働くため、出力の精度が上がります。" },
+        { c: "LLMの基本と仕組み", q: "試験問題などで「LLMそのものの基本機能」を問われた際の注意点はどれか？", o: [
+            "RAGなどの「外部検索機能」や「ファイル読込機能」と、LLM本体の機能を分けて考える",
+            "「LLM＝検索エンジン」として解釈して回答する",
+            "LLMは必ず100%正確な事実のみを返すと考える",
+            "「常に」「完全に」といった断定表現はすべて正しいと考える"
+        ], a: 0, e: "RAGや検索連携がある場合でも、試験では「モデル本体の基本」と「外部機能」を区別して答える必要があります。また「常に」「完全に」のような強すぎる断定は誤りのことが多いです。" },
+        { c: "LLMの基本と仕組み", q: "「プロンプトエンジニアリング」の改善作業の本質とは何か？", o: [
+            "AIが判断に必要な条件（制約や背景）を追加・整理する作業",
+            "AIに人間らしい感情を持たせるために言葉を美しく飾る作業",
+            "AIのプログラム（ソースコード）を書き換える作業",
+            "ハルシネーションを100%防ぐための特殊なパスワードを探す作業"
+        ], a: 0, e: "プロンプトの改善は「言葉を飾る」作業ではなく、AIが期待通りの出力を行うために必要な条件や判断基準を追加する論理的な作業です。" },
+        { c: "LLMの基本と仕組み", q: "AIに「ロール（役割）」だけを与え、目的や材料を与えなかった場合の結果として正しいものは？", o: [
+            "依然として指示が曖昧であり、期待する結果は得られにくい",
+            "役割を与えた時点で完璧なプロンプトになり、正確な回答が得られる",
+            "AIが自動的に目的を推測し、100%正しい回答をする",
+            "AIが処理を拒否してシステムがシャットダウンする"
+        ], a: 0, e: "「あなたは数学の先生です」という役割だけを与えても、「何を（目的）」「どのデータで（材料）」教えるかが無ければ、AIにとっては曖昧な指示のままです。" },
+
+        // --- 2. プロンプトの4要素 (15問) ---
+        { c: "プロンプトの4要素", q: "プロンプトを構成する「4要素」に含まれないものは次のうちどれか？（※試験シラバスに基づく整理法において）", o: [
+            "Role（役割）",
+            "Instruction（指示）",
+            "Context（背景）",
+            "Input Data（入力データ）"
+        ], a: 0, e: "シラバスの4要素は「Instruction」「Context」「Input Data」「Output Indicator」です。Role（役割）は実務でよく使う追加テクニック（またはContextの一部）として扱われます。" },
+        { c: "プロンプトの4要素", q: "プロンプトの4要素のうち「Instruction」が意味するものはどれか？", o: [
+            "何をするか（要約する、翻訳するなど）",
+            "前提となる背景やターゲット",
+            "AIに処理させるための材料（文章やデータ）",
+            "出力の形式や文字数"
+        ], a: 0, e: "Instructionは「要約する」「翻訳する」「抽出する」など、AIに求める『動作・タスク』を指します。動詞に注目すると見つけやすいです。" },
+        { c: "プロンプトの4要素", q: "プロンプトの4要素のうち「Context」が意味するものはどれか？", o: [
+            "前提となる背景、目的、読み手の対象者など",
+            "AIに実行してほしい具体的な動作",
+            "表や箇条書きなどの出力形式",
+            "AIが処理の対象とする生のテキストデータ"
+        ], a: 0, e: "Contextは「中学生向け」「社内プレゼン用」といった対象者、利用場面、目的などの背景条件が入ります。" },
+        { c: "プロンプトの4要素", q: "プロンプトの4要素のうち「Input Data」が意味するものはどれか？", o: [
+            "AIに処理させるための材料（文章、表、数値など）",
+            "出力される文字数の制限",
+            "「あなたは専門家です」という前提設定",
+            "翻訳や要約などの動作指示"
+        ], a: 0, e: "Input Dataは、「下のニュース記事」「次のメモ」など、AIが処理の対象として利用するための具体的な材料です。" },
+        { c: "プロンプトの4要素", q: "プロンプトの4要素のうち「Output Indicator」が意味するものはどれか？", o: [
+            "返答の形、出力件数、形式、文字数など",
+            "AIが作業するための入力データ",
+            "AIに求める動作（抽出する等）",
+            "ターゲットとなる読者層"
+        ], a: 0, e: "Output Indicatorは「表で示して」「120字程度で」「見出しをつけて」など、期待する出力の形式や制約を指定するものです。" },
+        { c: "プロンプトの4要素", q: "「以下のニュース記事を要約してください」という指示において、『要約してください』は4要素のうちどれに該当するか？", o: [
+            "Instruction",
+            "Context",
+            "Input Data",
+            "Output Indicator"
+        ], a: 0, e: "「要約する」という動作（動詞）を指定しているため、Instructionに該当します。" },
+        { c: "プロンプトの4要素", q: "「高校1年生向けに説明してください」という指示は、4要素のうちどれに該当するか？", o: [
+            "Context",
+            "Instruction",
+            "Input Data",
+            "Output Indicator"
+        ], a: 0, e: "読み手（対象者）という背景条件を指定しているため、Contextに該当します。" },
+        { c: "プロンプトの4要素", q: "「以下の【顧客のクレーム内容】をもとに対応を考えてください」における『【顧客のクレーム内容】』は、4要素のうちどれか？", o: [
+            "Input Data",
+            "Instruction",
+            "Context",
+            "Output Indicator"
+        ], a: 0, e: "AIが処理するための材料そのものであるため、Input Dataに該当します。" },
+        { c: "プロンプトの4要素", q: "「結果は、名称・必要物品・対象者の3列からなる『表』で出力してください」という指示は、4要素のうちどれか？", o: [
+            "Output Indicator",
+            "Context",
+            "Input Data",
+            "Instruction"
+        ], a: 0, e: "列数や表形式といった返答の形を指定しているため、Output Indicatorに該当します。" },
+        { c: "プロンプトの4要素", q: "「重要語句を3語含めて、120字以内で」という指示は、4要素のどれに分類されるか？", o: [
+            "Output Indicator",
+            "Input Data",
+            "Context",
+            "Instruction"
+        ], a: 0, e: "文字数や含めるべき語数などの制約は、出力の形式を指定するOutput Indicatorに該当します。" },
+        { c: "プロンプトの4要素", q: "AIの出力が期待とズレていた場合、まず最初に取るべき行動はどれか？", o: [
+            "プロンプトの4要素（Instructionの曖昧さ等）が不足・矛盾していないかを点検する",
+            "すぐにAIツールを有料版に切り替える",
+            "同じプロンプトを10回繰り返して送信してみる",
+            "AIの能力の限界だと諦める"
+        ], a: 0, e: "出力のズレをAIのせいだけにせず、まず「依頼設計（プロンプト）」を点検すると改善しやすいです。" },
+        { c: "プロンプトの4要素", q: "「担任の先生へ、文化祭準備で放課後の教室使用をお願いするメールを書いて。」という指示において、不足していると考えられる要素（Context等）はどれか？", o: [
+            "使用したい具体的な日時や時間帯の事実（Input Data / Context）",
+            "AIの計算速度を指定するパラメータ",
+            "インターネットの検索を許可するコマンド",
+            "担任の先生の趣味や特技"
+        ], a: 0, e: "「いつ使うのか」という事実（Input Data/Context）が不足しているため、AIは推測で日時を書いてしまうリスクがあります。" },
+        { c: "プロンプトの4要素", q: "試験において、「Role・Task・Format」という別の整理法と、シラバス用語の「4要素」が混在している場合、どう対処すべきか？", o: [
+            "まずシラバス用語である4要素（Instruction, Context, Input Data, Output Indicator）を優先して区別する",
+            "すべて同じ意味なので適当に答える",
+            "Roleが常に正解になると覚える",
+            "シラバス用語は無視する"
+        ], a: 0, e: "試験対策としては、用語をごちゃ混ぜにせず、指定された4要素の役割を明確に見抜くことが重要です。" },
+        { c: "プロンプトの4要素", q: "Input Dataを明確にプロンプト内に記述することの最大のメリットは何か？", o: [
+            "AIが回答を作成する「根拠範囲」を制御し、勝手な知識での推測を防ぎやすくなる",
+            "プロンプトが長くなり、AIが勝手に賢くなる",
+            "Output Indicatorを記述しなくても表が出力されるようになる",
+            "AIの倫理フィルターを解除できる"
+        ], a: 0, e: "「この文章（Input Data）だけを使う」と明示することで、AIが一般知識で補完（幻覚）するリスクを減らせます。" },
+        { c: "プロンプトの4要素", q: "1つの文章の中に、Instruction、Context、Input Data、Output Indicatorが混ざって書かれているプロンプトは、AIにとって処理可能か？", o: [
+            "処理可能である（要素が見抜ければ混ざっていても機能する）",
+            "必ずエラーになり処理されない",
+            "処理はされるが、必ずハルシネーションを起こす",
+            "文字化けして出力される"
+        ], a: 0, e: "同じ文の中に4要素が混ざっていてもAIは処理可能です。試験では「その語句が何の役割をしているか」を見抜く力が問われます。" },
+
+        // --- 3. Zero-Shot / Few-Shot (10問) ---
+        { c: "Zero/Few-Shot", q: "「Zero-Shotプロンプティング」の最も適切な説明はどれか？", o: [
+            "見本（具体例）を一切示さずに、指示だけを与えてタスクを行わせる方法",
+            "プロンプトの文字数をゼロ（空白）にして送信する方法",
+            "必ず1回で100%正確な回答を引き出す魔法のプロンプトのこと",
+            "AIの出力文字数を0に制限する設定のこと"
+        ], a: 0, e: "Zero（見本が0個）-Shotと覚えるとよいですが、本質は「例なしでタスクを理解させる」ことです。" },
+        { c: "Zero/Few-Shot", q: "「Few-Shotプロンプティング」の最も適切な説明はどれか？", o: [
+            "見本（入力と出力の具体例）をいくつか提示して、期待する形式や分類基準を理解させる手法",
+            "非常に短い（Few）文章だけで指示を出す手法",
+            "AIに何度も同じ質問を繰り返す（Shot）手法",
+            "出力の選択肢を少なく（Few）絞り込む手法"
+        ], a: 0, e: "Few（少数の）-Shot（例）を提示することで、AIに出力のトーンやフォーマットを学ばせる強力な手法です。" },
+        { c: "Zero/Few-Shot", q: "Few-Shotプロンプティングの主な目的として適切なものはどれか？", o: [
+            "答えそのものを教えるだけでなく、出力の「形式」や「分類の基準」を示すこと",
+            "AIの計算速度を高速化すること",
+            "AIの学習データを完全に書き換えること",
+            "インターネットの検索結果を要約させること"
+        ], a: 0, e: "Few-Shotは「こういうフォーマットで出してね」「こういうトーンで答えてね」という形式や基準を伝えるために非常に有効です。" },
+        { c: "Zero/Few-Shot", q: "自社独自のラベル（例：ポジティブ、ネガティブ、保留）で顧客アンケートを分類させたい場合、最も有効なプロンプト手法はどれか？", o: [
+            "Few-Shotプロンプティング",
+            "Zero-Shotプロンプティング",
+            "RAG",
+            "パラメータのTemperatureを最大にする"
+        ], a: 0, e: "独自ルールの分類は、文章の指示だけよりも「見本（この文章はポジティブ、など）」を与えた方が圧倒的に伝わりやすいため、Few-Shotが有効です。" },
+        { c: "Zero/Few-Shot", q: "Few-ShotでAIに与える「見本例」に誤りがあったり、偏っていたりした場合、出力はどうなるか？", o: [
+            "見本の誤りや偏りが、AIの最終的な出力結果にも悪影響を及ぼす",
+            "AIが自動的に見本の誤りを検知し、完璧な回答に補正する",
+            "見本は無視され、Zero-Shotと同じ結果になる",
+            "AIの処理が完全にフリーズする"
+        ], a: 0, e: "AIは見本の形式や傾向を強く参考にするため、質の悪い見本（ポイズニングなど）は出力にダイレクトに悪影響を与えます。" },
+        { c: "Zero/Few-Shot", q: "実務においてプロンプトを作成する際、最も効率的な進め方（アプローチ）はどれか？", o: [
+            "まずZero-Shotでシンプルに試し、伝わらなければFew-Shot（見本）を追加していく",
+            "最初から100個以上の見本例を用意してからAIに依頼する",
+            "常にファインチューニングでモデルを改造してから使う",
+            "Zero-Shotは意味がないので最初から使わない"
+        ], a: 0, e: "最初から複雑なプロンプトを作る必要はありません。「最小限から改善する」考え方が実際のAI利用でも効率的です。" },
+        { c: "Zero/Few-Shot", q: "Zero-Shotプロンプティングのメリットとして考えられるのはどれか？", o: [
+            "見本を作成する手間がなく、シンプルな指示ですぐに実行できる",
+            "独自ルールの複雑なタスクを100%正確にこなせる",
+            "AIのハルシネーションを物理的に防げる",
+            "出力のフォーマット（表など）が絶対に崩れない"
+        ], a: 0, e: "一般的な知識で解けるタスク（単純な要約や翻訳など）であれば、見本を用意する手間がないZero-Shotのシンプルさが活きます。" },
+        { c: "Zero/Few-Shot", q: "Few-Shotプロンプティングにおいて、提供する「見本」はどのような構成であるべきか？", o: [
+            "「入力データ」と「期待する出力」のペア（セット）にする",
+            "「期待する出力」だけを並べる",
+            "「入力データ」だけを並べる",
+            "AIへの「応援メッセージ」を含める"
+        ], a: 0, e: "AIに「こういう入力が来たら、こういう出力をしてね」という関係性を学ばせるため、入力と出力のペアを提示します。" },
+        { c: "Zero/Few-Shot", q: "Few-Shotプロンプティングとファインチューニング（Fine-tuning）の決定的な違いは何か？", o: [
+            "Few-Shotはプロンプト内で例を示すだけでモデル自体は変化しないが、ファインチューニングはモデルの内部パラメータを書き換える",
+            "Few-Shotは画像生成用で、ファインチューニングはテキスト用である",
+            "Few-Shotはコストがかかるが、ファインチューニングは無料である",
+            "違いはなく、全く同じ技術の別名である"
+        ], a: 0, e: "Few-Shotはあくまで「その場での指示の工夫」であり、AIモデルの脳（パラメータ）自体を改造するわけではありません。" },
+        { c: "Zero/Few-Shot", q: "Zero-Shotで期待する書式（例：表形式）で出力されなかった場合、次の打ち手として適切なものは？", o: [
+            "プロンプトに「表のヘッダー名」や「具体的な表の出力例」を追加する",
+            "AIの電源を再起動する",
+            "「表で出せ！」とすべて大文字で怒りのプロンプトを書く",
+            "RAG（検索システム）を導入する"
+        ], a: 0, e: "形式が伝わらない場合は、Output Indicatorを明確にしたり、Few-Shotで見本を追加したりするのがプロンプトエンジニアリングの基本です。" },
+
+        // --- 4. パラメータと実践 (15問) ---
+        { c: "パラメータと実践", q: "AIモデルの出力パラメータである「Temperature（温度）」が制御しているものは何か？", o: [
+            "出力される単語候補の選び方（多様性・創造性）",
+            "AIサーバーの物理的な冷却温度",
+            "プロンプトの最大入力文字数",
+            "生成される画像の解像度"
+        ], a: 0, e: "Temperatureは、次にどの単語を選ぶかの「確率分布」を調整し、出力のランダムさや多様性を制御します。" },
+        { c: "パラメータと実践", q: "Temperatureパラメータと「正確性」に関する記述として適切なものはどれか？", o: [
+            "Temperatureを下げれば一定の定型的な回答になるが、事実の正確性を完全に保証するものではない",
+            "Temperatureをゼロにすれば、ハルシネーションは100%発生しなくなる",
+            "Temperatureを最大にすると、常に正確な事実のみを出力する",
+            "Temperatureは正確性専用のパラメータである"
+        ], a: 0, e: "Temperatureは出力候補の選び方の設定であり、事実関係の正確性を保証する（幻覚を防ぐ）セキュリティ機能ではありません。" },
+        { c: "パラメータと実践", q: "次の中で、Temperatureを「低く」設定すべきシナリオはどれか？", o: [
+            "マニュアルの作成や、データの厳格な抽出（定型的な出力）",
+            "新しいキャッチコピーのブレインストーミング",
+            "SF小説のストーリー作成",
+            "突飛なアイデアの発散"
+        ], a: 0, e: "値が低い（0に近い）と、最も確率の高い単語が選ばれやすくなり、毎回同じようなブレの少ない堅実な出力になります。" },
+        { c: "パラメータと実践", q: "次の中で、Temperatureを「高く」設定すべきシナリオはどれか？", o: [
+            "新規事業のアイデア発散や、多様なキャッチコピーの考案",
+            "プログラムのソースコードのバグ修正",
+            "顧客データのCSVへの変換",
+            "社内規則の翻訳"
+        ], a: 0, e: "値を高く（1等に）すると、確率の低い単語も選ばれるようになり、多様でクリエイティブな（時に突飛な）出力が得られます。" },
+        { c: "パラメータと実践", q: "「文化祭の企画案を考えて」という曖昧なプロンプトを改善し、不足情報を「推測せず質問させる」テクニックの実務的なメリットは何か？", o: [
+            "AIが勝手な前提を置いて不適切な案を作るのを防ぎ、要件をすり合わせてから出力できる",
+            "プロンプトのトークン消費量を劇的に減らすことができる",
+            "AIが感情を持って自発的に考えてくれるようになる",
+            "Output Indicatorの指定が一切不要になる"
+        ], a: 0, e: "人間とAIが対話（壁打ち）を通じて前提条件を揃えることで、最終的なアウトプットの質が大きく向上します。" },
+        { c: "パラメータと実践", q: "プロンプトにおいて、「個人情報」や「機密情報」を扱う際の原則として正しいものは？", o: [
+            "パブリックなAI環境では入力しないなど、情報漏洩を防ぐルール（ガイドライン）を遵守する",
+            "Roleで「あなたは秘密厳守です」と書けば安全に入力できる",
+            "Temperatureを0にすれば機密情報は漏れない",
+            "Few-Shotの例としてであれば実データを入れてもよい"
+        ], a: 0, e: "プロンプトの工夫（小手先のテクニック）で情報漏洩を防ぐことはできません。環境設定（オプトアウト）や入力ルールなどの根本的な対策が必要です。" },
+        { c: "パラメータと実践", q: "「取引先への謝罪メールを書いて」というプロンプトを改善する場合、追加すべき要素として最も適切な組み合わせは？", o: [
+            "相手との関係性(Context)、謝罪の理由となる事実(Input)、希望する文字数(Output)",
+            "Temperature設定、RAGのURL、Pythonコード",
+            "Zero-Shotの宣言、Few-Shotの宣言",
+            "メールの送信ボタン、CCの宛先リスト"
+        ], a: 0, e: "誰に（Context）、何があったか（Input Data）、どういう形式で（Output Indicator）を補うことで、実用的なメールが生成されます。" },
+        { c: "パラメータと実践", q: "プロンプトで「箇条書きで出力して」と指示したのに、表形式で出力されてしまった。原因として考えられることは何か？", o: [
+            "プロンプト内の別の場所で「表でまとめて」など、Output Indicatorが矛盾する指示を出している",
+            "AIが反抗期を迎えている",
+            "Temperatureが低すぎる",
+            "Roleを指定していないから"
+        ], a: 0, e: "長いプロンプトでは、指示（Output Indicatorなど）が矛盾していることがよくあります。依頼内容の矛盾を点検することが重要です。" },
+        { c: "パラメータと実践", q: "LLMの出力を制御する際、「言葉を飾る」ことのリスクとは何か？", o: [
+            "AIの判断に必要な条件（データや基準）が曖昧なままになり、出力が改善されない",
+            "AIが文学的な回答しかできなくなる",
+            "著作権侵害のリスクが100%になる",
+            "必ず英語で出力されるようになる"
+        ], a: 0, e: "「超素晴らしい最高に分かりやすい文章で」と飾っても、誰にとってどう分かりやすいか（ContextやIndicator）が無ければAIは判断できません。" },
+        { c: "パラメータと実践", q: "AIに「〇〇について教えて」とだけ質問するプロンプトの弱点は何か？", o: [
+            "対象読者（Context）や求める深さ（Indicator）が不明なため、的外れな難易度で返ってくる可能性がある",
+            "プロンプトが短すぎてシステムエラーになる",
+            "AIが必ずハルシネーションを起こす",
+            "APIの利用料金が跳ね上がる"
+        ], a: 0, e: "幼稚園児向けなのか、専門家向けなのか（Context）を指定しないと、AIは一般的な無難なレベルで回答してしまいます。" },
+        { c: "パラメータと実践", q: "LLMそのものの機能と、RAG（検索拡張生成）などの外部機能の違いとして適切なのは？", o: [
+            "LLMは学習した知識から確率で回答を生成するが、RAGは外部データベースから事実を検索してLLMに読ませる",
+            "LLMは事実のみを出力するが、RAGは嘘を出力する",
+            "LLMは画像専用で、RAGはテキスト専用である",
+            "違いはなく全く同じものである"
+        ], a: 0, e: "試験において、LLMの基本機能（確率的な予測）と、それを補う外部機能（RAG等）は区別して考える必要があります。" },
+        { c: "パラメータと実践", q: "プロンプト内で「以下の情報のみを用いて答えてください」とInput Dataを制限することの利点は？", o: [
+            "AIが持つ事前学習の知識（推測）を混ぜ込むのを防ぎ、事実に基づく回答（グラウンディング）を強制しやすくなる",
+            "AIの回答スピードが10倍になる",
+            "計算コストが完全に無料になる",
+            "どんな質問にも「はい」と答えるようになる"
+        ], a: 0, e: "材料を明示し「これだけを使え」と指示することは、実務においてハルシネーションを抑制する最も効果的なテクニックの一つです。" },
+        { c: "パラメータと実践", q: "「出力は表形式で、各列は『日付』『売上』『担当者』とし、200字以内で要約を添えてください」という指示に含まれるプロンプト要素はどれか？", o: [
+            "Output Indicator（出力形式と制約）",
+            "Context（背景条件）",
+            "Input Data（入力データ）",
+            "Role（役割）"
+        ], a: 0, e: "表形式、列の指定、文字数制限などはすべて、AIの「返答の形」を指定するOutput Indicatorです。" },
+        { c: "パラメータと実践", q: "実務において、生成AIを活用する際の最も基本的な姿勢（考え方）はどれか？", o: [
+            "AIの特性（確率的な生成）を理解し、明確な条件を与えて対話しながら出力をブラッシュアップしていく",
+            "AIは全知全能なので、曖昧な1回の指示で完璧な答えが出るまで待つ",
+            "AIの出力は常に間違っているので、全て人間がゼロから書き直す",
+            "プロンプトエンジニアリングは魔法の呪文なので、意味を理解せずコピーして使う"
+        ], a: 0, e: "一発で完璧な回答を求めるのではなく、条件（4要素）を調整しながらAIと対話して期待する結果に近づけていくのが正しい姿勢です。" },
+        { c: "パラメータと実践", q: "試験での判断のコツとして、選択肢に「必ず」「完全に」「常に」といった強い断定がある場合、AIの性質上どう判断すべきか？", o: [
+            "AIは確率的に動作しハルシネーションのリスクもあるため、強すぎる断定は誤りである可能性が高いと注意する",
+            "AIは完璧なので、強い断定はすべて正しい選択肢である",
+            "強い断定がある選択肢は読まずに無視する",
+            "AIの機嫌によるため日によって正解が変わる"
+        ], a: 0, e: "LLMは確率的モデルであるため、「100%正確」「完全に防げる」といった絶対的な保証はできません。試験でもこの性質を問われます。" }
+    ];
+
+    let currentList = [];
+    let currentIndex = 0;
+    let score = 0;
+    let isAnswered = false;
+    let selectedCategory = '';
+
+    // DOM要素の取得
+    const screenHome = document.getElementById('screen-home');
+    const screenQuiz = document.getElementById('screen-quiz');
+    const screenResult = document.getElementById('screen-result');
+
+    // 画面切り替え関数（確実に表示を切り替える）
+    function showScreen(screenEl) {
+        document.querySelectorAll('.screen').forEach(el => {
+            el.classList.remove('show-screen');
+        });
+        screenEl.classList.add('show-screen');
+    }
+
+    // シャッフル関数
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+    }
+
+    // クイズ開始処理
+    window.startQuiz = function(category) {
+        selectedCategory = category;
+        if (category === 'すべて') {
+            currentList = [...allData];
+        } else {
+            currentList = allData.filter(q => q.c === category);
+        }
+        
+        shuffleArray(currentList);
+        currentIndex = 0;
+        score = 0;
+        
+        showScreen(screenQuiz);
+        renderQuestion();
+    };
+
+    // ホームに戻る処理
+    window.returnToHome = function() {
+        showScreen(screenHome);
+    };
+
+    // リトライ処理
+    window.retryCategory = function() {
+        window.startQuiz(selectedCategory);
+    };
+
+    // 問題の描画
+    function renderQuestion() {
+        if (currentIndex >= currentList.length) {
+            finishQuiz();
+            return;
+        }
+
+        answered = false;
+        const qData = currentList[currentIndex];
+        
+        // UIリセット
+        document.getElementById('exp-box').classList.remove('show-element');
+        document.getElementById('next-btn').classList.remove('show-element');
+        const optList = document.getElementById('opt-list');
+        optList.innerHTML = '';
+
+        document.getElementById('q-num').innerText = `第 ${currentIndex + 1} 問`;
+        document.getElementById('q-cat').innerText = qData.c;
+        document.getElementById('q-text').innerText = qData.q;
+
+        // 選択肢シャッフル
+        let options = qData.o.map((txt, i) => ({ text: txt, isCorrect: i === qData.a }));
+        shuffleArray(options);
+
+        options.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.className = 'opt-btn';
+            btn.innerText = opt.text;
+            
+            btn.onclick = () => {
+                if (answered) return;
+                answered = true;
+                
+                const btns = optList.querySelectorAll('.opt-btn');
+                btns.forEach(b => {
+                    b.disabled = true;
+                    b.classList.add('dimmed');
+                });
+                
+                btn.classList.remove('dimmed');
+                if (opt.isCorrect) {
+                    btn.classList.add('correct-ans');
+                    score++;
+                    document.getElementById('res-title').innerText = "◯ 正解！";
+                    const expBox = document.getElementById('exp-box');
+                    expBox.className = 'exp-box show-element is-correct';
+                } else {
+                    btn.classList.add('wrong-ans');
+                    document.getElementById('res-title').innerText = "× 不正解...";
+                    const expBox = document.getElementById('exp-box');
+                    expBox.className = 'exp-box show-element is-wrong';
+                    
+                    // 正解ハイライト
+                    btns.forEach((b, i) => {
+                        if(options[i].isCorrect) {
+                            b.classList.remove('dimmed');
+                            b.classList.add('correct-ans');
+                            b.style.borderWidth = '3px';
+                        }
+                    });
+                }
+
+                document.getElementById('exp-text').innerText = qData.e;
+                
+                const nextBtn = document.getElementById('next-btn');
+                nextBtn.innerText = (currentIndex === currentList.length - 1) ? "結果を見る" : "次の問題へ進む";
+                nextBtn.classList.add('show-element');
+                
+                updateProgress();
+            };
+            optList.appendChild(btn);
+        });
+
+        updateProgress();
+    }
+
+    // 次へボタンの挙動
+    window.nextQuestion = function() {
+        currentIndex++;
+        renderQuestion();
+    };
+
+    function updateProgress() {
+        const total = currentList.length;
+        const current = Math.min(currentIndex + 1, total);
+        document.getElementById('score-label').innerText = `正解: ${score}`;
+        document.getElementById('count-label').innerText = `${current} / ${total}`;
+        document.getElementById('bar-fill').style.width = `${(current / total) * 100}%`;
+    }
+
+    function finishQuiz() {
+        showScreen(screenResult);
+        const total = currentList.length;
+        document.getElementById('finish-title').innerText = `${selectedCategory} 完了！`;
+        document.getElementById('final-score').innerText = `${score}/${total}`;
+        
+        const p = (score / total) * 100;
+        let msg = "復習しましょう！";
+        if (p >= 90) msg = "完璧です！プロンプト設計の本質を完全に理解しています。";
+        else if (p >= 70) msg = "素晴らしい！実務でも十分に活用できる知識が身についています。";
+        else if (p >= 50) msg = "基礎はできています。解説を読んで「なぜ」を説明できるようにしましょう。";
+        document.getElementById('eval-msg').innerText = msg;
+    }
+
+    </script>
+</body>
+</html>

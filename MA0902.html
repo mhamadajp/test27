@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>サイコロ＆コイントス シミュレーター</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&family=Zen+Maru+Gothic:wght@500;700;900&display=swap');
+    
+    body {
+      font-family: 'Zen Maru Gothic', 'Outfit', sans-serif;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* 3D Dice Styling */
+    .dice-scene {
+      perspective: 800px;
+    }
+    
+    .dice {
+      width: 76px;
+      height: 76px;
+      position: relative;
+      transform-style: preserve-3d;
+      transition: transform 1.2s cubic-bezier(0.2, 0.9, 0.3, 1.1);
+    }
+    
+    .dice-face {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(145deg, #ffffff, #f0f0f3);
+      border-radius: 16px;
+      box-shadow: inset 0 0 10px rgba(0,0,0,0.08), inset 0 2px 4px rgba(255,255,255,0.9), 0 4px 10px rgba(0,0,0,0.15);
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-template-rows: repeat(3, 1fr);
+      padding: 8px;
+      box-sizing: border-box;
+    }
+    
+    .dot {
+      width: 12px;
+      height: 12px;
+      background: #2b2d42;
+      border-radius: 50%;
+      justify-self: center;
+      align-self: center;
+      box-shadow: inset 0 2px 3px rgba(0,0,0,0.4), 0 1px 1px rgba(255,255,255,0.8);
+    }
+    
+    .dot-red {
+      background: #ef233c;
+      width: 18px;
+      height: 18px;
+    }
+
+    /* Positioning Cube Faces */
+    .face-1 { transform: rotateY(0deg) translateZ(38px); }
+    .face-6 { transform: rotateY(180deg) translateZ(38px); }
+    .face-2 { transform: rotateY(-90deg) translateZ(38px); }
+    .face-5 { transform: rotateY(90deg) translateZ(38px); }
+    .face-3 { transform: rotateX(90deg) translateZ(38px); }
+    .face-4 { transform: rotateX(-90deg) translateZ(38px); }
+
+    /* 3D Coin Styling */
+    .coin-scene {
+      perspective: 1000px;
+    }
+    
+    .coin {
+      width: 110px;
+      height: 110px;
+      position: relative;
+      transform-style: preserve-3d;
+      transition: transform 1.5s cubic-bezier(0.15, 0.85, 0.35, 1.2);
+    }
+    
+    .coin-face {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      backface-visibility: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.25), inset 0 0 0 6px rgba(255,255,255,0.4);
+    }
+    
+    .coin-heads {
+      background: radial-gradient(circle at 35% 35%, #ffd700, #d4af37, #996515);
+      border: 4px dashed rgba(255, 255, 255, 0.4);
+      color: #fff;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+    
+    .coin-tails {
+      background: radial-gradient(circle at 35% 35%, #e0e0e0, #a8a8a8, #606060);
+      border: 4px dashed rgba(255, 255, 255, 0.5);
+      color: #fff;
+      transform: rotateY(180deg);
+      text-shadow: 0 2px 4px rgba(0,0,0,0.4);
+    }
+
+    /* Bounce & Spin Keyframes */
+    @keyframes tossUp {
+      0% { transform: translateY(0) scale(1); }
+      50% { transform: translateY(-120px) scale(1.15); }
+      100% { transform: translateY(0) scale(1); }
+    }
+
+    .tossing {
+      animation: tossUp 1.2s ease-in-out;
+    }
+
+    /* Custom Glassmorphism */
+    .glass-panel {
+      background: rgba(255, 255, 255, 0.82);
+      backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.6);
+    }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-indigo-900 via-slate-900 to-zinc-900 min-h-screen text-slate-800 flex flex-col items-center justify-between p-3 sm:p-6 selection:bg-indigo-500 selection:text-white">
+
+  <header class="w-full max-w-2xl text-center pt-2 pb-4">
+    <div class="flex items-center justify-between mb-3">
+      <div class="flex items-center gap-2">
+        <span class="p-2 bg-indigo-600/30 text-indigo-400 rounded-xl border border-indigo-500/20 text-xl">
+          🎲🪙
+        </span>
+        <h1 class="text-xl sm:text-2xl font-black text-white tracking-wide">Dice & Coin Flip</h1>
+      </div>
+      
+      <!-- Audio Toggle Button -->
+      <button id="soundToggleBtn" onclick="toggleAudio()" class="px-3.5 py-1.5 rounded-full bg-slate-800/80 border border-slate-700 text-slate-300 hover:text-white hover:border-slate-500 transition-all flex items-center gap-2 text-xs font-semibold shadow-inner">
+        <i id="soundIcon" class="fa-solid fa-volume-high text-indigo-400"></i>
+        <span id="soundText">効果音 ON</span>
+      </button>
+    </div>
+
+    <!-- Mode Selector Tabs -->
+    <div class="grid grid-cols-2 gap-2 p-1.5 bg-slate-800/90 rounded-2xl border border-slate-700/60 shadow-lg">
+      <button id="tabDice" onclick="switchTab('dice')" class="py-2.5 px-4 rounded-xl font-bold text-sm sm:text-base transition-all duration-300 flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-md">
+        <i class="fa-solid fa-dice text-lg"></i> サイコロを振る
+      </button>
+      <button id="tabCoin" onclick="switchTab('coin')" class="py-2.5 px-4 rounded-xl font-bold text-sm sm:text-base transition-all duration-300 flex items-center justify-center gap-2 text-slate-400 hover:text-white hover:bg-slate-700/50">
+        <i class="fa-solid fa-coins text-lg"></i> コインを投げる
+      </button>
+    </div>
+  </header>
+
+  <main class="w-full max-w-2xl flex-1 flex flex-col justify-center">
+    
+    <!-- === DICE SECTION === -->
+    <section id="diceSection" class="w-full">
+      <div class="glass-panel rounded-3xl p-5 sm:p-8 shadow-2xl flex flex-col items-center">
+        
+        <!-- Controls: Dice Count -->
+        <div class="w-full flex items-center justify-between mb-6 pb-4 border-b border-slate-200">
+          <div class="text-xs font-bold text-slate-500 tracking-wider">サイコロの個数</div>
+          <div class="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl border border-slate-200">
+            <button onclick="setDiceCount(1)" id="btnDice1" class="dice-count-btn w-8 h-8 rounded-lg font-bold text-sm transition-all bg-indigo-600 text-white shadow">1</button>
+            <button onclick="setDiceCount(2)" id="btnDice2" class="dice-count-btn w-8 h-8 rounded-lg font-bold text-sm transition-all text-slate-600 hover:bg-slate-200">2</button>
+            <button onclick="setDiceCount(3)" id="btnDice3" class="dice-count-btn w-8 h-8 rounded-lg font-bold text-sm transition-all text-slate-600 hover:bg-slate-200">3</button>
+            <button onclick="setDiceCount(4)" id="btnDice4" class="dice-count-btn w-8 h-8 rounded-lg font-bold text-sm transition-all text-slate-600 hover:bg-slate-200">4</button>
+          </div>
+        </div>
+
+        <!-- 3D Dice Display Container -->
+        <div id="diceContainer" class="flex flex-wrap items-center justify-center gap-6 min-h-[160px] py-4 w-full">
+          <!-- Dynamic 3D Dices inserted via JS -->
+        </div>
+
+        <!-- Dice Results Banner -->
+        <div class="mt-6 text-center">
+          <div class="text-xs font-bold text-indigo-600 tracking-wider uppercase mb-1">Total Score</div>
+          <div id="diceTotalDisplay" class="text-4xl sm:text-5xl font-extrabold text-slate-800 tracking-tight">
+            1
+          </div>
+          <div id="diceDetailDisplay" class="text-xs text-slate-400 font-medium mt-1">
+            出目: [ 1 ]
+          </div>
+        </div>
+
+        <!-- Action Button -->
+        <button id="rollDiceBtn" onclick="rollAllDice()" class="mt-7 w-full sm:w-64 py-4 px-8 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 active:scale-95 text-white font-extrabold rounded-2xl shadow-xl shadow-indigo-500/25 transition-all text-lg flex items-center justify-center gap-3">
+          <i class="fa-solid fa-dice-d6 text-xl"></i>
+          <span>サイコロを振る</span>
+        </button>
+        <span class="text-[11px] text-slate-400 mt-2">Spaceキーでも振ることができます</span>
+      </div>
+    </section>
+
+    <!-- === COIN SECTION === -->
+    <section id="coinSection" class="w-full hidden">
+      <div class="glass-panel rounded-3xl p-5 sm:p-8 shadow-2xl flex flex-col items-center">
+        
+        <!-- Controls: Coin Count -->
+        <div class="w-full flex items-center justify-between mb-6 pb-4 border-b border-slate-200">
+          <div class="text-xs font-bold text-slate-500 tracking-wider">コインの枚数</div>
+          <div class="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl border border-slate-200">
+            <button onclick="setCoinCount(1)" id="btnCoin1" class="coin-count-btn w-8 h-8 rounded-lg font-bold text-sm transition-all bg-amber-500 text-white shadow">1</button>
+            <button onclick="setCoinCount(2)" id="btnCoin2" class="coin-count-btn w-8 h-8 rounded-lg font-bold text-sm transition-all text-slate-600 hover:bg-slate-200">2</button>
+            <button onclick="setCoinCount(3)" id="btnCoin3" class="coin-count-btn w-8 h-8 rounded-lg font-bold text-sm transition-all text-slate-600 hover:bg-slate-200">3</button>
+          </div>
+        </div>
+
+        <!-- 3D Coin Display Container -->
+        <div id="coinContainer" class="flex flex-wrap items-center justify-center gap-6 min-h-[160px] py-4 w-full">
+          <!-- Dynamic 3D Coins inserted via JS -->
+        </div>
+
+        <!-- Coin Results Banner -->
+        <div class="mt-6 text-center">
+          <div class="text-xs font-bold text-amber-600 tracking-wider uppercase mb-1">Result</div>
+          <div id="coinResultDisplay" class="text-3xl sm:text-4xl font-extrabold text-slate-800 tracking-tight flex items-center justify-center gap-2">
+            <span class="text-amber-500">表</span> (Heads)
+          </div>
+          <div id="coinRatioDisplay" class="text-xs text-slate-400 font-medium mt-1">
+            表: 1枚 / 裏: 0枚
+          </div>
+        </div>
+
+        <!-- Action Button -->
+        <button id="flipCoinBtn" onclick="flipAllCoins()" class="mt-7 w-full sm:w-64 py-4 px-8 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 active:scale-95 text-white font-extrabold rounded-2xl shadow-xl shadow-amber-500/25 transition-all text-lg flex items-center justify-center gap-3">
+          <i class="fa-solid fa-hand-holding-dollar text-xl"></i>
+          <span>コインを投げる</span>
+        </button>
+        <span class="text-[11px] text-slate-400 mt-2">Spaceキーでも投げることができます</span>
+      </div>
+    </section>
+
+    <div class="mt-4 bg-slate-800/80 rounded-2xl border border-slate-700/60 p-4 text-slate-300">
+      <div class="flex items-center justify-between mb-2">
+        <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-400">
+          <i class="fa-solid fa-clock-rotate-left"></i> 直近の履歴
+        </div>
+        <button onclick="clearHistory()" class="text-xs text-slate-400 hover:text-red-400 transition">
+          履歴クリア
+        </button>
+      </div>
+      <div id="historyList" class="flex flex-wrap gap-2 max-h-20 overflow-y-auto py-1 text-xs">
+        <span class="text-slate-500 italic">まだ履歴がありません</span>
+      </div>
+    </div>
+  </main>
+
+  <footer class="w-full max-w-2xl text-center text-xs text-slate-500 py-3">
+    サイコロ＆コイントス シミュレーター &copy; 2026
+  </footer>
+
+  <script>
+    let activeTab = 'dice';
+    let diceCount = 1;
+    let coinCount = 1;
+    let isRolling = false;
+    let isFlipping = false;
+    let soundEnabled = true;
+
+    // 3D rotation angles to display each dice face (1 to 6)
+    const diceRotations = {
+      1: { x: 0, y: 0 },
+      2: { x: 0, y: 90 },
+      3: { x: -90, y: 0 },
+      4: { x: 90, y: 0 },
+      5: { x: 0, y: -90 },
+      6: { x: 0, y: 180 }
+    };
+
+    // Native Web Audio API context for 100% offline & local file reliability
+    let audioCtx = null;
+
+    function getAudioContext() {
+      if (!audioCtx) {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (AudioContextClass) {
+          audioCtx = new AudioContextClass();
+        }
+      }
+      if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      return audioCtx;
+    }
+
+    // Unlock audio context on any user interaction
+    function unlockAudio() {
+      const ctx = getAudioContext();
+      if (ctx && ctx.state === 'suspended') {
+        ctx.resume();
+      }
+    }
+    window.addEventListener('click', unlockAudio, { once: true });
+    window.addEventListener('touchstart', unlockAudio, { once: true });
+    window.addEventListener('keydown', unlockAudio, { once: true });
+
+    function toggleAudio() {
+      soundEnabled = !soundEnabled;
+      const ctx = getAudioContext();
+      if (soundEnabled && ctx && ctx.state === 'suspended') {
+        ctx.resume();
+      }
+      const icon = document.getElementById('soundIcon');
+      const text = document.getElementById('soundText');
+      if (soundEnabled) {
+        icon.className = 'fa-solid fa-volume-high text-indigo-400';
+        text.innerText = '効果音 ON';
+      } else {
+        icon.className = 'fa-solid fa-volume-xmark text-slate-500';
+        text.innerText = '効果音 OFF';
+      }
+    }
+
+    function playDiceSound() {
+      if (!soundEnabled) return;
+      const ctx = getAudioContext();
+      if (!ctx) return;
+      if (ctx.state === 'suspended') {
+        ctx.resume();
+      }
+
+      // Generate realistic multiple dice clatter taps
+      const tapCount = 4 + Math.floor(Math.random() * 3);
+      for (let i = 0; i < tapCount; i++) {
+        const delay = i * 0.11 + Math.random() * 0.05;
+        const startTime = ctx.currentTime + delay;
+
+        // Wood/plastic impact click
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        const baseFreq = 220 + Math.random() * 180;
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(baseFreq, startTime);
+        osc.frequency.exponentialRampToValueAtTime(60, startTime + 0.08);
+
+        gain.gain.setValueAtTime(0.25, startTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.08);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc.start(startTime);
+        osc.stop(startTime + 0.09);
+      }
+    }
+
+    function playCoinSound() {
+      if (!soundEnabled) return;
+      const ctx = getAudioContext();
+      if (!ctx) return;
+      if (ctx.state === 'suspended') {
+        ctx.resume();
+      }
+
+      const now = ctx.currentTime;
+
+      // 1. Initial High Metallic Ring (Toss)
+      const freqs = [1046.5, 2093, 3135.9]; // High resonant coin ring
+      freqs.forEach((freq, idx) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        osc.type = idx === 0 ? 'sine' : 'triangle';
+        osc.frequency.setValueAtTime(freq, now);
+
+        const initialVol = idx === 0 ? 0.28 : 0.12;
+        gain.gain.setValueAtTime(initialVol, now);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 1.1);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc.start(now);
+        osc.stop(now + 1.15);
+      });
+
+      // 2. Catch / Land Clink Sound after animation
+      setTimeout(() => {
+        if (!soundEnabled || !audioCtx) return;
+        const landTime = audioCtx.currentTime;
+        const landOsc = audioCtx.createOscillator();
+        const landGain = audioCtx.createGain();
+
+        landOsc.type = 'triangle';
+        landOsc.frequency.setValueAtTime(1760, landTime);
+        landOsc.frequency.exponentialRampToValueAtTime(440, landTime + 0.15);
+
+        landGain.gain.setValueAtTime(0.2, landTime);
+        landGain.gain.exponentialRampToValueAtTime(0.001, landTime + 0.15);
+
+        landOsc.connect(landGain);
+        landGain.connect(audioCtx.destination);
+
+        landOsc.start(landTime);
+        landOsc.stop(landTime + 0.16);
+      }, 1250);
+    }
+
+    function switchTab(tab) {
+      activeTab = tab;
+      const tabDice = document.getElementById('tabDice');
+      const tabCoin = document.getElementById('tabCoin');
+      const diceSec = document.getElementById('diceSection');
+      const coinSec = document.getElementById('coinSection');
+
+      if (tab === 'dice') {
+        diceSec.classList.remove('hidden');
+        coinSec.classList.add('hidden');
+        tabDice.className = 'py-2.5 px-4 rounded-xl font-bold text-sm sm:text-base transition-all duration-300 flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-md';
+        tabCoin.className = 'py-2.5 px-4 rounded-xl font-bold text-sm sm:text-base transition-all duration-300 flex items-center justify-center gap-2 text-slate-400 hover:text-white hover:bg-slate-700/50';
+      } else {
+        coinSec.classList.remove('hidden');
+        diceSec.classList.add('hidden');
+        tabCoin.className = 'py-2.5 px-4 rounded-xl font-bold text-sm sm:text-base transition-all duration-300 flex items-center justify-center gap-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-md';
+        tabDice.className = 'py-2.5 px-4 rounded-xl font-bold text-sm sm:text-base transition-all duration-300 flex items-center justify-center gap-2 text-slate-400 hover:text-white hover:bg-slate-700/50';
+      }
+    }
+
+    function createDiceElement(index) {
+      return `
+        <div class="dice-scene" id="dice-scene-${index}">
+          <div class="dice" id="dice-${index}">
+            <!-- Face 1 (1 dot center red) -->
+            <div class="dice-face face-1">
+              <div></div><div></div><div></div>
+              <div></div><div class="dot dot-red"></div><div></div>
+              <div></div><div></div><div></div>
+            </div>
+            <!-- Face 6 (6 dots) -->
+            <div class="dice-face face-6">
+              <div class="dot"></div><div></div><div class="dot"></div>
+              <div class="dot"></div><div></div><div class="dot"></div>
+              <div class="dot"></div><div></div><div class="dot"></div>
+            </div>
+            <!-- Face 2 (2 dots diagonal) -->
+            <div class="dice-face face-2">
+              <div class="dot"></div><div></div><div></div>
+              <div></div><div></div><div></div>
+              <div></div><div></div><div class="dot"></div>
+            </div>
+            <!-- Face 5 (5 dots) -->
+            <div class="dice-face face-5">
+              <div class="dot"></div><div></div><div class="dot"></div>
+              <div></div><div class="dot"></div><div></div>
+              <div class="dot"></div><div></div><div class="dot"></div>
+            </div>
+            <!-- Face 3 (3 dots diagonal) -->
+            <div class="dice-face face-3">
+              <div class="dot"></div><div></div><div></div>
+              <div></div><div class="dot"></div><div></div>
+              <div></div><div></div><div class="dot"></div>
+            </div>
+            <!-- Face 4 (4 dots) -->
+            <div class="dice-face face-4">
+              <div class="dot"></div><div></div><div class="dot"></div>
+              <div></div><div></div><div></div>
+              <div class="dot"></div><div></div><div class="dot"></div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderDice() {
+      const container = document.getElementById('diceContainer');
+      container.innerHTML = '';
+      for (let i = 0; i < diceCount; i++) {
+        container.innerHTML += createDiceElement(i);
+      }
+    }
+
+    function setDiceCount(count) {
+      diceCount = count;
+      document.querySelectorAll('.dice-count-btn').forEach((btn, idx) => {
+        if (idx + 1 === count) {
+          btn.className = 'dice-count-btn w-8 h-8 rounded-lg font-bold text-sm transition-all bg-indigo-600 text-white shadow';
+        } else {
+          btn.className = 'dice-count-btn w-8 h-8 rounded-lg font-bold text-sm transition-all text-slate-600 hover:bg-slate-200';
+        }
+      });
+      renderDice();
+      rollAllDice();
+    }
+
+    function rollAllDice() {
+      if (isRolling) return;
+      isRolling = true;
+      playDiceSound();
+
+      const rollBtn = document.getElementById('rollDiceBtn');
+      rollBtn.disabled = true;
+      rollBtn.classList.add('opacity-70');
+
+      let results = [];
+      let total = 0;
+
+      for (let i = 0; i < diceCount; i++) {
+        const value = Math.floor(Math.random() * 6) + 1;
+        results.push(value);
+        total += value;
+
+        const diceEl = document.getElementById(`dice-${i}`);
+        if (diceEl) {
+          // Add random extra spins for visual excitement
+          const extraX = (Math.floor(Math.random() * 4) + 2) * 360;
+          const extraY = (Math.floor(Math.random() * 4) + 2) * 360;
+          const target = diceRotations[value];
+
+          diceEl.style.transform = `rotateX(${extraX + target.x}deg) rotateY(${extraY + target.y}deg)`;
+        }
+      }
+
+      setTimeout(() => {
+        document.getElementById('diceTotalDisplay').innerText = total;
+        document.getElementById('diceDetailDisplay').innerText = `出目: [ ${results.join(', ')} ]`;
+        addHistory('dice', `🎲 サイコロ (${diceCount}個): 合計 ${total} [${results.join(', ')}]`);
+        isRolling = false;
+        rollBtn.disabled = false;
+        rollBtn.classList.remove('opacity-70');
+      }, 1200);
+    }
+
+    function createCoinElement(index) {
+      return `
+        <div class="coin-scene" id="coin-scene-${index}">
+          <div class="coin" id="coin-${index}">
+            <!-- Heads Face (Gold/Omote) -->
+            <div class="coin-face coin-heads">
+              <span class="text-3xl font-black tracking-tight">表</span>
+              <span class="text-[10px] font-bold uppercase tracking-widest mt-1 opacity-80">HEADS</span>
+            </div>
+            <!-- Tails Face (Silver/Ura) -->
+            <div class="coin-face coin-tails">
+              <span class="text-3xl font-black tracking-tight">裏</span>
+              <span class="text-[10px] font-bold uppercase tracking-widest mt-1 opacity-80">TAILS</span>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderCoins() {
+      const container = document.getElementById('coinContainer');
+      container.innerHTML = '';
+      for (let i = 0; i < coinCount; i++) {
+        container.innerHTML += createCoinElement(i);
+      }
+    }
+
+    function setCoinCount(count) {
+      coinCount = count;
+      document.querySelectorAll('.coin-count-btn').forEach((btn, idx) => {
+        if (idx + 1 === count) {
+          btn.className = 'coin-count-btn w-8 h-8 rounded-lg font-bold text-sm transition-all bg-amber-500 text-white shadow';
+        } else {
+          btn.className = 'coin-count-btn w-8 h-8 rounded-lg font-bold text-sm transition-all text-slate-600 hover:bg-slate-200';
+        }
+      });
+      renderCoins();
+      flipAllCoins();
+    }
+
+    function flipAllCoins() {
+      if (isFlipping) return;
+      isFlipping = true;
+      playCoinSound();
+
+      const flipBtn = document.getElementById('flipCoinBtn');
+      flipBtn.disabled = true;
+      flipBtn.classList.add('opacity-70');
+
+      let headsCount = 0;
+      let tailsCount = 0;
+      let results = [];
+
+      for (let i = 0; i < coinCount; i++) {
+        const isHeads = Math.random() < 0.5;
+        if (isHeads) headsCount++;
+        else tailsCount++;
+        results.push(isHeads ? '表' : '裏');
+
+        const coinEl = document.getElementById(`coin-${i}`);
+        const sceneEl = document.getElementById(`coin-scene-${i}`);
+
+        if (coinEl && sceneEl) {
+          sceneEl.classList.remove('tossing');
+          void sceneEl.offsetWidth; // trigger reflow
+          sceneEl.classList.add('tossing');
+
+          const extraSpins = (Math.floor(Math.random() * 3) + 4) * 360;
+          const targetY = isHeads ? 0 : 180;
+          coinEl.style.transform = `rotateY(${extraSpins + targetY}deg)`;
+        }
+      }
+
+      setTimeout(() => {
+        const resultDisplay = document.getElementById('coinResultDisplay');
+        const ratioDisplay = document.getElementById('coinRatioDisplay');
+
+        if (coinCount === 1) {
+          const isSingleHeads = results[0] === '表';
+          resultDisplay.innerHTML = isSingleHeads 
+            ? '<span class="text-amber-500">表</span> (Heads)' 
+            : '<span class="text-slate-500">裏</span> (Tails)';
+        } else {
+          resultDisplay.innerHTML = `<span>${results.join('・')}</span>`;
+        }
+
+        ratioDisplay.innerText = `表: ${headsCount}枚 / 裏: ${tailsCount}枚`;
+        addHistory('coin', `🪙 コイン (${coinCount}枚): 表 ${headsCount}枚, 裏 ${tailsCount}枚 [${results.join(', ')}]`);
+
+        isFlipping = false;
+        flipBtn.disabled = false;
+        flipBtn.classList.remove('opacity-70');
+      }, 1400);
+    }
+
+    function addHistory(type, text) {
+      const historyList = document.getElementById('historyList');
+      if (historyList.querySelector('span.italic')) {
+        historyList.innerHTML = '';
+      }
+      
+      const item = document.createElement('div');
+      item.className = 'px-2.5 py-1 bg-slate-700/80 rounded-lg text-slate-200 text-[11px] border border-slate-600/50 shadow-sm flex items-center gap-1.5 animate-fadeIn';
+      item.innerText = text;
+      
+      historyList.insertBefore(item, historyList.firstChild);
+
+      // Limit items to 15
+      if (historyList.children.length > 15) {
+        historyList.removeChild(historyList.lastChild);
+      }
+    }
+
+    function clearHistory() {
+      const historyList = document.getElementById('historyList');
+      historyList.innerHTML = '<span class="text-slate-500 italic">まだ履歴がありません</span>';
+    }
+
+    window.addEventListener('keydown', (e) => {
+      if (e.code === 'Space') {
+        e.preventDefault();
+        unlockAudio();
+        if (activeTab === 'dice') {
+          rollAllDice();
+        } else {
+          flipAllCoins();
+        }
+      }
+    });
+
+    window.onload = function() {
+      renderDice();
+      renderCoins();
+      // Initial visual setup without forcing sound before user gesture
+      const diceEl = document.getElementById('dice-0');
+      if (diceEl) {
+        diceEl.style.transform = 'rotateX(0deg) rotateY(0deg)';
+      }
+    };
+  </script>
+</body>
+</html>

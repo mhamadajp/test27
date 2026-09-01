@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>直感理解！標本平均の期待値シミュレーター</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- KaTeX -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+    <style>
+        body { font-family: 'Hiragino Sans', 'Meiryo', sans-serif; background-color: #f1f5f9; }
+        .card { background: white; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
+    </style>
+</head>
+<body class="text-slate-800 pb-12">
+
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-blue-600 to-indigo-700 text-white py-6 px-4 shadow-md mb-8">
+        <div class="max-w-5xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+            <div>
+                <h1 class="text-2xl font-bold flex items-center gap-2">
+                    🎯 標本平均の期待値 $\mathbb{E}[\bar{X}] = \mu$ 超体験シミュレーター
+                </h1>
+                <p class="text-blue-100 text-sm mt-1">
+                    「一部の平均」を何度も集めると「全体の本当の平均」にピッタリ重なる様子を体感しよう！
+                </p>
+            </div>
+            <div class="bg-white/20 backdrop-blur px-4 py-2 rounded-lg text-xs border border-white/30 text-center">
+                初心者向けガイドモード：オン
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-5xl mx-auto px-4 space-y-6">
+
+        <!-- Intuitive Story Metaphor Banner -->
+        <div class="card p-5 bg-amber-50 border border-amber-200 text-amber-900 flex flex-col md:flex-row items-center gap-4">
+            <div class="text-3xl">🍲</div>
+            <div class="text-sm leading-relaxed">
+                <strong class="font-bold text-amber-950">イメージしよう：【スープの味見実験】</strong><br>
+                大鍋に入ったスープ全体の本当の味つけ（塩分）が<strong>母平均 $\mu$</strong> です。
+                お玉でスプーン1杯（標本 $n$ 個）をすくって味わうと、濃かったり薄かったり（<strong>標本平均 $\bar{X}$</strong>）しますが、
+                何十回も味見をして平均を取ると、ぴったり鍋全体の本当の濃さ（<strong>期待値 $\mathbb{E}[\bar{X}]$</strong>）になります！
+            </div>
+        </div>
+
+        <!-- Control Panel -->
+        <div class="card p-6 space-y-6">
+            <h2 class="text-lg font-bold text-slate-800 border-b pb-2 flex items-center gap-2">
+                ⚙️ 実験の設定を選ぼう
+            </h2>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Preset Selection -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-2">1. 調査するテーマ（データの形）</label>
+                    <select id="presetSelect" onchange="changePreset()" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-sm font-medium focus:ring-2 focus:ring-blue-500">
+                        <option value="test_scores">🏫 高校生のテストの点数 (平均50点)</option>
+                        <option value="dice">🎲 サイコロの出目 (平均3.5)</option>
+                        <option value="heights">男 性の身長データ (平均170cm)</option>
+                    </select>
+                </div>
+
+                <!-- Sample Size Slider -->
+                <div>
+                    <div class="flex justify-between items-center mb-2">
+                        <label class="text-xs font-bold text-slate-500">2. 1回で集める人数/個数 ($n$)</label>
+                        <span id="nDisplay" class="text-xs font-bold bg-blue-100 text-blue-700 px-2 py-0.5 rounded">1回につき 5個</span>
+                    </div>
+                    <input type="range" id="sampleSize" min="1" max="50" value="5" oninput="updateN()" class="w-full accent-blue-600">
+                    <p class="text-xs text-slate-400 mt-1">※人数を増やしても「狙い（平均）」は変わりません</p>
+                </div>
+
+                <!-- Buttons -->
+                <div class="flex flex-col justify-end gap-2">
+                    <button onclick="runExperiment(1)" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg text-sm shadow transition">
+                        🧪 1回だけすくって平均を計算
+                    </button>
+                    <div class="flex gap-2">
+                        <button onclick="runExperiment(50)" class="flex-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold py-2 rounded-lg text-xs transition">
+                            ⚡ 50回連続で実験
+                        </button>
+                        <button onclick="resetExperiment()" class="bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold px-3 py-2 rounded-lg text-xs transition">
+                            🔄 リセット
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Result Dashboard -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            
+            <!-- Target Graph -->
+        <div class="card p-5 space-y-3">
+            <div class="flex justify-between items-center border-b pb-2">
+                <h3 class="font-bold text-slate-700 text-sm flex items-center gap-1.5">
+                    <span class="w-3 h-3 rounded-full bg-slate-800"></span>
+                    全体（全員）の分布と「本当の平均 ($\mu$)」
+                </h3>
+                <span class="text-xs font-bold bg-slate-100 text-slate-800 px-2.5 py-1 rounded-full border border-slate-300">
+                    本当の平均 $\mu$ = <span id="trueMuText">50.0</span>
+                </span>
+            </div>
+            <div class="h-56 relative">
+                <canvas id="popChart"></canvas>
+            </div>
+            <p class="text-xs text-slate-500 text-center">
+                目立つ黒い縦線が、神様だけが知っている「全体の本当の平均値 ($\mu$)」です。
+            </p>
+        </div>
+
+        <!-- Sample Mean Distribution Graph -->
+        <div class="card p-5 space-y-3">
+                <div class="flex justify-between items-center border-b pb-2">
+                    <h3 class="font-bold text-slate-700 text-sm flex items-center gap-1.5">
+                        <span class="w-3 h-3 rounded-full bg-rose-500"></span>
+                        全体（全員）の分布と「本当の平均 ($\mu$)」
+                    </h3>
+                    <span class="text-xs font-bold bg-rose-50 text-rose-600 px-2.5 py-1 rounded-full border border-rose-200">
+                        本当の平均 $\mu$ = <span id="trueMuText">50.0</span>
+                    </span>
+                </div>
+                <div class="h-56 relative">
+                    <canvas id="popChart"></canvas>
+                </div>
+                <p class="text-xs text-slate-500 text-center">
+                    赤い点線が、神様だけが知っている「全体の本当の平均値 ($\mu$)」です。
+                </p>
+            </div>
+
+            <!-- Sample Mean Distribution Graph -->
+            <div class="card p-5 space-y-3">
+                <div class="flex justify-between items-center border-b pb-2">
+                    <h3 class="font-bold text-slate-700 text-sm flex items-center gap-1.5">
+                        <span class="w-3 h-3 rounded-full bg-blue-500"></span>
+                        集めた「サンプル平均 ($\bar{X}$)」の積み上がり
+                    </h3>
+                    <span class="text-xs font-bold bg-blue-50 text-blue-700 px-2.5 py-1 rounded-full border border-blue-200">
+                        実験回数: <span id="experimentCount">0</span> 回
+                    </span>
+                </div>
+                <div class="h-56 relative">
+                    <canvas id="sampleChart"></canvas>
+                </div>
+                <p class="text-xs text-slate-500 text-center">
+                    青い山が「たまたますくった平均値たち」です。回数を重ねるとどうなるでしょう？
+                </p>
+            </div>
+
+        </div>
+
+        <!-- Dynamic Live Scorecard -->
+        <div class="card p-6 bg-slate-900 text-white flex flex-col md:flex-row justify-around items-center gap-6 text-center">
+            <div>
+                <div class="text-slate-400 text-xs font-bold mb-1">🎯 目標：全体の本当の平均 ($\mu$)</div>
+                <div class="text-3xl font-extrabold text-rose-400" id="cardTrueMu">50.00</div>
+            </div>
+
+            <div class="text-2xl text-slate-600 hidden md:block">➔</div>
+
+            <div>
+                <div class="text-slate-400 text-xs font-bold mb-1">📊 現在：実験で得た平均の平均 ($\mathbb{E}[\bar{X}]$)</div>
+                <div class="text-3xl font-extrabold text-blue-400" id="cardSampleMean">---</div>
+            </div>
+
+            <div class="border-t md:border-t-0 md:border-l border-slate-700 pt-4 md:pt-0 md:pl-8">
+                <div class="text-slate-400 text-xs font-bold mb-1">✨ ズレ（誤差）</div>
+                <div class="text-2xl font-bold text-emerald-400" id="cardDiff">---</div>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        // Preset Datasets
+        const PRESETS = {
+            test_scores: { name: "テストの点数", mu: 50.0, min: 0, max: 100, step: 5 },
+            dice: { name: "サイコロの出目", mu: 3.5, min: 1, max: 6, step: 0.5 },
+            heights: { name: "男性の身長", mu: 170.0, min: 140, max: 200, step: 2 }
+        };
+
+        let currentPresetKey = 'test_scores';
+        let sampleMeansList = [];
+        let popChartInstance = null;
+        let sampleChartInstance = null;
+
+        // Custom plugin to draw high-contrast line and badge for μ (Population Mean)
+        const muLinePlugin = {
+            id: 'muLine',
+            afterDraw: (chart) => {
+                const pluginOptions = chart.config.options.plugins.muLine;
+                if (!pluginOptions || pluginOptions.mu === undefined) return;
+
+                const mu = pluginOptions.mu;
+                const min = pluginOptions.min;
+                const max = pluginOptions.max;
+
+                const ctx = chart.ctx;
+                const xAxis = chart.scales.x;
+                const yAxis = chart.scales.y;
+
+                if (!xAxis || !yAxis) return;
+
+                // 最小値から最大値までの範囲における μ の相対位置をピクセル変換
+                const xPos = xAxis.left + ((mu - min) / (max - min)) * (xAxis.right - xAxis.left);
+
+                ctx.save();
+                
+                // 1. 下地の白いフチ線（太めのコントラスト強調）
+                ctx.beginPath();
+                ctx.setLineDash([8, 5]);
+                ctx.lineWidth = 8;
+                ctx.strokeStyle = '#ffffff';
+                ctx.moveTo(xPos, yAxis.top - 2);
+                ctx.lineTo(xPos, yAxis.bottom);
+                ctx.stroke();
+
+                // 2. メインの太くクッキリした黒い破線
+                ctx.beginPath();
+                ctx.setLineDash([8, 5]);
+                ctx.lineWidth = 4;
+                ctx.strokeStyle = '#0f172a'; // Slate-900
+                ctx.moveTo(xPos, yAxis.top - 2);
+                ctx.lineTo(xPos, yAxis.bottom);
+                ctx.stroke();
+
+                // 3. 上部の吹き出し風「バッジ」タグ
+                ctx.setLineDash([]);
+                const text = `母平均 μ = ${mu}`;
+                ctx.font = 'bold 13px sans-serif';
+                const textWidth = ctx.measureText(text).width;
+                const paddingX = 12;
+                const badgeWidth = textWidth + paddingX * 2;
+                const badgeHeight = 24;
+                const badgeX = xPos - badgeWidth / 2;
+                const badgeY = yAxis.top - 27;
+
+                // バッジ影
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.2)';
+                ctx.shadowBlur = 5;
+                ctx.shadowOffsetY = 2;
+
+                // バッジ背景 (黒地)
+                ctx.fillStyle = '#0f172a';
+                ctx.beginPath();
+                if (ctx.roundRect) {
+                    ctx.roundRect(badgeX, badgeY, badgeWidth, badgeHeight, 6);
+                } else {
+                    ctx.rect(badgeX, badgeY, badgeWidth, badgeHeight);
+                }
+                ctx.fill();
+
+                // 影をリセットして文字描画
+                ctx.shadowColor = 'transparent';
+                ctx.fillStyle = '#ffffff'; // 白文字
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(text, xPos, badgeY + badgeHeight / 2 + 1);
+
+                ctx.restore();
+            }
+        };
+
+        Chart.register(muLinePlugin);
+
+        document.addEventListener("DOMContentLoaded", function() {
+            renderMathInElement(document.body, {
+                delimiters: [
+                    {left: "$$", right: "$$", display: true},
+                    {left: "$", right: "$", display: false}
+                ]
+            });
+            initCharts();
+        });
+
+        function changePreset() {
+            currentPresetKey = document.getElementById('presetSelect').value;
+            resetExperiment();
+        }
+
+        function updateN() {
+            const n = document.getElementById('sampleSize').value;
+            document.getElementById('nDisplay').innerText = `1回につき ${n}個`;
+            resetExperiment();
+        }
+
+        function resetExperiment() {
+            sampleMeansList = [];
+            document.getElementById('experimentCount').innerText = "0";
+            document.getElementById('cardSampleMean').innerText = "---";
+            document.getElementById('cardDiff').innerText = "---";
+            
+            const preset = PRESETS[currentPresetKey];
+            document.getElementById('trueMuText').innerText = preset.mu.toFixed(1);
+            document.getElementById('cardTrueMu').innerText = preset.mu.toFixed(2);
+
+            initCharts();
+        }
+
+        // Generate synthetic population sample
+        function getRandomValue(presetKey) {
+            if (presetKey === 'dice') {
+                return Math.floor(Math.random() * 6) + 1;
+            } else if (presetKey === 'test_scores') {
+                // Normal dist centered around 50
+                let u1 = Math.random(), u2 = Math.random();
+                let rand = Math.sqrt(-2.0 * Math.log(u1)) * Math.cos(2.0 * Math.PI * u2) * 15 + 50;
+                return Math.max(0, Math.min(100, rand));
+            } else if (presetKey === 'heights') {
+                let u1 = Math.random(), u2 = Math.random();
+                let rand = Math.sqrt(-2.0 * Math.log(u1)) * Math.cos(2.0 * Math.PI * u2) * 6 + 170;
+                return Math.max(140, Math.min(200, rand));
+            }
+        }
+
+        function runExperiment(times) {
+            const n = parseInt(document.getElementById('sampleSize').value);
+
+            for (let t = 0; t < times; t++) {
+                let sum = 0;
+                for (let i = 0; i < n; i++) {
+                    sum += getRandomValue(currentPresetKey);
+                }
+                sampleMeansList.push(sum / n);
+            }
+
+            updateUI();
+        }
+
+        function updateUI() {
+            const preset = PRESETS[currentPresetKey];
+            document.getElementById('experimentCount').innerText = sampleMeansList.length;
+
+            if (sampleMeansList.length > 0) {
+                const avgOfMeans = sampleMeansList.reduce((a, b) => a + b, 0) / sampleMeansList.length;
+                const diff = Math.abs(avgOfMeans - preset.mu);
+
+                document.getElementById('cardSampleMean').innerText = avgOfMeans.toFixed(2);
+                document.getElementById('cardDiff').innerText = diff < 0.05 ? "ほぼ0！ (完全一致)" : diff.toFixed(2);
+            }
+
+            updateSampleChart();
+        }
+
+        function initCharts() {
+            const preset = PRESETS[currentPresetKey];
+
+            // Render Population Chart
+            const popCtx = document.getElementById('popChart').getContext('2d');
+            if (popChartInstance) popChartInstance.destroy();
+
+            const binCount = 20;
+            const step = (preset.max - preset.min) / binCount;
+            const labels = [];
+            const popData = [];
+
+            for (let i = 0; i < binCount; i++) {
+                const binCenter = preset.min + (i + 0.5) * step;
+                labels.push(binCenter.toFixed(1));
+                
+                // Population density shape
+                let density = 0;
+                if (currentPresetKey === 'dice') {
+                    density = 50;
+                } else if (currentPresetKey === 'test_scores') {
+                    density = 100 * Math.exp(-0.5 * Math.pow((binCenter - 50) / 15, 2));
+                } else if (currentPresetKey === 'heights') {
+                    density = 100 * Math.exp(-0.5 * Math.pow((binCenter - 170) / 6, 2));
+                }
+                popData.push(density);
+            }
+
+            popChartInstance = new Chart(popCtx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: '全体の分布イメージ',
+                        data: popData,
+                        backgroundColor: 'rgba(244, 63, 94, 0.3)',
+                        borderColor: 'rgba(244, 63, 94, 0.8)',
+                        borderWidth: 1,
+                        barPercentage: 1.0,
+                        categoryPercentage: 1.0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    layout: {
+                        padding: { top: 25 }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        muLine: {
+                            mu: preset.mu,
+                            min: preset.min,
+                            max: preset.max,
+                            binCount: binCount
+                        }
+                    },
+                    scales: {
+                        x: { display: true, ticks: { maxTicksLimit: 6 } },
+                        y: { display: false }
+                    }
+                }
+            });
+
+            updateSampleChart();
+        }
+
+        function updateSampleChart() {
+            const preset = PRESETS[currentPresetKey];
+            const sampleCtx = document.getElementById('sampleChart').getContext('2d');
+
+            const binCount = 20;
+            const step = (preset.max - preset.min) / binCount;
+            const bins = new Array(binCount).fill(0);
+            const labels = [];
+
+            for (let i = 0; i < binCount; i++) {
+                labels.push((preset.min + (i + 0.5) * step).toFixed(1));
+            }
+
+            sampleMeansList.forEach(val => {
+                let idx = Math.floor((val - preset.min) / step);
+                if (idx < 0) idx = 0;
+                if (idx >= binCount) idx = binCount - 1;
+                bins[idx]++;
+            });
+
+            if (sampleChartInstance) sampleChartInstance.destroy();
+
+            sampleChartInstance = new Chart(sampleCtx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: '標本平均の頻度',
+                        data: bins,
+                        backgroundColor: 'rgba(59, 130, 246, 0.7)',
+                        borderColor: 'rgba(29, 78, 216, 1)',
+                        borderWidth: 1,
+                        barPercentage: 1.0,
+                        categoryPercentage: 1.0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    layout: {
+                        padding: { top: 25 }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        muLine: {
+                            mu: preset.mu,
+                            min: preset.min,
+                            max: preset.max,
+                            binCount: binCount
+                        }
+                    },
+                    scales: {
+                        x: { title: { display: true, text: '計算された平均値 (X̄)' }, ticks: { maxTicksLimit: 6 } },
+                        y: { display: false }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>

@@ -10,9 +10,13 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Canvas Confetti -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- KaTeX for Beautiful Math Formula Rendering -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+JP:wght@400;500;700;900&family=Fira+Code:wght@500;600&display=swap" rel="stylesheet">
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -111,6 +115,10 @@
         }
         ::-webkit-scrollbar-thumb:hover {
             background: #64748b;
+        }
+
+        .katex-display {
+            margin: 0.25em 0 !important;
         }
     </style>
 </head>
@@ -221,7 +229,7 @@
                             <i class="fa-solid fa-triangle-exclamation text-amber-400"></i> 数Ⅰ・A ここで差がつく！
                         </div>
                         <p id="single-math-hint">
-                            サイコロの目で<strong>「素数」</strong>と言われた場合、<strong class="text-rose-400">1は素数に含まれません</strong>。素数は $\{2, 3, 5\}$ の 3 通り（確率 $3/6 = 1/2$）となる点に注意しましょう！
+                            サイコロの目で<strong>「素数」</strong>と言われた場合、<strong class="text-rose-400">1は素数に含まれません</strong>。素数は $\{2, 3, 5\}$ の 3 通り（確率 $\frac{3}{6} = \frac{1}{2}$）となる点に注意しましょう！
                         </p>
                     </div>
                 </div>
@@ -258,7 +266,7 @@
                                         <div class="dice-face face-2"><span class="dot"></span><span class="dot"></span></div>
                                         <div class="dice-face face-3"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
                                         <div class="dice-face face-4"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
-                                        <div class="dice-face face-5"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+                                        <div class="dice-face face-5"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
                                         <div class="dice-face face-6"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
                                     </div>
                                 </div>
@@ -279,7 +287,7 @@
                     <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex items-center justify-between text-xs text-slate-300 font-mono">
                         <div class="flex items-center gap-2">
                             <span class="text-indigo-400 font-bold">集合表記:</span>
-                            <span id="single-set-notation" class="text-slate-100 bg-slate-800 px-2 py-1 rounded">A = {2, 4, 6}</span>
+                            <span id="single-set-notation" class="text-slate-100 bg-slate-800 px-2 py-1 rounded">A = \{2, 4, 6\}</span>
                         </div>
                         <div>
                             <span>根元事象数: <strong id="single-elem-count" class="text-indigo-400 font-bold">n(A) = 3</strong> / n(U) = 6</span>
@@ -319,7 +327,6 @@
                                     <option value="even_both">両方とも偶数</option>
                                     <option value="at_least_one_even">少なくとも1つが偶数</option>
                                     <option value="prime_sum">目の和が素数 (2, 3, 5, 7, 11)</option>
-                                    <option value="custom">カスタム条件指定...</option>
                                 </select>
                             </div>
 
@@ -677,6 +684,19 @@
         let currentProblemIdx = 0;
         let manualSingleSelected = new Set([2, 4, 6]);
 
+        // Helper to render math formulas
+        function renderMath(element = document.body) {
+            if (window.renderMathInElement) {
+                renderMathInElement(element, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false}
+                    ],
+                    throwOnError: false
+                });
+            }
+        }
+
         // Problem Definitions for Tab 3
         const problems = [
             {
@@ -766,6 +786,7 @@
             if (tabKey === 'sim' && !simChartInstance) {
                 initSimChart();
             }
+            renderMath(document.getElementById(`tab-${tabKey}`));
         }
 
         function isPrime(num) {
@@ -813,31 +834,31 @@
             if (mode === 'even') {
                 subControl.classList.add('hidden');
                 matchedSet = new Set([2, 4, 6]);
-                mathHint.innerHTML = `偶数の目は $\{2, 4, 6\}$ の 3 通りです。確率 $P = \\frac{3}{6} = \\frac{1}{2}$。`;
+                mathHint.innerHTML = `偶数の目は $\\{2, 4, 6\\}$ の 3 通りです。確率 $P = \\frac{3}{6} = \\frac{1}{2}$。`;
             } else if (mode === 'odd') {
                 subControl.classList.add('hidden');
                 matchedSet = new Set([1, 3, 5]);
-                mathHint.innerHTML = `奇数の目は $\{1, 3, 5\}$ の 3 通りです。確率 $P = \\frac{3}{6} = \\frac{1}{2}$。`;
+                mathHint.innerHTML = `奇数の目は $\\{1, 3, 5\\}$ の 3 通りです。確率 $P = \\frac{3}{6} = \\frac{1}{2}$。`;
             } else if (mode === 'prime') {
                 subControl.classList.add('hidden');
                 matchedSet = new Set([2, 3, 5]);
-                mathHint.innerHTML = `サイコロの目で<strong>「素数」</strong>は <strong class="text-rose-400">\{2, 3, 5\} の3通り</strong>です（1は素数に含まれないのが数Ⅰ・Aの頻出ひっかけポイントです！）。`;
+                mathHint.innerHTML = `サイコロの目で<strong>「素数」</strong>は <strong class="text-rose-400">\\{2, 3, 5\\} の3通り</strong>です（1は素数に含まれないのが数Ⅰ・Aの頻出ひっかけポイントです！）。`;
             } else if (mode === 'mult3') {
                 subControl.classList.add('hidden');
                 matchedSet = new Set([3, 6]);
-                mathHint.innerHTML = `3の倍数は $\{3, 6\}$ の 2 通りです。確率 $P = \\frac{2}{6} = \\frac{1}{3}$。`;
+                mathHint.innerHTML = `3の倍数は $\\{3, 6\\}$ の 2 通りです。確率 $P = \\frac{2}{6} = \\frac{1}{3}$。`;
             } else if (mode === 'gte') {
                 subControl.classList.remove('hidden');
                 subLabel.innerText = "基準値 k (以上):";
                 subValDisplay.innerText = `${kVal} 以上`;
                 for (let i = kVal; i <= 6; i++) matchedSet.add(i);
-                mathHint.innerHTML = `出た目が $${kVal}$ 以上となる事象は $\{${Array.from(matchedSet).join(', ')}\}$ の ${matchedSet.size} 通りです。`;
+                mathHint.innerHTML = `出た目が $${kVal}$ 以上となる事象は $\\{${Array.from(matchedSet).join(', ')}\\}$ の ${matchedSet.size} 通りです。`;
             } else if (mode === 'lte') {
                 subControl.classList.remove('hidden');
                 subLabel.innerText = "基準値 k (以下):";
                 subValDisplay.innerText = `${kVal} 以下`;
                 for (let i = 1; i <= kVal; i++) matchedSet.add(i);
-                mathHint.innerHTML = `出た目が $${kVal}$ 以下となる事象は $\{${Array.from(matchedSet).join(', ')}\}$ の ${matchedSet.size} 通りです。`;
+                mathHint.innerHTML = `出た目が $${kVal}$ 以下となる事象は $\\{${Array.from(matchedSet).join(', ')}\\}$ の ${matchedSet.size} 通りです。`;
             } else if (mode === 'exact') {
                 subControl.classList.remove('hidden');
                 subLabel.innerText = "特定の目:";
@@ -848,6 +869,7 @@
 
             manualSingleSelected = matchedSet;
             applySingleSelectionToCards();
+            renderMath(mathHint);
         }
 
         function toggleSingleCard(val) {
@@ -895,7 +917,7 @@
 
             // Set notation display
             const sortedArray = Array.from(manualSingleSelected).sort((a,b) => a - b);
-            const setString = sortedArray.length > 0 ? `{ ${sortedArray.join(', ')} }` : '∅ (空集合)';
+            const setString = sortedArray.length > 0 ? `{ ${sortedArray.join(', ')} }` : '∅';
             document.getElementById('single-set-notation').innerText = `A = ${setString}`;
             document.getElementById('single-elem-count').innerText = `n(A) = ${matchCount}`;
         }
@@ -1024,7 +1046,7 @@
                 } else if (mode === 'prime_sum') {
                     mathHint.innerHTML = `和が素数 (2, 3, 5, 7, 11) になる場合の数です。2個のサイコロで13以上の素数は作れません。`;
                 } else if (mode === 'at_least_one_even') {
-                    mathHint.innerHTML = `「少なくとも1個偶数」の余事象は「両方とも奇数」です。全36通りから両方奇数の9通りを引いて $36 - 9 = 27$ 通り ($\frac{3}{4}$) となります。`;
+                    mathHint.innerHTML = `「少なくとも1個偶数」の余事象は「両方とも奇数」です。全36通りから両方奇数の9通りを引いて $36 - 9 = 27$ 通り ($\\frac{3}{4}$) となります。`;
                 }
             }
 
@@ -1106,6 +1128,8 @@
             const compCount = 36 - matchCount;
             const compDiv = gcd(compCount, 36);
             document.getElementById('prob-complement').innerText = `${compCount}/36 (= ${compCount/compDiv}/${36/compDiv})`;
+
+            renderMath(mathHint);
         }
 
         function selectGridCell(r, c) {
@@ -1122,8 +1146,8 @@
                     <div class="dice-face face-1"><span class="dot red"></span></div>
                     <div class="dice-face face-2"><span class="dot"></span><span class="dot"></span></div>
                     <div class="dice-face face-3"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
-                    <div class="dice-face face-4"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
-                    <div class="dice-face face-5"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+                    <div class="dice-face face-4"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+                    <div class="dice-face face-5"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
                     <div class="dice-face face-6"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
                 </div>
                 <span id="${id}-label" class="text-xs font-mono font-bold text-indigo-300">--</span>
@@ -1401,7 +1425,8 @@
                     <h3 class="font-bold text-base text-white mt-0.5">${prob.title}</h3>
                 </div>
                 <div class="p-3 bg-slate-900 rounded-xl border border-indigo-500/20 mb-4 font-mono text-xs text-indigo-300">
-                    公式・考え方: ${prob.formula}
+                    <div class="text-[11px] text-slate-400 mb-1">【公式・考え方】</div>
+                    <div class="text-sm font-bold text-indigo-200">$$${prob.formula}$$</div>
                 </div>
                 <div class="text-xs font-semibold text-slate-400 mb-2">【ステップ解説】</div>
                 <ul class="space-y-2.5 mb-2">
@@ -1418,6 +1443,8 @@
             document.getElementById('verify-error').innerText = '--';
             document.getElementById('verify-accuracy-text').innerText = '0%';
             document.getElementById('verify-progress-bar').style.width = '0%';
+
+            renderMath(box);
         }
 
         function runProblemVerification(numTrials) {
@@ -1466,6 +1493,7 @@
             updateGridAnalysis();
             setDiceCount(2);
             selectProblem(0);
+            renderMath(document.body);
         };
     </script>
 </body>

@@ -1,0 +1,1128 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>角の二等分線「比を生む線」インタラクティブ探究シミュレータ</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&family=KaTeX_Math:ital,wght@1,400&display=swap');
+    body {
+      font-family: 'Noto Sans JP', 'Inter', sans-serif;
+    }
+    .math-font {
+      font-family: 'KaTeX_Math', 'Times New Roman', serif;
+      font-style: italic;
+    }
+    /* カスタムスクロールバー */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col">
+
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-3">
+      <div class="flex items-center space-x-3">
+        <div class="bg-indigo-600 text-white w-10 h-10 rounded-xl flex items-center justify-center font-bold text-lg shadow-md shadow-indigo-100">
+          <i class="fa-solid fa-shapes"></i>
+        </div>
+        <div>
+          <h1 class="font-bold text-slate-800 text-base sm:text-lg flex items-center gap-2">
+            角の二等分線「比を生む線」シミュレータ
+            <span class="text-xs font-normal bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full">インタラクティブ探究</span>
+          </h1>
+          <p class="text-xs text-slate-500">「角が半分」から「距離が等しい」→「面積比＝辺の比」へ</p>
+        </div>
+      </div>
+
+      <!-- モード切り替えタブ -->
+      <div class="flex bg-slate-100 p-1 rounded-xl border border-slate-200 text-xs sm:text-sm">
+        <button id="tab-explore" class="tab-btn px-3 py-1.5 rounded-lg font-medium transition-all bg-white text-indigo-600 shadow-sm" onclick="switchMode('explore')">
+          <i class="fa-solid fa-compass mr-1.5"></i>定理の仕組み (面積比)
+        </button>
+        <button id="tab-interior" class="tab-btn px-3 py-1.5 rounded-lg font-medium transition-all text-slate-600 hover:text-slate-900" onclick="switchMode('interior')">
+          <i class="fa-solid fa-arrow-down-short-wide mr-1.5"></i>内角 (和で求める)
+        </button>
+        <button id="tab-exterior" class="tab-btn px-3 py-1.5 rounded-lg font-medium transition-all text-slate-600 hover:text-slate-900" onclick="switchMode('exterior')">
+          <i class="fa-solid fa-arrow-up-right-from-square mr-1.5"></i>外角 (差で求める)
+        </button>
+        <button id="tab-problems" class="tab-btn px-3 py-1.5 rounded-lg font-medium transition-all text-slate-600 hover:text-slate-900" onclick="switchMode('problems')">
+          <i class="fa-solid fa-graduation-cap mr-1.5"></i>練習問題 ＆ チェック
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="flex-1 max-w-7xl w-full mx-auto p-3 sm:p-4 grid grid-cols-1 lg:grid-cols-12 gap-4">
+    
+    <!-- 左側: インタラクティブ幾何キャンバスエリア (7列) -->
+    <div class="lg:col-span-7 flex flex-col gap-3">
+      <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 flex flex-col flex-1 relative">
+        
+        <!-- キャンバストップバー: プリセット・リセット -->
+        <div class="flex flex-wrap justify-between items-center pb-3 mb-2 border-b border-slate-100 gap-2">
+          <div class="flex items-center gap-1.5">
+            <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">形を変える:</span>
+            <button onclick="applyPreset('skewed')" class="text-xs px-2.5 py-1 rounded-md bg-slate-100 hover:bg-slate-200 font-medium text-slate-700 transition">
+              不等辺三角形
+            </button>
+            <button onclick="applyPreset('prob1')" class="text-xs px-2.5 py-1 rounded-md bg-amber-50 hover:bg-amber-100 text-amber-800 font-medium transition">
+              例題1 (4:7)
+            </button>
+            <button onclick="applyPreset('prob2')" class="text-xs px-2.5 py-1 rounded-md bg-blue-50 hover:bg-blue-100 text-blue-800 font-medium transition">
+              例題2 (3:4:5直角)
+            </button>
+            <button onclick="applyPreset('isosceles')" class="text-xs px-2.5 py-1 rounded-md bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-medium transition">
+              二等辺 (AB=AC)
+            </button>
+          </div>
+          <button onclick="resetTriangle()" class="text-xs text-slate-500 hover:text-indigo-600 flex items-center gap-1">
+            <i class="fa-solid fa-rotate-left"></i> 元に戻す
+          </button>
+        </div>
+
+        <!-- 幾何キャンバス本体 -->
+        <div class="relative w-full h-[380px] sm:h-[440px] bg-slate-50/70 rounded-xl overflow-hidden border border-slate-100 flex items-center justify-center select-none" id="canvas-container">
+          <svg id="geom-svg" class="w-full h-full cursor-crosshair">
+            <defs>
+              <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+                <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#e2e8f0" stroke-width="0.75" />
+              </pattern>
+              <!-- 矢印マーカー -->
+              <marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b" />
+              </marker>
+              <marker id="arrow-blue" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#2563eb" />
+              </marker>
+              <marker id="arrow-emerald" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#059669" />
+              </marker>
+            </defs>
+
+            <!-- グリッド背景 -->
+            <rect width="100%" height="100%" fill="url(#grid)" />
+
+            <!-- レイヤー群 -->
+            <g id="layer-regions"></g>
+            <g id="layer-construction"></g>
+            <g id="layer-triangle"></g>
+            <g id="layer-angles"></g>
+            <g id="layer-perpendiculars"></g>
+            <g id="layer-labels"></g>
+            <g id="layer-points"></g>
+          </svg>
+
+          <!-- ドラッグ案内オーバーレイ -->
+          <div class="absolute bottom-2 left-2 pointer-events-none bg-white/80 backdrop-blur-sm px-2.5 py-1 rounded-md text-[11px] text-slate-500 border border-slate-200/60 flex items-center gap-1.5">
+            <i class="fa-solid fa-hand-pointer text-indigo-500 animate-pulse"></i>
+            頂点 <span class="font-bold text-slate-700">A</span>, <span class="font-bold text-slate-700">B</span>, <span class="font-bold text-slate-700">C</span> をドラッグして形を自由に変えられます
+          </div>
+
+          <!-- 特別アラート（二等辺三角形時の外角二等分線平行など） -->
+          <div id="parallel-alert" class="hidden absolute top-3 bg-amber-500/90 backdrop-blur-sm text-white text-xs px-3 py-1.5 rounded-lg shadow-lg font-medium flex items-center gap-2">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            <span>AB = AC のため外角の二等分線は直線BCと平行になり、有限の交点Qは存在しません（1:1の外分点なし）！</span>
+          </div>
+        </div>
+
+        <div class="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 border-t border-slate-100 text-xs">
+          <label class="flex items-center gap-2 cursor-pointer text-slate-600 select-none hover:text-indigo-600">
+            <input type="checkbox" id="toggle-perp" checked class="rounded text-indigo-600 focus:ring-indigo-500">
+            <span>垂直距離 (DE, DF)</span>
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer text-slate-600 select-none hover:text-indigo-600">
+            <input type="checkbox" id="toggle-height-a" checked class="rounded text-indigo-600 focus:ring-indigo-500">
+            <span>Aからの共通の高さ</span>
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer text-slate-600 select-none hover:text-indigo-600">
+            <input type="checkbox" id="toggle-areas" checked class="rounded text-indigo-600 focus:ring-indigo-500">
+            <span>三角形の面積色分け</span>
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer text-slate-600 select-none hover:text-indigo-600">
+            <input type="checkbox" id="toggle-exterior" class="rounded text-indigo-600 focus:ring-indigo-500">
+            <span>外角の二等分線 (点Q)</span>
+          </label>
+        </div>
+
+      </div>
+
+      <!-- リアルタイム測定値バー -->
+      <div class="bg-white rounded-xl p-3 border border-slate-200 shadow-sm flex flex-wrap items-center justify-between text-xs sm:text-sm gap-2">
+        <div class="flex items-center gap-3">
+          <div class="flex items-center gap-1">
+            <span class="font-bold text-blue-600 math-font">AB</span> = <span id="val-ab" class="font-mono font-semibold">5.0</span>
+          </div>
+          <span class="text-slate-300">|</span>
+          <div class="flex items-center gap-1">
+            <span class="font-bold text-emerald-600 math-font">AC</span> = <span id="val-ac" class="font-mono font-semibold">3.0</span>
+          </div>
+          <span class="text-slate-300">|</span>
+          <div class="flex items-center gap-1">
+            <span class="font-bold text-slate-700 math-font">BC</span> = <span id="val-bc" class="font-mono font-semibold">4.0</span>
+          </div>
+        </div>
+        <div class="flex items-center gap-3 bg-slate-50 px-3 py-1 rounded-lg border border-slate-100">
+          <div class="flex items-center gap-1">
+            <span class="text-slate-500">辺の比</span> <span class="font-mono font-bold text-indigo-700" id="val-ratio-ab-ac">5 : 3</span>
+          </div>
+          <span class="text-slate-300">=</span>
+          <div class="flex items-center gap-1">
+            <span class="text-slate-500">底辺の比</span> <span class="font-mono font-bold text-amber-700" id="val-ratio-bd-dc">5 : 3</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="lg:col-span-5 flex flex-col gap-3">
+      
+      <!-- MODE 1: 本質の発見 (面積比・因果の鎖) -->
+      <div id="panel-explore" class="mode-panel bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-slate-200 flex flex-col gap-4">
+        <div class="flex items-center justify-between border-b pb-2.5">
+          <h2 class="font-bold text-slate-800 text-base flex items-center gap-2">
+            <span class="w-6 h-6 rounded-md bg-indigo-100 text-indigo-700 flex items-center justify-center text-xs">1</span>
+            なぜ「角」を分けると「辺の比」が生まれるのか？
+          </h2>
+          <span class="text-xs bg-emerald-100 text-emerald-800 font-medium px-2 py-0.5 rounded-full">基本原理</span>
+        </div>
+
+        <!-- 問いかけボックス -->
+        <div class="bg-amber-50 border-l-4 border-amber-400 p-3 rounded-r-lg text-xs leading-relaxed text-amber-900">
+          <strong class="font-bold flex items-center gap-1 mb-1">
+            <i class="fa-solid fa-lightbulb"></i> 考えてみよう：角が半分なら、向かいの辺も半分？
+          </strong>
+          図の頂点Aを左右に大きく動かしてみてください。<br>
+          <span class="font-medium text-slate-700">「角が半分」だからといって、向かいの辺が真ん中（中点）で分かれるとは限りません！</span><br>
+          では、なぜ二等分線は <span class="font-bold text-indigo-700 math-font">AB : AC</span> という比をつくり出すのでしょうか？
+        </div>
+
+        <!-- 因果のステップ解説アコーディオン / ビジュアル -->
+        <div class="space-y-3 text-xs">
+          
+          <!-- ステップ1: 距離の等しさ -->
+          <div class="p-3 rounded-xl border border-slate-200 bg-slate-50/60 hover:bg-slate-50 transition">
+            <div class="flex items-center justify-between font-semibold text-slate-800 mb-1">
+              <span class="flex items-center gap-1.5">
+                <span class="w-4 h-4 rounded-full bg-slate-700 text-white flex items-center justify-center text-[10px]">①</span>
+                角の等しさ → 垂直距離の等しさ
+              </span>
+              <span class="text-indigo-600 font-mono text-[11px]">DE = DF</span>
+            </div>
+            <p class="text-slate-600 mb-2">
+              直角三角形 <span class="math-font">△ADE</span> と <span class="math-font">△ADF</span> は斜辺 <span class="math-font">AD</span> を共有し、角が等しいため<strong>合同</strong>です。
+              したがって、二等分線上の点 <span class="math-font">D</span> から両辺への距離（垂線）は常に等しくなります。
+            </p>
+            <div class="flex items-center justify-center bg-white p-2 rounded-lg border border-slate-200 font-mono text-xs">
+              垂線 <span class="font-bold text-blue-600 mx-1">DE</span> = <span id="val-de" class="font-bold">2.12</span>
+              <span class="mx-2 text-slate-300">==</span>
+              垂線 <span class="font-bold text-emerald-600 mx-1">DF</span> = <span id="val-df" class="font-bold">2.12</span>
+            </div>
+          </div>
+
+          <!-- ステップ2: 2通りの面積比 -->
+          <div class="p-3 rounded-xl border-2 border-indigo-200 bg-indigo-50/40">
+            <div class="font-semibold text-indigo-950 mb-1 flex items-center gap-1.5">
+              <span class="w-4 h-4 rounded-full bg-indigo-600 text-white flex items-center justify-center text-[10px]">②</span>
+              同じ2つの三角形の面積比を「2回読む」
+            </div>
+            <p class="text-slate-700 mb-2">
+              <span class="math-font text-blue-700 font-bold">△ABD</span> と <span class="math-font text-emerald-700 font-bold">△ACD</span> の面積比を、2つの異なる「底辺」と「高さ」で表現します：
+            </p>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 my-2">
+              <div class="bg-white p-2.5 rounded-lg border border-indigo-100 shadow-2xs">
+                <div class="font-bold text-indigo-800 text-[11px] mb-1">【見方 A】底辺を AB, AC と見る</div>
+                <div class="text-[11px] text-slate-600">
+                  高さは共通の垂線 <span class="font-mono text-indigo-600">DE = DF</span>。<br>
+                  高さが等しいので面積比は底辺比！
+                </div>
+                <div class="mt-1 font-mono font-bold text-center text-indigo-900 bg-indigo-50/80 py-1 rounded">
+                  △ABD : △ACD = AB : AC
+                </div>
+              </div>
+
+              <div class="bg-white p-2.5 rounded-lg border border-amber-100 shadow-2xs">
+                <div class="font-bold text-amber-800 text-[11px] mb-1">【見方 B】底辺を BD, DC と見る</div>
+                <div class="text-[11px] text-slate-600">
+                  高さは頂点Aから直線BCへの共通の垂線 <span class="font-mono text-amber-600">AH</span>。<br>
+                  高さが共通なので面積比は底辺比！
+                </div>
+                <div class="mt-1 font-mono font-bold text-center text-amber-900 bg-amber-50/80 py-1 rounded">
+                  △ABD : △ACD = BD : DC
+                </div>
+              </div>
+            </div>
+
+            <div class="bg-indigo-900 text-white p-2.5 rounded-lg text-center font-bold text-xs mt-2 shadow-sm">
+              同じ面積比をイコールで結ぶと…<br>
+              <span class="text-sm font-mono text-amber-300">BD : DC = AB : AC</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div id="panel-interior" class="mode-panel hidden bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-slate-200 flex flex-col gap-4">
+        <div class="flex items-center justify-between border-b pb-2.5">
+          <h2 class="font-bold text-slate-800 text-base flex items-center gap-2">
+            <span class="w-6 h-6 rounded-md bg-blue-100 text-blue-700 flex items-center justify-center text-xs">2</span>
+            内角の二等分線：内分を「比 ＋ 和」で解く
+          </h2>
+          <span class="text-xs bg-blue-100 text-blue-800 font-medium px-2 py-0.5 rounded-full">全体＝和</span>
+        </div>
+
+        <p class="text-xs text-slate-600 leading-relaxed">
+          辺BCの上にある点 <span class="math-font font-bold">D (またはP)</span> は、BCを <span class="font-bold text-blue-600 math-font">AB : AC</span> に内分します。
+          全体である <span class="font-bold text-slate-800 math-font">BC</span> は、2つの比の量の<strong>「和」</strong>に対応します。
+        </p>
+
+        <!-- 線分バー可視化 -->
+        <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 flex flex-col gap-2">
+          <div class="flex justify-between text-xs font-semibold text-slate-700">
+            <span>線分 BC の分割ビジュアル（テープ図）</span>
+            <span class="text-slate-500 font-mono">BC = <span id="tape-bc-val">4.0</span></span>
+          </div>
+
+          <!-- バー本体 -->
+          <div class="h-8 w-full flex rounded-lg overflow-hidden border border-slate-300 font-mono text-xs font-bold text-white shadow-inner">
+            <div id="tape-bd" class="bg-blue-600 flex items-center justify-center transition-all duration-200 relative group" style="width: 62.5%;">
+              <span class="truncate px-1">BD: <span id="tape-bd-text">2.5</span></span>
+            </div>
+            <div id="tape-dc" class="bg-emerald-600 flex items-center justify-center transition-all duration-200 relative group" style="width: 37.5%;">
+              <span class="truncate px-1">DC: <span id="tape-dc-text">1.5</span></span>
+            </div>
+          </div>
+
+          <div class="flex justify-between text-[11px] text-slate-500 px-1">
+            <span class="text-blue-700 font-medium">B側: <span id="tape-bd-ratio">5</span> 個分</span>
+            <span class="font-bold text-slate-700">全体 = <span id="tape-sum-ratio">8</span> 個分</span>
+            <span class="text-emerald-700 font-medium">C側: <span id="tape-dc-ratio">3</span> 個分</span>
+          </div>
+        </div>
+
+        <!-- 思考ステップ: k倍モデル -->
+        <div class="bg-blue-50/60 p-3 rounded-xl border border-blue-100 text-xs space-y-2">
+          <div class="font-bold text-blue-900">
+            <i class="fa-solid fa-calculator mr-1"></i> 比例定数 <span class="math-font">k</span> を用いた明快な立式
+          </div>
+          <p class="text-slate-700">
+            比が <span class="font-mono font-bold text-blue-700" id="k-ratio-str">5 : 3</span> のとき、実際の長さを 
+            <span class="font-mono font-semibold">BD = <span id="k-bd-str">5</span>k</span>, 
+            <span class="font-mono font-semibold">DC = <span id="k-dc-str">3</span>k</span> と置く。
+          </p>
+          <div class="bg-white p-2.5 rounded-lg border border-blue-200 font-mono text-slate-800 space-y-1">
+            <div>全体: <span id="k-sum-str">5k + 3k = 8k</span> = BC (<span id="k-bc-str">4.0</span>)</div>
+            <div>1個分: <span class="font-bold text-indigo-600">k = <span id="k-val-str">0.5</span></span></div>
+            <div class="pt-1 border-t border-slate-100 font-bold flex justify-between">
+              <span class="text-blue-600">BD = <span id="k-ans-bd">2.5</span></span>
+              <span class="text-emerald-600">DC = <span id="k-ans-dc">1.5</span></span>
+            </div>
+          </div>
+          <div class="text-[11px] text-slate-500">
+            ✓ <strong>検算:</strong> BD + DC = <span id="k-check-sum">4.0</span> (一致) / BD : DC = <span id="k-check-ratio">5 : 3</span>
+          </div>
+        </div>
+
+      </div>
+
+      <div id="panel-exterior" class="mode-panel hidden bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-slate-200 flex flex-col gap-4">
+        <div class="flex items-center justify-between border-b pb-2.5">
+          <h2 class="font-bold text-slate-800 text-base flex items-center gap-2">
+            <span class="w-6 h-6 rounded-md bg-purple-100 text-purple-700 flex items-center justify-center text-xs">3</span>
+            外角の二等分線：外分を「比 ＋ 差」で解く
+          </h2>
+          <span class="text-xs bg-purple-100 text-purple-800 font-medium px-2 py-0.5 rounded-full">全体＝差</span>
+        </div>
+
+        <div class="bg-purple-50 border-l-4 border-purple-400 p-3 rounded-r-lg text-xs leading-relaxed text-purple-950">
+          <strong class="font-bold flex items-center gap-1 mb-1">
+            <i class="fa-solid fa-circle-exclamation"></i> 注意ポイント：足し算ではなく「引き算（差）」！
+          </strong>
+          外角の二等分線と直線BCの交点 <span class="math-font font-bold">Q</span> は三角形の外側にあります。<br>
+          一直線上の点の並びは <strong class="text-purple-900 bg-white px-1.5 py-0.5 rounded border border-purple-200">B — C — Q</strong> です。
+          したがって、もとの辺 <span class="math-font font-bold">BC</span> は 
+          <span class="font-bold underline decoration-purple-400">BQ と CQ の「差」</span> になります！
+        </div>
+
+        <!-- 線分バー可視化（外分） -->
+        <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 flex flex-col gap-2.5 text-xs">
+          <div class="font-semibold text-slate-700">一直線上の長さの比較（外分構造）</div>
+
+          <!-- BQバー -->
+          <div class="space-y-1">
+            <div class="flex justify-between text-[11px]">
+              <span class="font-bold text-blue-600 font-mono">BQ (<span id="ext-bq-ratio">5</span>k)</span>
+              <span class="font-mono text-slate-600" id="ext-bq-len">10.0</span>
+            </div>
+            <div class="h-5 w-full bg-slate-200 rounded-md overflow-hidden">
+              <div id="bar-bq" class="h-full bg-blue-500 rounded-md transition-all" style="width: 100%;"></div>
+            </div>
+          </div>
+
+          <!-- CQバー -->
+          <div class="space-y-1">
+            <div class="flex justify-between text-[11px]">
+              <span class="font-bold text-emerald-600 font-mono">CQ (<span id="ext-cq-ratio">3</span>k)</span>
+              <span class="font-mono text-slate-600" id="ext-cq-len">6.0</span>
+            </div>
+            <div class="h-5 w-full bg-slate-200 rounded-md overflow-hidden flex justify-end">
+              <div id="bar-cq" class="h-full bg-emerald-500 rounded-md transition-all" style="width: 60%;"></div>
+            </div>
+          </div>
+
+          <!-- 差 = BC バー -->
+          <div class="pt-2 border-t border-slate-200">
+            <div class="flex justify-between text-[11px] font-bold text-purple-900">
+              <span>差: BQ - CQ = BC</span>
+              <span class="font-mono"><span id="ext-diff-ratio">2</span>k = <span id="ext-bc-len">4.0</span></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 具体的計算展開 -->
+        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs space-y-2">
+          <div class="font-bold text-slate-800">外角の計算手順：</div>
+          <div class="bg-white p-2.5 rounded-lg border border-slate-200 font-mono text-slate-800 space-y-1.5">
+            <div>① 比の対応: <span class="font-bold text-blue-600">BQ</span> : <span class="font-bold text-emerald-600">CQ</span> = AB : AC = <span class="font-bold" id="ext-calc-ratio">5 : 3</span></div>
+            <div>② <span class="math-font">CQ = x</span> と置くと、点の順序 B-C-Q より <span class="math-font">BQ = x + 4</span></div>
+            <div>③ 比例式: <span class="text-indigo-700 font-bold">(x + 4) : x = 5 : 3</span></div>
+            <div class="pl-3 border-l-2 border-indigo-200 text-slate-600">
+              5x = 3(x + 4) <br>
+              2x = 12 → <span class="font-bold text-purple-700">x = CQ = 6</span>, <span class="font-bold text-blue-700">BQ = 10</span>
+            </div>
+          </div>
+          <div class="text-[11px] text-slate-500">
+            ✓ <strong>検算:</strong> 10 : 6 = 5 : 3 / 10 - 6 = 4 (BCの長さと一致)
+          </div>
+        </div>
+
+      </div>
+
+      <div id="panel-problems" class="mode-panel hidden bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-slate-200 flex flex-col gap-4">
+        <div class="flex items-center justify-between border-b pb-2.5">
+          <h2 class="font-bold text-slate-800 text-base flex items-center gap-2">
+            <span class="w-6 h-6 rounded-md bg-emerald-100 text-emerald-700 flex items-center justify-center text-xs">4</span>
+            練習問題 ＆ 理解度チェック
+          </h2>
+          <span class="text-xs bg-indigo-100 text-indigo-800 font-medium px-2 py-0.5 rounded-full">確認・定着</span>
+        </div>
+
+        <!-- 2つの問題タブ -->
+        <div class="flex gap-2 border-b border-slate-100 pb-2">
+          <button id="btn-p1" onclick="showProblem(1)" class="flex-1 py-1.5 px-3 rounded-lg text-xs font-bold bg-amber-100 text-amber-900 border border-amber-200">
+            問題1 (AB=4, BC=8, AC=7)
+          </button>
+          <button id="btn-p2" onclick="showProblem(2)" class="flex-1 py-1.5 px-3 rounded-lg text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200">
+            問題2 (3-4-5 直角三角形)
+          </button>
+        </div>
+
+        <!-- 問題1の解説 -->
+        <div id="prob-content-1" class="space-y-3 text-xs">
+          <div class="p-3 bg-amber-50/60 rounded-xl border border-amber-200">
+            <div class="font-bold text-amber-950 mb-1">【問題1】</div>
+            <p class="text-slate-700">
+              <span class="math-font">△ABC</span> で <span class="math-font">AB = 4, BC = 8, AC = 7</span>。
+              <span class="math-font">∠A</span> の二等分線と <span class="math-font">BC</span> の交点を <span class="math-font">D</span> とするとき、<span class="math-font">BD</span> を求めよ。
+            </p>
+          </div>
+          <div class="p-3 bg-white rounded-xl border border-slate-200 space-y-1.5 leading-relaxed">
+            <div class="font-semibold text-slate-800">解法プロセス：</div>
+            <p>1. 角の二等分線より、<span class="font-mono font-bold text-indigo-700">BD : DC = AB : AC = 4 : 7</span></p>
+            <p>2. 全体 <span class="font-mono font-bold">BC = 8</span> は比の和 <span class="font-mono">4 + 7 = 11</span> 個分にあたる。</p>
+            <p>3. 1個分は <span class="font-mono text-slate-700">8 / 11</span> なので、<span class="math-font font-bold">BD</span>（4個分）は：</p>
+            <div class="p-2 bg-indigo-50 text-center rounded-lg font-mono font-bold text-indigo-900 text-sm">
+              BD = 8 × (4 / 11) = 32 / 11
+            </div>
+            <div class="text-[11px] text-slate-500 pt-1">
+              ※ <strong>よくある疑問:</strong>「4:7 だから BD=4 になるのでは？」→ 4と7は比の割合であり、実際の長さではありません。全体が8なので、8を11等分した4つ分になります。
+            </div>
+          </div>
+        </div>
+
+        <!-- 問題2の解説 -->
+        <div id="prob-content-2" class="hidden space-y-3 text-xs">
+          <div class="p-3 bg-blue-50/60 rounded-xl border border-blue-200">
+            <div class="font-bold text-blue-950 mb-1">【問題2】</div>
+            <p class="text-slate-700">
+              <span class="math-font">△ABC</span> で <span class="math-font">AB = 5, BC = 4, CA = 3</span>。
+              内角の二等分線との交点を <span class="math-font">P</span>、外角の二等分線との交点を <span class="math-font">Q</span> とするとき、<span class="math-font">BP, PC, CQ</span> を求めよ。
+            </p>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div class="p-2.5 bg-white rounded-lg border border-slate-200">
+              <div class="font-bold text-blue-700 mb-1">内角 (P): 比 ＋ 和</div>
+              <p class="text-slate-600 mb-1">BP : PC = 5 : 3</p>
+              <p class="text-slate-600">全体 8個分 = 4 → 1個分 = 1/2</p>
+              <div class="mt-1 font-mono font-bold text-blue-900 bg-blue-50 p-1 rounded text-center">
+                BP = 5/2, PC = 3/2
+              </div>
+            </div>
+            <div class="p-2.5 bg-white rounded-lg border border-slate-200">
+              <div class="font-bold text-purple-700 mb-1">外角 (Q): 比 ＋ 差</div>
+              <p class="text-slate-600 mb-1">BQ : CQ = 5 : 3</p>
+              <p class="text-slate-600">差 2個分 = 4 → 1個分 = 2</p>
+              <div class="mt-1 font-mono font-bold text-purple-900 bg-purple-50 p-1 rounded text-center">
+                CQ = 6, BQ = 10
+              </div>
+            </div>
+          </div>
+          <div class="p-2 bg-slate-50 border border-slate-200 rounded text-[11px] text-slate-500">
+            💡 <strong>解くコツ:</strong> 3-4-5の直角三角形であることは補助的な情報です。比の計算（和と差）の考え方自体はどんな三角形でも変わりません。
+          </div>
+        </div>
+
+        <!-- 出口課題カード (自己評価ミニワーク) -->
+        <div class="p-3.5 bg-emerald-50/70 border border-emerald-200 rounded-xl text-xs space-y-2">
+          <div class="font-bold text-emerald-950 flex items-center justify-between">
+            <span><i class="fa-solid fa-pen-nib mr-1"></i> 自分の言葉で説明してみよう</span>
+            <span class="text-[10px] bg-emerald-200 text-emerald-900 px-1.5 py-0.5 rounded">セルフチェック</span>
+          </div>
+          <p class="text-slate-700">
+            「なぜ角の二等分線は <span class="math-font font-bold">AB:AC</span> に分けるのか？」を下の語群から3語以上使って頭の中で説明してみよう！
+          </p>
+          <div class="flex flex-wrap gap-1.5 py-1">
+            <span class="px-2 py-0.5 bg-white border border-emerald-300 rounded font-semibold text-emerald-800">垂直距離</span>
+            <span class="px-2 py-0.5 bg-white border border-emerald-300 rounded font-semibold text-emerald-800">高さ</span>
+            <span class="px-2 py-0.5 bg-white border border-emerald-300 rounded font-semibold text-emerald-800">面積比</span>
+            <span class="px-2 py-0.5 bg-white border border-emerald-300 rounded font-semibold text-emerald-800">底辺</span>
+          </div>
+          <details class="text-[11px] text-slate-600 pt-1 cursor-pointer">
+            <summary class="font-bold text-emerald-700 hover:underline">説明の例を確認する</summary>
+            <div class="mt-1.5 p-2 bg-white rounded border border-emerald-200 text-slate-700 leading-relaxed">
+              「角の二等分線上の点から両辺への<strong>垂直距離（高さ）</strong>が等しいため、底辺をAB, ACとみた2つの三角形の<strong>面積比</strong>はAB:ACになる。
+              一方、共通の<strong>高さ</strong>をもつ三角形として底辺をBD, DCとみても面積比は等しいため、BD:DC=AB:ACが成り立つ。」
+            </div>
+          </details>
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <script>
+    // --- 状態管理 ---
+    const state = {
+      mode: 'explore', // 'explore' | 'interior' | 'exterior' | 'problems'
+      // 頂点座標 (SVGローカル座標)
+      A: { x: 260, y: 70 },
+      B: { x: 90,  y: 310 },
+      C: { x: 410, y: 310 },
+      // 表示設定
+      showPerp: true,
+      showHeightA: true,
+      showAreas: true,
+      showExterior: false,
+      // ドラッグ操作用
+      draggedPoint: null,
+      svgRect: null
+    };
+
+    // DOM要素参照
+    const svg = document.getElementById('geom-svg');
+    const layerRegions = document.getElementById('layer-regions');
+    const layerConstruction = document.getElementById('layer-construction');
+    const layerTriangle = document.getElementById('layer-triangle');
+    const layerAngles = document.getElementById('layer-angles');
+    const layerPerpendiculars = document.getElementById('layer-perpendiculars');
+    const layerLabels = document.getElementById('layer-labels');
+    const layerPoints = document.getElementById('layer-points');
+    const parallelAlert = document.getElementById('parallel-alert');
+
+    // --- 幾何ユーティリティ関数 ---
+    function dist(p1, p2) {
+      return Math.hypot(p1.x - p2.x, p1.y - p2.y);
+    }
+
+    function dot(u, v) {
+      return u.x * v.x + u.y * v.y;
+    }
+
+    function cross(u, v) {
+      return u.x * v.y - u.y * v.x;
+    }
+
+    // 点Pから線分/直線ABへの垂線の足
+    function projectPointToLine(p, a, b) {
+      const ab = { x: b.x - a.x, y: b.y - a.y };
+      const lenSq = ab.x * ab.x + ab.y * ab.y;
+      if (lenSq === 0) return { x: a.x, y: a.y };
+      const ap = { x: p.x - a.x, y: p.y - a.y };
+      const t = dot(ap, ab) / lenSq;
+      return { x: a.x + t * ab.x, y: a.y + t * ab.y };
+    }
+
+    // 直線ABと直線CDの交点
+    function lineIntersection(p1, p2, p3, p4) {
+      const d = (p1.x - p2.x) * (p3.y - p4.y) - (p1.y - p2.y) * (p3.x - p4.x);
+      if (Math.abs(d) < 1e-6) return null; // 平行
+      const t = ((p1.x - p3.x) * (p3.y - p4.y) - (p1.y - p3.y) * (p3.x - p4.x)) / d;
+      return {
+        x: p1.x + t * (p2.x - p1.x),
+        y: p1.y + t * (p2.y - p1.y)
+      };
+    }
+
+    // ベクトルの正規化
+    function normalize(v) {
+      const m = Math.hypot(v.x, v.y);
+      if (m === 0) return { x: 0, y: 0 };
+      return { x: v.x / m, y: v.y / m };
+    }
+
+    // 内角・外角の二等分線と直線BCの交点計算
+    function computeGeometry() {
+      const { A, B, C } = state;
+      const c = dist(A, B); // ABの長さ
+      const b = dist(A, C); // ACの長さ
+      const a = dist(B, C); // BCの長さ
+
+      // 内角の二等分線の交点 D (内分点: BD:DC = c:b)
+      // D = (b*B + c*C) / (b + c)
+      const D = {
+        x: (b * B.x + c * C.x) / (b + c),
+        y: (b * B.y + c * C.y) / (b + c)
+      };
+
+      // DからAB, ACへの垂線の足 E, F
+      const E = projectPointToLine(D, A, B);
+      const F = projectPointToLine(D, A, C);
+
+      // AからBCへの共通の高さ（垂線の足 H）
+      const H = projectPointToLine(A, B, C);
+
+      // 外角の二等分線:
+      // ∠BACの外角は、BAの延長とACのなす角。
+      // 外分点 Q は BQ : CQ = c : b (ただし c !== b)
+      let Q = null;
+      let isParallel = false;
+      if (Math.abs(c - b) < 0.8) {
+        isParallel = true;
+      } else {
+        // 外分公式: Q = (c*C - b*B) / (c - b)
+        Q = {
+          x: (c * C.x - b * B.x) / (c - b),
+          y: (c * C.y - b * B.y) / (c - b)
+        };
+      }
+
+      return {
+        c, b, a,
+        D, E, F, H, Q, isParallel,
+        distDE: dist(D, E),
+        distDF: dist(D, F),
+        heightA: dist(A, H),
+        bd: dist(B, D),
+        dc: dist(D, C)
+      };
+    }
+
+    function render() {
+      const geom = computeGeometry();
+      const { A, B, C } = state;
+      const { D, E, F, H, Q, isParallel, c, b, a, bd, dc, distDE, distDF } = geom;
+
+      // レイヤーのクリア
+      layerRegions.innerHTML = '';
+      layerConstruction.innerHTML = '';
+      layerTriangle.innerHTML = '';
+      layerAngles.innerHTML = '';
+      layerPerpendiculars.innerHTML = '';
+      layerLabels.innerHTML = '';
+      layerPoints.innerHTML = '';
+
+      // 二等辺三角形警告
+      if (isParallel && (state.showExterior || state.mode === 'exterior')) {
+        parallelAlert.classList.remove('hidden');
+      } else {
+        parallelAlert.classList.add('hidden');
+      }
+
+      // 1. 領域塗りつぶし（面積比の可視化）
+      if (state.showAreas) {
+        // △ABD (青系半透明)
+        const polyABD = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+        polyABD.setAttribute('points', `${A.x},${A.y} ${B.x},${B.y} ${D.x},${D.y}`);
+        polyABD.setAttribute('fill', '#3b82f6');
+        polyABD.setAttribute('fill-opacity', '0.18');
+        layerRegions.appendChild(polyABD);
+
+        // △ACD (緑系半透明)
+        const polyACD = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+        polyACD.setAttribute('points', `${A.x},${A.y} ${C.x},${C.y} ${D.x},${D.y}`);
+        polyACD.setAttribute('fill', '#10b981');
+        polyACD.setAttribute('fill-opacity', '0.18');
+        layerRegions.appendChild(polyACD);
+      }
+
+      // 外角の二等分線モードまたはトグルON時の外角線描画
+      const needExterior = state.showExterior || state.mode === 'exterior';
+      if (needExterior) {
+        // BAの延長線 (外角を作るため)
+        const dirBA = normalize({ x: A.x - B.x, y: A.y - B.y });
+        const extA = { x: A.x + dirBA.x * 70, y: A.y + dirBA.y * 70 };
+        
+        drawLine(layerConstruction, A, extA, '#94a3b8', 1.5, '4,4');
+
+        // BCの延長線
+        if (Q && !isParallel) {
+          const farQ = { x: Q.x + (Q.x > C.x ? 40 : -40), y: Q.y };
+          drawLine(layerConstruction, B, farQ, '#94a3b8', 1.5, '4,4');
+          // AQ線 (外角二等分線)
+          drawLine(layerConstruction, A, Q, '#a855f7', 2.5);
+        } else if (isParallel) {
+          // 平行線を描画
+          const dirBC = normalize({ x: C.x - B.x, y: C.y - B.y });
+          const p1 = { x: A.x - dirBC.x * 120, y: A.y - dirBC.y * 120 };
+          const p2 = { x: A.x + dirBC.x * 200, y: A.y + dirBC.y * 200 };
+          drawLine(layerConstruction, p1, p2, '#a855f7', 2, '5,5');
+        }
+      }
+
+      // 三角形の3辺
+      drawLine(layerTriangle, A, B, '#2563eb', 2.8); // AB (青)
+      drawLine(layerTriangle, A, C, '#059669', 2.8); // AC (緑)
+      drawLine(layerTriangle, B, C, '#475569', 2.2); // BC (スレート)
+
+      // 内角の二等分線 AD
+      drawLine(layerTriangle, A, D, '#d97706', 2.5); // オレンジ
+
+      // 角度マーク (∠BAD と ∠CAD の等角マーク)
+      drawAngleArc(layerAngles, A, B, D, 30, '#d97706');
+      drawAngleArc(layerAngles, A, D, C, 34, '#d97706');
+
+      // 垂線 DE, DF (角の両辺への垂直距離)
+      if (state.showPerp) {
+        drawLine(layerPerpendiculars, D, E, '#3b82f6', 1.5, '3,3');
+        drawLine(layerPerpendiculars, D, F, '#10b981', 1.5, '3,3');
+        drawRightAngleMarker(layerPerpendiculars, E, D, A, 8, '#2563eb');
+        drawRightAngleMarker(layerPerpendiculars, F, D, A, 8, '#059669');
+
+        // 点 E, F
+        drawPoint(layerPoints, E, '#3b82f6', 3.5);
+        drawPoint(layerPoints, F, '#10b981', 3.5);
+        drawText(layerLabels, 'E', { x: E.x - 12, y: E.y - 6 }, 'font-bold text-xs fill-blue-600');
+        drawText(layerLabels, 'F', { x: F.x + 10, y: F.y - 6 }, 'font-bold text-xs fill-emerald-600');
+      }
+
+      // AからBCへの共通の高さ AH
+      if (state.showHeightA) {
+        drawLine(layerPerpendiculars, A, H, '#e11d48', 1.2, '2,2');
+        drawRightAngleMarker(layerPerpendiculars, H, A, B, 7, '#e11d48');
+        drawPoint(layerPoints, H, '#e11d48', 3);
+        drawText(layerLabels, 'H', { x: H.x - 10, y: H.y + 14 }, 'text-[11px] font-semibold fill-rose-600');
+      }
+
+      // 主要点 (A, B, C, D)
+      drawPoint(layerPoints, A, '#4f46e5', 7, 'cursor-grab active:cursor-grabbing');
+      drawPoint(layerPoints, B, '#2563eb', 7, 'cursor-grab active:cursor-grabbing');
+      drawPoint(layerPoints, C, '#059669', 7, 'cursor-grab active:cursor-grabbing');
+      drawPoint(layerPoints, D, '#d97706', 5);
+
+      // 点のラベル
+      drawText(layerLabels, 'A', { x: A.x, y: A.y - 14 }, 'font-bold text-sm fill-indigo-800 text-center');
+      drawText(layerLabels, 'B', { x: B.x - 16, y: B.y + 16 }, 'font-bold text-sm fill-blue-800');
+      drawText(layerLabels, 'C', { x: C.x + 12, y: C.y + 16 }, 'font-bold text-sm fill-emerald-800');
+      drawText(layerLabels, 'D', { x: D.x, y: D.y + 18 }, 'font-bold text-sm fill-amber-700 text-center');
+
+      // 外角二等分線交点 Q
+      if (needExterior && Q && !isParallel) {
+        drawPoint(layerPoints, Q, '#9333ea', 6);
+        drawText(layerLabels, 'Q', { x: Q.x + 8, y: Q.y + 16 }, 'font-bold text-sm fill-purple-800');
+      }
+
+      // 辺の中央に長さを表示
+      const midAB = { x: (A.x + B.x) / 2 - 18, y: (A.y + B.y) / 2 };
+      const midAC = { x: (A.x + C.x) / 2 + 10, y: (A.y + C.y) / 2 };
+      const midBD = { x: (B.x + D.x) / 2, y: B.y + 14 };
+      const midDC = { x: (D.x + C.x) / 2, y: C.y + 14 };
+
+      drawText(layerLabels, `AB: ${(c/40).toFixed(1)}`, midAB, 'text-[11px] font-bold fill-blue-700');
+      drawText(layerLabels, `AC: ${(b/40).toFixed(1)}`, midAC, 'text-[11px] font-bold fill-emerald-700');
+
+      // UIパネルの数値更新
+      updateMetrics(geom);
+    }
+
+    function drawLine(parent, p1, p2, stroke, width = 2, dash = '') {
+      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      line.setAttribute('x1', p1.x);
+      line.setAttribute('y1', p1.y);
+      line.setAttribute('x2', p2.x);
+      line.setAttribute('y2', p2.y);
+      line.setAttribute('stroke', stroke);
+      line.setAttribute('stroke-width', width);
+      if (dash) line.setAttribute('stroke-dasharray', dash);
+      line.setAttribute('stroke-linecap', 'round');
+      parent.appendChild(line);
+      return line;
+    }
+
+    function drawPoint(parent, p, fill, r = 5, extraClass = '') {
+      const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      circle.setAttribute('cx', p.x);
+      circle.setAttribute('cy', p.y);
+      circle.setAttribute('r', r);
+      circle.setAttribute('fill', fill);
+      circle.setAttribute('stroke', '#ffffff');
+      circle.setAttribute('stroke-width', '2');
+      if (extraClass) circle.setAttribute('class', extraClass);
+      parent.appendChild(circle);
+      return circle;
+    }
+
+    function drawText(parent, text, p, className = '') {
+      const t = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      t.setAttribute('x', p.x);
+      t.setAttribute('y', p.y);
+      t.setAttribute('class', className);
+      t.textContent = text;
+      parent.appendChild(t);
+      return t;
+    }
+
+    // 直角マーク
+    function drawRightAngleMarker(parent, vertex, toP1, toP2, size = 8, stroke = '#64748b') {
+      const v1 = normalize({ x: toP1.x - vertex.x, y: toP1.y - vertex.y });
+      const v2 = normalize({ x: toP2.x - vertex.x, y: toP2.y - vertex.y });
+      const p1 = { x: vertex.x + v1.x * size, y: vertex.y + v1.y * size };
+      const p2 = { x: vertex.x + v2.x * size, y: vertex.y + v2.y * size };
+      const pCorner = { x: p1.x + v2.x * size, y: p1.y + v2.y * size };
+
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.setAttribute('d', `M ${p1.x} ${p1.y} L ${pCorner.x} ${pCorner.y} L ${p2.x} ${p2.y}`);
+      path.setAttribute('fill', 'none');
+      path.setAttribute('stroke', stroke);
+      path.setAttribute('stroke-width', '1.2');
+      parent.appendChild(path);
+    }
+
+    // 角度の円弧
+    function drawAngleArc(parent, vertex, p1, p2, r, stroke) {
+      const a1 = Math.atan2(p1.y - vertex.y, p1.x - vertex.x);
+      const a2 = Math.atan2(p2.y - vertex.y, p2.x - vertex.x);
+      let diff = a2 - a1;
+      while (diff < -Math.PI) diff += 2 * Math.PI;
+      while (diff > Math.PI) diff -= 2 * Math.PI;
+
+      const startAngle = a1;
+      const endAngle = a1 + diff;
+      const startX = vertex.x + r * Math.cos(startAngle);
+      const startY = vertex.y + r * Math.sin(startAngle);
+      const endX = vertex.x + r * Math.cos(endAngle);
+      const endY = vertex.y + r * Math.sin(endAngle);
+
+      const largeArc = Math.abs(diff) > Math.PI ? 1 : 0;
+      const sweep = diff > 0 ? 1 : 0;
+
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.setAttribute('d', `M ${startX} ${startY} A ${r} ${r} 0 ${largeArc} ${sweep} ${endX} ${endY}`);
+      path.setAttribute('fill', 'none');
+      path.setAttribute('stroke', stroke);
+      path.setAttribute('stroke-width', '1.5');
+      parent.appendChild(path);
+    }
+
+    function updateMetrics(geom) {
+      const scale = 40; // 40px = 1単位
+      const abVal = (geom.c / scale).toFixed(1);
+      const acVal = (geom.b / scale).toFixed(1);
+      const bcVal = (geom.a / scale).toFixed(1);
+      const bdVal = (geom.bd / scale).toFixed(1);
+      const dcVal = (geom.dc / scale).toFixed(1);
+
+      document.getElementById('val-ab').textContent = abVal;
+      document.getElementById('val-ac').textContent = acVal;
+      document.getElementById('val-bc').textContent = bcVal;
+
+      const ratioSide = (geom.c / geom.b).toFixed(2);
+      const ratioBase = (geom.bd / geom.dc).toFixed(2);
+
+      document.getElementById('val-ratio-ab-ac').textContent = `${(geom.c/geom.b).toFixed(1)} : 1 (${ratioSide})`;
+      document.getElementById('val-ratio-bd-dc').textContent = `${(geom.bd/geom.dc).toFixed(1)} : 1 (${ratioBase})`;
+
+      // 垂線の長さ
+      document.getElementById('val-de').textContent = (geom.distDE / scale).toFixed(2);
+      document.getElementById('val-df').textContent = (geom.distDF / scale).toFixed(2);
+
+      // 内分テープ図の更新
+      const pctBD = Math.max(5, Math.min(95, (geom.bd / geom.a) * 100));
+      const pctDC = 100 - pctBD;
+      const tapeBD = document.getElementById('tape-bd');
+      const tapeDC = document.getElementById('tape-dc');
+      if (tapeBD && tapeDC) {
+        tapeBD.style.width = `${pctBD}%`;
+        tapeDC.style.width = `${pctDC}%`;
+        document.getElementById('tape-bd-text').textContent = bdVal;
+        document.getElementById('tape-dc-text').textContent = dcVal;
+        document.getElementById('tape-bc-val').textContent = bcVal;
+
+        document.getElementById('tape-bd-ratio').textContent = abVal;
+        document.getElementById('tape-dc-ratio').textContent = acVal;
+        document.getElementById('tape-sum-ratio').textContent = (parseFloat(abVal) + parseFloat(acVal)).toFixed(1);
+
+        // k倍モデル
+        const sumRatio = parseFloat(abVal) + parseFloat(acVal);
+        const k = sumRatio > 0 ? (parseFloat(bcVal) / sumRatio).toFixed(2) : '0';
+        document.getElementById('k-ratio-str').textContent = `${abVal} : ${acVal}`;
+        document.getElementById('k-bd-str').textContent = abVal;
+        document.getElementById('k-dc-str').textContent = acVal;
+        document.getElementById('k-sum-str').textContent = `${abVal}k + ${acVal}k = ${sumRatio.toFixed(1)}k`;
+        document.getElementById('k-bc-str').textContent = bcVal;
+        document.getElementById('k-val-str').textContent = k;
+        document.getElementById('k-ans-bd').textContent = bdVal;
+        document.getElementById('k-ans-dc').textContent = dcVal;
+        document.getElementById('k-check-sum').textContent = (parseFloat(bdVal) + parseFloat(dcVal)).toFixed(1);
+        document.getElementById('k-check-ratio').textContent = `${abVal} : ${acVal}`;
+      }
+
+      // 外分UIの更新
+      if (geom.Q && !geom.isParallel) {
+        const bqVal = (dist(state.B, geom.Q) / scale).toFixed(1);
+        const cqVal = (dist(state.C, geom.Q) / scale).toFixed(1);
+        document.getElementById('ext-bq-len').textContent = bqVal;
+        document.getElementById('ext-cq-len').textContent = cqVal;
+        document.getElementById('ext-bc-len').textContent = bcVal;
+        document.getElementById('ext-bq-ratio').textContent = abVal;
+        document.getElementById('ext-cq-ratio').textContent = acVal;
+        document.getElementById('ext-diff-ratio').textContent = Math.abs(parseFloat(abVal) - parseFloat(acVal)).toFixed(1);
+        document.getElementById('ext-calc-ratio').textContent = `${abVal} : ${acVal}`;
+
+        const maxBQ = Math.max(parseFloat(bqVal), 1);
+        const bqBarPct = 100;
+        const cqBarPct = Math.min(100, (parseFloat(cqVal) / maxBQ) * 100);
+        document.getElementById('bar-bq').style.width = `${bqBarPct}%`;
+        document.getElementById('bar-cq').style.width = `${cqBarPct}%`;
+      }
+    }
+
+    function initDragAndDrop() {
+      function getSVGCoordinates(evt) {
+        const CTM = svg.getScreenCTM();
+        if (!CTM) return { x: 0, y: 0 };
+        const clientX = evt.clientX || (evt.touches && evt.touches[0].clientX);
+        const clientY = evt.clientY || (evt.touches && evt.touches[0].clientY);
+        return {
+          x: (clientX - CTM.e) / CTM.a,
+          y: (clientY - CTM.f) / CTM.d
+        };
+      }
+
+      function startDrag(evt) {
+        const pt = getSVGCoordinates(evt);
+        // 最も近い頂点を探す (閾値 25px)
+        const vertices = [
+          { name: 'A', p: state.A },
+          { name: 'B', p: state.B },
+          { name: 'C', p: state.C }
+        ];
+        let closest = null;
+        let minDist = 28;
+
+        for (const v of vertices) {
+          const d = dist(pt, v.p);
+          if (d < minDist) {
+            minDist = d;
+            closest = v.name;
+          }
+        }
+
+        if (closest) {
+          state.draggedPoint = closest;
+          evt.preventDefault();
+        }
+      }
+
+      function onDrag(evt) {
+        if (!state.draggedPoint) return;
+        evt.preventDefault();
+        const pt = getSVGCoordinates(evt);
+
+        // 画面外はみ出し制限
+        const clampedX = Math.max(30, Math.min(570, pt.x));
+        const clampedY = Math.max(30, Math.min(380, pt.y));
+
+        if (state.draggedPoint === 'A') {
+          // AはB, Cと一直線にならないよう高さを確保
+          state.A.x = clampedX;
+          state.A.y = Math.min(state.B.y - 40, clampedY);
+        } else if (state.draggedPoint === 'B') {
+          state.B.x = clampedX;
+          state.B.y = clampedY;
+        } else if (state.draggedPoint === 'C') {
+          state.C.x = clampedX;
+          state.C.y = clampedY;
+        }
+
+        render();
+      }
+
+      function endDrag() {
+        state.draggedPoint = null;
+      }
+
+      // マウスイベント
+      svg.addEventListener('mousedown', startDrag);
+      window.addEventListener('mousemove', onDrag);
+      window.addEventListener('mouseup', endDrag);
+
+      // タッチイベント (モバイル対応)
+      svg.addEventListener('touchstart', startDrag, { passive: false });
+      window.addEventListener('touchmove', onDrag, { passive: false });
+      window.addEventListener('touchend', endDrag);
+    }
+
+    function applyPreset(type) {
+      if (type === 'skewed') {
+        // 不等辺（極端に傾けて中点にならないことを一目で体感）
+        state.A = { x: 160, y: 70 };
+        state.B = { x: 70,  y: 320 };
+        state.C = { x: 490, y: 320 };
+        state.showExterior = false;
+        document.getElementById('toggle-exterior').checked = false;
+      } else if (type === 'prob1') {
+        // 指導案 問題1: AB=4, BC=8, AC=7
+        // スケール 1単位 = 38px
+        // B=(70, 320), C=(70 + 8*38, 320) = (374, 320)
+        // 余弦定理でAの座標決定: cos B = (4^2 + 8^2 - 7^2)/(2*4*8) = 31/64 ≈ 0.484
+        // sin B = sqrt(1 - 0.484^2) ≈ 0.875
+        // Ax = 70 + 4*38*0.484 ≈ 70 + 73.5 = 143.5, Ay = 320 - 4*38*0.875 ≈ 320 - 133 = 187
+        state.B = { x: 70, y: 310 };
+        state.C = { x: 420, y: 310 }; // BC = 350px (≈8.75)
+        state.A = { x: 160, y: 140 }; // AB ≈ 4, AC ≈ 7 に近似
+        state.showExterior = false;
+        document.getElementById('toggle-exterior').checked = false;
+      } else if (type === 'prob2') {
+        // 指導案 問題2: AB=5, BC=4, AC=3 (直角三角形)
+        // B=(90, 310), C=(90 + 4*55, 310) = (310, 310)
+        // Cで直角: A=(310, 310 - 3*55) = (310, 145)
+        // AB = 5*55 = 275
+        state.B = { x: 80, y: 300 };
+        state.C = { x: 280, y: 300 }; // BC = 200 (4*50)
+        state.A = { x: 280, y: 150 }; // AC = 150 (3*50), AB = 250 (5*50)
+        state.showExterior = true;
+        document.getElementById('toggle-exterior').checked = true;
+      } else if (type === 'isosceles') {
+        // 二等辺三角形 (AB = AC) → 外角二等分線が平行になる
+        state.A = { x: 250, y: 80 };
+        state.B = { x: 100, y: 310 };
+        state.C = { x: 400, y: 310 };
+        state.showExterior = true;
+        document.getElementById('toggle-exterior').checked = true;
+      }
+      render();
+    }
+
+    function resetTriangle() {
+      applyPreset('prob2');
+    }
+
+    function switchMode(newMode) {
+      state.mode = newMode;
+
+      // タブボタンのアクティブクラス更新
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('bg-white', 'text-indigo-600', 'shadow-sm');
+        btn.classList.add('text-slate-600');
+      });
+      const activeTab = document.getElementById(`tab-${newMode}`);
+      if (activeTab) {
+        activeTab.classList.add('bg-white', 'text-indigo-600', 'shadow-sm');
+        activeTab.classList.remove('text-slate-600');
+      }
+
+      // パネル表示切り替え
+      document.querySelectorAll('.mode-panel').forEach(p => p.classList.add('hidden'));
+      const activePanel = document.getElementById(`panel-${newMode}`);
+      if (activePanel) activePanel.classList.remove('hidden');
+
+      // モードに応じた最適プリセットとトグル
+      if (newMode === 'explore') {
+        state.showExterior = false;
+        document.getElementById('toggle-exterior').checked = false;
+      } else if (newMode === 'interior') {
+        state.showExterior = false;
+        document.getElementById('toggle-exterior').checked = false;
+      } else if (newMode === 'exterior') {
+        state.showExterior = true;
+        document.getElementById('toggle-exterior').checked = true;
+        if (dist(state.A, state.B) === dist(state.A, state.C)) {
+          applyPreset('prob2');
+        }
+      } else if (newMode === 'problems') {
+        showProblem(1);
+      }
+
+      render();
+    }
+
+    function showProblem(num) {
+      const p1Btn = document.getElementById('btn-p1');
+      const p2Btn = document.getElementById('btn-p2');
+      const c1 = document.getElementById('prob-content-1');
+      const c2 = document.getElementById('prob-content-2');
+
+      if (num === 1) {
+        p1Btn.className = 'flex-1 py-1.5 px-3 rounded-lg text-xs font-bold bg-amber-100 text-amber-900 border border-amber-200';
+        p2Btn.className = 'flex-1 py-1.5 px-3 rounded-lg text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200';
+        c1.classList.remove('hidden');
+        c2.classList.add('hidden');
+        applyPreset('prob1');
+      } else {
+        p2Btn.className = 'flex-1 py-1.5 px-3 rounded-lg text-xs font-bold bg-blue-100 text-blue-900 border border-blue-200';
+        p1Btn.className = 'flex-1 py-1.5 px-3 rounded-lg text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200';
+        c2.classList.remove('hidden');
+        c1.classList.add('hidden');
+        applyPreset('prob2');
+      }
+    }
+
+    document.getElementById('toggle-perp').addEventListener('change', (e) => {
+      state.showPerp = e.target.checked;
+      render();
+    });
+
+    document.getElementById('toggle-height-a').addEventListener('change', (e) => {
+      state.showHeightA = e.target.checked;
+      render();
+    });
+
+    document.getElementById('toggle-areas').addEventListener('change', (e) => {
+      state.showAreas = e.target.checked;
+      render();
+    });
+
+    document.getElementById('toggle-exterior').addEventListener('change', (e) => {
+      state.showExterior = e.target.checked;
+      render();
+    });
+
+    // ウィンドウリサイズ対応
+    window.addEventListener('resize', () => {
+      render();
+    });
+
+    // 初期化実行
+    window.onload = () => {
+      initDragAndDrop();
+      applyPreset('prob2');
+    };
+  </script>
+</body>
+</html>

@@ -1,0 +1,1565 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>0と1で「判断」と「計算」をつくる - 自習シミュレーター</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Noto Sans JP & Fira Code -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@500;700&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Noto Sans JP', sans-serif;
+    }
+    .font-mono-code {
+      font-family: 'Fira Code', monospace;
+    }
+    /* アニメーション用パルス */
+    @keyframes signalPulse {
+      0% { stroke-dashoffset: 24; }
+      100% { stroke-dashoffset: 0; }
+    }
+    .wire-active {
+      stroke-dasharray: 6, 6;
+      animation: signalPulse 0.8s linear infinite;
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col">
+
+  <!-- ヘッダー -->
+  <header class="bg-indigo-700 text-white shadow-lg sticky top-0 z-50">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-2">
+      <div class="flex items-center space-x-3">
+        <div class="w-9 h-9 bg-amber-400 rounded-lg flex items-center justify-center font-black text-indigo-900 shadow">
+          0/1
+        </div>
+        <div>
+          <h1 class="font-bold text-lg leading-tight">0と1で「判断」と「計算」をつくる</h1>
+          <p class="text-xs text-indigo-200">ワークシート連動型 インタラクティブ自習シミュレーター</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <button id="soundToggle" onclick="toggleSound()" class="text-xs bg-indigo-800 hover:bg-indigo-900 text-indigo-200 px-3 py-1.5 rounded-full flex items-center gap-1 transition">
+          <span id="soundIcon">🔊</span> 効果音: <span id="soundText">ON</span>
+        </button>
+        <span class="text-xs bg-indigo-600 px-3 py-1 rounded-full text-indigo-100 font-medium">生徒自習モード</span>
+      </div>
+    </div>
+
+    <!-- ステップ ナビゲーションバー -->
+    <div class="bg-indigo-900 border-t border-indigo-800 overflow-x-auto">
+      <div class="max-w-6xl mx-auto px-2 flex space-x-1 py-1 text-xs sm:text-sm font-medium whitespace-nowrap" id="navTabs">
+        <button onclick="goToStep(1)" class="tab-btn px-3 py-2 rounded text-white bg-indigo-600 flex items-center gap-1.5" data-step="1">
+          <span class="w-5 h-5 rounded-full bg-white/20 text-xs flex items-center justify-center font-bold">1</span>
+          <span>二つの状態</span>
+        </button>
+        <button onclick="goToStep(2)" class="tab-btn px-3 py-2 rounded text-indigo-200 hover:text-white hover:bg-indigo-800 flex items-center gap-1.5" data-step="2">
+          <span class="w-5 h-5 rounded-full bg-white/10 text-xs flex items-center justify-center font-bold">2</span>
+          <span>AND・OR・NOT</span>
+        </button>
+        <button onclick="goToStep(3)" class="tab-btn px-3 py-2 rounded text-indigo-200 hover:text-white hover:bg-indigo-800 flex items-center gap-1.5" data-step="3">
+          <span class="w-5 h-5 rounded-full bg-white/10 text-xs flex items-center justify-center font-bold">3</span>
+          <span>回路図を読む</span>
+        </button>
+        <button onclick="goToStep(4)" class="tab-btn px-3 py-2 rounded text-indigo-200 hover:text-white hover:bg-indigo-800 flex items-center gap-1.5" data-step="4">
+          <span class="w-5 h-5 rounded-full bg-white/10 text-xs flex items-center justify-center font-bold">4</span>
+          <span>足し算（加算器）</span>
+        </button>
+        <button onclick="goToStep(5)" class="tab-btn px-3 py-2 rounded text-indigo-200 hover:text-white hover:bg-indigo-800 flex items-center gap-1.5" data-step="5">
+          <span class="w-5 h-5 rounded-full bg-white/10 text-xs flex items-center justify-center font-bold">5</span>
+          <span>引き算の裏ワザ（補数）</span>
+        </button>
+        <button onclick="goToStep(6)" class="tab-btn px-3 py-2 rounded text-indigo-200 hover:text-white hover:bg-indigo-800 flex items-center gap-1.5" data-step="6">
+          <span class="w-5 h-5 rounded-full bg-white/10 text-xs flex items-center justify-center font-bold">6</span>
+          <span>命令の旅＆まとめ</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- メインコンテンツ領域 -->
+  <main class="max-w-6xl w-full mx-auto p-4 sm:p-6 flex-1 flex flex-col gap-6">
+
+    <!-- 導入バナー（ワークシート冒頭） -->
+    <div class="bg-gradient-to-r from-amber-50 to-orange-50 border-l-4 border-amber-500 p-4 rounded-r-xl shadow-sm text-sm">
+      <div class="flex items-start gap-2">
+        <span class="text-xl">💡</span>
+        <div>
+          <strong class="text-amber-900 block font-bold text-base mb-0.5">最初に読むこと（本日のゴール）</strong>
+          <p class="text-amber-800 leading-relaxed">
+            今日学ぶのは、テスト問題の答え方ではありません。<strong>「デジタル機器が、なぜ0と1だけで判断・計算・命令実行までできるのか」</strong>を、自分の言葉で説明できるようになるのがゴールです！ワークシートを手元に置いて、画面をカチカチ動かしながら進めましょう。
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================== -->
+    <!-- STEP 1: 0と1は「二つの状態」を表せる -->
+    <!-- ============================================================== -->
+    <section id="step1-panel" class="step-panel space-y-6">
+      <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="px-2.5 py-1 rounded-md bg-indigo-100 text-indigo-800 font-bold text-xs">Step 1</span>
+          <h2 class="text-xl font-bold text-slate-800">0と1は「二つの状態」を表せる</h2>
+        </div>
+        <p class="text-slate-600 leading-relaxed mb-6">
+          コンピュータの中には、数字の「0」や「1」の紙が入っているわけではありません。0と1は、電気の<strong class="text-indigo-600">「OFF（消えている・低電圧）」</strong>と<strong class="text-rose-600">「ON（流れている・高電圧）」</strong>など、<strong>二つの状態を区別する印（記号）</strong>として使われています。
+        </p>
+
+        <!-- インタラクティブ体験：スイッチと状態 -->
+        <h3 class="font-bold text-slate-700 text-sm mb-3 flex items-center gap-1.5">
+          <span>👇</span> スイッチを押して、0と1で状態がどう変わるか試してみよう！
+        </h3>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          <!-- 例1: 教室の照明 -->
+          <div class="p-5 rounded-xl border-2 border-slate-200 bg-slate-50 flex flex-col justify-between">
+            <div>
+              <div class="flex justify-between items-center mb-2">
+                <span class="font-bold text-slate-700 text-sm">場面① 教室の照明</span>
+                <span id="lightBadge" class="text-xs px-2 py-0.5 rounded font-mono font-bold bg-slate-200 text-slate-700">値: 0</span>
+              </div>
+              <div id="lightBox" class="h-28 rounded-lg bg-slate-800 flex flex-col items-center justify-center text-white transition-all duration-300 mb-3 shadow-inner">
+                <span id="lightBulb" class="text-4xl filter grayscale">💡</span>
+                <span id="lightDesc" class="text-xs mt-1 text-slate-400">暗い（消灯）</span>
+              </div>
+            </div>
+            <button onclick="toggleExample('light')" class="w-full py-2 px-4 rounded-lg bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-medium text-sm transition shadow flex items-center justify-center gap-2">
+              <span>スイッチを切り替える</span>
+            </button>
+          </div>
+
+          <!-- 例2: スマホのロック -->
+          <div class="p-5 rounded-xl border-2 border-slate-200 bg-slate-50 flex flex-col justify-between">
+            <div>
+              <div class="flex justify-between items-center mb-2">
+                <span class="font-bold text-slate-700 text-sm">場面② スマホのロック</span>
+                <span id="lockBadge" class="text-xs px-2 py-0.5 rounded font-mono font-bold bg-slate-200 text-slate-700">値: 0</span>
+              </div>
+              <div id="lockBox" class="h-28 rounded-lg bg-rose-900/30 border border-rose-200 flex flex-col items-center justify-center text-rose-900 transition-all duration-300 mb-3">
+                <span id="lockIcon" class="text-4xl">🔒</span>
+                <span id="lockDesc" class="text-xs mt-1 font-bold text-rose-700">ロック中（入れない）</span>
+              </div>
+            </div>
+            <button onclick="toggleExample('lock')" class="w-full py-2 px-4 rounded-lg bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-medium text-sm transition shadow flex items-center justify-center gap-2">
+              <span>生体認証／パスコード入力</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- ワークシート記入サポート -->
+        <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 text-sm">
+          <div class="font-bold text-blue-900 mb-2 flex items-center gap-2">
+            <span>📝</span> ワークシート Step 1 の記入欄を書いてみよう！
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs sm:text-sm bg-white rounded-lg border border-blue-200">
+              <thead class="bg-blue-100/70 text-blue-900">
+                <tr>
+                  <th class="p-2.5 border-b">場面</th>
+                  <th class="p-2.5 border-b">0 は何を表す？</th>
+                  <th class="p-2.5 border-b">1 は何を表す？</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-blue-100 text-slate-700">
+                <tr>
+                  <td class="p-2.5 font-bold">教室の照明</td>
+                  <td class="p-2.5 text-slate-500">部屋が暗い（消灯）</td>
+                  <td class="p-2.5 text-indigo-600 font-bold">部屋が明るい（点灯）</td>
+                </tr>
+                <tr>
+                  <td class="p-2.5 font-bold">スマホのロック</td>
+                  <td class="p-2.5 text-slate-500">ロックされている</td>
+                  <td class="p-2.5 text-indigo-600 font-bold">解除されている</td>
+                </tr>
+                <tr class="bg-amber-50/50">
+                  <td class="p-2.5 font-bold text-amber-900">自分で考えた場面のヒント</td>
+                  <td class="p-2.5 text-slate-600" colspan="2">
+                    例:「ゲームのHP（0:ゲームオーバー, 1:生存）」「電車の踏切（0:開いてる, 1:閉じてる）」「Suica残高（0:不足, 1:通過可能）」など
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="mt-3 text-xs text-blue-800 leading-relaxed">
+            <strong>ここがポイント！</strong> 人間は「ちょっと暗いかも」「ほぼOK」のような曖昧な言葉を使いますが、機械・コンピュータは曖昧さが苦手です。そのため「YESかNOか（1か0か）」の二択にハッキリ決めてあげることで、ミスなく確実に判断できるようになります。
+          </p>
+        </div>
+      </div>
+
+      <div class="flex justify-end">
+        <button onclick="goToStep(2)" class="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold shadow-md hover:shadow transition flex items-center gap-2">
+          <span>次へ: Step 2 条件を組み合わせる</span>
+          <span>→</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- ============================================================== -->
+    <!-- STEP 2: 条件を組み合わせる: AND OR NOT -->
+    <!-- ============================================================== -->
+    <section id="step2-panel" class="step-panel hidden space-y-6">
+      <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="px-2.5 py-1 rounded-md bg-indigo-100 text-indigo-800 font-bold text-xs">Step 2</span>
+          <h2 class="text-xl font-bold text-slate-800">条件を組み合わせる：AND / OR / NOT</h2>
+        </div>
+        <p class="text-slate-600 leading-relaxed mb-6">
+          身の回りの機械は、1つの条件だけで動くわけではありません。例えば「部屋が暗い」だけでなく「人がいる」ことも確かめてから電気をつけたいですよね。こうした複数の条件を組み立てるのが<strong class="text-indigo-600">「論理回路（基本ゲート）」</strong>です。
+        </p>
+
+        <!-- 3大基本回路のタブ切り替え -->
+        <div class="border border-slate-200 rounded-xl overflow-hidden mb-6">
+          <div class="bg-slate-100 p-2 flex space-x-2 border-b border-slate-200">
+            <button onclick="setGateTab('AND')" id="tabBtnAND" class="gate-tab-btn flex-1 py-2 px-3 rounded-lg font-bold text-sm bg-white text-indigo-700 shadow-sm">
+              AND (かつ)
+            </button>
+            <button onclick="setGateTab('OR')" id="tabBtnOR" class="gate-tab-btn flex-1 py-2 px-3 rounded-lg font-bold text-sm text-slate-600 hover:bg-white/50">
+              OR (または)
+            </button>
+            <button onclick="setGateTab('NOT')" id="tabBtnNOT" class="gate-tab-btn flex-1 py-2 px-3 rounded-lg font-bold text-sm text-slate-600 hover:bg-white/50">
+              NOT (反対にする)
+            </button>
+          </div>
+
+          <!-- シミュレーション表示エリア -->
+          <div class="p-6 bg-slate-50/50">
+            <!-- ゲートごとの説明見出し -->
+            <div id="gateTitleArea" class="mb-4">
+              <div class="flex items-center justify-between">
+                <span id="gateNameBadge" class="text-lg font-black text-indigo-900">AND回路 (かつ)</span>
+                <span id="gateRuleText" class="text-xs bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full font-bold">AもBも「1」のときだけ「1」を出す</span>
+              </div>
+              <p id="gateExampleText" class="text-xs text-slate-600 mt-1">身近な例: 「部屋が暗く、かつ 人がいる なら照明をつける」</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+              <!-- 左側：操作パネル（入力スイッチ） -->
+              <div class="lg:col-span-4 space-y-4">
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                  <span class="text-xs font-bold text-slate-400 block mb-1">入力 A のスイッチ</span>
+                  <div class="flex items-center justify-between">
+                    <span id="labelA" class="text-sm font-bold text-slate-700">条件A: 暗い</span>
+                    <button onclick="toggleGateInput('A')" id="btnGateA" class="px-4 py-2 rounded-lg font-mono font-bold text-sm bg-slate-200 text-slate-700 transition">
+                      0 (OFF)
+                    </button>
+                  </div>
+                </div>
+
+                <div id="wrapperInputB" class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                  <span class="text-xs font-bold text-slate-400 block mb-1">入力 B のスイッチ</span>
+                  <div class="flex items-center justify-between">
+                    <span id="labelB" class="text-sm font-bold text-slate-700">条件B: 人がいる</span>
+                    <button onclick="toggleGateInput('B')" id="btnGateB" class="px-4 py-2 rounded-lg font-mono font-bold text-sm bg-slate-200 text-slate-700 transition">
+                      0 (OFF)
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 中央：SVG回路ビジュアライザー -->
+              <div class="lg:col-span-5 bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col items-center justify-center min-h-[220px]">
+                <svg id="gateSvg" class="w-full h-44" viewBox="0 0 320 180">
+                  <!-- JSで動的描画 -->
+                </svg>
+              </div>
+
+              <!-- 右側：出力結果 -->
+              <div class="lg:col-span-3">
+                <div id="gateResultCard" class="p-5 rounded-2xl border-2 border-slate-300 bg-white text-center transition-all shadow-sm">
+                  <span class="text-xs font-bold text-slate-500 block mb-1">出力（結果）</span>
+                  <div id="gateResultVal" class="text-4xl font-black font-mono my-2 text-slate-400">0</div>
+                  <div id="gateResultStatus" class="text-xs font-bold text-slate-500">動かない（OFF）</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 連動真理値表 -->
+            <div class="mt-6 pt-4 border-t border-slate-200">
+              <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">真理値表（しんりちひょう）※現在の入力行がハイライトされます</h4>
+              <div class="overflow-x-auto">
+                <table id="truthTable" class="w-full text-center text-xs font-mono bg-white border border-slate-200 rounded-lg">
+                  <!-- JSで生成 -->
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ワークシートの「自分で作る」練習クイズ -->
+        <div class="bg-amber-50 border border-amber-200 rounded-xl p-5">
+          <h3 class="font-bold text-amber-900 text-sm mb-3 flex items-center gap-2">
+            <span>✍️</span> ワークシート「自分で作る」チャレンジ！
+          </h3>
+          <div class="space-y-4 text-xs sm:text-sm">
+            <!-- 設問1: 自動ドア -->
+            <div class="bg-white p-4 rounded-lg border border-amber-200">
+              <div class="font-bold text-slate-800 mb-1">Q1. 自動ドアが開く条件は？</div>
+              <p class="text-slate-600 mb-2">「内側のセンサーが反応する、<span class="underline font-bold text-indigo-700">または</span> 外側のセンサーが反応する」</p>
+              <div class="flex items-center gap-2">
+                <span class="text-xs text-slate-500">使う回路はどれ？</span>
+                <button onclick="checkDoorQuiz('AND')" class="quiz-btn-door px-3 py-1 rounded bg-slate-100 hover:bg-slate-200 font-bold text-xs">AND</button>
+                <button onclick="checkDoorQuiz('OR')" class="quiz-btn-door px-3 py-1 rounded bg-slate-100 hover:bg-slate-200 font-bold text-xs">OR</button>
+                <button onclick="checkDoorQuiz('NOT')" class="quiz-btn-door px-3 py-1 rounded bg-slate-100 hover:bg-slate-200 font-bold text-xs">NOT</button>
+                <span id="doorFeedback" class="text-xs font-bold ml-2"></span>
+              </div>
+            </div>
+
+            <!-- 設問2: ゲームの開始 -->
+            <div class="bg-white p-4 rounded-lg border border-amber-200">
+              <div class="font-bold text-slate-800 mb-1">Q2. オンライン対戦ゲームが開始される条件は？</div>
+              <p class="text-slate-600 mb-2">「スタートボタンが押され、<span class="underline font-bold text-indigo-700">かつ</span> 全員が準備完了である」</p>
+              <div class="flex items-center gap-2">
+                <span class="text-xs text-slate-500">使う回路はどれ？</span>
+                <button onclick="checkGameQuiz('AND')" class="quiz-btn-game px-3 py-1 rounded bg-slate-100 hover:bg-slate-200 font-bold text-xs">AND</button>
+                <button onclick="checkGameQuiz('OR')" class="quiz-btn-game px-3 py-1 rounded bg-slate-100 hover:bg-slate-200 font-bold text-xs">OR</button>
+                <button onclick="checkGameQuiz('NOT')" class="quiz-btn-game px-3 py-1 rounded bg-slate-100 hover:bg-slate-200 font-bold text-xs">NOT</button>
+                <span id="gameFeedback" class="text-xs font-bold ml-2"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex justify-between">
+        <button onclick="goToStep(1)" class="px-5 py-2.5 rounded-xl border border-slate-300 hover:bg-slate-100 text-slate-700 font-bold transition">
+          ← 前へ
+        </button>
+        <button onclick="goToStep(3)" class="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold shadow-md hover:shadow transition flex items-center gap-2">
+          <span>次へ: Step 3 ワークシートの回路図を読む</span>
+          <span>→</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- ============================================================== -->
+    <!-- STEP 3: 図を読んで、条件が出力を作ることを見る -->
+    <!-- ============================================================== -->
+    <section id="step3-panel" class="step-panel hidden space-y-6">
+      <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="px-2.5 py-1 rounded-md bg-indigo-100 text-indigo-800 font-bold text-xs">Step 3</span>
+          <h2 class="text-xl font-bold text-slate-800">図を読んで、条件が出力を作ることを見る</h2>
+        </div>
+        <p class="text-slate-600 leading-relaxed mb-4">
+          ワークシートの2ページ目にある回路図をそのままシミュレートしました！<br>
+          入力AとBのスイッチを切り替えて、<strong>「途中のAND・OR・NOTがどう動いて、出力①と出力②がどうなるか」</strong>を確かめてみましょう。
+        </p>
+
+        <!-- インタラクティブ回路シミュレーター -->
+        <div class="bg-slate-900 text-white rounded-2xl p-4 sm:p-6 shadow-lg border border-slate-800">
+          <div class="flex flex-wrap justify-between items-center pb-4 mb-4 border-b border-slate-800 gap-2">
+            <span class="text-xs font-bold uppercase tracking-wider text-indigo-400 flex items-center gap-1.5">
+              <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+              ワークシート掲載回路シミュレータ
+            </span>
+            <div class="flex items-center gap-4 text-xs font-mono">
+              <span class="flex items-center gap-1.5"><span class="w-3 h-1 bg-rose-500 inline-block rounded"></span> 1 (ON/高電圧)</span>
+              <span class="flex items-center gap-1.5"><span class="w-3 h-1 bg-sky-500 inline-block rounded"></span> 0 (OFF/低電圧)</span>
+            </div>
+          </div>
+
+          <!-- スイッチ操作部 ＆ SVG回路全体 -->
+          <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+            <!-- 入力スイッチ群 -->
+            <div class="md:col-span-3 space-y-4">
+              <!-- 入力A -->
+              <div class="p-4 rounded-xl bg-slate-800 border-2 transition-all" id="cardInputA">
+                <div class="flex justify-between items-center mb-1">
+                  <span class="text-xs text-slate-400 font-bold">入力 A</span>
+                  <span id="stateTextA" class="text-xs font-bold text-rose-400">1 (オン)</span>
+                </div>
+                <button onclick="toggleStep3Input('A')" id="btnStep3A" class="w-full py-2.5 px-3 rounded-lg font-mono font-black text-lg bg-rose-600 text-white shadow-lg active:scale-95 transition">
+                  A = 1
+                </button>
+              </div>
+
+              <!-- 入力B -->
+              <div class="p-4 rounded-xl bg-slate-800 border-2 transition-all" id="cardInputB">
+                <div class="flex justify-between items-center mb-1">
+                  <span class="text-xs text-slate-400 font-bold">入力 B</span>
+                  <span id="stateTextB" class="text-xs font-bold text-sky-400">0 (オフ)</span>
+                </div>
+                <button onclick="toggleStep3Input('B')" id="btnStep3B" class="w-full py-2.5 px-3 rounded-lg font-mono font-black text-lg bg-sky-700 text-white shadow-lg active:scale-95 transition">
+                  B = 0
+                </button>
+              </div>
+
+              <div class="text-[11px] text-slate-400 leading-normal bg-slate-800/60 p-3 rounded-lg">
+                💡 ボタンを押すと 0 と 1 が切り替わります。ワークシートの例（A=1, B=0）から試してみよう！
+              </div>
+            </div>
+
+            <!-- SVG 回路ビジュアライザ -->
+            <div class="md:col-span-6 bg-slate-950 p-2 sm:p-4 rounded-xl border border-slate-800 flex justify-center items-center overflow-x-auto">
+              <svg id="worksheetCircuitSvg" class="w-full min-w-[340px] h-64" viewBox="0 0 460 260">
+                <!-- JSでインタラクティブ配線＆ゲート描画 -->
+              </svg>
+            </div>
+
+            <!-- 出力表示群 -->
+            <div class="md:col-span-3 space-y-4">
+              <!-- 出力1 -->
+              <div class="p-4 rounded-xl bg-slate-800 border border-slate-700 text-center" id="cardOut1">
+                <div class="text-xs text-indigo-300 font-bold mb-0.5">出力 ①</div>
+                <div class="text-sm font-black text-white">和 (SUM)</div>
+                <div class="text-xs text-slate-400">ANDの結果を反対にしたもの</div>
+                <div id="valOut1" class="text-4xl font-mono font-black my-2 text-rose-400">1</div>
+                <div id="descOut1" class="text-xs font-mono text-slate-300 bg-slate-900/80 py-1 px-2 rounded">
+                  答え: 1
+                </div>
+              </div>
+
+              <!-- 出力2 -->
+              <div class="p-4 rounded-xl bg-slate-800 border border-slate-700 text-center" id="cardOut2">
+                <div class="text-xs text-emerald-300 font-bold mb-0.5">出力 ②</div>
+                <div class="text-sm font-black text-white">桁上がり (CARRY)</div>
+                <div class="text-xs text-slate-400">OR の結果</div>
+                <div id="valOut2" class="text-4xl font-mono font-black my-2 text-rose-400">1</div>
+                <div id="descOut2" class="text-xs font-mono text-slate-300 bg-slate-900/80 py-1 px-2 rounded">
+                  答え: 1
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ワークシートの真理値表との照合 -->
+          <div class="mt-6 pt-4 border-t border-slate-800">
+            <h4 class="text-xs font-bold text-amber-400 mb-2 flex items-center gap-1.5">
+              <span>📋</span> ワークシートの真理値表と見比べてみよう！
+            </h4>
+            <div class="overflow-x-auto">
+              <table class="w-full text-center text-xs font-mono border border-slate-700">
+                <thead class="bg-slate-800 text-slate-300">
+                  <tr>
+                    <th class="p-2 border border-slate-700">A</th>
+                    <th class="p-2 border border-slate-700">B</th>
+                    <th class="p-2 border border-slate-700">AND (AかつB)</th>
+                    <th class="p-2 border border-slate-700 bg-indigo-900/60 text-indigo-200">NOT(反転) = 出力①</th>
+                    <th class="p-2 border border-slate-700 bg-emerald-900/60 text-emerald-200">OR (AまたはB) = 出力②</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-800 text-slate-300">
+                  <tr id="wsRow-0-0">
+                    <td class="p-2 border border-slate-700">0</td>
+                    <td class="p-2 border border-slate-700">0</td>
+                    <td class="p-2 border border-slate-700">0</td>
+                    <td class="p-2 border border-slate-700 font-bold text-rose-400">1</td>
+                    <td class="p-2 border border-slate-700 font-bold text-sky-400">0</td>
+                  </tr>
+                  <tr id="wsRow-0-1">
+                    <td class="p-2 border border-slate-700">0</td>
+                    <td class="p-2 border border-slate-700">1</td>
+                    <td class="p-2 border border-slate-700">0</td>
+                    <td class="p-2 border border-slate-700 font-bold text-rose-400">1</td>
+                    <td class="p-2 border border-slate-700 font-bold text-rose-400">1</td>
+                  </tr>
+                  <tr id="wsRow-1-0" class="bg-indigo-950/70">
+                    <td class="p-2 border border-slate-700">1</td>
+                    <td class="p-2 border border-slate-700">0</td>
+                    <td class="p-2 border border-slate-700">0</td>
+                    <td class="p-2 border border-slate-700 font-bold text-rose-400">1</td>
+                    <td class="p-2 border border-slate-700 font-bold text-rose-400">1</td>
+                  </tr>
+                  <tr id="wsRow-1-1">
+                    <td class="p-2 border border-slate-700">1</td>
+                    <td class="p-2 border border-slate-700">1</td>
+                    <td class="p-2 border border-slate-700">1</td>
+                    <td class="p-2 border border-slate-700 font-bold text-sky-400">0</td>
+                    <td class="p-2 border border-slate-700 font-bold text-rose-400">1</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ワークシート問い①〜⑤の自己解説アコーディオン -->
+        <div class="bg-slate-50 border border-slate-200 rounded-xl p-5">
+          <h3 class="font-bold text-slate-800 text-sm mb-3 flex items-center gap-2">
+            <span>🔍</span> ワークシート「確かめる順（①〜⑤）」の考え方ヒント
+          </h3>
+          <div class="space-y-2 text-xs sm:text-sm">
+            <details class="p-3 bg-white rounded-lg border border-slate-200 cursor-pointer">
+              <summary class="font-bold text-indigo-900">① AとBは何を表すと考えられるか？</summary>
+              <p class="mt-2 text-slate-600 pl-4 border-l-2 border-indigo-400">
+                回路に入力される二つのデータ（スイッチのON/OFF、足し算したい2つの数など）の状態です。
+              </p>
+            </details>
+            <details class="p-3 bg-white rounded-lg border border-slate-200 cursor-pointer">
+              <summary class="font-bold text-indigo-900">② AND の出力は、どんなとき1になるか？</summary>
+              <p class="mt-2 text-slate-600 pl-4 border-l-2 border-indigo-400">
+                AもBも両方が「1」のときだけ1になります。それ以外のときは0です。
+              </p>
+            </details>
+            <details class="p-3 bg-white rounded-lg border border-slate-200 cursor-pointer">
+              <summary class="font-bold text-indigo-900">③ OR の出力は、どんなとき1になるか？</summary>
+              <p class="mt-2 text-slate-600 pl-4 border-l-2 border-indigo-400">
+                AかBの少なくともどちらか一方が「1」であれば1になります（両方0のときだけ0）。
+              </p>
+            </details>
+            <details class="p-3 bg-white rounded-lg border border-slate-200 cursor-pointer">
+              <summary class="font-bold text-indigo-900">④ NOT が必要なのは、どんなときか？</summary>
+              <p class="mt-2 text-slate-600 pl-4 border-l-2 border-indigo-400">
+                結果の信号をひっくり返したいとき（0を1に、1を0にしたいとき）に使います。
+              </p>
+            </details>
+            <details class="p-3 bg-white rounded-lg border border-slate-200 cursor-pointer">
+              <summary class="font-bold text-indigo-900">⑤ 回路を使うと、人が決めた条件をどう扱えるか？</summary>
+              <p class="mt-2 text-slate-600 pl-4 border-l-2 border-indigo-400">
+                「〜なら〜する」という人間のルールを、電気の流れ（回路）によって<strong>自動的・物理的に判定・実行</strong>できるようになります！
+              </p>
+            </details>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex justify-between">
+        <button onclick="goToStep(2)" class="px-5 py-2.5 rounded-xl border border-slate-300 hover:bg-slate-100 text-slate-700 font-bold transition">
+          ← 前へ
+        </button>
+        <button onclick="goToStep(4)" class="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold shadow-md hover:shadow transition flex items-center gap-2">
+          <span>次へ: Step 4 条件の組合せが「足し算」を作る</span>
+          <span>→</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- ============================================================== -->
+    <!-- STEP 4: 条件の組合せが「足し算」を作る（半加算器） -->
+    <!-- ============================================================== -->
+    <section id="step4-panel" class="step-panel hidden space-y-6">
+      <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="px-2.5 py-1 rounded-md bg-indigo-100 text-indigo-800 font-bold text-xs">Step 4</span>
+          <h2 class="text-xl font-bold text-slate-800">条件の組合せが「足し算」を作る</h2>
+        </div>
+        <p class="text-slate-600 leading-relaxed mb-4">
+          2進数の世界では、使える数字は「0」と「1」だけです。だから <strong class="text-indigo-600 font-mono">1 + 1 = 10 (いち・ゼロ)</strong> に桁上がりします！<br>
+          この計算を機械にやらせるために、<strong>「右の桁（和：SUM）」</strong>と<strong>「左の桁（桁上がり：CARRY）」</strong>を同時に作る回路が<strong class="text-rose-600">「半加算器（Half Adder）」</strong>です。
+        </p>
+
+        <!-- 2進数の計算表対比カード -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+            <h3 class="font-bold text-slate-700 text-sm mb-2 flex items-center gap-1.5">
+              <span>🧮</span> 2進数の足し算ルール（ワークシートの表）
+            </h3>
+            <table class="w-full text-center text-xs font-mono bg-white border border-slate-200 rounded-lg">
+              <thead class="bg-slate-100 text-slate-700">
+                <tr>
+                  <th class="p-2 border">A</th>
+                  <th class="p-2 border">B</th>
+                  <th class="p-2 border">計算式</th>
+                  <th class="p-2 border text-indigo-600 font-bold">和 (SUM)</th>
+                  <th class="p-2 border text-emerald-600 font-bold">桁上がり (CARRY)</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100">
+                <tr id="adderRow-0-0">
+                  <td class="p-2 border">0</td>
+                  <td class="p-2 border">0</td>
+                  <td class="p-2 border">0 + 0 = 0</td>
+                  <td class="p-2 border font-bold">0</td>
+                  <td class="p-2 border font-bold">0</td>
+                </tr>
+                <tr id="adderRow-0-1">
+                  <td class="p-2 border">0</td>
+                  <td class="p-2 border">1</td>
+                  <td class="p-2 border">0 + 1 = 1</td>
+                  <td class="p-2 border font-bold text-indigo-600">1</td>
+                  <td class="p-2 border font-bold">0</td>
+                </tr>
+                <tr id="adderRow-1-0">
+                  <td class="p-2 border">1</td>
+                  <td class="p-2 border">0</td>
+                  <td class="p-2 border">1 + 0 = 1</td>
+                  <td class="p-2 border font-bold text-indigo-600">1</td>
+                  <td class="p-2 border font-bold">0</td>
+                </tr>
+                <tr id="adderRow-1-1" class="bg-amber-50">
+                  <td class="p-2 border">1</td>
+                  <td class="p-2 border">1</td>
+                  <td class="p-2 border font-bold text-amber-900">1 + 1 = 10</td>
+                  <td class="p-2 border font-bold text-indigo-600">0</td>
+                  <td class="p-2 border font-bold text-emerald-600">1 (繰り上がり!)</td>
+                </tr>
+              </tbody>
+            </table>
+            <p class="text-[11px] text-slate-500 mt-2 leading-relaxed">
+              よく見ると…<br>
+              ・<strong>桁上がり(CARRY)</strong>は「両方1のときだけ1」→ <span class="font-bold text-emerald-600">AND回路</span>そのもの！<br>
+              ・<strong>和(SUM)</strong>は「片方だけ1のとき1（1+1のときは0）」→ <span class="font-bold text-indigo-600">XOR回路（排他的論理和）</span>！
+            </p>
+          </div>
+
+          <!-- 半加算器の直感インタラクティブ計算機 -->
+          <div class="bg-gradient-to-br from-indigo-900 to-slate-900 text-white p-5 rounded-xl flex flex-col justify-between shadow-md">
+            <div>
+              <div class="flex justify-between items-center mb-3">
+                <span class="text-xs font-bold uppercase tracking-wider text-indigo-300">半加算器シミュレーター</span>
+                <span class="text-xs px-2 py-0.5 rounded bg-indigo-700 text-indigo-100 font-mono">1-bit Adder</span>
+              </div>
+              <div class="grid grid-cols-2 gap-3 mb-4">
+                <button onclick="toggleAdderInput('A')" id="btnAdderA" class="p-3 rounded-lg bg-indigo-700 hover:bg-indigo-600 border border-indigo-400/30 text-center transition">
+                  <div class="text-xs text-indigo-200">入力 A</div>
+                  <div id="adderValA" class="text-3xl font-mono font-black mt-1">0</div>
+                </button>
+                <button onclick="toggleAdderInput('B')" id="btnAdderB" class="p-3 rounded-lg bg-indigo-700 hover:bg-indigo-600 border border-indigo-400/30 text-center transition">
+                  <div class="text-xs text-indigo-200">入力 B</div>
+                  <div id="adderValB" class="text-3xl font-mono font-black mt-1">0</div>
+                </button>
+              </div>
+
+              <!-- 計算結果ビジュアル -->
+              <div class="bg-black/40 p-4 rounded-xl border border-white/10 text-center space-y-2">
+                <div class="text-xs text-slate-300">計算式（2進数）</div>
+                <div id="adderFormula" class="text-xl font-mono font-bold text-amber-300">
+                  0 + 0 = 0 (2進数: 00)
+                </div>
+                <div class="flex justify-center items-center gap-4 pt-2 border-t border-white/10">
+                  <div>
+                    <span class="text-[10px] text-emerald-300 block font-bold">桁上がり (CARRY)</span>
+                    <span id="adderCarryDisp" class="text-2xl font-mono font-black text-emerald-400">0</span>
+                  </div>
+                  <span class="text-slate-500 font-mono text-xl">|</span>
+                  <div>
+                    <span class="text-[10px] text-indigo-300 block font-bold">和 (SUM)</span>
+                    <span id="adderSumDisp" class="text-2xl font-mono font-black text-indigo-300">0</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="text-[11px] text-indigo-200 mt-3 bg-indigo-950/60 p-2.5 rounded-lg border border-indigo-800">
+              💡 <strong>なぜ二つの出力に分けるの？</strong><br>
+              位が上がった「1」を次の桁へパス（繰り上げ）するためです。この半加算器を横に何個も連結すると、32桁や64桁といった大きな数の計算もできるようになります！
+            </div>
+          </div>
+        </div>
+
+        <!-- 半加算器の内部回路SVG -->
+        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+          <h3 class="font-bold text-slate-700 text-sm mb-2">内部の回路配線を見てみよう</h3>
+          <div class="bg-white p-4 rounded-lg border border-slate-200 flex justify-center">
+            <svg id="halfAdderSvg" class="w-full max-w-lg h-48" viewBox="0 0 400 180">
+              <!-- JSで描画 -->
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex justify-between">
+        <button onclick="goToStep(3)" class="px-5 py-2.5 rounded-xl border border-slate-300 hover:bg-slate-100 text-slate-700 font-bold transition">
+          ← 前へ
+        </button>
+        <button onclick="goToStep(5)" class="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold shadow-md hover:shadow transition flex items-center gap-2">
+          <span>次へ: Step 5 引き算を足し算に変える（補数）</span>
+          <span>→</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- ============================================================== -->
+    <!-- STEP 5: 引き算を足し算に変える: 補数 -->
+    <!-- ============================================================== -->
+    <section id="step5-panel" class="step-panel hidden space-y-6">
+      <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="px-2.5 py-1 rounded-md bg-indigo-100 text-indigo-800 font-bold text-xs">Step 5</span>
+          <h2 class="text-xl font-bold text-slate-800">引き算を足し算に変える：補数（ほすう）</h2>
+        </div>
+        <p class="text-slate-600 leading-relaxed mb-4">
+          コンピュータの中に「足し算回路」と「引き算回路」の両方を別々に作ると、回路が巨大で複雑になってしまいます。<br>
+          そこで、引く数を<strong class="text-indigo-600">「補数（足すと基準の桁になる数）」</strong>に変えることで、<strong>足し算回路だけで引き算をやってのける</strong>という賢い裏ワザを使っています！
+        </p>
+
+        <!-- ワークシートの例: 10進数「7 - 3」の実験シミュレータ -->
+        <div class="bg-amber-50/70 border border-amber-200 rounded-2xl p-6 mb-6">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="font-bold text-amber-900 text-base flex items-center gap-2">
+              <span>🎯</span> 10進法で体験する「7 - 3」の補数マジック
+            </h3>
+            <span class="text-xs bg-amber-200 text-amber-900 px-2.5 py-1 rounded-full font-bold">ワークシート記載の例</span>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+            <!-- 手順1: 補数を見つける -->
+            <div class="bg-white p-4 rounded-xl border border-amber-200 shadow-sm space-y-2">
+              <span class="text-xs font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded">手順 1</span>
+              <div class="font-bold text-slate-800 text-sm">3の「10の補数」は何？</div>
+              <p class="text-xs text-slate-600">
+                足して「10」になる相手の相棒を探します。<br>
+                <span class="font-mono font-bold text-indigo-700">3 + [ 7 ] = 10</span>
+              </p>
+              <div class="p-2 bg-indigo-50 text-indigo-900 text-center rounded font-bold text-xs">
+                👉 3の補数は「7」！
+              </div>
+            </div>
+
+            <!-- 手順2: 引き算を足し算にする -->
+            <div class="bg-white p-4 rounded-xl border border-amber-200 shadow-sm space-y-2">
+              <span class="text-xs font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded">手順 2</span>
+              <div class="font-bold text-slate-800 text-sm">引く3を、補数7を足す形に変える</div>
+              <p class="text-xs text-slate-600">
+                「7 から 3 を引く」代わりに「7 に 補数7 を足す」！
+              </p>
+              <div class="p-2 bg-indigo-50 text-indigo-900 text-center rounded font-mono font-bold text-sm">
+                7 + 7 = 14
+              </div>
+            </div>
+
+            <!-- 手順3: はみ出た桁を捨てる -->
+            <div class="bg-white p-4 rounded-xl border border-amber-200 shadow-sm space-y-2">
+              <span class="text-xs font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded">手順 3</span>
+              <div class="font-bold text-slate-800 text-sm">桁あふれ（10）を外す</div>
+              <p class="text-xs text-slate-600">
+                14 のうち、10を越えた分（最上位の1）を捨てると…
+              </p>
+              <div class="p-2 bg-emerald-50 text-emerald-900 text-center rounded font-mono font-black text-base border border-emerald-300">
+                答えは「 4 」！ 🎉
+              </div>
+            </div>
+          </div>
+
+          <!-- インタラクティブ・補数カリキュレーター -->
+          <div class="bg-white p-4 rounded-xl border border-amber-200">
+            <span class="text-xs font-bold text-slate-500 block mb-2">好きな数で試してみよう！（A - B）</span>
+            <div class="flex flex-wrap items-center gap-3">
+              <div class="flex items-center gap-1">
+                <span class="text-xs text-slate-500">A:</span>
+                <input type="number" id="compA" value="7" min="1" max="9" class="w-14 p-1.5 border rounded text-center font-mono font-bold" onchange="calcComplementDemo()">
+              </div>
+              <span class="font-bold text-slate-400">ー</span>
+              <div class="flex items-center gap-1">
+                <span class="text-xs text-slate-500">B:</span>
+                <input type="number" id="compB" value="3" min="1" max="8" class="w-14 p-1.5 border rounded text-center font-mono font-bold" onchange="calcComplementDemo()">
+              </div>
+              <span class="text-slate-400 font-bold">⇒</span>
+              <div id="compResultVisual" class="text-xs text-indigo-900 font-mono font-bold bg-indigo-50 px-3 py-1.5 rounded flex-1">
+                <!-- JSで計算展開 -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2進数での補数（ビット反転＋1）の簡単な紹介 -->
+        <div class="bg-slate-50 border border-slate-200 rounded-xl p-5">
+          <h3 class="font-bold text-slate-800 text-sm mb-2 flex items-center gap-2">
+            <span>💻</span> コンピュータ（2進数）だとどうやるの？「2の補数」
+          </h3>
+          <p class="text-xs text-slate-600 leading-relaxed mb-3">
+            2進数では驚くほど簡単に補数が作れます。<strong>「NOT回路で0と1をぜんぶ反転させて、最後に1を足すだけ」</strong>！
+          </p>
+          <div class="bg-white p-3 rounded-lg border border-slate-200 font-mono text-xs space-y-1">
+            <div class="text-slate-500">元の数 (3)　: 0 0 1 1</div>
+            <div class="text-indigo-600">NOTで反転 : 1 1 0 0 （全部ひっくり返す）</div>
+            <div class="text-emerald-600">＋ 1 を足す : 1 1 0 1 （これが-3を表す「2の補数」！）</div>
+          </div>
+          <p class="text-[11px] text-slate-500 mt-2">
+            このようにNOT回路と足し算回路さえあれば、引き算専用の部品を作らなくても済むのです。
+          </p>
+        </div>
+      </div>
+
+      <div class="flex justify-between">
+        <button onclick="goToStep(4)" class="px-5 py-2.5 rounded-xl border border-slate-300 hover:bg-slate-100 text-slate-700 font-bold transition">
+          ← 前へ
+        </button>
+        <button onclick="goToStep(6)" class="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold shadow-md hover:shadow transition flex items-center gap-2">
+          <span>次へ: Step 6 命令の旅＆まとめ</span>
+          <span>→</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- ============================================================== -->
+    <!-- STEP 6: 人の命令が回路へ届くまで ＆ 最後のまとめ -->
+    <!-- ============================================================== -->
+    <section id="step6-panel" class="step-panel hidden space-y-6">
+      <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="px-2.5 py-1 rounded-md bg-indigo-100 text-indigo-800 font-bold text-xs">Step 6</span>
+          <h2 class="text-xl font-bold text-slate-800">人の命令が回路へ届くまで</h2>
+        </div>
+        <p class="text-slate-600 leading-relaxed mb-6">
+          人間がキーボードで書いた「もし〜なら」というプログラムは、どのようにして物理的な回路に届くのでしょうか？
+          その階層構造をアニメーションで確認してみましょう。
+        </p>
+
+        <!-- 3段階の翻訳パイプライン -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <!-- 段階1 -->
+          <div class="p-4 rounded-xl border-2 border-indigo-200 bg-indigo-50/50 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-bold text-indigo-700">段階 1</span>
+                <span class="text-[11px] bg-indigo-200 text-indigo-800 px-2 py-0.5 rounded font-bold">人に分かりやすい</span>
+              </div>
+              <h4 class="font-bold text-slate-800 text-sm mb-1">プログラミング言語</h4>
+              <p class="text-xs text-slate-600 mb-2">英語や日本語に近い言葉で命令を書く。</p>
+              <div class="bg-slate-900 text-emerald-400 p-2.5 rounded font-mono text-xs shadow-inner">
+                if (hp &gt; 0 and attack):<br>
+                &nbsp;&nbsp;win()
+              </div>
+            </div>
+          </div>
+
+          <!-- 段階2 -->
+          <div class="p-4 rounded-xl border-2 border-amber-200 bg-amber-50/50 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-bold text-amber-700">段階 2</span>
+                <span class="text-[11px] bg-amber-200 text-amber-800 px-2 py-0.5 rounded font-bold">機械に分かりやすい</span>
+              </div>
+              <h4 class="font-bold text-slate-800 text-sm mb-1">機械語（マシン語）</h4>
+              <p class="text-xs text-slate-600 mb-2">翻訳機（コンパイラ）が0と1の数字の列に変換する。</p>
+              <div class="bg-slate-900 text-amber-400 p-2.5 rounded font-mono text-xs shadow-inner break-all">
+                01001000 01100101<br>
+                11010001 00001111
+              </div>
+            </div>
+          </div>
+
+          <!-- 段階3 -->
+          <div class="p-4 rounded-xl border-2 border-emerald-200 bg-emerald-50/50 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-bold text-emerald-700">段階 3</span>
+                <span class="text-[11px] bg-emerald-200 text-emerald-800 px-2 py-0.5 rounded font-bold">物理的に動く！</span>
+              </div>
+              <h4 class="font-bold text-slate-800 text-sm mb-1">論理回路 (電気のON/OFF)</h4>
+              <p class="text-xs text-slate-600 mb-2">0と1の信号がAND・ORゲートを通って実際に電流を制御する！</p>
+              <div class="bg-slate-900 text-sky-300 p-2.5 rounded font-mono text-xs shadow-inner flex items-center justify-center gap-2">
+                ⚡ [ AND / OR ] ⚡
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ワークシートの「最後のまとめ」穴埋めテスト -->
+        <div class="bg-gradient-to-r from-indigo-50 to-purple-50 border-2 border-indigo-300 rounded-2xl p-6 shadow-sm">
+          <div class="flex items-center gap-2 mb-3">
+            <span class="text-xl">🏆</span>
+            <h3 class="font-bold text-indigo-950 text-base">最後のまとめ：文章を完成させよう！</h3>
+          </div>
+          <p class="text-xs text-indigo-900 mb-4 leading-relaxed">
+            ワークシートの最後の文章を完成させる穴埋めクイズです。空欄に入る正しい言葉を選んで、送信ボタンを押してみましょう！
+          </p>
+
+          <div class="bg-white p-5 rounded-xl border border-indigo-200 space-y-4 text-sm leading-loose">
+            <div>
+              「コンピュータが0と1を使うのは、
+              <select id="blank1" class="border-2 border-indigo-300 rounded px-2 py-1 bg-indigo-50 font-bold text-indigo-900 text-xs sm:text-sm focus:ring focus:ring-indigo-200 outline-none">
+                <option value="">（選択してください）</option>
+                <option value="曖昧な言葉をそのまま解釈できる">曖昧な言葉をそのまま解釈できる</option>
+                <option value="電気のONとOFFのように2つの状態を明確に区別できる">電気のONとOFFのように2つの状態を明確に区別できる</option>
+                <option value="人間がキーボードを打ちやすくなる">人間がキーボードを打ちやすくなる</option>
+              </select>
+              からである。
+            </div>
+
+            <div>
+              AND、OR、NOT を組み合わせると、
+              <select id="blank2" class="border-2 border-indigo-300 rounded px-2 py-1 bg-indigo-50 font-bold text-indigo-900 text-xs sm:text-sm focus:ring focus:ring-indigo-200 outline-none">
+                <option value="">（選択してください）</option>
+                <option value="和と桁上がりを作って足し算（計算）ができる">和と桁上がりを作って足し算（計算）ができる</option>
+                <option value="画面の色を無限に増やすことができる">画面の色を無限に増やすことができる</option>
+                <option value="電気をまったく消費しなくなる">電気をまったく消費しなくなる</option>
+              </select>
+              。だから、判断だけでなく計算や命令の実行にもつながる。」
+            </div>
+
+            <div class="pt-2 flex items-center gap-3">
+              <button onclick="checkFinalSummary()" class="px-5 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs sm:text-sm shadow transition">
+                答え合わせをする
+              </button>
+              <div id="finalFeedback" class="text-xs sm:text-sm font-bold"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 達成バッジ -->
+        <div id="completeBadge" class="hidden p-6 bg-emerald-50 border-2 border-emerald-400 rounded-2xl text-center space-y-2 animate-bounce">
+          <span class="text-5xl">🎓</span>
+          <h4 class="text-lg font-black text-emerald-900">おめでとうございます！学習完了です！</h4>
+          <p class="text-xs text-emerald-700 max-w-lg mx-auto">
+            これで「デジタル機器がなぜ0と1だけで判断・計算・命令実行までできるのか」の仕組みがバッチリわかりました。手元のワークシートに自分の言葉でしっかり書き込んでおきましょう！
+          </p>
+        </div>
+      </div>
+
+      <div class="flex justify-start">
+        <button onclick="goToStep(5)" class="px-5 py-2.5 rounded-xl border border-slate-300 hover:bg-slate-100 text-slate-700 font-bold transition">
+          ← 前へ
+        </button>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- フッター -->
+  <footer class="bg-slate-800 text-slate-400 text-xs py-4 text-center mt-auto border-t border-slate-700">
+    <div class="max-w-6xl mx-auto px-4">
+      中学校・高等学校 情報科 自学自習用教材 | ワークシート「0と1で『判断』と『計算』をつくる」連動シミュレーション
+    </div>
+  </footer>
+
+  <!-- ============================================================== -->
+  <!-- JavaScript Logic -->
+  <!-- ============================================================== -->
+  <script>
+    /* -------------------------------------------------------------
+       グローバル状態
+    ------------------------------------------------------------- */
+    let currentStep = 1;
+    let soundEnabled = true;
+
+    // Step 1 状態
+    let stateLight = 0; // 0 or 1
+    let stateLock = 0;
+
+    // Step 2 状態
+    let currentGate = 'AND';
+    let gateInputA = 0;
+    let gateInputB = 0;
+
+    // Step 3 状態
+    let step3A = 1;
+    let step3B = 0;
+
+    // Step 4 状態（半加算器）
+    let adderA = 0;
+    let adderB = 0;
+
+    /* -------------------------------------------------------------
+       Web Audio API による簡易効果音
+    ------------------------------------------------------------- */
+    const audioCtx = (typeof AudioContext !== 'undefined' || typeof webkitAudioContext !== 'undefined')
+      ? new (window.AudioContext || window.webkitAudioContext)()
+      : null;
+
+    function playBeep(freq = 440, type = 'sine', duration = 0.08) {
+      if (!soundEnabled || !audioCtx) return;
+      try {
+        if (audioCtx.state === 'suspended') {
+          audioCtx.resume();
+        }
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      } catch (e) {
+        // 音声再生エラーは無視
+      }
+    }
+
+    function toggleSound() {
+      soundEnabled = !soundEnabled;
+      document.getElementById('soundIcon').innerText = soundEnabled ? '🔊' : '🔇';
+      document.getElementById('soundText').innerText = soundEnabled ? 'ON' : 'OFF';
+      if (soundEnabled) playBeep(520, 'sine', 0.1);
+    }
+
+    /* -------------------------------------------------------------
+       ステップ遷移
+    ------------------------------------------------------------- */
+    function goToStep(stepNum) {
+      currentStep = stepNum;
+      playBeep(480, 'triangle', 0.06);
+
+      // パネル表示切り替え
+      for (let i = 1; i <= 6; i++) {
+        const panel = document.getElementById(`step${i}-panel`);
+        if (panel) {
+          if (i === stepNum) {
+            panel.classList.remove('hidden');
+          } else {
+            panel.classList.add('hidden');
+          }
+        }
+      }
+
+      // タブボタンスタイル更新
+      const tabs = document.querySelectorAll('.tab-btn');
+      tabs.forEach(btn => {
+        const s = parseInt(btn.getAttribute('data-step'), 10);
+        if (s === stepNum) {
+          btn.className = "tab-btn px-3 py-2 rounded text-white bg-indigo-600 flex items-center gap-1.5 shadow font-bold";
+        } else {
+          btn.className = "tab-btn px-3 py-2 rounded text-indigo-200 hover:text-white hover:bg-indigo-800 flex items-center gap-1.5";
+        }
+      });
+
+      // ステップごとの描画トリガー
+      if (stepNum === 2) renderGateSimulation();
+      if (stepNum === 3) renderStep3Circuit();
+      if (stepNum === 4) renderHalfAdder();
+      if (stepNum === 5) calcComplementDemo();
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    /* -------------------------------------------------------------
+       STEP 1 ロジック
+    ------------------------------------------------------------- */
+    function toggleExample(type) {
+      playBeep(330, 'sine', 0.08);
+      if (type === 'light') {
+        stateLight = stateLight === 0 ? 1 : 0;
+        const box = document.getElementById('lightBox');
+        const badge = document.getElementById('lightBadge');
+        const bulb = document.getElementById('lightBulb');
+        const desc = document.getElementById('lightDesc');
+        if (stateLight === 1) {
+          badge.innerText = '値: 1 (オン)';
+          badge.className = 'text-xs px-2 py-0.5 rounded font-mono font-bold bg-amber-200 text-amber-900';
+          box.className = 'h-28 rounded-lg bg-amber-400 flex flex-col items-center justify-center text-slate-900 transition-all duration-300 mb-3 shadow-lg ring-4 ring-amber-300/50';
+          bulb.className = 'text-4xl filter drop-shadow-md';
+          desc.innerText = '明るい（点灯中）⚡';
+          desc.className = 'text-xs mt-1 font-bold text-amber-950';
+        } else {
+          badge.innerText = '値: 0 (オフ)';
+          badge.className = 'text-xs px-2 py-0.5 rounded font-mono font-bold bg-slate-200 text-slate-700';
+          box.className = 'h-28 rounded-lg bg-slate-800 flex flex-col items-center justify-center text-white transition-all duration-300 mb-3 shadow-inner';
+          bulb.className = 'text-4xl filter grayscale opacity-40';
+          desc.innerText = '暗い（消灯）';
+          desc.className = 'text-xs mt-1 text-slate-400';
+        }
+      } else if (type === 'lock') {
+        stateLock = stateLock === 0 ? 1 : 0;
+        const box = document.getElementById('lockBox');
+        const badge = document.getElementById('lockBadge');
+        const icon = document.getElementById('lockIcon');
+        const desc = document.getElementById('lockDesc');
+        if (stateLock === 1) {
+          badge.innerText = '値: 1 (解除)';
+          badge.className = 'text-xs px-2 py-0.5 rounded font-mono font-bold bg-emerald-200 text-emerald-900';
+          box.className = 'h-28 rounded-lg bg-emerald-100 border border-emerald-300 flex flex-col items-center justify-center text-emerald-800 transition-all duration-300 mb-3';
+          icon.innerText = '🔓';
+          desc.innerText = '解除成功（使用可能）✨';
+          desc.className = 'text-xs mt-1 font-bold text-emerald-700';
+        } else {
+          badge.innerText = '値: 0 (施錠)';
+          badge.className = 'text-xs px-2 py-0.5 rounded font-mono font-bold bg-slate-200 text-slate-700';
+          box.className = 'h-28 rounded-lg bg-rose-900/30 border border-rose-200 flex flex-col items-center justify-center text-rose-900 transition-all duration-300 mb-3';
+          icon.innerText = '🔒';
+          desc.innerText = 'ロック中（入れない）';
+          desc.className = 'text-xs mt-1 font-bold text-rose-700';
+        }
+      }
+    }
+
+    /* -------------------------------------------------------------
+       STEP 2 ロジック: AND, OR, NOT
+    ------------------------------------------------------------- */
+    function setGateTab(gate) {
+      currentGate = gate;
+      playBeep(440, 'sine', 0.05);
+
+      document.querySelectorAll('.gate-tab-btn').forEach(btn => {
+        btn.className = "gate-tab-btn flex-1 py-2 px-3 rounded-lg font-bold text-sm text-slate-600 hover:bg-white/50";
+      });
+      document.getElementById(`tabBtn${gate}`).className = "gate-tab-btn flex-1 py-2 px-3 rounded-lg font-bold text-sm bg-white text-indigo-700 shadow-sm";
+
+      const titleMap = {
+        'AND': { name: 'AND回路 (かつ)', rule: 'AもBも「1」のときだけ「1」を出す', ex: '身近な例: 「部屋が暗く、かつ 人がいる なら照明をつける」' },
+        'OR':  { name: 'OR回路 (または)', rule: 'AかBの少なくとも一方が「1」なら「1」を出す', ex: '身近な例: 「雨 または 雪 なら傘を持つ」' },
+        'NOT': { name: 'NOT回路 (反対)', rule: '入力を反対にする（0は1に、1は0に）', ex: '身近な例: 「暗くない（NOT暗い）なら消灯する」' }
+      };
+
+      document.getElementById('gateNameBadge').innerText = titleMap[gate].name;
+      document.getElementById('gateRuleText').innerText = titleMap[gate].rule;
+      document.getElementById('gateExampleText').innerText = titleMap[gate].ex;
+
+      // NOTのときはBを非表示
+      const wrapB = document.getElementById('wrapperInputB');
+      if (gate === 'NOT') {
+        wrapB.classList.add('hidden');
+        document.getElementById('labelA').innerText = '条件: 入力';
+      } else {
+        wrapB.classList.remove('hidden');
+        document.getElementById('labelA').innerText = gate === 'AND' ? '条件A: 暗い' : '条件A: 雨が降っている';
+        document.getElementById('labelB').innerText = gate === 'AND' ? '条件B: 人がいる' : '条件B: 雪が降っている';
+      }
+
+      renderGateSimulation();
+    }
+
+    function toggleGateInput(which) {
+      playBeep(520, 'sine', 0.06);
+      if (which === 'A') {
+        gateInputA = gateInputA === 0 ? 1 : 0;
+      } else {
+        gateInputB = gateInputB === 0 ? 1 : 0;
+      }
+      renderGateSimulation();
+    }
+
+    function renderGateSimulation() {
+      // ボタン表示更新
+      const btnA = document.getElementById('btnGateA');
+      const btnB = document.getElementById('btnGateB');
+      if (gateInputA === 1) {
+        btnA.innerText = '1 (ON)';
+        btnA.className = 'px-4 py-2 rounded-lg font-mono font-black text-sm bg-rose-500 text-white shadow';
+      } else {
+        btnA.innerText = '0 (OFF)';
+        btnA.className = 'px-4 py-2 rounded-lg font-mono font-black text-sm bg-slate-200 text-slate-700';
+      }
+      if (gateInputB === 1) {
+        btnB.innerText = '1 (ON)';
+        btnB.className = 'px-4 py-2 rounded-lg font-mono font-black text-sm bg-rose-500 text-white shadow';
+      } else {
+        btnB.innerText = '0 (OFF)';
+        btnB.className = 'px-4 py-2 rounded-lg font-mono font-black text-sm bg-slate-200 text-slate-700';
+      }
+
+      // ゲート出力計算
+      let output = 0;
+      if (currentGate === 'AND') {
+        output = (gateInputA === 1 && gateInputB === 1) ? 1 : 0;
+      } else if (currentGate === 'OR') {
+        output = (gateInputA === 1 || gateInputB === 1) ? 1 : 0;
+      } else if (currentGate === 'NOT') {
+        output = (gateInputA === 1) ? 0 : 1;
+      }
+
+      // 出力カード更新
+      const resVal = document.getElementById('gateResultVal');
+      const resCard = document.getElementById('gateResultCard');
+      const resStatus = document.getElementById('gateResultStatus');
+      resVal.innerText = output;
+      if (output === 1) {
+        resVal.className = 'text-4xl font-black font-mono my-2 text-rose-600 animate-pulse';
+        resCard.className = 'p-5 rounded-2xl border-2 border-rose-400 bg-rose-50 text-center shadow-md';
+        resStatus.innerText = '動く！（ON / 点灯）💡';
+        resStatus.className = 'text-xs font-bold text-rose-700';
+      } else {
+        resVal.className = 'text-4xl font-black font-mono my-2 text-slate-400';
+        resCard.className = 'p-5 rounded-2xl border-2 border-slate-300 bg-white text-center shadow-sm';
+        resStatus.innerText = '動かない（OFF / 消灯）';
+        resStatus.className = 'text-xs font-bold text-slate-500';
+      }
+
+      // SVG回路描画
+      drawGateSvg(output);
+
+      // 真理値表描画
+      drawTruthTable(output);
+    }
+
+    function drawGateSvg(output) {
+      const svg = document.getElementById('gateSvg');
+      const colA = gateInputA ? '#f43f5e' : '#38bdf8';
+      const colB = gateInputB ? '#f43f5e' : '#38bdf8';
+      const colOut = output ? '#f43f5e' : '#38bdf8';
+
+      let content = '';
+
+      if (currentGate === 'NOT') {
+        content = `
+          <!-- 入力ワイヤー -->
+          <line x1="30" y1="90" x2="120" y2="90" stroke="${colA}" stroke-width="4" stroke-linecap="round" />
+          <text x="40" y="80" fill="${colA}" font-size="14" font-weight="bold" font-family="monospace">A = ${gateInputA}</text>
+
+          <!-- NOTゲート (三角形 + 丸) -->
+          <polygon points="120,50 120,130 180,90" fill="#f8fafc" stroke="#475569" stroke-width="3" />
+          <circle cx="190" cy="90" r="10" fill="#f8fafc" stroke="#475569" stroke-width="3" />
+          <text x="140" y="95" fill="#475569" font-size="16" font-weight="bold">1</text>
+
+          <!-- 出力ワイヤー -->
+          <line x1="200" y1="90" x2="290" y2="90" stroke="${colOut}" stroke-width="4" stroke-linecap="round" />
+          <text x="230" y="80" fill="${colOut}" font-size="14" font-weight="bold" font-family="monospace">出力 = ${output}</text>
+        `;
+      } else {
+        const symbol = currentGate === 'AND' ? '&' : '≥1';
+        content = `
+          <!-- 入力Aワイヤー -->
+          <line x1="20" y1="55" x2="130" y2="55" stroke="${colA}" stroke-width="4" stroke-linecap="round" />
+          <text x="30" y="45" fill="${colA}" font-size="13" font-weight="bold" font-family="monospace">A = ${gateInputA}</text>
+
+          <!-- 入力Bワイヤー -->
+          <line x1="20" y1="125" x2="130" y2="125" stroke="${colB}" stroke-width="4" stroke-linecap="round" />
+          <text x="30" y="115" fill="${colB}" font-size="13" font-weight="bold" font-family="monospace">B = ${gateInputB}</text>
+
+          <!-- ゲートシンボル枠 -->
+          <rect x="130" y="30" width="80" height="120" rx="16" fill="#f8fafc" stroke="#475569" stroke-width="3" />
+          <text x="170" y="100" text-anchor="middle" fill="#1e293b" font-size="28" font-weight="bold">${symbol}</text>
+          <text x="170" y="130" text-anchor="middle" fill="#64748b" font-size="11" font-weight="bold">${currentGate}</text>
+
+          <!-- 出力ワイヤー -->
+          <line x1="210" y1="90" x2="300" y2="90" stroke="${colOut}" stroke-width="4" stroke-linecap="round" />
+          <text x="230" y="80" fill="${colOut}" font-size="13" font-weight="bold" font-family="monospace">出力 = ${output}</text>
+        `;
+      }
+
+      svg.innerHTML = content;
+    }
+
+    function drawTruthTable(currentOut) {
+      const table = document.getElementById('truthTable');
+      if (currentGate === 'NOT') {
+        table.innerHTML = `
+          <thead class="bg-slate-100 text-slate-700">
+            <tr>
+              <th class="p-1.5 border">入力 A</th>
+              <th class="p-1.5 border">出力 (NOT A)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="${gateInputA === 0 ? 'bg-amber-100 font-bold' : ''}">
+              <td class="p-1.5 border">0</td>
+              <td class="p-1.5 border text-rose-600">1</td>
+            </tr>
+            <tr class="${gateInputA === 1 ? 'bg-amber-100 font-bold' : ''}">
+              <td class="p-1.5 border">1</td>
+              <td class="p-1.5 border text-sky-600">0</td>
+            </tr>
+          </tbody>
+        `;
+      } else {
+        const rows = [
+          { a: 0, b: 0 },
+          { a: 0, b: 1 },
+          { a: 1, b: 0 },
+          { a: 1, b: 1 },
+        ];
+        let html = `
+          <thead class="bg-slate-100 text-slate-700">
+            <tr>
+              <th class="p-1.5 border">入力 A</th>
+              <th class="p-1.5 border">入力 B</th>
+              <th class="p-1.5 border">出力 (${currentGate})</th>
+            </tr>
+          </thead>
+          <tbody>
+        `;
+        rows.forEach(r => {
+          let out = 0;
+          if (currentGate === 'AND') out = (r.a === 1 && r.b === 1) ? 1 : 0;
+          if (currentGate === 'OR') out = (r.a === 1 || r.b === 1) ? 1 : 0;
+          const isCurrent = (gateInputA === r.a && gateInputB === r.b);
+          html += `
+            <tr class="${isCurrent ? 'bg-amber-100 font-bold' : ''}">
+              <td class="p-1.5 border">${r.a}</td>
+              <td class="p-1.5 border">${r.b}</td>
+              <td class="p-1.5 border ${out === 1 ? 'text-rose-600 font-bold' : 'text-slate-500'}">${out}</td>
+            </tr>
+          `;
+        });
+        html += '</tbody>';
+        table.innerHTML = html;
+      }
+    }
+
+    // Step 2 クイズチェック
+    function checkDoorQuiz(ans) {
+      const fb = document.getElementById('doorFeedback');
+      if (ans === 'OR') {
+        playBeep(660, 'sine', 0.12);
+        fb.innerText = '⭕ 正解！内側「または」外側なのでORです！';
+        fb.className = 'text-xs font-bold ml-2 text-emerald-600';
+      } else {
+        playBeep(220, 'square', 0.12);
+        fb.innerText = '❌ 惜しい！両方同時に通らなくても開くので「OR」です。';
+        fb.className = 'text-xs font-bold ml-2 text-rose-600';
+      }
+    }
+
+    function checkGameQuiz(ans) {
+      const fb = document.getElementById('gameFeedback');
+      if (ans === 'AND') {
+        playBeep(660, 'sine', 0.12);
+        fb.innerText = '⭕ 正解！ボタン押し「かつ」全員準備完了なのでANDです！';
+        fb.className = 'text-xs font-bold ml-2 text-emerald-600';
+      } else {
+        playBeep(220, 'square', 0.12);
+        fb.innerText = '❌ 惜しい！両方の条件が揃う必要があるので「AND」です。';
+        fb.className = 'text-xs font-bold ml-2 text-rose-600';
+      }
+    }
+
+    /* -------------------------------------------------------------
+       STEP 3 ロジック: ワークシート掲載回路シミュレータ
+    ------------------------------------------------------------- */
+    function toggleStep3Input(which) {
+      playBeep(520, 'sine', 0.05);
+      if (which === 'A') {
+        step3A = step3A === 1 ? 0 : 1;
+      } else {
+        step3B = step3B === 1 ? 0 : 1;
+      }
+      renderStep3Circuit();
+    }
+
+    function renderStep3Circuit() {
+      // ボタン・カード表示更新
+      const btnA = document.getElementById('btnStep3A');
+      const btnB = document.getElementById('btnStep3B');
+      const cardA = document.getElementById('cardInputA');
+      const cardB = document.getElementById('cardInputB');
+      const stateA = document.getElementById('stateTextA');
+      const stateB = document.getElementById('stateTextB');
+
+      if (step3A === 1) {
+        btnA.innerText = 'A = 1';
+        btnA.className = 'w-full py-2.5 px-3 rounded-lg font-mono font-black text-lg bg-rose-600 text-white shadow-lg active:scale-95 transition';
+        cardA.className = 'p-4 rounded-xl bg-slate-800 border-2 border-rose-500 transition-all';
+        stateA.innerText = '1 (オン)';
+        stateA.className = 'text-xs font-bold text-rose-400';
+      } else {
+        btnA.innerText = 'A = 0';
+        btnA.className = 'w-full py-2.5 px-3 rounded-lg font-mono font-black text-lg bg-sky-700 text-white shadow-lg active:scale-95 transition';
+        cardA.className = 'p-4 rounded-xl bg-slate-800 border-2 border-slate-700 transition-all';
+        stateA.innerText = '0 (オフ)';
+        stateA.className = 'text-xs font-bold text-sky-400';
+      }
+
+      if (step3B === 1) {
+        btnB.innerText = 'B = 1';
+        btnB.className = 'w-full py-2.5 px-3 rounded-lg font-mono font-black text-lg bg-rose-600 text-white shadow-lg active:scale-95 transition';
+        cardB.className = 'p-4 rounded-xl bg-slate-800 border-2 border-rose-500 transition-all';
+        stateB.innerText = '1 (オン)';
+        stateB.className = 'text-xs font-bold text-rose-400';
+      } else {
+        btnB.innerText = 'B = 0';
+        btnB.className = 'w-full py-2.5 px-3 rounded-lg font-mono font-black text-lg bg-sky-700 text-white shadow-lg active:scale-95 transition';
+        cardB.className = 'p-4 rounded-xl bg-slate-800 border-2 border-slate-700 transition-all';
+        stateB.innerText = '0 (オフ)';
+        stateB.className = 'text-xs font-bold text-sky-400';
+      }
+
+      // 中間信号と出力の計算
+      const andOut = (step3A === 1 && step3B === 1) ? 1 : 0;
+      const sumOut = andOut === 1 ? 0 : 1; // ANDの反転 (NAND)
+      const orOut = (step3A === 1 || step3B === 1) ? 1 : 0; // OR
+
+      // 出力カードの更新
+      const val1 = document.getElementById('valOut1');
+      const desc1 = document.getElementById('descOut1');
+      const val2 = document.getElementById('valOut2');
+      const desc2 = document.getElementById('descOut2');
+
+      val1.innerText = sumOut;
+      val1.className = sumOut === 1 ? 'text-4xl font-mono font-black my-2 text-rose-400' : 'text-4xl font-mono font-black my-2 text-sky-400';
+      desc1.innerText = `答え: ${sumOut} (AND=${andOut}を反転)`;
+
+      val2.innerText = orOut;
+      val2.className = orOut === 1 ? 'text-4xl font-mono font-black my-2 text-rose-400' : 'text-4xl font-mono font-black my-2 text-sky-400';
+      desc2.innerText = `答え: ${orOut} (ORの結果)`;
+
+      // 真理値表のハイライト更新
+      ['0-0', '0-1', '1-0', '1-1'].forEach(k => {
+        const row = document.getElementById(`wsRow-${k}`);
+        if (row) {
+          if (k === `${step3A}-${step3B}`) {
+            row.className = 'bg-indigo-950 text-white font-bold ring-2 ring-indigo-400';
+          } else {
+            row.className = 'text-slate-300';
+          }
+        }
+      });
+
+      // SVG回路描画
+      drawStep3Svg(andOut, sumOut, orOut);
+    }
+
+    function drawStep3Svg(andOut, sumOut, orOut) {
+      const svg = document.getElementById('worksheetCircuitSvg');
+      const colA = step3A ? '#f43f5e' : '#38bdf8';
+      const colB = step3B ? '#f43f5e' : '#38bdf8';
+      const colAnd = andOut ? '#f43f5e' : '#38bdf8';
+      const colSum = sumOut ? '#f43f5e' : '#38bdf8';
+      const colOr = orOut ? '#f43f5e' : '#38bdf8';
+
+      svg.innerHTML = `
+        <!-- 入力 A (赤線分岐) -->
+        <line x1="20" y1="50" x2="80" y2="50" stroke="${colA}" stroke-width="3" />
+        <circle cx="80" cy="50" r="4" fill="${colA}" />
+        <line x1="80" y1="50" x2="150" y2="50" stroke="${colA}" stroke-width="3" />
+        <line x1="80" y1="50" x2="80" y2="180" stroke="${colA}" stroke-width="3" />
+        <line x1="80" y1="180" x2="150" y2="180" stroke="${colA}" stroke-width="3" />
+        <text x="25" y="40" fill="${colA}" font-size="12" font-weight="bold" font-family="monospace">A(${step3A})</text>
+
+        <!-- 入力 B (青線分岐) -->
+        <line x1="20" y1="130" x2="60" y2="130" stroke="${colB}" stroke-width="3" />
+        <circle cx="60" cy="130" r="4" fill="${colB}" />
+        <line x1="60" y1="130" x2="60" y2="80" stroke="${colB}" stroke-width="3" />
+        <line x1="60" y1="80" x2="150" y2="80" stroke="${colB}" stroke-width="3" />
+        <line x1="60" y1="130" x2="60" y2="210" stroke="${colB}" stroke-width="3" />
+        <line x1="60" y1="210" x2="150" y2="210" stroke="${colB}" stroke-width="3" />
+        <text x="25" y="120" fill="${colB}" font-size="12" font-weight="bold" font-family="monospace">B(${step3B})</text>
+
+        <!-- 上段: ANDゲート (&) -->
+        <rect x="150" y="35" width="65" height="60" rx="8" fill="#1e293b" stroke="#64748b" stroke-width="2" />
+        <text x="182" y="65" text-anchor="middle" fill="#f8fafc" font-size="20" font-weight="bold">&</text>
+        <text x="182" y="85" text-anchor="middle" fill="#94a3b8" font-size="10">AND (かつ)</text>
+
+        <!-- AND出力からNOT入力へのワイヤー -->
+        <line x1="215" y1="65" x2="260" y2="65" stroke="${colAnd}" stroke-width="3" />
+        <text x="230" y="55" fill="${colAnd}" font-size="10" font-family="monospace">${andOut}</text>
+
+        <!-- NOTゲート (反転) -->
+        <polygon points="260,45 260,85 295,65" fill="#1e293b" stroke="#64748b" stroke-width="2" />
+        <circle cx="302" cy="65" r="7" fill="#1e293b" stroke="#64748b" stroke-width="2" />
+        <text x="274" y="69" text-anchor="middle" fill="#94a3b8" font-size="9">1</text>
+        <text x="280" y="35" text-anchor="middle" fill="#fbbf24" font-size="10" font-weight="bold">NOT(反転)</text>
+
+        <!-- 出力① 和(SUM) へのワイヤー -->
+        <line x1="310" y1="65" x2="400" y2="65" stroke="${colSum}" stroke-width="4" stroke-linecap="round" class="${sumOut ? 'wire-active' : ''}" />
+        <circle cx="400" cy="65" r="5" fill="${colSum}" />
+        <text x="410" y="70" fill="${colSum}" font-size="13" font-weight="black" font-family="monospace">${sumOut}</text>
+        <text x="340" y="50" fill="#94a3b8" font-size="10">出力① 和</text>
+
+        <!-- 下段: ORゲート (>=1) -->
+        <rect x="150" y="165" width="65" height="60" rx="8" fill="#1e293b" stroke="#64748b" stroke-width="2" />
+        <text x="182" y="195" text-anchor="middle" fill="#f8fafc" font-size="18" font-weight="bold">≥1</text>
+        <text x="182" y="215" text-anchor="middle" fill="#94a3b8" font-size="10">OR (または)</text>
+
+        <!-- 出力② 桁上がり(CARRY) へのワイヤー -->
+        <line x1="215" y1="195" x2="400" y2="195" stroke="${colOr}" stroke-width="4" stroke-linecap="round" class="${orOut ? 'wire-active' : ''}" />
+        <circle cx="400" cy="195" r="5" fill="${colOr}" />
+        <text x="410" y="200" fill="${colOr}" font-size="13" font-weight="black" font-family="monospace">${orOut}</text>
+        <text x="330" y="185" fill="#94a3b8" font-size="10">出力② 桁上がり</text>
+      `;
+    }
+
+    /* -------------------------------------------------------------
+       STEP 4 ロジック: 半加算器 (Half Adder)
+    ------------------------------------------------------------- */
+    function toggleAdderInput(which) {
+      playBeep(580, 'sine', 0.05);
+      if (which === 'A') adderA = adderA === 0 ? 1 : 0;
+      if (which === 'B') adderB = adderB === 0 ? 1 : 0;
+      renderHalfAdder();
+    }
+
+    function renderHalfAdder() {
+      document.getElementById('adderValA').innerText = adderA;
+      document.getElementById('adderValB').innerText = adderB;
+
+      // 2進数加算計算
+      const sum = (adderA ^ adderB);       // XOR (和)
+      const carry = (adderA & adderB);     // AND (桁上がり)
+
+      document.getElementById('adderSumDisp').innerText = sum;
+      document.getElementById('adderCarryDisp').innerText = carry;
+
+      const sum10 = adderA + adderB;
+      const binStr = (carry.toString() + sum.toString());
+      document.getElementById('adderFormula').innerText = `${adderA} + ${adderB} = ${sum10} (2進数: ${binStr})`;
+
+      // 表のハイライト
+      ['0-0', '0-1', '1-0', '1-1'].forEach(k => {
+        const row = document.getElementById(`adderRow-${k}`);
+        if (row) {
+          if (k === `${adderA}-${adderB}`) {
+            row.className = 'bg-amber-100 font-bold ring-2 ring-amber-400';
+          } else {
+            row.className = '';
+          }
+        }
+      });
+
+      drawHalfAdderSvg(sum, carry);
+    }
+
+    function drawHalfAdderSvg(sum, carry) {
+      const svg = document.getElementById('halfAdderSvg');
+      const colA = adderA ? '#f43f5e' : '#94a3b8';
+      const colB = adderB ? '#f43f5e' : '#94a3b8';
+      const colSum = sum ? '#6366f1' : '#94a3b8';
+      const colCarry = carry ? '#10b981' : '#94a3b8';
+
+      svg.innerHTML = `
+        <!-- 入力ワイヤー -->
+        <line x1="30" y1="45" x2="130" y2="45" stroke="${colA}" stroke-width="3" />
+        <circle cx="70" cy="45" r="4" fill="${colA}" />
+        <line x1="70" y1="45" x2="70" y2="125" stroke="${colA}" stroke-width="3" />
+        <line x1="70" y1="125" x2="130" y2="125" stroke="${colA}" stroke-width="3" />
+        <text x="30" y="35" fill="${colA}" font-size="12" font-weight="bold" font-family="monospace">A = ${adderA}</text>
+
+        <line x1="30" y1="75" x2="130" y2="75" stroke="${colB}" stroke-width="3" />
+        <circle cx="90" cy="75" r="4" fill="${colB}" />
+        <line x1="90" y1="75" x2="90" y2="155" stroke="${colB}" stroke-width="3" />
+        <line x1="90" y1="155" x2="130" y2="155" stroke="${colB}" stroke-width="3" />
+        <text x="30" y="95" fill="${colB}" font-size="12" font-weight="bold" font-family="monospace">B = ${adderB}</text>
+
+        <!-- XORゲート (和 SUM) -->
+        <rect x="130" y="30" width="70" height="55" rx="10" fill="#eef2ff" stroke="#6366f1" stroke-width="2" />
+        <text x="165" y="58" text-anchor="middle" fill="#4338ca" font-size="15" font-weight="bold">=1 (XOR)</text>
+        <text x="165" y="74" text-anchor="middle" fill="#6366f1" font-size="9">片方だけ1</text>
+
+        <!-- ANDゲート (桁上がり CARRY) -->
+        <rect x="130" y="110" width="70" height="55" rx="10" fill="#ecfdf5" stroke="#10b981" stroke-width="2" />
+        <text x="165" y="138" text-anchor="middle" fill="#047857" font-size="16" font-weight="bold">& (AND)</text>
+        <text x="165" y="154" text-anchor="middle" fill="#10b981" font-size="9">両方とも1</text>
+
+        <!-- 出力ワイヤー -->
+        <line x1="200" y1="57" x2="310" y2="57" stroke="${colSum}" stroke-width="4" stroke-linecap="round" class="${sum ? 'wire-active' : ''}" />
+        <text x="320" y="62" fill="${colSum}" font-size="14" font-weight="black" font-family="monospace">和(SUM) = ${sum}</text>
+
+        <line x1="200" y1="137" x2="310" y2="137" stroke="${colCarry}" stroke-width="4" stroke-linecap="round" class="${carry ? 'wire-active' : ''}" />
+        <text x="320" y="142" fill="${colCarry}" font-size="14" font-weight="black" font-family="monospace">桁上がり(CARRY) = ${carry}</text>
+      `;
+    }
+
+    /* -------------------------------------------------------------
+       STEP 5 ロジック: 補数カリキュレータ
+    ------------------------------------------------------------- */
+    function calcComplementDemo() {
+      const a = parseInt(document.getElementById('compA').value, 10) || 7;
+      const b = parseInt(document.getElementById('compB').value, 10) || 3;
+      const compB = 10 - b;
+      const added = a + compB;
+      const finalAns = added % 10;
+
+      const disp = document.getElementById('compResultVisual');
+      disp.innerHTML = `
+        ${b}の補数は「${compB}」➔ ${a} + ${compB} = ${added} ➔ 10を外すと答え「<span class="text-emerald-600 text-base">${finalAns}</span>」！（${a} - ${b} = ${a - b}と一致）
+      `;
+    }
+
+    /* -------------------------------------------------------------
+       STEP 6 ロジック: まとめ穴埋めチェック
+    ------------------------------------------------------------- */
+    function checkFinalSummary() {
+      const b1 = document.getElementById('blank1').value;
+      const b2 = document.getElementById('blank2').value;
+      const fb = document.getElementById('finalFeedback');
+      const badge = document.getElementById('completeBadge');
+
+      const correct1 = "電気のONとOFFのように2つの状態を明確に区別できる";
+      const correct2 = "和と桁上がりを作って足し算（計算）ができる";
+
+      if (b1 === correct1 && b2 === correct2) {
+        playBeep(780, 'sine', 0.2);
+        fb.innerText = '🎉 パーフェクト！全問正解です！';
+        fb.className = 'text-xs sm:text-sm font-bold text-emerald-600';
+        badge.classList.remove('hidden');
+      } else {
+        playBeep(240, 'triangle', 0.15);
+        fb.innerText = '❌ 惜しい！もう一度選択肢を見直してみよう。ヒント：Step 1とStep 4を思い出そう！';
+        fb.className = 'text-xs sm:text-sm font-bold text-rose-600';
+      }
+    }
+
+    // 初期起動処理
+    window.addEventListener('DOMContentLoaded', () => {
+      goToStep(1);
+      calcComplementDemo();
+    });
+  </script>
+</body>
+</html>

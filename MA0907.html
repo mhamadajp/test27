@@ -1,0 +1,1213 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>数学A 確率マスターシミュレーター | 全体の中の割合</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- KaTeX for beautiful math formulas -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;500;700;800&family=Noto+Sans+JP:wght@400;500;700&display=swap');
+    body {
+      font-family: 'Noto Sans JP', 'M PLUS Rounded 1c', sans-serif;
+    }
+    .perspective-1000 {
+      perspective: 1000px;
+    }
+    .transform-style-preserve-3d {
+      transform-style: preserve-3d;
+    }
+    .backface-hidden {
+      backface-visibility: hidden;
+    }
+    .dice-face {
+      box-shadow: inset 0 0 15px rgba(0,0,0,0.1), 0 4px 6px -1px rgba(0,0,0,0.1);
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col selection:bg-indigo-100 selection:text-indigo-800">
+
+  <!-- ヘッダー -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-xs">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-bold text-lg shadow-md shadow-indigo-100">
+          <i data-lucide="sparkles" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <span class="text-xs font-bold tracking-wider text-indigo-600 uppercase bg-indigo-50 px-2 py-0.5 rounded">高校数学A 実感シミュレータ</span>
+          <h1 class="text-base sm:text-lg font-bold text-slate-800 leading-tight">確率は「全体の中の割合」</h1>
+        </div>
+      </div>
+      <div class="flex items-center space-x-2">
+        <button onclick="resetAllProgress()" class="text-xs text-slate-500 hover:text-slate-700 flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-100 transition">
+          <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+          <span class="hidden sm:inline">最初から</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- ステップナビゲーションバー -->
+    <div class="bg-slate-100/80 border-t border-slate-200 overflow-x-auto no-scrollbar">
+      <div class="max-w-6xl mx-auto px-4 flex items-center space-x-1 py-1.5 min-w-max" id="step-nav-container">
+        <!-- JSでナビゲーションボタンを生成 -->
+      </div>
+    </div>
+  </header>
+
+  <!-- メインコンテンツ -->
+  <main class="flex-1 max-w-5xl w-full mx-auto px-4 py-6 sm:py-8">
+
+    <!-- STEP 1: 確率って未来予知？ -->
+    <section id="step-panel-1" class="step-panel space-y-6">
+      <div class="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-slate-200/80">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-bold mb-3">
+          <i data-lucide="help-circle" class="w-4 h-4"></i> STEP 1 : 前回の確認
+        </div>
+        <h2 class="text-xl sm:text-2xl font-bold text-slate-900 mb-3">
+          Q1. 確率は、次に何が起こるかを必ず当てる数字ですか？
+        </h2>
+        <p class="text-slate-600 text-sm sm:text-base leading-relaxed mb-6">
+          「確率が $\frac{1}{2}$（50%）なら、2回に1回は絶対に交互に出る」のでしょうか？ 実際にコインを投げて試してみましょう！
+        </p>
+
+        <!-- コイン投げ実験ラボ -->
+        <div class="bg-slate-50 rounded-xl p-5 border border-slate-200">
+          <div class="flex flex-col md:flex-row items-center justify-around gap-6">
+            
+            <!-- コインアニメーション -->
+            <div class="flex flex-col items-center">
+              <div id="coin-visual" class="w-28 h-28 rounded-full bg-amber-400 border-4 border-amber-500 flex items-center justify-center text-amber-900 font-bold text-2xl shadow-lg transition-transform duration-300">
+                表
+              </div>
+              <div class="mt-3 text-xs text-slate-500 font-medium">理論上の確率: 表 $\frac{1}{2}$ (50%)</div>
+            </div>
+
+            <!-- コントロールボタン -->
+            <div class="flex flex-col gap-2 w-full md:w-auto">
+              <div class="flex flex-wrap gap-2 justify-center">
+                <button onclick="flipCoin(1)" class="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold rounded-xl shadow-sm transition active:scale-95 flex items-center gap-2">
+                  <i data-lucide="play" class="w-4 h-4"></i> 1回投げる
+                </button>
+                <button onclick="flipCoin(10)" class="px-4 py-2.5 bg-indigo-100 hover:bg-indigo-200 text-indigo-800 text-sm font-bold rounded-xl transition active:scale-95">
+                  +10回連続
+                </button>
+                <button onclick="flipCoin(100)" class="px-4 py-2.5 bg-indigo-100 hover:bg-indigo-200 text-indigo-800 text-sm font-bold rounded-xl transition active:scale-95">
+                  +100回連続
+                </button>
+                <button onclick="resetCoinStats()" class="px-3 py-2 text-slate-400 hover:text-slate-600 text-xs rounded-xl">
+                  リセット
+                </button>
+              </div>
+              <div id="recent-flips" class="text-xs text-slate-500 text-center h-5 overflow-hidden">
+                直近の出目: まだ投げていません
+              </div>
+            </div>
+
+            <!-- 統計結果 -->
+            <div class="bg-white p-4 rounded-xl border border-slate-200 w-full sm:w-64 space-y-3">
+              <div class="flex justify-between text-xs text-slate-500 font-medium">
+                <span>合計回数: <strong id="total-flips" class="text-slate-800 text-sm">0</strong>回</span>
+                <span>表の割合: <strong id="head-ratio" class="text-indigo-600 text-sm">0.0%</strong></span>
+              </div>
+              <!-- プログレスバー -->
+              <div class="w-full bg-slate-100 h-3 rounded-full overflow-hidden flex">
+                <div id="head-bar" class="bg-amber-400 h-full transition-all duration-300" style="width: 50%;"></div>
+                <div id="tail-bar" class="bg-slate-400 h-full transition-all duration-300" style="width: 50%;"></div>
+              </div>
+              <div class="flex justify-between text-xs">
+                <span class="text-amber-700 font-bold">表: <span id="head-count">0</span>回</span>
+                <span class="text-slate-600 font-bold">裏: <span id="tail-count">0</span>回</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 解答・解説カード -->
+        <div class="mt-6 bg-blue-50/70 border border-blue-200 rounded-xl p-5">
+          <div class="flex items-start gap-3">
+            <span class="w-7 h-7 rounded-full bg-blue-600 text-white font-bold text-sm flex items-center justify-center shrink-0 mt-0.5">答</span>
+            <div class="space-y-2 text-sm text-slate-700">
+              <p class="font-bold text-base text-blue-950">答え: いいえ（未来を言い当てる数字ではありません）</p>
+              <p class="leading-relaxed">
+                確率は、次に何が出るかという「未来の予言」ではなく、ある出来事の<strong>「起こりやすさ」を表す数</strong>です。<br>
+                10回程度投げただけでは表が3回連続したり偏ることもよくありますが、何百回・何千回と試行を重ねると、次第に $\frac{1}{2}$（50%）に近づいていきます。
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- STEP 2: カード4枚から引く＆「÷」の意味 -->
+    <section id="step-panel-2" class="step-panel space-y-6 hidden">
+      <div class="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-slate-200/80">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 text-xs font-bold mb-3">
+          <i data-lucide="layers" class="w-4 h-4"></i> STEP 2 : カード4枚から1枚引く
+        </div>
+        <h2 class="text-xl sm:text-2xl font-bold text-slate-900 mb-3">
+          Q2. 赤が出る「可能性」は全部で何個ありますか？
+        </h2>
+        <p class="text-slate-600 text-sm sm:text-base leading-relaxed mb-6">
+          赤カード2枚・青カード2枚があります。4枚を区別してカードをクリックして選んでみましょう。
+        </p>
+
+        <!-- インタラクティブカード4枚 -->
+        <div class="bg-slate-50 p-6 rounded-2xl border border-slate-200">
+          <div class="text-center text-xs text-slate-500 font-bold mb-4">カードをクリックして選択（めくってみよう）</div>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-lg mx-auto">
+            <!-- 赤① -->
+            <button onclick="selectCard('red1')" id="card-red1" class="card-btn h-32 rounded-xl bg-red-500 text-white font-bold p-3 flex flex-col items-center justify-between shadow-md hover:scale-105 active:scale-95 transition border-2 border-red-400">
+              <span class="text-xs bg-red-600/60 px-2 py-0.5 rounded">赤カード</span>
+              <span class="text-3xl">赤 ①</span>
+              <span class="text-xs opacity-80">目的に合う！</span>
+            </button>
+            <!-- 赤② -->
+            <button onclick="selectCard('red2')" id="card-red2" class="card-btn h-32 rounded-xl bg-red-500 text-white font-bold p-3 flex flex-col items-center justify-between shadow-md hover:scale-105 active:scale-95 transition border-2 border-red-400">
+              <span class="text-xs bg-red-600/60 px-2 py-0.5 rounded">赤カード</span>
+              <span class="text-3xl">赤 ②</span>
+              <span class="text-xs opacity-80">目的に合う！</span>
+            </button>
+            <!-- 青① -->
+            <button onclick="selectCard('blue1')" id="card-blue1" class="card-btn h-32 rounded-xl bg-blue-500 text-white font-bold p-3 flex flex-col items-center justify-between shadow-md hover:scale-105 active:scale-95 transition border-2 border-blue-400">
+              <span class="text-xs bg-blue-600/60 px-2 py-0.5 rounded">青カード</span>
+              <span class="text-3xl">青 ①</span>
+              <span class="text-xs opacity-80">ちがう色</span>
+            </button>
+            <!-- 青② -->
+            <button onclick="selectCard('blue2')" id="card-blue2" class="card-btn h-32 rounded-xl bg-blue-500 text-white font-bold p-3 flex flex-col items-center justify-between shadow-md hover:scale-105 active:scale-95 transition border-2 border-blue-400">
+              <span class="text-xs bg-blue-600/60 px-2 py-0.5 rounded">青カード</span>
+              <span class="text-3xl">青 ②</span>
+              <span class="text-xs opacity-80">ちがう色</span>
+            </button>
+          </div>
+          <div id="card-pick-result" class="text-center mt-4 text-sm font-bold text-slate-700 h-6">
+            好きなカードを1枚選んでみてください
+          </div>
+        </div>
+
+        <!-- 割合のバー可視化 -->
+        <div class="mt-6 bg-white p-5 rounded-xl border border-slate-200 space-y-4">
+          <div class="font-bold text-slate-800 text-sm flex items-center gap-2">
+            <i data-lucide="pie-chart" class="w-4 h-4 text-indigo-600"></i>
+            全体 4 つの中で、赤 2 つが占める「割合」
+          </div>
+
+          <div class="space-y-2">
+            <div class="flex justify-between text-xs font-semibold">
+              <span class="text-red-600">目的に合う赤: 2通り</span>
+              <span class="text-slate-500">全体: 4通り</span>
+            </div>
+            <div class="w-full bg-slate-200 h-6 rounded-lg overflow-hidden flex text-xs font-bold text-white text-center leading-6">
+              <div class="w-1/2 bg-red-500">赤①・赤② (50%)</div>
+              <div class="w-1/2 bg-blue-500">青①・青② (50%)</div>
+            </div>
+          </div>
+
+          <!-- ここでの「÷」の意味 -->
+          <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-900 space-y-2">
+            <div class="font-bold flex items-center gap-2 text-amber-950">
+              <i data-lucide="lightbulb" class="w-4 h-4 text-amber-600"></i>
+              ここでの『 $\div$ 』の意味
+            </div>
+            <p class="leading-relaxed">
+              $2 \div 4 = \frac{2}{4} = \frac{1}{2}$ は、単なる計算ではありません。<br>
+              <strong>「全体4つの可能性の中で、赤2つがどれくらいの割合を占めるか」</strong>を求めています。
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- STEP 3: ここが大切「同様に確からしい」って？ -->
+    <section id="step-panel-3" class="step-panel space-y-6 hidden">
+      <div class="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-slate-200/80">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-50 text-rose-700 text-xs font-bold mb-3">
+          <i data-lucide="alert-triangle" class="w-4 h-4"></i> STEP 3 : 最も重要な条件
+        </div>
+        <h2 class="text-xl sm:text-2xl font-bold text-slate-900 mb-3">
+          Q3. 赤2枚・青2枚なら、赤の確率は必ず $\frac{1}{2}$ と言えますか？
+        </h2>
+        <p class="text-slate-600 text-sm sm:text-base leading-relaxed mb-6">
+          「枚数が2枚ずつで同じだから、当然 $\frac{1}{2}$ だよね？」…本当にそうでしょうか？<br>
+          下の切り替えスイッチで<strong>「カードの大きさ」</strong>を変えて、適当に指をさして選んでみてください！
+        </p>
+
+        <!-- 大きさ変更実験ラボ -->
+        <div class="bg-slate-50 p-6 rounded-2xl border border-slate-200">
+          <div class="flex items-center justify-center gap-4 mb-6">
+            <button onclick="setCondition('fair')" id="mode-fair-btn" class="px-4 py-2 rounded-xl text-sm font-bold bg-indigo-600 text-white shadow-sm transition">
+              A. 同じ大きさ（公平）
+            </button>
+            <button onclick="setCondition('unfair')" id="mode-unfair-btn" class="px-4 py-2 rounded-xl text-sm font-bold bg-slate-200 text-slate-700 hover:bg-slate-300 transition">
+              B. 赤が超巨大・青が極小（不公平）
+            </button>
+          </div>
+
+          <!-- 机の上のシミュレーションエリア -->
+          <div class="text-center text-xs text-slate-500 font-medium mb-2">机の上エリア（下の枠の中をどこでもタップ・クリックして選んでみよう）</div>
+          <div id="desk-table" onclick="clickDesk(event)" class="relative w-full h-64 bg-amber-100 rounded-xl border-4 border-amber-300 overflow-hidden cursor-crosshair flex items-center justify-center select-none shadow-inner">
+            
+            <!-- 赤エリア -->
+            <div id="visual-red-card" class="absolute transition-all duration-500 rounded-lg bg-red-500/90 border-2 border-red-600 text-white font-bold flex flex-col items-center justify-center shadow-md">
+              <span id="visual-red-label" class="text-base sm:text-xl">赤カード (2枚)</span>
+              <span id="visual-red-sub" class="text-xs opacity-90">面積: 50%</span>
+            </div>
+
+            <!-- 青エリア -->
+            <div id="visual-blue-card" class="absolute transition-all duration-500 rounded-lg bg-blue-500/90 border-2 border-blue-600 text-white font-bold flex flex-col items-center justify-center shadow-md">
+              <span id="visual-blue-label" class="text-base sm:text-xl">青カード (2枚)</span>
+              <span id="visual-blue-sub" class="text-xs opacity-90">面積: 50%</span>
+            </div>
+
+            <!-- タップインジケーター -->
+            <div id="tap-point" class="hidden absolute w-6 h-6 -ml-3 -mt-3 rounded-full bg-white border-2 border-slate-900 pointer-events-none z-20 shadow animate-ping"></div>
+            <div id="tap-point-fixed" class="hidden absolute w-4 h-4 -ml-2 -mt-2 rounded-full bg-slate-900 border border-white pointer-events-none z-20 shadow"></div>
+          </div>
+
+          <div class="mt-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+            <div id="desk-result-text" class="font-bold text-sm text-slate-700">
+              机の上をクリックして指をさしてみてください
+            </div>
+            <div class="flex gap-2">
+              <button onclick="autoTestDesk(20)" class="px-3 py-1.5 bg-slate-800 text-white rounded-lg hover:bg-slate-900">
+                ランダムに20回指さす
+              </button>
+              <button onclick="resetDeskStats()" class="px-3 py-1.5 border border-slate-300 rounded-lg hover:bg-slate-100">
+                記録リセット
+              </button>
+            </div>
+          </div>
+
+          <div class="mt-3 grid grid-cols-2 gap-4 text-center bg-white p-3 rounded-xl border border-slate-200 text-xs">
+            <div>赤を指さした回数: <strong id="desk-red-count" class="text-red-600 text-sm">0</strong> 回 (<span id="desk-red-pct">0%</span>)</div>
+            <div>青を指さした回数: <strong id="blue-desk-count" class="text-blue-600 text-sm">0</strong> 回 (<span id="desk-blue-pct">0%</span>)</div>
+          </div>
+        </div>
+
+        <!-- 重要語句まとめ -->
+        <div class="bg-rose-50 border border-rose-200 rounded-xl p-5 text-sm space-y-3">
+          <div class="flex items-center gap-2 text-rose-900 font-bold text-base">
+            <i data-lucide="bookmark" class="w-5 h-5 text-rose-600"></i>
+            重要語句：『同様に確からしい（どうようにたからしい）』
+          </div>
+          <p class="text-slate-700 leading-relaxed">
+            【答え】<strong>言えない</strong><br>
+            枚数は同じ「赤2枚・青2枚」でも、赤が巨大で青が小さければ、大きい赤のほうが選ばれやすくなります。
+            したがって、確率を分数で計算できるのは<strong>「それぞれの結果が、同じ程度に起こると考えられるとき」</strong>だけです！
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- STEP 4 & 5: 3つのチェック ＆ さいころで使ってみる -->
+    <section id="step-panel-4" class="step-panel space-y-6 hidden">
+      <div class="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-slate-200/80">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold mb-3">
+          <i data-lucide="check-square" class="w-4 h-4"></i> STEP 4 & 5 : 3つのチェック ＆ さいころ
+        </div>
+        <h2 class="text-xl sm:text-2xl font-bold text-slate-900 mb-3">
+          確率を考える「3つのチェック」をさいころで体験
+        </h2>
+        <p class="text-slate-600 text-sm leading-relaxed mb-6">
+          「いきなり分数を書く」のを防ぐため、必ず次の3つのステップを確認しましょう。
+        </p>
+
+        <!-- 3つのチェックカード -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
+          <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+            <span class="w-6 h-6 rounded-full bg-indigo-600 text-white font-bold text-xs flex items-center justify-center mb-2">①</span>
+            <div class="font-bold text-sm text-slate-800 mb-1">同様に確からしいか？</div>
+            <div class="text-xs text-slate-600">サイコロの1〜6の目は、同じくらい起こりそう？（歪んでないか）</div>
+          </div>
+          <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+            <span class="w-6 h-6 rounded-full bg-indigo-600 text-white font-bold text-xs flex items-center justify-center mb-2">②</span>
+            <div class="font-bold text-sm text-slate-800 mb-1">全部の可能性は？</div>
+            <div class="text-xs text-slate-600">サイコロの目の出方は、1, 2, 3, 4, 5, 6 の【全部で 6 通り】</div>
+          </div>
+          <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+            <span class="w-6 h-6 rounded-full bg-indigo-600 text-white font-bold text-xs flex items-center justify-center mb-2">③</span>
+            <div class="font-bold text-sm text-slate-800 mb-1">目的に合う数は？</div>
+            <div class="text-xs text-slate-600">そのうち目的の出来事に当てはまる個数を数える</div>
+          </div>
+        </div>
+
+        <!-- さいころシミュレータ -->
+        <div class="bg-slate-50 p-6 rounded-2xl border border-slate-200 space-y-6">
+          <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div>
+              <div class="text-xs font-bold text-slate-500 uppercase tracking-wider">調べてみる出来事を選択</div>
+              <div class="flex flex-wrap gap-2 mt-2">
+                <button onclick="selectDiceEvent('even')" id="dice-ev-even" class="dice-tab-btn px-4 py-2 rounded-xl text-xs font-bold bg-indigo-600 text-white shadow-sm">
+                  偶数が出る (2, 4, 6)
+                </button>
+                <button onclick="selectDiceEvent('ge4')" id="dice-ev-ge4" class="dice-tab-btn px-4 py-2 rounded-xl text-xs font-bold bg-slate-200 text-slate-700 hover:bg-slate-300">
+                  4以上が出る (4, 5, 6)
+                </button>
+                <button onclick="selectDiceEvent('le2')" id="dice-ev-le2" class="dice-tab-btn px-4 py-2 rounded-xl text-xs font-bold bg-slate-200 text-slate-700 hover:bg-slate-300">
+                  2以下が出る (1, 2)
+                </button>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-4">
+              <!-- サイコロ本体 -->
+              <div id="dice-cube" class="w-20 h-20 bg-white rounded-2xl border-2 border-slate-300 flex items-center justify-center text-4xl font-extrabold shadow-md transition-transform duration-300 dice-face">
+                ⚀
+              </div>
+              <button onclick="rollTheDice()" class="px-4 py-3 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-bold rounded-xl shadow transition text-sm flex items-center gap-2">
+                <i data-lucide="dices" class="w-4 h-4"></i> 振る！
+              </button>
+            </div>
+          </div>
+
+          <!-- 6面のグリッド表示 -->
+          <div class="bg-white p-4 rounded-xl border border-slate-200">
+            <div class="text-xs text-slate-500 font-bold mb-3">全部の目（分母: 6通り）の中での位置づけ</div>
+            <div class="grid grid-cols-6 gap-2 text-center" id="dice-grid">
+              <!-- JSで6面をハイライト描画 -->
+            </div>
+          </div>
+
+          <!-- 計算とまとめ -->
+          <div class="bg-indigo-50 border border-indigo-200 p-4 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div>
+              <span class="text-xs text-indigo-700 font-bold">Q4. 一番起こりやすいものはどれ？</span>
+              <div class="text-sm font-bold text-indigo-950 mt-1" id="dice-summary-text">
+                偶数は $\frac{3}{6} = \frac{1}{2}$、4以上は $\frac{3}{6} = \frac{1}{2}$、2以下は $\frac{2}{6} = \frac{1}{3}$
+              </div>
+            </div>
+            <div class="text-xs bg-white px-3 py-2 rounded-lg border border-indigo-200 text-slate-700 shrink-0">
+              💡 <strong>比べるときのコツ:</strong> 全体（分母）が同じなら、分子（個数）が大きい方が起こりやすい！
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- STEP 6: 「当たりの数」だけでは比べられない -->
+    <section id="step-panel-5" class="step-panel space-y-6 hidden">
+      <div class="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-slate-200/80">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-50 text-amber-700 text-xs font-bold mb-3">
+          <i data-lucide="scale" class="w-4 h-4"></i> STEP 6 : 当たりの数だけでは比べられない
+        </div>
+        <h2 class="text-xl sm:text-2xl font-bold text-slate-900 mb-3">
+          Q5. くじA と くじB、どちらの方が当たりやすい？
+        </h2>
+        <p class="text-slate-600 text-sm sm:text-base leading-relaxed mb-6">
+          「くじBは当たりが6本もあるから、くじA（3本）より当たりやすい」と言えるでしょうか？ 2つの箱を比べてみましょう。
+        </p>
+
+        <!-- くじA と くじB の比較パネル -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          
+          <!-- くじA -->
+          <div class="bg-slate-50 p-5 rounded-2xl border-2 border-indigo-200 space-y-4">
+            <div class="flex justify-between items-center">
+              <span class="font-bold text-indigo-900 text-base">くじ A 箱</span>
+              <span class="text-xs bg-indigo-100 text-indigo-800 px-2.5 py-1 rounded-full font-bold">10本中 3本当たり</span>
+            </div>
+            
+            <!-- くじ可視化グリッド (10本) -->
+            <div class="bg-white p-3 rounded-xl border border-slate-200 grid grid-cols-5 gap-2" id="kuji-a-grid">
+              <!-- JSで10本描画 -->
+            </div>
+
+            <!-- バー表示 -->
+            <div class="space-y-1">
+              <div class="flex justify-between text-xs text-slate-600">
+                <span>当たりの割合: $\frac{3}{10}$ (30%)</span>
+                <span>3 / 10</span>
+              </div>
+              <div class="w-full bg-slate-200 h-4 rounded-full overflow-hidden flex">
+                <div class="bg-amber-400 h-full" style="width: 30%;"></div>
+              </div>
+            </div>
+
+            <button onclick="drawKuji('A')" class="w-full py-2 bg-indigo-600 hover:bg-indigo-700 active:scale-98 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-2">
+              <i data-lucide="gift" class="w-3.5 h-3.5"></i> くじAを1本引いてみる
+            </button>
+            <div id="kuji-a-result" class="text-center text-xs font-bold text-slate-700 h-5">結果: -</div>
+          </div>
+
+          <!-- くじB -->
+          <div class="bg-slate-50 p-5 rounded-2xl border-2 border-purple-200 space-y-4">
+            <div class="flex justify-between items-center">
+              <span class="font-bold text-purple-900 text-base">くじ B 箱</span>
+              <span class="text-xs bg-purple-100 text-purple-800 px-2.5 py-1 rounded-full font-bold">20本中 6本当たり</span>
+            </div>
+            
+            <!-- くじ可視化グリッド (20本) -->
+            <div class="bg-white p-3 rounded-xl border border-slate-200 grid grid-cols-10 gap-1.5" id="kuji-b-grid">
+              <!-- JSで20本描画 -->
+            </div>
+
+            <!-- バー表示 -->
+            <div class="space-y-1">
+              <div class="flex justify-between text-xs text-slate-600">
+                <span>当たりの割合: $\frac{6}{20} = \frac{3}{10}$ (30%)</span>
+                <span>6 / 20</span>
+              </div>
+              <div class="w-full bg-slate-200 h-4 rounded-full overflow-hidden flex">
+                <div class="bg-amber-400 h-full" style="width: 30%;"></div>
+              </div>
+            </div>
+
+            <button onclick="drawKuji('B')" class="w-full py-2 bg-purple-600 hover:bg-purple-700 active:scale-98 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-2">
+              <i data-lucide="gift" class="w-3.5 h-3.5"></i> くじBを1本引いてみる
+            </button>
+            <div id="kuji-b-result" class="text-center text-xs font-bold text-slate-700 h-5">結果: -</div>
+          </div>
+
+        </div>
+
+        <!-- 解説 -->
+        <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-5 space-y-3">
+          <div class="font-bold text-emerald-950 text-base flex items-center gap-2">
+            <i data-lucide="check-circle" class="w-5 h-5 text-emerald-600"></i>
+            答え：【どちらも同じ起こりやすさ！】
+          </div>
+          <p class="text-sm text-slate-700 leading-relaxed">
+            くじBは当たりが6本あり、Aの3本より多く見えます。しかし、くじ全体の本数も20本と2倍になっています。<br>
+            約分すると $\frac{6}{20} = \frac{3}{10}$ なので、<strong>「全体に占める当たりの割合」はまったく同じ</strong>です。<br>
+            全体の大きさが違うときは、個数ではなく「当たり $\div$ 全部」で割合に直すことで公平に比べられます。
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- STEP 7 & 8: 自分で確率を作るラボ -->
+    <section id="step-panel-6" class="step-panel space-y-6 hidden">
+      <div class="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-slate-200/80">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-50 text-cyan-700 text-xs font-bold mb-3">
+          <i data-lucide="sliders" class="w-4 h-4"></i> STEP 7 & 8 : 自分で確率を作る！
+        </div>
+        <h2 class="text-xl sm:text-2xl font-bold text-slate-900 mb-3">
+          確率ファクトリー：目標の確率を作ってみよう
+        </h2>
+        <p class="text-slate-600 text-sm leading-relaxed mb-6">
+          「確率 = 目的に合う場合の数 $\div$ 全体の場合の数」<br>
+          スライダーを動かして「全体の数」と「当たりの数」を調整し、指定された確率を完成させてみましょう！
+        </p>
+
+        <!-- ミッション選択 -->
+        <div class="flex flex-wrap gap-2 mb-6">
+          <button onclick="setFactoryMission('half')" id="factory-m-half" class="mission-btn px-4 py-2 rounded-xl text-xs font-bold bg-indigo-600 text-white shadow-sm">
+            ミッション①: 確率 $\frac{1}{2}$ を作れ！
+          </button>
+          <button onclick="setFactoryMission('third')" id="factory-m-third" class="mission-btn px-4 py-2 rounded-xl text-xs font-bold bg-slate-200 text-slate-700 hover:bg-slate-300">
+            ミッション②: 確率 $\frac{1}{3}$ を作れ！
+          </button>
+          <button onclick="setFactoryMission('quarter')" id="factory-m-quarter" class="mission-btn px-4 py-2 rounded-xl text-xs font-bold bg-slate-200 text-slate-700 hover:bg-slate-300">
+            ミッション③: 確率 $\frac{1}{4}$ を作れ！
+          </button>
+        </div>
+
+        <!-- スライダー操作パネル -->
+        <div class="bg-slate-50 p-6 rounded-2xl border border-slate-200 space-y-6">
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- 全体の本数スライダー -->
+            <div class="space-y-2">
+              <div class="flex justify-between text-xs font-bold text-slate-700">
+                <span>全体の場合の数（全体のくじ本数）</span>
+                <span id="slider-total-val" class="text-indigo-600 text-base font-extrabold">12 本</span>
+              </div>
+              <input type="range" min="2" max="24" step="1" value="12" id="slider-total" oninput="updateFactory()" class="w-full h-2 bg-slate-300 rounded-lg appearance-none cursor-pointer accent-indigo-600">
+              <div class="flex justify-between text-[10px] text-slate-400">
+                <span>2本</span>
+                <span>12本</span>
+                <span>24本</span>
+              </div>
+            </div>
+
+            <!-- 当たりの本数スライダー -->
+            <div class="space-y-2">
+              <div class="flex justify-between text-xs font-bold text-slate-700">
+                <span>目的に合う場合の数（当たりの本数）</span>
+                <span id="slider-win-val" class="text-amber-600 text-base font-extrabold">4 本</span>
+              </div>
+              <input type="range" min="1" max="12" step="1" value="4" id="slider-win" oninput="updateFactory()" class="w-full h-2 bg-slate-300 rounded-lg appearance-none cursor-pointer accent-amber-500">
+              <div class="flex justify-between text-[10px] text-slate-400">
+                <span>1本</span>
+                <span id="slider-win-max-label">12本 (全体以下)</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- くじ箱のリアルタイムビジュアル -->
+          <div class="bg-white p-4 rounded-xl border border-slate-200">
+            <div class="text-xs text-slate-500 font-bold mb-3 flex items-center justify-between">
+              <span>くじ箱の中身（赤: 当たり / 白: はずれ）</span>
+              <span id="factory-reduced-fraction" class="text-indigo-700 font-bold text-sm"></span>
+            </div>
+            <div id="factory-grid" class="flex flex-wrap gap-2 justify-center max-h-48 overflow-y-auto p-2">
+              <!-- JSで動的にくじアイコンを生成 -->
+            </div>
+          </div>
+
+          <!-- 判定メッセージ -->
+          <div id="factory-judgment" class="p-4 rounded-xl border text-sm font-bold flex items-center justify-between">
+            <span id="factory-judge-text">判定中...</span>
+            <span id="factory-guide-text" class="text-xs font-normal"></span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- STEP 9: 復習ミニ問題＆友達への説明チャレンジ -->
+    <section id="step-panel-7" class="step-panel space-y-6 hidden">
+      <div class="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-slate-200/80">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-violet-50 text-violet-700 text-xs font-bold mb-3">
+          <i data-lucide="award" class="w-4 h-4"></i> LAST : 理解度チェックテスト
+        </div>
+        <h2 class="text-xl sm:text-2xl font-bold text-slate-900 mb-3">
+          言葉で説明できれば合格！理解度クイズ
+        </h2>
+        <p class="text-slate-600 text-sm leading-relaxed mb-6">
+          PDFに掲載されている復習ミニ問題と「友達への説明」問題です。自分の頭で考えながら解いてみましょう。
+        </p>
+
+        <!-- クイズ1 -->
+        <div class="quiz-block bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-4">
+          <div class="font-bold text-sm text-slate-900 flex items-start gap-2">
+            <span class="px-2 py-0.5 rounded bg-indigo-600 text-white text-xs">問 1</span>
+            <span>同じ大きさのカードが6枚あり、赤2枚・青4枚です。1枚引くとき、赤の確率は？</span>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            <button onclick="answerQuiz(1, 'A')" id="q1-opt-a" class="p-3 text-left bg-white border border-slate-200 hover:border-indigo-400 rounded-xl text-xs sm:text-sm font-medium transition">
+              A. $\frac{2}{4} = \frac{1}{2}$
+            </button>
+            <button onclick="answerQuiz(1, 'B')" id="q1-opt-b" class="p-3 text-left bg-white border border-slate-200 hover:border-indigo-400 rounded-xl text-xs sm:text-sm font-medium transition">
+              B. $\frac{2}{6} = \frac{1}{3}$
+            </button>
+            <button onclick="answerQuiz(1, 'C')" id="q1-opt-c" class="p-3 text-left bg-white border border-slate-200 hover:border-indigo-400 rounded-xl text-xs sm:text-sm font-medium transition">
+              C. $\frac{4}{6} = \frac{2}{3}$
+            </button>
+          </div>
+          <div id="q1-feedback" class="hidden text-xs p-3 rounded-lg"></div>
+        </div>
+
+        <!-- クイズ2 -->
+        <div class="quiz-block bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-4">
+          <div class="font-bold text-sm text-slate-900 flex items-start gap-2">
+            <span class="px-2 py-0.5 rounded bg-indigo-600 text-white text-xs">問 2</span>
+            <span>くじCは12本中4本当たり、くじDは15本中5本当たりです。どちらが当たりやすい？</span>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            <button onclick="answerQuiz(2, 'A')" id="q2-opt-a" class="p-3 text-left bg-white border border-slate-200 hover:border-indigo-400 rounded-xl text-xs sm:text-sm font-medium transition">
+              A. 当たりが多い くじD
+            </button>
+            <button onclick="answerQuiz(2, 'B')" id="q2-opt-b" class="p-3 text-left bg-white border border-slate-200 hover:border-indigo-400 rounded-xl text-xs sm:text-sm font-medium transition">
+              B. 外れが少ない くじC
+            </button>
+            <button onclick="answerQuiz(2, 'C')" id="q2-opt-c" class="p-3 text-left bg-white border border-slate-200 hover:border-indigo-400 rounded-xl text-xs sm:text-sm font-medium transition">
+              C. どちらも同じ起こりやすさ
+            </button>
+          </div>
+          <div id="q2-feedback" class="hidden text-xs p-3 rounded-lg"></div>
+        </div>
+
+        <!-- クイズ3 (友達への説明) -->
+        <div class="quiz-block bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-4">
+          <div class="font-bold text-sm text-slate-900 flex items-start gap-2">
+            <span class="px-2 py-0.5 rounded bg-indigo-600 text-white text-xs">問 3</span>
+            <span>友達が「当たりが3個あるから、このくじの確率は3だよ！」と言いました。あなたはどう説明しますか？</span>
+          </div>
+          <div class="space-y-2">
+            <button onclick="answerQuiz(3, 'A')" id="q3-opt-a" class="w-full p-3 text-left bg-white border border-slate-200 hover:border-indigo-400 rounded-xl text-xs sm:text-sm font-medium transition">
+              A. 「そうだね、当たりが3個なら確率は3で合ってるよ。」
+            </button>
+            <button onclick="answerQuiz(3, 'B')" id="q3-opt-b" class="w-full p-3 text-left bg-white border border-slate-200 hover:border-indigo-400 rounded-xl text-xs sm:text-sm font-medium transition">
+              B. 「3個は当たりの個数にすぎないよ。全体が何本あるかを確認し、全体の中の割合にして初めて確率になるんだよ。」
+            </button>
+            <button onclick="answerQuiz(3, 'C')" id="q3-opt-c" class="w-full p-3 text-left bg-white border border-slate-200 hover:border-indigo-400 rounded-xl text-xs sm:text-sm font-medium transition">
+              C. 「3個をいつも100で割れば確率になるよ。」
+            </button>
+          </div>
+          <div id="q3-feedback" class="hidden text-xs p-3 rounded-lg"></div>
+        </div>
+
+        <!-- 4つの問いのまとめカード -->
+        <div class="bg-indigo-900 text-white rounded-2xl p-6 space-y-4 shadow-md">
+          <div class="flex items-center gap-2 text-indigo-300 font-bold text-sm uppercase tracking-wider">
+            <i data-lucide="check-check" class="w-4 h-4"></i> 本日の最重要まとめ
+          </div>
+          <h3 class="text-lg sm:text-xl font-bold">確率を組み立てる「4つの問い」</h3>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs sm:text-sm">
+            <div class="bg-indigo-800/60 p-3.5 rounded-xl border border-indigo-700/50">
+              <span class="text-indigo-300 font-bold block mb-1">① 何が起こる？</span>
+              起こりうる可能性をすべて書き出してみる。
+            </div>
+            <div class="bg-indigo-800/60 p-3.5 rounded-xl border border-indigo-700/50">
+              <span class="text-indigo-300 font-bold block mb-1">② 同じくらい起こる？</span>
+              それぞれが「同様に確からしい」か確認する。
+            </div>
+            <div class="bg-indigo-800/60 p-3.5 rounded-xl border border-indigo-700/50">
+              <span class="text-indigo-300 font-bold block mb-1">③ 全部と目的の数は？</span>
+              全体の数と、目的に合う数を1つずつ正確に数える。
+            </div>
+            <div class="bg-indigo-800/60 p-3.5 rounded-xl border border-indigo-700/50">
+              <span class="text-indigo-300 font-bold block mb-1">④ どんな割合？</span>
+              「目的に合う数 $\div$ 全体の数」で全体に占める割合を出す。
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ページ送りフッター -->
+    <div class="flex justify-between items-center mt-8 pt-4 border-t border-slate-200">
+      <button id="prev-step-btn" onclick="prevStep()" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 transition flex items-center gap-1.5 shadow-xs">
+        <i data-lucide="arrow-left" class="w-4 h-4"></i> 前のSTEP
+      </button>
+      <span id="step-indicator-text" class="text-xs text-slate-500 font-bold">STEP 1 / 7</span>
+      <button id="next-step-btn" onclick="nextStep()" class="px-5 py-2 rounded-xl text-xs sm:text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 transition flex items-center gap-1.5 shadow-md shadow-indigo-100">
+        次のSTEP <i data-lucide="arrow-right" class="w-4 h-4"></i>
+      </button>
+    </div>
+
+  </main>
+
+  <!-- スクリプト部 -->
+  <script>
+    // --- ステップ管理 ---
+    const totalSteps = 7;
+    let currentStep = 1;
+
+    const stepTitles = [
+      "1. 未来予知？",
+      "2. カードと割合",
+      "3. 同様に確からしい",
+      "4&5. さいころ3チェック",
+      "6. 当たり数だけじゃ×",
+      "7&8. 確率を作る",
+      "LAST. 理解度テスト"
+    ];
+
+    function renderNav() {
+      const container = document.getElementById("step-nav-container");
+      container.innerHTML = "";
+      for (let i = 1; i <= totalSteps; i++) {
+        const btn = document.createElement("button");
+        btn.className = `px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1 ${
+          currentStep === i
+            ? "bg-indigo-600 text-white shadow-xs"
+            : "text-slate-600 hover:bg-slate-200/70"
+        }`;
+        btn.innerHTML = `<span>${stepTitles[i - 1]}</span>`;
+        btn.onclick = () => goToStep(i);
+        container.appendChild(btn);
+      }
+      document.getElementById("step-indicator-text").textContent = `STEP ${currentStep} / ${totalSteps}`;
+
+      // ボタンの活性・非活性
+      const prevBtn = document.getElementById("prev-step-btn");
+      const nextBtn = document.getElementById("next-step-btn");
+      prevBtn.disabled = currentStep === 1;
+      prevBtn.classList.toggle("opacity-40", currentStep === 1);
+      
+      if (currentStep === totalSteps) {
+        nextBtn.innerHTML = `<span>完了！</span> <i data-lucide="check" class="w-4 h-4"></i>`;
+      } else {
+        nextBtn.innerHTML = `次のSTEP <i data-lucide="arrow-right" class="w-4 h-4"></i>`;
+      }
+      lucide.createIcons();
+    }
+
+    function goToStep(step) {
+      currentStep = step;
+      document.querySelectorAll(".step-panel").forEach((panel, idx) => {
+        if (idx + 1 === step) {
+          panel.classList.remove("hidden");
+        } else {
+          panel.classList.add("hidden");
+        }
+      });
+      renderNav();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      renderMathInElement(document.body, { delimiters: [{left: "$", right: "$", display: false}] });
+    }
+
+    function nextStep() {
+      if (currentStep < totalSteps) goToStep(currentStep + 1);
+    }
+    function prevStep() {
+      if (currentStep > 1) goToStep(currentStep - 1);
+    }
+
+    function resetAllProgress() {
+      resetCoinStats();
+      resetDeskStats();
+      goToStep(1);
+    }
+
+    // --- STEP 1: コイン投げシミュレータ ---
+    let coinStats = { heads: 0, tails: 0 };
+    const recentFlipsQueue = [];
+
+    function flipCoin(times) {
+      const coinVisual = document.getElementById("coin-visual");
+      for (let i = 0; i < times; i++) {
+        const isHead = Math.random() < 0.5;
+        if (isHead) coinStats.heads++;
+        else coinStats.tails++;
+        recentFlipsQueue.push(isHead ? "表" : "裏");
+        if (recentFlipsQueue.length > 15) recentFlipsQueue.shift();
+      }
+
+      const lastResult = recentFlipsQueue[recentFlipsQueue.length - 1];
+      coinVisual.textContent = lastResult;
+      coinVisual.classList.toggle("bg-amber-400", lastResult === "表");
+      coinVisual.classList.toggle("bg-slate-300", lastResult === "裏");
+      coinVisual.classList.toggle("text-amber-950", lastResult === "表");
+      coinVisual.classList.toggle("text-slate-800", lastResult === "裏");
+      
+      // クイックアニメーション
+      coinVisual.style.transform = "rotateY(360deg) scale(1.05)";
+      setTimeout(() => {
+        coinVisual.style.transform = "rotateY(0deg) scale(1)";
+      }, 200);
+
+      updateCoinUI();
+    }
+
+    function updateCoinUI() {
+      const total = coinStats.heads + coinStats.tails;
+      document.getElementById("total-flips").textContent = total;
+      document.getElementById("head-count").textContent = coinStats.heads;
+      document.getElementById("tail-count").textContent = coinStats.tails;
+
+      const headRatio = total > 0 ? (coinStats.heads / total) * 100 : 50;
+      document.getElementById("head-ratio").textContent = total > 0 ? headRatio.toFixed(1) + "%" : "0.0%";
+      document.getElementById("head-bar").style.width = headRatio + "%";
+      document.getElementById("tail-bar").style.width = (100 - headRatio) + "%";
+
+      document.getElementById("recent-flips").innerHTML = `直近の記録: ${recentFlipsQueue.map(r => 
+        r === "表" ? `<span class="text-amber-600 font-bold">表</span>` : `<span class="text-slate-500">裏</span>`
+      ).join(" ")}`;
+    }
+
+    function resetCoinStats() {
+      coinStats = { heads: 0, tails: 0 };
+      recentFlipsQueue.length = 0;
+      document.getElementById("coin-visual").textContent = "表";
+      document.getElementById("coin-visual").className = "w-28 h-28 rounded-full bg-amber-400 border-4 border-amber-500 flex items-center justify-center text-amber-900 font-bold text-2xl shadow-lg transition-transform duration-300";
+      updateCoinUI();
+      document.getElementById("recent-flips").textContent = "直近の出目: まだ投げていません";
+    }
+
+    // --- STEP 2: カード選択 ---
+    function selectCard(cardId) {
+      document.querySelectorAll(".card-btn").forEach(btn => {
+        btn.classList.remove("ring-4", "ring-indigo-600", "scale-105");
+      });
+      const picked = document.getElementById("card-" + cardId);
+      picked.classList.add("ring-4", "ring-indigo-600", "scale-105");
+
+      const resBox = document.getElementById("card-pick-result");
+      if (cardId.startsWith("red")) {
+        resBox.innerHTML = `<span class="text-red-600">🎯「${cardId === 'red1' ? '赤①' : '赤②'}」を引きました！ 目的に合う赤カードです。</span>`;
+      } else {
+        resBox.innerHTML = `<span class="text-blue-600">青カード（${cardId === 'blue1' ? '青①' : '青②'}）でした。全体4枚のうちの1枚です。</span>`;
+      }
+    }
+
+    // --- STEP 3: 同様に確からしい実験（机を指さす） ---
+    let deskMode = "fair"; // "fair" or "unfair"
+    let deskStats = { red: 0, blue: 0 };
+
+    function setCondition(mode) {
+      deskMode = mode;
+      const redCard = document.getElementById("visual-red-card");
+      const blueCard = document.getElementById("visual-blue-card");
+      const fairBtn = document.getElementById("mode-fair-btn");
+      const unfairBtn = document.getElementById("mode-unfair-btn");
+
+      if (mode === "fair") {
+        fairBtn.className = "px-4 py-2 rounded-xl text-sm font-bold bg-indigo-600 text-white shadow-sm transition";
+        unfairBtn.className = "px-4 py-2 rounded-xl text-sm font-bold bg-slate-200 text-slate-700 hover:bg-slate-300 transition";
+        
+        // 公平な配置: 左右半々
+        redCard.style.top = "10%";
+        redCard.style.left = "8%";
+        redCard.style.width = "40%";
+        redCard.style.height = "80%";
+        document.getElementById("visual-red-sub").textContent = "面積: 50% (同じ大きさ)";
+
+        blueCard.style.top = "10%";
+        blueCard.style.left = "52%";
+        blueCard.style.width = "40%";
+        blueCard.style.height = "80%";
+        document.getElementById("visual-blue-sub").textContent = "面積: 50% (同じ大きさ)";
+      } else {
+        unfairBtn.className = "px-4 py-2 rounded-xl text-sm font-bold bg-rose-600 text-white shadow-sm transition";
+        fairBtn.className = "px-4 py-2 rounded-xl text-sm font-bold bg-slate-200 text-slate-700 hover:bg-slate-300 transition";
+
+        // 不公平な配置: 赤が全体の85%を占め、青はごく小さな隅っこ
+        redCard.style.top = "5%";
+        redCard.style.left = "5%";
+        redCard.style.width = "75%";
+        redCard.style.height = "90%";
+        document.getElementById("visual-red-sub").textContent = "面積: 巨大！(選ばれやすい)";
+
+        blueCard.style.top = "30%";
+        blueCard.style.left = "83%";
+        blueCard.style.width = "13%";
+        blueCard.style.height = "40%";
+        document.getElementById("visual-blue-sub").textContent = "面積: 極小！";
+      }
+    }
+
+    function clickDesk(e) {
+      const desk = document.getElementById("desk-table");
+      const rect = desk.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      processDeskHit(x, y, rect.width, rect.height);
+    }
+
+    function processDeskHit(x, y, w, h) {
+      const redCard = document.getElementById("visual-red-card");
+      const blueCard = document.getElementById("visual-blue-card");
+
+      const rLeft = (parseFloat(redCard.style.left) / 100) * w;
+      const rTop = (parseFloat(redCard.style.top) / 100) * h;
+      const rW = (parseFloat(redCard.style.width) / 100) * w;
+      const rH = (parseFloat(redCard.style.height) / 100) * h;
+
+      const bLeft = (parseFloat(blueCard.style.left) / 100) * w;
+      const bTop = (parseFloat(blueCard.style.top) / 100) * h;
+      const bW = (parseFloat(blueCard.style.width) / 100) * w;
+      const bH = (parseFloat(blueCard.style.height) / 100) * h;
+
+      let hit = "none";
+      if (x >= rLeft && x <= rLeft + rW && y >= rTop && y <= rTop + rH) {
+        hit = "red";
+      } else if (x >= bLeft && x <= bLeft + bW && y >= bTop && y <= bTop + bH) {
+        hit = "blue";
+      }
+
+      // インジケータ表示
+      const dot = document.getElementById("tap-point-fixed");
+      dot.style.left = x + "px";
+      dot.style.top = y + "px";
+      dot.classList.remove("hidden");
+
+      const resText = document.getElementById("desk-result-text");
+      if (hit === "red") {
+        deskStats.red++;
+        resText.innerHTML = `<span class="text-red-600 font-bold">🔴 赤カードを指さしました！</span>`;
+      } else if (hit === "blue") {
+        deskStats.blue++;
+        resText.innerHTML = `<span class="text-blue-600 font-bold">🔵 青カードを指さしました！</span>`;
+      } else {
+        resText.innerHTML = `<span class="text-slate-500">カードのない机のすき間を指さしました。</span>`;
+      }
+      updateDeskStatsUI();
+    }
+
+    function autoTestDesk(times) {
+      const desk = document.getElementById("desk-table");
+      const rect = desk.getBoundingClientRect();
+      const w = rect.width || 500;
+      const h = rect.height || 250;
+
+      for (let i = 0; i < times; i++) {
+        let randX, randY;
+        if (deskMode === "fair") {
+          // 50% 50% で均等に分布
+          randX = Math.random() < 0.5 ? w * 0.25 : w * 0.72;
+          randY = h * 0.5;
+        } else {
+          // 不公平: 赤カードが広大なので約85%の確率で赤に命中
+          if (Math.random() < 0.85) {
+            randX = w * (0.1 + Math.random() * 0.65);
+            randY = h * (0.1 + Math.random() * 0.8);
+          } else {
+            randX = w * (0.84 + Math.random() * 0.1);
+            randY = h * (0.32 + Math.random() * 0.35);
+          }
+        }
+        processDeskHit(randX, randY, w, h);
+      }
+    }
+
+    function updateDeskStatsUI() {
+      const total = deskStats.red + deskStats.blue;
+      document.getElementById("desk-red-count").textContent = deskStats.red;
+      document.getElementById("blue-desk-count").textContent = deskStats.blue;
+      const redPct = total > 0 ? ((deskStats.red / total) * 100).toFixed(1) : 0;
+      const bluePct = total > 0 ? ((deskStats.blue / total) * 100).toFixed(1) : 0;
+      document.getElementById("desk-red-pct").textContent = redPct + "%";
+      document.getElementById("desk-blue-pct").textContent = bluePct + "%";
+    }
+
+    function resetDeskStats() {
+      deskStats = { red: 0, blue: 0 };
+      document.getElementById("tap-point-fixed").classList.add("hidden");
+      document.getElementById("desk-result-text").textContent = "机の上をクリックして指をさしてみてください";
+      updateDeskStatsUI();
+    }
+
+    // --- STEP 4 & 5: サイコロ ---
+    let currentDiceEvent = "even"; // "even", "ge4", "le2"
+    const diceFaces = ["⚀", "⚁", "⚂", "⚃", "⚄", "⚅"];
+
+    function selectDiceEvent(ev) {
+      currentDiceEvent = ev;
+      document.querySelectorAll(".dice-tab-btn").forEach(b => {
+        b.className = "dice-tab-btn px-4 py-2 rounded-xl text-xs font-bold bg-slate-200 text-slate-700 hover:bg-slate-300";
+      });
+      document.getElementById("dice-ev-" + ev).className = "dice-tab-btn px-4 py-2 rounded-xl text-xs font-bold bg-indigo-600 text-white shadow-sm";
+
+      renderDiceGrid();
+    }
+
+    function getMatchingDiceNumbers(ev) {
+      if (ev === "even") return [2, 4, 6];
+      if (ev === "ge4") return [4, 5, 6];
+      if (ev === "le2") return [1, 2];
+      return [];
+    }
+
+    function renderDiceGrid(currentRoll = null) {
+      const grid = document.getElementById("dice-grid");
+      grid.innerHTML = "";
+      const targets = getMatchingDiceNumbers(currentDiceEvent);
+
+      for (let i = 1; i <= 6; i++) {
+        const isTarget = targets.includes(i);
+        const isRolled = currentRoll === i;
+        const col = document.createElement("div");
+        col.className = `p-3 rounded-xl border-2 transition flex flex-col items-center gap-1 ${
+          isRolled ? "ring-4 ring-emerald-500" : ""
+        } ${
+          isTarget ? "bg-indigo-50 border-indigo-400 text-indigo-900" : "bg-slate-100 border-slate-200 text-slate-400 opacity-60"
+        }`;
+        col.innerHTML = `
+          <span class="text-2xl">${diceFaces[i - 1]}</span>
+          <span class="text-xs font-bold">${i} の目</span>
+          <span class="text-[10px] font-bold px-1.5 py-0.5 rounded ${isTarget ? 'bg-indigo-600 text-white' : 'bg-slate-200 text-slate-500'}">
+            ${isTarget ? '対象' : '外れ'}
+          </span>
+        `;
+        grid.appendChild(col);
+      }
+
+      // サマリーテキスト更新
+      const summary = document.getElementById("dice-summary-text");
+      if (currentDiceEvent === "even") {
+        summary.innerHTML = `偶数 (2, 4, 6) は 6個中 3個 $\\rightarrow \\frac{3}{6} = \\frac{1}{2}$ (50%)`;
+      } else if (currentDiceEvent === "ge4") {
+        summary.innerHTML = `4以上 (4, 5, 6) は 6個中 3個 $\\rightarrow \\frac{3}{6} = \\frac{1}{2}$ (50%)`;
+      } else {
+        summary.innerHTML = `2以下 (1, 2) は 6個中 2個 $\\rightarrow \\frac{2}{6} = \\frac{1}{3}$ (約33.3%)`;
+      }
+      renderMathInElement(summary, { delimiters: [{left: "$", right: "$", display: false}] });
+    }
+
+    function rollTheDice() {
+      const cube = document.getElementById("dice-cube");
+      let count = 0;
+      const interval = setInterval(() => {
+        const rand = Math.floor(Math.random() * 6) + 1;
+        cube.textContent = diceFaces[rand - 1];
+        cube.style.transform = `rotate(${Math.random() * 40 - 20}deg) scale(1.1)`;
+        count++;
+        if (count > 8) {
+          clearInterval(interval);
+          const finalVal = Math.floor(Math.random() * 6) + 1;
+          cube.textContent = diceFaces[finalVal - 1];
+          cube.style.transform = "rotate(0deg) scale(1)";
+          renderDiceGrid(finalVal);
+        }
+      }, 60);
+    }
+
+    // --- STEP 6: くじA & くじB ---
+    function initKujiStep() {
+      // くじA: 10本 (3本赤, 7本白)
+      const gridA = document.getElementById("kuji-a-grid");
+      gridA.innerHTML = "";
+      for (let i = 1; i <= 10; i++) {
+        const isWin = i <= 3;
+        const item = document.createElement("div");
+        item.className = `p-2 rounded-lg text-center font-bold text-xs border ${
+          isWin ? 'bg-amber-100 border-amber-300 text-amber-800' : 'bg-slate-100 border-slate-200 text-slate-400'
+        }`;
+        item.innerHTML = isWin ? '★当' : '外';
+        gridA.appendChild(item);
+      }
+
+      // くじB: 20本 (6本赤, 14本白)
+      const gridB = document.getElementById("kuji-b-grid");
+      gridB.innerHTML = "";
+      for (let i = 1; i <= 20; i++) {
+        const isWin = i <= 6;
+        const item = document.createElement("div");
+        item.className = `p-1.5 rounded text-center font-bold text-[10px] border ${
+          isWin ? 'bg-amber-100 border-amber-300 text-amber-800' : 'bg-slate-100 border-slate-200 text-slate-400'
+        }`;
+        item.innerHTML = isWin ? '★' : '・';
+        gridB.appendChild(item);
+      }
+    }
+
+    function drawKuji(box) {
+      if (box === 'A') {
+        const win = Math.random() < 0.3;
+        document.getElementById("kuji-a-result").innerHTML = win
+          ? `<span class="text-amber-600">🎉【当たり】が出ました！ (確率 3/10)</span>`
+          : `<span class="text-slate-500">はずれでした (確率 7/10)</span>`;
+      } else {
+        const win = Math.random() < (6 / 20);
+        document.getElementById("kuji-b-result").innerHTML = win
+          ? `<span class="text-amber-600">🎉【当たり】が出ました！ (確率 6/20 = 3/10)</span>`
+          : `<span class="text-slate-500">はずれでした (確率 14/20 = 7/10)</span>`;
+      }
+    }
+
+    // --- STEP 7 & 8: 確率ファクトリー ---
+    let currentMission = "half"; // "half" (1/2), "third" (1/3), "quarter" (1/4)
+
+    function setFactoryMission(m) {
+      currentMission = m;
+      document.querySelectorAll(".mission-btn").forEach(b => {
+        b.className = "mission-btn px-4 py-2 rounded-xl text-xs font-bold bg-slate-200 text-slate-700 hover:bg-slate-300";
+      });
+      document.getElementById("factory-m-" + m).className = "mission-btn px-4 py-2 rounded-xl text-xs font-bold bg-indigo-600 text-white shadow-sm";
+      updateFactory();
+    }
+
+    function gcd(a, b) {
+      return b === 0 ? a : gcd(b, a % b);
+    }
+
+    function updateFactory() {
+      const totalInput = document.getElementById("slider-total");
+      const winInput = document.getElementById("slider-win");
+
+      let total = parseInt(totalInput.value, 10);
+      winInput.max = total;
+      let win = parseInt(winInput.value, 10);
+      if (win > total) {
+        win = total;
+        winInput.value = win;
+      }
+
+      document.getElementById("slider-total-val").textContent = total + " 本";
+      document.getElementById("slider-win-val").textContent = win + " 本";
+      document.getElementById("slider-win-max-label").textContent = `${total}本 (全体)`;
+
+      // 約分計算
+      const common = gcd(win, total);
+      const reducedNumerator = win / common;
+      const reducedDenominator = total / common;
+
+      const fracBox = document.getElementById("factory-reduced-fraction");
+      fracBox.innerHTML = `現在の確率: $\\frac{${win}}{${total}} = \\frac{${reducedNumerator}}{${reducedDenominator}}$ (${((win/total)*100).toFixed(1)}%)`;
+
+      // グリッド描画
+      const grid = document.getElementById("factory-grid");
+      grid.innerHTML = "";
+      for (let i = 1; i <= total; i++) {
+        const isWin = i <= win;
+        const card = document.createElement("div");
+        card.className = `w-9 h-11 rounded-lg border-2 flex flex-col items-center justify-center font-bold text-xs shadow-xs transition ${
+          isWin ? 'bg-amber-400 border-amber-500 text-amber-950 scale-105' : 'bg-slate-100 border-slate-300 text-slate-400'
+        }`;
+        card.innerHTML = isWin ? '★<br><span class="text-[8px]">当</span>' : '・<br><span class="text-[8px]">外</span>';
+        grid.appendChild(card);
+      }
+
+      // 目標判定
+      let targetFrac = { num: 1, den: 2, label: "1/2" };
+      if (currentMission === "third") targetFrac = { num: 1, den: 3, label: "1/3" };
+      if (currentMission === "quarter") targetFrac = { num: 1, den: 4, label: "1/4" };
+
+      const isClear = (reducedNumerator === targetFrac.num && reducedDenominator === targetFrac.den);
+      const judgeBox = document.getElementById("factory-judgment");
+      const judgeText = document.getElementById("factory-judge-text");
+      const guideText = document.getElementById("factory-guide-text");
+
+      if (isClear) {
+        judgeBox.className = "p-4 rounded-xl border border-emerald-300 bg-emerald-50 text-emerald-900 text-sm font-bold flex items-center justify-between";
+        judgeText.innerHTML = `🎉 ミッション達成！ 確率 $${targetFrac.label}$ になっています！`;
+        guideText.textContent = `全体${total}本中、当たりが${win}本。ぴったり全体の割合が合致しました！`;
+      } else {
+        judgeBox.className = "p-4 rounded-xl border border-slate-200 bg-white text-slate-700 text-sm font-bold flex items-center justify-between";
+        judgeText.innerHTML = `目標: 確率 $${targetFrac.label}$ を作ろう`;
+        const needWin = (total * targetFrac.num) / targetFrac.den;
+        if (Number.isInteger(needWin) && needWin > 0) {
+          guideText.textContent = `ヒント: 全体が${total}本なら、当たりを【${needWin}本】にするとちょうど${targetFrac.label}になります。`;
+        } else {
+          guideText.textContent = `ヒント: 全体本数を ${targetFrac.den} の倍数（${targetFrac.den}, ${targetFrac.den*2}, ${targetFrac.den*3}…）にしてみましょう。`;
+        }
+      }
+
+      renderMathInElement(fracBox, { delimiters: [{left: "$", right: "$", display: false}] });
+      renderMathInElement(judgeText, { delimiters: [{left: "$", right: "$", display: false}] });
+    }
+
+    // --- STEP 9: クイズ ---
+    const quizState = {};
+
+    function answerQuiz(qNum, selectedOpt) {
+      if (qNum === 1) {
+        const isCorrect = selectedOpt === "B";
+        const fb = document.getElementById("q1-feedback");
+        fb.classList.remove("hidden");
+        if (isCorrect) {
+          fb.className = "text-xs p-3 rounded-xl bg-emerald-50 text-emerald-900 border border-emerald-200";
+          fb.innerHTML = `<strong>正解！</strong> 全体は6枚、そのうち赤は2枚なので $\\frac{2}{6} = \\frac{1}{3}$ です。「6つの同じように起こる可能性のうち赤が2つ」という割合になります。`;
+        } else {
+          fb.className = "text-xs p-3 rounded-xl bg-rose-50 text-rose-900 border border-rose-200";
+          fb.innerHTML = `<strong>おしい！</strong> 全体は赤2枚＋青4枚の「合計6枚」です。分母（全体）は6になります。$\\frac{2}{6} = \\frac{1}{3}$ です。`;
+        }
+      } else if (qNum === 2) {
+        const isCorrect = selectedOpt === "C";
+        const fb = document.getElementById("q2-feedback");
+        fb.classList.remove("hidden");
+        if (isCorrect) {
+          fb.className = "text-xs p-3 rounded-xl bg-emerald-50 text-emerald-900 border border-emerald-200";
+          fb.innerHTML = `<strong>大正解！</strong> くじCは $\\frac{4}{12} = \\frac{1}{3}$、くじDは $\\frac{5}{15} = \\frac{1}{3}$ です。当たりの本数だけで比べず、全体の中の割合に直すとまったく同じ起こりやすさだと分かります！`;
+        } else {
+          fb.className = "text-xs p-3 rounded-xl bg-rose-50 text-rose-900 border border-rose-200";
+          fb.innerHTML = `<strong>注意！</strong> 当たりの本数（4本や5本）だけでは比べられません。くじCは $\\frac{4}{12} = \\frac{1}{3}$、くじDは $\\frac{5}{15} = \\frac{1}{3}$ で、割合はどちらも $\\frac{1}{3}$ で同じです。`;
+        }
+      } else if (qNum === 3) {
+        const isCorrect = selectedOpt === "B";
+        const fb = document.getElementById("q3-feedback");
+        fb.classList.remove("hidden");
+        if (isCorrect) {
+          fb.className = "text-xs p-3 rounded-xl bg-emerald-50 text-emerald-900 border border-emerald-200";
+          fb.innerHTML = `<strong>素晴らしい説明です！</strong> 「3」は単なる当たりの本数であり、確率ではありません。「全体が何個あるか」を確認し、全体に占める当たりの割合にして初めて確率になります。`;
+        } else {
+          fb.className = "text-xs p-3 rounded-xl bg-rose-50 text-rose-900 border border-rose-200";
+          fb.innerHTML = `<strong>もう一度考えてみよう！</strong> 確率は「当たりの個数そのもの」ではなく、全体の中に占める割合です。`;
+        }
+      }
+      renderMathInElement(document.getElementById(`q${qNum}-feedback`), { delimiters: [{left: "$", right: "$", display: false}] });
+    }
+
+    // --- 初期ロード処理 ---
+    window.addEventListener("DOMContentLoaded", () => {
+      renderNav();
+      setCondition('fair');
+      selectDiceEvent('even');
+      initKujiStep();
+      updateFactory();
+      renderMathInElement(document.body, { delimiters: [{left: "$", right: "$", display: false}] });
+      lucide.createIcons();
+    });
+  </script>
+</body>
+</html>

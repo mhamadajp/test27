@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>焼きそば模擬店 売上シミュレータ</title>
+  <style>
+    :root{--orange:#f97316;--orange-dark:#ea580c;--ink:#1f2937;--muted:#6b7280;--line:#e5e7eb;--paper:#fff;--bg:#fff7ed}
+    *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--ink);font-family:"Meiryo","Yu Gothic",system-ui,sans-serif;line-height:1.55}
+    .page{max-width:1160px;margin:auto;padding:28px 18px 50px}.card{background:var(--paper);border-radius:18px;padding:24px;box-shadow:0 2px 9px #7c2d1210}
+    header{border-top:5px solid var(--orange);margin-bottom:24px}h1,h2{margin:0}.title{display:flex;align-items:center;gap:12px;font-size:clamp(23px,4vw,32px)}
+    .icon{width:34px;height:34px;display:grid;place-items:center;border-radius:10px;background:#ffedd5;font-size:21px}.question{display:flex;gap:14px;margin-top:18px;padding:16px;background:#fff7ed;border-radius:13px}.question .icon{flex:none;background:var(--orange);color:white;border-radius:50%}.question p{margin:0}.question .condition{font-size:14px;color:var(--muted);margin-top:7px}
+    .layout{display:grid;grid-template-columns:5fr 7fr;gap:24px}.stack{display:grid;gap:24px}h2{font-size:20px;margin-bottom:20px}.section-title{display:flex;gap:9px;align-items:center}
+    label{display:block;color:var(--muted);font-size:14px;margin-bottom:8px}.price{font-size:28px;font-weight:800;color:var(--ink)}input[type=range]{width:100%;accent-color:var(--orange);height:26px}.range-labels,.button-row{display:flex;justify-content:space-between}.range-labels{font-size:12px;color:#9ca3af}
+    button{font:inherit;border:0;cursor:pointer;border-radius:12px;font-weight:700}.step{width:48%;padding:10px;background:#f3f4f6;color:#374151}.step:hover{background:#e5e7eb}.test{width:100%;margin-top:20px;padding:14px;background:var(--orange);color:#fff;font-size:17px;box-shadow:0 3px 8px #f9731640}.test:hover{background:var(--orange-dark)}
+    .metrics{display:grid;grid-template-columns:1fr 1fr;gap:14px}.metric{padding:16px;border-radius:13px}.metric.blue{background:#eff6ff;color:#1e3a8a}.metric.green{background:#ecfdf5;color:#14532d}.metric small{display:block;font-weight:700}.metric strong{font-size:25px}.metric span{font-size:13px}.hint{margin-top:15px;padding:12px;background:#f9fafb;border:1px solid var(--line);border-radius:10px;font-size:14px;color:#4b5563}
+    .chart-wrap{overflow-x:auto}svg{display:block;margin:auto;background:#fafafa;border-radius:12px;max-width:100%;height:auto}.legend{display:flex;justify-content:center;gap:18px;flex-wrap:wrap;margin-top:13px;font-size:13px;color:var(--muted)}.dot{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:5px;vertical-align:-1px}
+    .table-wrap{overflow-x:auto}table{width:100%;border-collapse:collapse;font-size:15px}th,td{padding:11px;text-align:left;border-bottom:1px solid #f0f1f3}th{background:#f9fafb;color:var(--muted)}tr.best{background:#fef2f2}.best strong{color:#dc2626}.badge{margin-left:8px;padding:2px 7px;border-radius:10px;background:#ef4444;color:#fff;font-size:11px;font-weight:700}
+    @media(max-width:850px){.layout{grid-template-columns:1fr}.page{padding:14px 10px 35px}.card{padding:18px}.question{flex-direction:row}.legend{gap:9px}}
+    @media print{body{background:#fff}.page{max-width:none;padding:0}.card{box-shadow:none;border:1px solid #ddd;break-inside:avoid}.test,.button-row,input[type=range]{display:none}.layout{display:block}.stack{margin-bottom:18px}.chart-wrap{overflow:visible}}
+  </style>
+</head>
+<body>
+<main class="page">
+  <header class="card">
+    <h1 class="title"><span class="icon">🏪</span>焼きそば模擬店 売上シミュレータ</h1>
+    <div class="question"><span class="icon">?</span><div><p id="message">あなたは文化祭の模擬店担当です。1パック50円の焼きそば、もっと売上を増やすには何円にする？</p><p class="condition">【条件】現在：1パック50円で400パック売れる。<strong>1円値上げするごとに、販売数は4パックずつ減る。</strong></p></div></div>
+  </header>
+  <div class="layout">
+    <section class="stack">
+      <div class="card"><h2 class="section-title"><span>🧮</span>値段を決める</h2>
+        <label>焼きそばの値段（円）：<span class="price" id="priceText">50</span> 円</label>
+        <input id="priceRange" type="range" min="10" max="150" step="1" value="50" aria-label="焼きそばの値段">
+        <div class="range-labels"><span>10円</span><span>150円</span></div>
+        <div class="button-row"><button class="step" id="minus">−5円</button><button class="step" id="plus">＋5円</button></div>
+        <button class="test" id="test">🍜 この値段で試す！</button>
+      </div>
+      <div class="card"><h2 style="font-size:14px;color:#6b7280;letter-spacing:.08em">予想される結果</h2>
+        <div class="metrics"><div class="metric blue"><small>販売数</small><strong id="sales">400</strong> <span>パック</span></div><div class="metric green"><small>売上</small><strong id="revenue">20,000</strong> <span>円</span></div></div>
+        <div class="hint">💡 <span id="hint"></span></div>
+      </div>
+    </section>
+    <section class="stack">
+      <div class="card"><h2 class="section-title"><span>📈</span>売上の変化（グラフ）</h2><div class="chart-wrap"><svg id="chart" viewBox="0 0 500 300" width="500" height="300" role="img" aria-label="値段と売上のグラフ"></svg></div>
+        <div class="legend"><span><i class="dot" style="background:#3b82f6"></i>試した記録</span><span><i class="dot" style="background:#f97316"></i>最新の記録</span><span><i class="dot" style="background:#ef4444;border:2px solid #fca5a5"></i>最高の売上</span></div>
+      </div>
+      <div class="card"><h2 class="section-title"><span>💰</span>探索の記録（みんなで集めたデータ）</h2><div class="table-wrap"><table><thead><tr><th>値段</th><th>販売数</th><th>売上</th></tr></thead><tbody id="records"></tbody></table></div></div>
+    </section>
+  </div>
+</main>
+<script>
+(()=>{'use strict';
+  const $=id=>document.getElementById(id), range=$('priceRange');
+  let records=[{id:1,price:50,sales:400,revenue:20000}], nextId=2;
+  const sales=p=>Math.max(0,600-4*p), revenue=p=>p*sales(p), yen=n=>n.toLocaleString('ja-JP');
+  function updatePreview(){const p=+range.value,s=sales(p);$('priceText').textContent=p;$('sales').textContent=yen(s);$('revenue').textContent=yen(revenue(p));$('hint').innerHTML=`50円の時より、値段は <strong>${Math.abs(p-50)}円 ${p>=50?'アップ':'ダウン'}</strong>。<br>だから販売数は 4 × ${Math.abs(p-50)} = <strong>${Math.abs(s-400)}パック ${s<=400?'減る':'増える'}</strong>。`}
+  function best(){return records.reduce((a,b)=>b.revenue>a.revenue?b:a)}
+  function draw(){const svg=$('chart'),m={t:20,r:20,b:40,l:60},gw=420,gh=240,x=p=>m.l+p/150*gw,y=v=>m.t+gh-v/25000*gh;let h='';
+    [0,5000,10000,15000,20000,25000].forEach(v=>{h+=`<line x1="60" y1="${y(v)}" x2="480" y2="${y(v)}" stroke="#e5e7eb" stroke-dasharray="4 4"/><text x="50" y="${y(v)+4}" text-anchor="end" font-size="10" fill="#6b7280">${yen(v)}</text>`});
+    [0,50,75,100,150].forEach(p=>h+=`<text x="${x(p)}" y="280" text-anchor="middle" font-size="10" fill="#6b7280">${p}円</text>`);
+    h+='<text x="250" y="296" text-anchor="middle" font-size="12" fill="#4b5563" font-weight="bold">値段（円）</text><text x="15" y="150" transform="rotate(-90 15 150)" text-anchor="middle" font-size="12" fill="#4b5563" font-weight="bold">売上（円）</text>';
+    const b=best(),latest=records[records.length-1];records.forEach(r=>{const isBest=r.id===b.id,isLatest=r.id===latest.id&&records.length>1,fill=isBest?'#ef4444':isLatest?'#f97316':'#3b82f6',rad=isBest?8:isLatest?6:5;h+=`<circle cx="${x(r.price)}" cy="${y(r.revenue)}" r="${rad}" fill="${fill}" ${isBest?'stroke="#fca5a5" stroke-width="4"':''}/>`;if(isBest||isLatest)h+=`<text x="${x(r.price)}" y="${y(r.revenue)-15}" text-anchor="middle" font-size="11" font-weight="bold" fill="${fill}">${isBest?'MAX!':yen(r.revenue)}</text>`});svg.innerHTML=h;
+  }
+  function table(){const b=best();$('records').innerHTML=[...records].sort((a,c)=>a.price-c.price).map(r=>`<tr class="${r.id===b.id?'best':''}"><td><strong>${r.price} 円</strong></td><td>${r.sales} パック</td><td><strong>${yen(r.revenue)} 円</strong>${r.id===b.id?'<span class="badge">最高!</span>':''}</td></tr>`).join('')}
+  function test(){const p=+range.value;if(records.some(r=>r.price===p)){ $('message').textContent=`「${p}円」はすでに試したよ。別の値段を試してみよう！`;return}const rev=revenue(p);records.push({id:nextId++,price:p,sales:sales(p),revenue:rev});if(p===75)$('message').textContent='大発見！75円で売上22,500円になったね！…でも本当にこれが「最大」？ 74円や76円は？ 全部調べずに一番いい場所を見つける方法はないかな？（→これが「二次関数」の入り口です！）';else if(rev<20000&&p>50)$('message').textContent=`あれ？ ${p}円に値上げしたのに、50円の時より売上が下がっちゃったね。「高くすれば儲かる」わけじゃないみたいだ。`;else if(rev>20000)$('message').textContent='おっ、50円の時より売上が増えた！他にももっと売上が上がる値段はあるかな？';else if(p<50)$('message').textContent='値下げしてみたんだね。販売数は増えたけど、売上はどうなったかな？';draw();table()}
+  range.addEventListener('input',updatePreview);$('minus').onclick=()=>{range.value=Math.max(10,+range.value-5);updatePreview()};$('plus').onclick=()=>{range.value=Math.min(150,+range.value+5);updatePreview()};$('test').onclick=test;updatePreview();draw();table();
+})();
+</script>
+</body></html>

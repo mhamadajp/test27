@@ -1,0 +1,1239 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>数学II 垂直な直線と傾きの積が-1になる理由 本質理解シミュレータ</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- 数式（$〜$）を美しく表示するためのKaTeXライブラリ -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <style>
+    /* 分数などの数学的レイアウト用スタイル */
+    .fraction {
+      display: inline-flex;
+      flex-direction: column;
+      vertical-align: middle;
+      text-align: center;
+      padding: 0 4px;
+    }
+    .fraction .numerator {
+      border-bottom: 2px solid currentColor;
+      padding-bottom: 1px;
+    }
+    .fraction .denominator {
+      padding-top: 1px;
+    }
+    /* スライダーの見た目カスタマイズ */
+    input[type=range] {
+      accent-color: #2563eb;
+    }
+    canvas {
+      touch-action: none;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col font-sans">
+
+  <!-- ヘッダー -->
+  <header class="bg-slate-900 text-white shadow-md sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 py-3 sm:py-4 flex flex-wrap items-center justify-between gap-3">
+      <div>
+        <span class="text-xs font-semibold uppercase tracking-wider bg-blue-600 text-white px-2 py-0.5 rounded">高校数学II 図形と方程式</span>
+        <h1 class="text-lg sm:text-xl font-bold flex items-center gap-2 mt-1">
+          <span>なぜ垂直な直線の傾きの積は -1 なのか？</span>
+          <span class="text-blue-400 font-mono text-sm hidden sm:inline">(m₁ · m₂ = -1)</span>
+        </h1>
+      </div>
+      <!-- ナビゲーションタブ -->
+      <nav class="flex space-x-1 bg-slate-800 p-1 rounded-xl text-xs sm:text-sm font-medium w-full sm:w-auto overflow-x-auto">
+        <button id="tab-btn-1" onclick="switchTab('tab-rotate')" class="tab-btn active px-3 py-1.5 rounded-lg bg-blue-600 text-white transition">
+          ① 90度回転ラボ
+        </button>
+        <button id="tab-btn-2" onclick="switchTab('tab-exception')" class="tab-btn px-3 py-1.5 rounded-lg text-slate-300 hover:text-white transition">
+          ② 水平・垂直とベクトル
+        </button>
+        <button id="tab-btn-3" onclick="switchTab('tab-trig')" class="tab-btn px-3 py-1.5 rounded-lg text-slate-300 hover:text-white transition">
+          ③ 三角関数・単位円
+        </button>
+        <button id="tab-btn-4" onclick="switchTab('tab-quiz')" class="tab-btn px-3 py-1.5 rounded-lg text-slate-300 hover:text-white transition">
+          ④ 理解度チェック問題
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- メインコンテンツ -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-3 sm:p-6 space-y-6">
+
+    <!-- ============================================================= -->
+    <!-- TAB 1: 90度回転ラボ (メインシミュレータ) -->
+    <!-- ============================================================= -->
+    <div id="tab-rotate" class="tab-content block space-y-6">
+      
+      <!-- ガイドメッセージ -->
+      <div class="bg-blue-50 border-l-4 border-blue-600 p-4 rounded-r-lg shadow-sm text-sm text-slate-700 flex flex-col md:flex-row md:items-center justify-between gap-3">
+        <div>
+          <span class="font-bold text-blue-900">「公式を丸暗記せず、矢印を描いて復元する」</span><br>
+          青い矢印 <span class="font-mono font-semibold text-blue-700">(Δx, Δy)</span> を90度回転させると、なぜ<strong>「逆数」</strong>になり、なぜ<strong>「マイナス」</strong>がつくのかを体験しましょう。
+        </div>
+        <div class="flex items-center gap-2 flex-shrink-0">
+          <span class="text-xs text-slate-500">プリセット例:</span>
+          <button onclick="setVectorPreset(1, 2)" class="px-2.5 py-1 bg-white border border-slate-300 hover:bg-blue-100 rounded text-xs font-semibold">傾き 2 (PDF例)</button>
+          <button onclick="setVectorPreset(3, 2)" class="px-2.5 py-1 bg-white border border-slate-300 hover:bg-blue-100 rounded text-xs font-semibold">傾き 2/3</button>
+          <button onclick="setVectorPreset(1, -2)" class="px-2.5 py-1 bg-white border border-slate-300 hover:bg-blue-100 rounded text-xs font-semibold">傾き -2</button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- 左側: キャンバス領域 -->
+        <div class="lg:col-span-7 bg-white rounded-2xl shadow-sm border border-slate-200 p-4 flex flex-col items-center">
+          <div class="w-full flex items-center justify-between mb-2 px-1">
+            <span class="text-sm font-bold text-slate-700 flex items-center gap-2">
+              <span>座標平面と90度回転</span>
+              <span class="text-xs font-normal text-slate-500">(先端をドラッグして移動可能)</span>
+            </span>
+            <span class="text-xs bg-slate-100 px-2 py-1 rounded text-slate-600 font-mono">1マス = 1</span>
+          </div>
+
+          <!-- キャンバス -->
+          <div class="relative w-full aspect-square max-w-[540px] bg-slate-900 rounded-xl overflow-hidden shadow-inner border border-slate-800">
+            <canvas id="rotateCanvas" class="w-full h-full cursor-crosshair"></canvas>
+            <div id="dragHint" class="absolute bottom-3 right-3 bg-black/70 text-white text-xs px-2.5 py-1.5 rounded-md pointer-events-none backdrop-blur-sm">
+              💡 青い点をドラッグできます
+            </div>
+          </div>
+
+          <!-- 回転アニメーション操作コントローラー -->
+          <div class="w-full max-w-[540px] mt-4 bg-slate-50 p-3 rounded-xl border border-slate-200 flex flex-col gap-3">
+            <div class="flex items-center justify-between">
+              <label for="rotAngleSlider" class="text-xs font-bold text-slate-700 flex items-center gap-1">
+                <span>🔄 90度回転の進み具合:</span>
+                <span id="rotAngleDisplay" class="font-mono text-blue-600 font-extrabold text-sm">90°</span>
+              </label>
+              <div class="flex gap-2">
+                <button id="btnPlayRotate" onclick="toggleRotateAnimation()" class="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg shadow-sm transition flex items-center gap-1">
+                  <span id="playIcon">▶</span> <span id="playText">回転アニメ再生</span>
+                </button>
+                <button onclick="resetRotation(90)" class="px-2.5 py-1 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-semibold rounded-lg transition">90°にセット</button>
+                <button onclick="resetRotation(0)" class="px-2.5 py-1 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-semibold rounded-lg transition">0°に戻す</button>
+              </div>
+            </div>
+            <input type="range" id="rotAngleSlider" min="0" max="90" value="90" step="1" class="w-full h-2 bg-slate-200 rounded-lg cursor-pointer">
+          </div>
+        </div>
+
+        <!-- 右側: 計算・本質解説パネル -->
+        <div class="lg:col-span-5 flex flex-col gap-4">
+          
+          <!-- ベクトルの変化カード -->
+          <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 space-y-4">
+            <h3 class="text-base font-bold text-slate-800 border-b pb-2 flex items-center justify-between">
+              <span>矢印（進み方）の変化</span>
+              <span class="text-xs font-normal text-slate-500">横と縦の役割</span>
+            </h3>
+
+            <!-- 元の直線 -->
+            <div class="p-3 rounded-xl bg-blue-50/70 border border-blue-200">
+              <div class="flex items-center justify-between mb-1">
+                <div class="flex items-center gap-2 font-bold text-blue-900 text-sm">
+                  <span class="w-3 h-3 rounded-full bg-blue-600 inline-block"></span>
+                  <span>元の直線 $L_1$ の進み方</span>
+                </div>
+                <span class="text-xs bg-blue-200/60 text-blue-800 px-2 py-0.5 rounded font-mono font-bold" id="vec1Label">(1, 2)</span>
+              </div>
+              <div class="text-xs text-slate-600 ml-5 space-y-0.5">
+                <div>横の変化 (Δx₁) : <span class="font-mono font-bold text-blue-700" id="dx1Val">1</span></div>
+                <div>縦の変化 (Δy₁) : <span class="font-mono font-bold text-blue-700" id="dy1Val">2</span></div>
+                <div class="pt-1 flex items-center gap-1 font-semibold text-slate-800">
+                  傾き $m_1$ = 
+                  <span class="fraction font-mono text-sm text-blue-700">
+                    <span class="numerator" id="m1Num">2</span>
+                    <span class="denominator" id="m1Den">1</span>
+                  </span>
+                  <span id="m1Decimal" class="text-xs font-mono text-slate-500">(= 2)</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 垂直な直線 -->
+            <div class="p-3 rounded-xl bg-amber-50/80 border border-amber-200">
+              <div class="flex items-center justify-between mb-1">
+                <div class="flex items-center gap-2 font-bold text-amber-900 text-sm">
+                  <span class="w-3 h-3 rounded-full bg-amber-500 inline-block"></span>
+                  <span>90°回転した直線 $L_2$ の進み方</span>
+                </div>
+                <span class="text-xs bg-amber-200 text-amber-900 px-2 py-0.5 rounded font-mono font-bold" id="vec2Label">(-2, 1)</span>
+              </div>
+              <div class="text-xs text-slate-600 ml-5 space-y-0.5">
+                <div>横の変化 (Δx₂) : <span class="font-mono font-bold text-amber-700" id="dx2Val">-2</span> <span class="text-slate-400">(= -元の縦)</span></div>
+                <div>縦の変化 (Δy₂) : <span class="font-mono font-bold text-amber-700" id="dy2Val">1</span> <span class="text-slate-400">(= +元の横)</span></div>
+                <div class="pt-1 flex items-center gap-1 font-semibold text-slate-800">
+                  傾き $m_2$ = 
+                  <span class="fraction font-mono text-sm text-amber-700">
+                    <span class="numerator" id="m2Num">1</span>
+                    <span class="denominator" id="m2Den">-2</span>
+                  </span>
+                  <span>=</span>
+                  <span class="fraction font-mono text-sm text-amber-700">
+                    <span class="numerator" id="m2SimpNum">-1</span>
+                    <span class="denominator" id="m2SimpDen">2</span>
+                  </span>
+                  <span id="m2Decimal" class="text-xs font-mono text-slate-500">(= -0.5)</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 積の計算 -->
+            <div class="p-4 bg-slate-900 text-white rounded-xl">
+              <div class="text-xs text-slate-400 font-semibold mb-2 flex items-center justify-between">
+                <span>傾きの積 $m_1 \times m_2$ の検証</span>
+                <span class="text-emerald-400 text-xs font-bold">約分される！</span>
+              </div>
+              <div class="flex items-center justify-center gap-3 text-base font-mono">
+                <div class="flex items-center gap-1">
+                  <span>m₁ · m₂</span>
+                  <span>=</span>
+                  <span class="fraction text-blue-300">
+                    <span class="numerator" id="calcM1Num">b</span>
+                    <span class="denominator" id="calcM1Den">a</span>
+                  </span>
+                  <span>×</span>
+                  <span class="fraction text-amber-300">
+                    <span class="numerator" id="calcM2Num">-a</span>
+                    <span class="denominator" id="calcM2Den">b</span>
+                  </span>
+                  <span>=</span>
+                  <span class="text-xl font-extrabold text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-600/50" id="productResult">-1</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- 本質解説カード -->
+          <div class="bg-gradient-to-br from-indigo-50 to-blue-50 border border-indigo-100 rounded-2xl p-5 shadow-sm space-y-3">
+            <h4 class="text-sm font-bold text-indigo-950 flex items-center gap-2">
+              <span class="text-lg">💡</span> 2つの変化を分けて納得する
+            </h4>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+              <div class="bg-white/90 p-3 rounded-xl border border-indigo-100 shadow-2xs">
+                <span class="font-bold text-indigo-900 block mb-1 text-sm">① なぜ「逆数」？</span>
+                <p class="text-slate-600 leading-relaxed">
+                  90度回すと、<strong>横と縦がそっくり入れ替わる</strong>からです。<br>
+                  「横に $a$、縦に $b$」が「横に $b$、縦に $a$」になるため、分母と分子が逆になります。
+                </p>
+              </div>
+              <div class="bg-white/90 p-3 rounded-xl border border-indigo-100 shadow-2xs">
+                <span class="font-bold text-rose-900 block mb-1 text-sm">② なぜ「マイナス」？</span>
+                <p class="text-slate-600 leading-relaxed">
+                  90度回すと、<strong>一方向の符号が逆転する</strong>からです。<br>
+                  「上へ進む」成分は回転すると「左へ進む（負）」向きへと折れ曲がります。
+                </p>
+              </div>
+            </div>
+            <div class="text-xs text-indigo-800 bg-indigo-100/60 p-2.5 rounded-lg">
+              🎯 <strong>結論：</strong> 「横縦の入れ替え（逆数）」×「符号の反転（負）」が合わさるため、掛けると必ず <strong>-1</strong> になります！
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- ============================================================= -->
+    <!-- TAB 2: 水平・垂直の例外 と ベクトルの内積 -->
+    <!-- ============================================================= -->
+    <div id="tab-exception" class="tab-content hidden space-y-6">
+      
+      <div class="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-lg shadow-sm text-sm text-slate-700">
+        <span class="font-bold text-amber-900">「水平な直線」と「鉛直な直線」ではなぜ積=-1が使えない？</span><br>
+        直角に交わっているのに、なぜ $m_1 m_2 = -1$ という式が使えないのでしょうか？
+        そして、数学はそれを<strong>「ベクトルの内積」</strong>でどう美しく統一して解決するのかを見てみましょう。
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        
+        <!-- 左: 水平と垂直の「0で割る」問題 -->
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between border-b pb-3 mb-4">
+              <h3 class="font-bold text-slate-800 text-base">水平・鉛直における「傾き」の限界</h3>
+              <span class="text-xs px-2 py-0.5 bg-rose-100 text-rose-700 font-bold rounded">例外の正体</span>
+            </div>
+
+            <div class="space-y-4 text-sm text-slate-700 leading-relaxed">
+              <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200">
+                <span class="font-bold text-blue-700 block mb-1">水平な直線 (y = 2 など)</span>
+                <p class="text-xs text-slate-600">
+                  右へ1進んでも高さが変わらない：矢印は $(1, 0)$<br>
+                  傾き $m_1 = \frac{0}{1} = \mathbf{0}$
+                </p>
+              </div>
+
+              <div class="text-center font-bold text-slate-400 text-xs flex items-center justify-center gap-2">
+                <span>90度回転</span> <span>↷</span> <span>(1, 0) → (0, 1)</span>
+              </div>
+
+              <div class="p-3.5 bg-rose-50 rounded-xl border border-rose-200">
+                <span class="font-bold text-rose-700 block mb-1">垂直（鉛直）な直線 (x = -1 など)</span>
+                <p class="text-xs text-slate-600">
+                  横への変化が $0$、上へ $1$ 進む：矢印は $(0, 1)$<br>
+                  傾き $m_2 = \frac{1}{0} \rightarrow$ <strong class="text-rose-700">0で割ることはできないため定義不能！</strong>
+                </p>
+              </div>
+
+              <div class="p-3 bg-amber-100/70 rounded-xl text-xs text-amber-950 font-medium">
+                ⚠️ $0 \times (\text{定義不能}) = -1$ とは計算できません。<br>
+                そのため、教科書の公式には必ず<strong>「ただし、2直線が座標軸に平行でないとき」</strong>という注意書きがつきます。
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-4 pt-4 border-t text-xs text-slate-500">
+            ※ 進み方を90度回す $(1, 0) \to (0, 1)$ という本質自体は全く崩れていません。単に「傾きという割り算」の表現形式がパンクしただけです。
+          </div>
+        </div>
+
+        <!-- 右: ベクトルの内積による統一 -->
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between border-b pb-3 mb-4">
+              <h3 class="font-bold text-slate-800 text-base">数学B「ベクトルの内積」での完全解決</h3>
+              <span class="text-xs px-2 py-0.5 bg-emerald-100 text-emerald-700 font-bold rounded">一般化の美しさ</span>
+            </div>
+
+            <div class="space-y-4 text-sm text-slate-700 leading-relaxed">
+              <p class="text-xs text-slate-600">
+                直線の方向を「分数（傾き）」ではなく<strong>「ベクトル（矢印の成分）」</strong>で表せば、分母が0になる心配が一切なくなります！
+              </p>
+
+              <!-- 一般の直線の内積 -->
+              <div class="p-3.5 bg-emerald-50 rounded-xl border border-emerald-200">
+                <span class="font-bold text-emerald-900 block mb-1 text-xs">一般の方向ベクトル $(a, b)$ と その90°回転 $(-b, a)$</span>
+                <div class="font-mono text-center text-sm py-1 bg-white rounded border border-emerald-100 font-bold text-emerald-800">
+                  $(a, b) \cdot (-b, a) = a(-b) + b(a) = -ab + ab = \mathbf{0}$
+                </div>
+                <p class="text-[11px] text-emerald-700 mt-1.5">
+                  内積が $0$ $\iff$ 2つのベクトルは垂直！
+                </p>
+              </div>
+
+              <!-- 水平・垂直の内積 -->
+              <div class="p-3.5 bg-blue-50 rounded-xl border border-blue-200">
+                <span class="font-bold text-blue-900 block mb-1 text-xs">水平 $(1, 0)$ と 垂直 $(0, 1)$ の場合</span>
+                <div class="font-mono text-center text-sm py-1 bg-white rounded border border-blue-100 font-bold text-blue-800">
+                  $(1, 0) \cdot (0, 1) = 1 \times 0 + 0 \times 1 = \mathbf{0}$
+                </div>
+                <p class="text-[11px] text-blue-700 mt-1.5">
+                  割り算を使わないため、例外なく綺麗に垂直（内積0）が判定できます！
+                </p>
+              </div>
+
+              <!-- 比較表 -->
+              <div class="text-xs">
+                <table class="w-full text-left border-collapse border border-slate-200 rounded-lg overflow-hidden">
+                  <thead class="bg-slate-100 text-slate-700">
+                    <tr>
+                      <th class="p-2 border border-slate-200">比較</th>
+                      <th class="p-2 border border-slate-200">傾きの積 $m_1 m_2 = -1$</th>
+                      <th class="p-2 border border-slate-200">内積 $\vec{u} \cdot \vec{v} = 0$</th>
+                    </tr>
+                  </thead>
+                  <tbody class="text-slate-600">
+                    <tr>
+                      <td class="p-2 border border-slate-200 font-bold">斜めの直線</td>
+                      <td class="p-2 border border-slate-200 text-emerald-600 font-bold">使える ○</td>
+                      <td class="p-2 border border-slate-200 text-emerald-600 font-bold">使える ○</td>
+                    </tr>
+                    <tr>
+                      <td class="p-2 border border-slate-200 font-bold">水平と鉛直</td>
+                      <td class="p-2 border border-slate-200 text-rose-500 font-bold">使えない × (0と未定義)</td>
+                      <td class="p-2 border border-slate-200 text-emerald-600 font-bold">問題なく使える ○</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+            </div>
+          </div>
+
+          <div class="mt-4 pt-4 border-t text-xs text-slate-500">
+            「傾きの積が -1」と「内積が 0」は、本質的にまったく同じ <strong>90度回転</strong> を別の道具で表しているだけです。
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- ============================================================= -->
+    <!-- TAB 3: 三角関数・単位円 (tan(θ+90°)) -->
+    <!-- ============================================================= -->
+    <div id="tab-trig" class="tab-content hidden space-y-6">
+      
+      <div class="bg-indigo-50 border-l-4 border-indigo-600 p-4 rounded-r-lg shadow-sm text-sm text-slate-700">
+        <span class="font-bold text-indigo-900">三角関数（数学II）との美しいつながり：傾きは $\tan\theta$</span><br>
+        $x$ 軸の正の向きとなす角を $\theta$ と置くと、傾きは $\tan\theta$ です。<br>
+        90度回すことは、角度を $\theta + 90^\circ$（または $\theta + \frac{\pi}{2}$）にすること。単位円上で何が起きているか観察しましょう。
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- 左: 単位円キャンバス -->
+        <div class="lg:col-span-6 bg-white rounded-2xl shadow-sm border border-slate-200 p-4 flex flex-col items-center">
+          <div class="w-full flex items-center justify-between mb-2 px-1">
+            <span class="text-sm font-bold text-slate-700">単位円と直線の方向</span>
+            <span class="text-xs bg-indigo-50 text-indigo-700 font-bold px-2 py-0.5 rounded">半径 r = 1</span>
+          </div>
+
+          <div class="relative w-full aspect-square max-w-[440px] bg-slate-900 rounded-xl overflow-hidden shadow-inner border border-slate-800">
+            <canvas id="trigCanvas" class="w-full h-full"></canvas>
+          </div>
+
+          <!-- 角度スライダー -->
+          <div class="w-full max-w-[440px] mt-4 bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2">
+            <div class="flex items-center justify-between text-xs font-bold text-slate-700">
+              <label for="thetaSlider">角度 $\theta$ の調整:</label>
+              <span id="thetaDisplay" class="font-mono text-indigo-600 font-extrabold text-sm">30° (π/6)</span>
+            </div>
+            <input type="range" id="thetaSlider" min="5" max="85" value="30" step="1" class="w-full h-2 bg-slate-200 rounded-lg cursor-pointer">
+            <div class="flex justify-between text-[10px] text-slate-400">
+              <span>0°</span>
+              <span>30° (PDF例)</span>
+              <span>45°</span>
+              <span>60°</span>
+              <span>90°</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 右: 三角関数の数式解説 -->
+        <div class="lg:col-span-6 flex flex-col justify-between bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+          <div class="space-y-5">
+            <h3 class="font-bold text-slate-800 text-base border-b pb-2 flex items-center justify-between">
+              <span>単位円の座標と $\tan$ の公式</span>
+              <span class="text-xs font-mono text-indigo-600 font-semibold" id="thetaPairDisplay">θ = 30° & 120°</span>
+            </h3>
+
+            <!-- 直線1 -->
+            <div class="p-3.5 rounded-xl bg-blue-50 border border-blue-200 text-xs space-y-1.5">
+              <div class="font-bold text-blue-900 text-sm flex items-center justify-between">
+                <span>① 角度 $\theta$ の直線</span>
+                <span class="font-mono text-blue-700" id="trigCoord1">(cos θ, sin θ)</span>
+              </div>
+              <p class="text-slate-600">
+                横の変化: $\cos\theta$, 縦の変化: $\sin\theta$<br>
+                傾き $m_1 = \tan\theta = \frac{\sin\theta}{\cos\theta}$ = <strong class="font-mono text-blue-800" id="tan1Val">0.577</strong>
+              </p>
+            </div>
+
+            <!-- 直線2 (90度回転) -->
+            <div class="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-xs space-y-1.5">
+              <div class="font-bold text-amber-900 text-sm flex items-center justify-between">
+                <span>② 角度 $\theta + 90^\circ$ の直線</span>
+                <span class="font-mono text-amber-700" id="trigCoord2">(-sin θ, cos θ)</span>
+              </div>
+              <p class="text-slate-600">
+                横の変化: $-\sin\theta$, 縦の変化: $\cos\theta$<br>
+                傾き $m_2 = \tan(\theta+90^\circ) = \frac{\cos\theta}{-\sin\theta} = -\frac{1}{\tan\theta}$ = <strong class="font-mono text-amber-800" id="tan2Val">-1.732</strong>
+              </p>
+            </div>
+
+            <!-- 積の計算 -->
+            <div class="p-4 bg-slate-900 text-white rounded-xl space-y-2">
+              <div class="text-xs text-slate-400 font-semibold">積の計算（三角関数の公式の証明）</div>
+              <div class="font-mono text-center text-sm space-y-1">
+                <div class="flex items-center justify-center gap-2">
+                  <span>tan θ · tan(θ + 90°)</span>
+                  <span>=</span>
+                  <span class="fraction text-blue-300">
+                    <span class="numerator">sin θ</span>
+                    <span class="denominator">cos θ</span>
+                  </span>
+                  <span>×</span>
+                  <span class="fraction text-amber-300">
+                    <span class="numerator">cos θ</span>
+                    <span class="denominator">-sin θ</span>
+                  </span>
+                </div>
+                <div class="text-emerald-400 text-base font-bold pt-1">
+                  = -1
+                </div>
+              </div>
+            </div>
+
+            <div class="p-3 bg-indigo-50 border border-indigo-100 rounded-xl text-xs text-indigo-950 leading-relaxed">
+              <strong>📖 三角関数の公式：</strong><br>
+              $\tan(\theta + 90^\circ) = -\frac{1}{\tan\theta}$（または $\tan(\theta + \frac{\pi}{2}) = -\frac{1}{\tan\theta}$）<br>
+              高校数学で別々に習う「図形と方程式の $m_1 m_2 = -1$」と「三角関数の変換公式」が、実は全く同じ <strong>“単位円上の90度回転”</strong> だったことが分かります！
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- ============================================================= -->
+    <!-- TAB 4: 理解度チェック問題 (PDFの問題をインタラクティブ化) -->
+    <!-- ============================================================= -->
+    <div id="tab-quiz" class="tab-content hidden space-y-6">
+      
+      <div class="bg-emerald-50 border-l-4 border-emerald-600 p-4 rounded-r-lg shadow-sm text-sm text-slate-700">
+        <span class="font-bold text-emerald-900">PDFの理解確認問題に挑戦！</span><br>
+        公式に当てはめるだけでなく、「矢印を描いて90度回す」復元の手順で考えましょう。
+      </div>
+
+      <div class="space-y-6">
+        
+        <!-- 問1 -->
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-bold px-2.5 py-1 bg-blue-100 text-blue-800 rounded-full">問題 1 (基本)</span>
+            <span class="text-xs text-slate-400">PDF 第11節 問1より</span>
+          </div>
+          <p class="font-semibold text-slate-800 text-sm mb-3">
+            傾きが $3$ の直線に垂直な直線の傾きはいくつでしょう？
+          </p>
+
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4" id="q1Options">
+            <button onclick="checkQuiz(1, 'A')" class="p-3 text-center border rounded-xl hover:bg-slate-50 font-mono text-sm font-semibold transition">A) 3</button>
+            <button onclick="checkQuiz(1, 'B')" class="p-3 text-center border rounded-xl hover:bg-slate-50 font-mono text-sm font-semibold transition">B) -3</button>
+            <button onclick="checkQuiz(1, 'C')" class="p-3 text-center border rounded-xl hover:bg-slate-50 font-mono text-sm font-semibold transition">C) 1/3</button>
+            <button onclick="checkQuiz(1, 'D')" class="p-3 text-center border rounded-xl hover:bg-slate-50 font-mono text-sm font-semibold transition">D) -1/3</button>
+          </div>
+
+          <div id="q1Feedback" class="hidden p-4 rounded-xl text-xs space-y-2 border"></div>
+        </div>
+
+        <!-- 問2 -->
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-bold px-2.5 py-1 bg-blue-100 text-blue-800 rounded-full">問題 2 (負の傾き)</span>
+            <span class="text-xs text-slate-400">PDF 第11節 問2より</span>
+          </div>
+          <p class="font-semibold text-slate-800 text-sm mb-3">
+            傾きが $-\frac{2}{5}$ の直線に垂直な直線の傾きはいくつでしょう？
+          </p>
+
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4" id="q2Options">
+            <button onclick="checkQuiz(2, 'A')" class="p-3 text-center border rounded-xl hover:bg-slate-50 font-mono text-sm font-semibold transition">A) -5/2</button>
+            <button onclick="checkQuiz(2, 'B')" class="p-3 text-center border rounded-xl hover:bg-slate-50 font-mono text-sm font-semibold transition">B) 5/2</button>
+            <button onclick="checkQuiz(2, 'C')" class="p-3 text-center border rounded-xl hover:bg-slate-50 font-mono text-sm font-semibold transition">C) 2/5</button>
+            <button onclick="checkQuiz(2, 'D')" class="p-3 text-center border rounded-xl hover:bg-slate-50 font-mono text-sm font-semibold transition">D) -2/5</button>
+          </div>
+
+          <div id="q2Feedback" class="hidden p-4 rounded-xl text-xs space-y-2 border"></div>
+        </div>
+
+        <!-- 問3 -->
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-bold px-2.5 py-1 bg-purple-100 text-purple-800 rounded-full">問題 3 (直線の方程式への応用)</span>
+            <span class="text-xs text-slate-400">PDF 第10・11節 問3より</span>
+          </div>
+          <p class="font-semibold text-slate-800 text-sm mb-3">
+            点 $P(3, -1)$ を通り、直線 $2x - y + 4 = 0$ に垂直な直線の方程式はどれでしょう？
+          </p>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-4" id="q3Options">
+            <button onclick="checkQuiz(3, 'A')" class="p-3 text-left border rounded-xl hover:bg-slate-50 font-mono text-sm font-semibold transition">A) y + 1 = 2(x - 3)</button>
+            <button onclick="checkQuiz(3, 'B')" class="p-3 text-left border rounded-xl hover:bg-slate-50 font-mono text-sm font-semibold transition">B) y + 1 = -(1/2)(x - 3)</button>
+            <button onclick="checkQuiz(3, 'C')" class="p-3 text-left border rounded-xl hover:bg-slate-50 font-mono text-sm font-semibold transition">C) y - 1 = -(1/2)(x + 3)</button>
+            <button onclick="checkQuiz(3, 'D')" class="p-3 text-left border rounded-xl hover:bg-slate-50 font-mono text-sm font-semibold transition">D) y + 1 = (1/2)(x - 3)</button>
+          </div>
+
+          <div id="q3Feedback" class="hidden p-4 rounded-xl text-xs space-y-2 border"></div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- フッター -->
+  <footer class="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-500">
+    高校数学II「図形と方程式」本質理解支援ツール — 矢印の90度回転で覚える数学
+  </footer>
+
+  <!-- ============================================================= -->
+  <!-- JavaScript ロジック -->
+  <!-- ============================================================= -->
+  <script>
+    // --- 状態管理 ---
+    const state = {
+      // ベクトルの終点 (a, b) -> 傾き m1 = b/a
+      vx: 1,
+      vy: 2,
+      // 回転アニメーション用角度 (0 ~ 90 度)
+      rotDeg: 90,
+      animating: false,
+      animReq: null,
+      // 三角関数タブ用
+      thetaDeg: 30,
+      // ドラッグ操作用
+      isDragging: false
+    };
+
+    // --- キャンバス初期化 ---
+    const rotateCanvas = document.getElementById('rotateCanvas');
+    const rotCtx = rotateCanvas.getContext('2d');
+    const trigCanvas = document.getElementById('trigCanvas');
+    const trigCtx = trigCanvas.getContext('2d');
+
+    function resizeCanvas(canvas) {
+      const rect = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      const ctx = canvas.getContext('2d');
+      ctx.resetTransform();
+      ctx.scale(dpr, dpr);
+    }
+
+    // --- 座標変換ユーティリティ ---
+    // 範囲: -4 ~ +4
+    const GRID_RANGE = 4;
+    function toCanvasX(x, width) {
+      return (x + GRID_RANGE) * (width / (GRID_RANGE * 2));
+    }
+    function toCanvasY(y, height) {
+      return (GRID_RANGE - y) * (height / (GRID_RANGE * 2));
+    }
+    function fromCanvasX(cx, width) {
+      return (cx / (width / (GRID_RANGE * 2))) - GRID_RANGE;
+    }
+    function fromCanvasY(cy, height) {
+      return GRID_RANGE - (cy / (height / (GRID_RANGE * 2)));
+    }
+
+    // --- 90度回転キャンバス描画 ---
+    function drawRotateScene() {
+      const width = rotateCanvas.getBoundingClientRect().width;
+      const height = rotateCanvas.getBoundingClientRect().height;
+      if (!width || !height) return;
+
+      rotCtx.clearRect(0, 0, width, height);
+
+      // 1. グリッド背景
+      rotCtx.strokeStyle = '#1e293b';
+      rotCtx.lineWidth = 1;
+      for (let i = -GRID_RANGE; i <= GRID_RANGE; i++) {
+        const x = toCanvasX(i, width);
+        rotCtx.beginPath();
+        rotCtx.moveTo(x, 0);
+        rotCtx.lineTo(x, height);
+        rotCtx.stroke();
+
+        const y = toCanvasY(i, height);
+        rotCtx.beginPath();
+        rotCtx.moveTo(0, y);
+        rotCtx.lineTo(width, y);
+        rotCtx.stroke();
+      }
+
+      // 2. 座標軸
+      const ox = toCanvasX(0, width);
+      const oy = toCanvasY(0, height);
+
+      rotCtx.strokeStyle = '#64748b';
+      rotCtx.lineWidth = 2;
+      // x軸
+      rotCtx.beginPath();
+      rotCtx.moveTo(0, oy);
+      rotCtx.lineTo(width, oy);
+      rotCtx.stroke();
+      // y軸
+      rotCtx.beginPath();
+      rotCtx.moveTo(ox, 0);
+      rotCtx.lineTo(ox, height);
+      rotCtx.stroke();
+
+      // 目盛り数値
+      rotCtx.fillStyle = '#94a3b8';
+      rotCtx.font = '10px monospace';
+      rotCtx.textAlign = 'center';
+      rotCtx.textBaseline = 'top';
+      for (let i = -GRID_RANGE; i <= GRID_RANGE; i++) {
+        if (i !== 0) {
+          rotCtx.fillText(i, toCanvasX(i, width), oy + 4);
+          rotCtx.fillText(i, ox - 10, toCanvasY(i, height) - 5);
+        }
+      }
+      rotCtx.fillText('O', ox - 10, oy + 4);
+
+      const vx = state.vx;
+      const vy = state.vy;
+
+      // 3. 元の直線の無限線（うっすら表示）
+      if (vx !== 0 || vy !== 0) {
+        rotCtx.strokeStyle = 'rgba(59, 130, 246, 0.25)';
+        rotCtx.lineWidth = 2;
+        rotCtx.beginPath();
+        rotCtx.moveTo(toCanvasX(-vx * 5, width), toCanvasY(-vy * 5, height));
+        rotCtx.lineTo(toCanvasX(vx * 5, width), toCanvasY(vy * 5, height));
+        rotCtx.stroke();
+      }
+
+      // 4. 現在の回転角に基づく回転ベクトル
+      const rad = (state.rotDeg * Math.PI) / 180;
+      const curX = vx * Math.cos(rad) - vy * Math.sin(rad);
+      const curY = vx * Math.sin(rad) + vy * Math.cos(rad);
+
+      // 回転した直線の無限線（うっすら表示）
+      if (state.rotDeg > 0 && (curX !== 0 || curY !== 0)) {
+        rotCtx.strokeStyle = 'rgba(245, 158, 11, 0.25)';
+        rotCtx.lineWidth = 2;
+        rotCtx.beginPath();
+        rotCtx.moveTo(toCanvasX(-curX * 5, width), toCanvasY(-curY * 5, height));
+        rotCtx.lineTo(toCanvasX(curX * 5, width), toCanvasY(curY * 5, height));
+        rotCtx.stroke();
+      }
+
+      // 5. 回転の軌跡（円弧）
+      const r = Math.sqrt(vx * vx + vy * vy);
+      if (r > 0.01 && state.rotDeg > 0) {
+        const startAng = -Math.atan2(vy, vx);
+        const endAng = -(Math.atan2(vy, vx) + rad);
+        rotCtx.strokeStyle = 'rgba(245, 158, 11, 0.4)';
+        rotCtx.lineWidth = 1.5;
+        rotCtx.setLineDash([4, 4]);
+        rotCtx.beginPath();
+        rotCtx.arc(ox, oy, r * (width / (GRID_RANGE * 2)), startAng, endAng, true);
+        rotCtx.stroke();
+        rotCtx.setLineDash([]);
+      }
+
+      // 6. 直角記号（90度になったとき）
+      if (state.rotDeg === 90 && r > 0.5) {
+        const sz = 0.35;
+        const u1x = vx / r, u1y = vy / r;
+        const u2x = -vy / r, u2y = vx / r;
+        rotCtx.strokeStyle = '#10b981';
+        rotCtx.lineWidth = 2;
+        rotCtx.beginPath();
+        rotCtx.moveTo(toCanvasX(u1x * sz, width), toCanvasY(u1y * sz, height));
+        rotCtx.lineTo(toCanvasX((u1x + u2x) * sz, width), toCanvasY((u1y + u2y) * sz, height));
+        rotCtx.lineTo(toCanvasX(u2x * sz, width), toCanvasY(u2y * sz, height));
+        rotCtx.stroke();
+
+        // 90°の文字
+        rotCtx.fillStyle = '#10b981';
+        rotCtx.font = 'bold 11px sans-serif';
+        rotCtx.fillText('90°', toCanvasX((u1x + u2x) * sz * 1.5, width), toCanvasY((u1y + u2y) * sz * 1.5, height) - 4);
+      }
+
+      // 7. 元のベクトルの直角三角形（Δx, Δy）のガイド
+      rotCtx.strokeStyle = 'rgba(96, 165, 250, 0.4)';
+      rotCtx.setLineDash([3, 3]);
+      rotCtx.beginPath();
+      rotCtx.moveTo(toCanvasX(0, width), toCanvasY(0, height));
+      rotCtx.lineTo(toCanvasX(vx, width), toCanvasY(0, height));
+      rotCtx.lineTo(toCanvasX(vx, width), toCanvasY(vy, height));
+      rotCtx.stroke();
+      rotCtx.setLineDash([]);
+
+      // 8. 元の矢印 (vx, vy)
+      drawArrow(rotCtx, ox, oy, toCanvasX(vx, width), toCanvasY(vy, height), '#3b82f6', 3.5);
+
+      // ドラッグ用ハンドル
+      rotCtx.fillStyle = '#60a5fa';
+      rotCtx.strokeStyle = '#ffffff';
+      rotCtx.lineWidth = 2.5;
+      rotCtx.beginPath();
+      rotCtx.arc(toCanvasX(vx, width), toCanvasY(vy, height), 7, 0, Math.PI * 2);
+      rotCtx.fill();
+      rotCtx.stroke();
+
+      // 元のラベル
+      rotCtx.fillStyle = '#93c5fd';
+      rotCtx.font = 'bold 12px sans-serif';
+      rotCtx.textAlign = 'left';
+      rotCtx.fillText(`(${vx.toFixed(1)}, ${vy.toFixed(1)})`, toCanvasX(vx, width) + 8, toCanvasY(vy, height) - 8);
+
+      // 9. 回転後ベクトルの直角三角形ガイド
+      if (state.rotDeg > 0) {
+        rotCtx.strokeStyle = 'rgba(251, 191, 36, 0.4)';
+        rotCtx.setLineDash([3, 3]);
+        rotCtx.beginPath();
+        rotCtx.moveTo(toCanvasX(0, width), toCanvasY(0, height));
+        rotCtx.lineTo(toCanvasX(curX, width), toCanvasY(0, height));
+        rotCtx.lineTo(toCanvasX(curX, width), toCanvasY(curY, height));
+        rotCtx.stroke();
+        rotCtx.setLineDash([]);
+
+        // 回転中または回転後の矢印
+        drawArrow(rotCtx, ox, oy, toCanvasX(curX, width), toCanvasY(curY, height), '#f59e0b', 3.5);
+
+        // ラベル
+        rotCtx.fillStyle = '#fcd34d';
+        rotCtx.font = 'bold 12px sans-serif';
+        rotCtx.fillText(`(${curX.toFixed(1)}, ${curY.toFixed(1)})`, toCanvasX(curX, width) + 8, toCanvasY(curY, height) - 8);
+      }
+    }
+
+    // 矢印描画関数
+    function drawArrow(ctx, fromx, fromy, tox, toy, color, lineWidth) {
+      const headlen = 10;
+      const angle = Math.atan2(toy - fromy, tox - fromx);
+      ctx.strokeStyle = color;
+      ctx.fillStyle = color;
+      ctx.lineWidth = lineWidth;
+
+      ctx.beginPath();
+      ctx.moveTo(fromx, fromy);
+      ctx.lineTo(tox, toy);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(tox, toy);
+      ctx.lineTo(tox - headlen * Math.cos(angle - Math.PI / 6), toy - headlen * Math.sin(angle - Math.PI / 6));
+      ctx.lineTo(tox - headlen * Math.cos(angle + Math.PI / 6), toy - headlen * Math.sin(angle + Math.PI / 6));
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    // --- UI数値・数式の更新 ---
+    function updateCalculations() {
+      const a = state.vx;
+      const b = state.vy;
+
+      // 90度回転後の成分 (-b, a)
+      const rotA = -b;
+      const rotB = a;
+
+      document.getElementById('vec1Label').textContent = `(${a.toFixed(1)}, ${b.toFixed(1)})`;
+      document.getElementById('dx1Val').textContent = a.toFixed(1);
+      document.getElementById('dy1Val').textContent = b.toFixed(1);
+
+      document.getElementById('vec2Label').textContent = `(${rotA.toFixed(1)}, ${rotB.toFixed(1)})`;
+      document.getElementById('dx2Val').textContent = rotA.toFixed(1);
+      document.getElementById('dy2Val').textContent = rotB.toFixed(1);
+
+      // 傾き m1
+      if (Math.abs(a) < 0.05) {
+        document.getElementById('m1Num').textContent = b.toFixed(1);
+        document.getElementById('m1Den').textContent = '0';
+        document.getElementById('m1Decimal').textContent = '(定義不能: 鉛直)';
+      } else {
+        const m1 = b / a;
+        document.getElementById('m1Num').textContent = b.toFixed(1);
+        document.getElementById('m1Den').textContent = a.toFixed(1);
+        document.getElementById('m1Decimal').textContent = `(= ${m1.toFixed(2)})`;
+      }
+
+      // 傾き m2
+      if (Math.abs(rotA) < 0.05) {
+        document.getElementById('m2Num').textContent = rotB.toFixed(1);
+        document.getElementById('m2Den').textContent = '0';
+        document.getElementById('m2SimpNum').textContent = '-';
+        document.getElementById('m2SimpDen').textContent = '-';
+        document.getElementById('m2Decimal').textContent = '(定義不能: 鉛直)';
+      } else {
+        const m2 = rotB / rotA;
+        document.getElementById('m2Num').textContent = rotB.toFixed(1);
+        document.getElementById('m2Den').textContent = rotA.toFixed(1);
+        document.getElementById('m2SimpNum').textContent = (-a).toFixed(1);
+        document.getElementById('m2SimpDen').textContent = b.toFixed(1);
+        document.getElementById('m2Decimal').textContent = `(= ${m2.toFixed(2)})`;
+      }
+
+      // 積の計算
+      const prodRes = document.getElementById('productResult');
+      if (Math.abs(a) < 0.05 || Math.abs(b) < 0.05) {
+        document.getElementById('calcM1Num').textContent = b.toFixed(1);
+        document.getElementById('calcM1Den').textContent = a.toFixed(1);
+        document.getElementById('calcM2Num').textContent = rotB.toFixed(1);
+        document.getElementById('calcM2Den').textContent = rotA.toFixed(1);
+        prodRes.textContent = '定義不可 (0または÷0)';
+        prodRes.className = 'text-xs font-bold text-amber-400 bg-amber-950/60 px-2 py-0.5 rounded border border-amber-600/50';
+      } else {
+        document.getElementById('calcM1Num').textContent = b.toFixed(1);
+        document.getElementById('calcM1Den').textContent = a.toFixed(1);
+        document.getElementById('calcM2Num').textContent = (-a).toFixed(1);
+        document.getElementById('calcM2Den').textContent = b.toFixed(1);
+        prodRes.textContent = '-1';
+        prodRes.className = 'text-xl font-extrabold text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-600/50';
+      }
+    }
+
+    // --- プリセット変更 ---
+    function setVectorPreset(x, y) {
+      state.vx = x;
+      state.vy = y;
+      state.rotDeg = 90;
+      document.getElementById('rotAngleSlider').value = 90;
+      document.getElementById('rotAngleDisplay').textContent = '90°';
+      updateCalculations();
+      drawRotateScene();
+    }
+
+    // --- 回転アニメーション ---
+    function toggleRotateAnimation() {
+      if (state.animating) {
+        stopAnimation();
+      } else {
+        startAnimation();
+      }
+    }
+
+    function startAnimation() {
+      state.animating = true;
+      document.getElementById('playIcon').textContent = '❚❚';
+      document.getElementById('playText').textContent = '一時停止';
+      state.rotDeg = 0;
+      let lastTime = null;
+
+      function step(timestamp) {
+        if (!lastTime) lastTime = timestamp;
+        const progress = timestamp - lastTime;
+
+        // 約1.5秒で90度回転
+        state.rotDeg = Math.min(90, state.rotDeg + 0.8);
+        document.getElementById('rotAngleSlider').value = state.rotDeg;
+        document.getElementById('rotAngleDisplay').textContent = `${Math.round(state.rotDeg)}°`;
+        drawRotateScene();
+
+        if (state.rotDeg < 90 && state.animating) {
+          state.animReq = requestAnimationFrame(step);
+        } else {
+          stopAnimation();
+          state.rotDeg = 90;
+          document.getElementById('rotAngleSlider').value = 90;
+          document.getElementById('rotAngleDisplay').textContent = '90°';
+          drawRotateScene();
+        }
+      }
+      state.animReq = requestAnimationFrame(step);
+    }
+
+    function stopAnimation() {
+      state.animating = false;
+      document.getElementById('playIcon').textContent = '▶';
+      document.getElementById('playText').textContent = '回転アニメ再生';
+      if (state.animReq) cancelAnimationFrame(state.animReq);
+    }
+
+    function resetRotation(deg) {
+      stopAnimation();
+      state.rotDeg = deg;
+      document.getElementById('rotAngleSlider').value = deg;
+      document.getElementById('rotAngleDisplay').textContent = `${deg}°`;
+      drawRotateScene();
+    }
+
+    // --- スライダーイベント ---
+    document.getElementById('rotAngleSlider').addEventListener('input', (e) => {
+      stopAnimation();
+      state.rotDeg = parseFloat(e.target.value);
+      document.getElementById('rotAngleDisplay').textContent = `${Math.round(state.rotDeg)}°`;
+      drawRotateScene();
+    });
+
+    // --- ドラッグ操作 (Canvas) ---
+    function handlePointerDown(e) {
+      const rect = rotateCanvas.getBoundingClientRect();
+      const clientX = e.clientX || (e.touches && e.touches[0].clientX);
+      const clientY = e.clientY || (e.touches && e.touches[0].clientY);
+      const mouseX = clientX - rect.left;
+      const mouseY = clientY - rect.top;
+
+      const currCanvasX = toCanvasX(state.vx, rect.width);
+      const currCanvasY = toCanvasY(state.vy, rect.height);
+      const dist = Math.hypot(mouseX - currCanvasX, mouseY - currCanvasY);
+
+      // ハンドルの近くをクリックしたらドラッグ開始
+      if (dist < 30) {
+        state.isDragging = true;
+      }
+    }
+
+    function handlePointerMove(e) {
+      if (!state.isDragging) return;
+      const rect = rotateCanvas.getBoundingClientRect();
+      const clientX = e.clientX || (e.touches && e.touches[0].clientX);
+      const clientY = e.clientY || (e.touches && e.touches[0].clientY);
+      const mouseX = clientX - rect.left;
+      const mouseY = clientY - rect.top;
+
+      let newX = fromCanvasX(mouseX, rect.width);
+      let newY = fromCanvasY(mouseY, rect.height);
+
+      // スナップ機能 (0.5刻み)
+      newX = Math.round(newX * 2) / 2;
+      newY = Math.round(newY * 2) / 2;
+
+      // 範囲制限
+      newX = Math.max(-3.5, Math.min(3.5, newX));
+      newY = Math.max(-3.5, Math.min(3.5, newY));
+
+      if (newX !== 0 || newY !== 0) {
+        state.vx = newX;
+        state.vy = newY;
+        updateCalculations();
+        drawRotateScene();
+      }
+    }
+
+    function handlePointerUp() {
+      state.isDragging = false;
+    }
+
+    rotateCanvas.addEventListener('mousedown', handlePointerDown);
+    window.addEventListener('mousemove', handlePointerMove);
+    window.addEventListener('mouseup', handlePointerUp);
+
+    rotateCanvas.addEventListener('touchstart', handlePointerDown, { passive: true });
+    window.addEventListener('touchmove', handlePointerMove, { passive: true });
+    window.addEventListener('touchend', handlePointerUp);
+
+    // =============================================================
+    // TAB 3: 三角関数・単位円描画
+    // =============================================================
+    function drawTrigScene() {
+      const width = trigCanvas.getBoundingClientRect().width;
+      const height = trigCanvas.getBoundingClientRect().height;
+      if (!width || !height) return;
+
+      trigCtx.clearRect(0, 0, width, height);
+
+      const ox = width / 2;
+      const oy = height / 2;
+      const radius = width * 0.38;
+
+      // 座標軸
+      trigCtx.strokeStyle = '#475569';
+      trigCtx.lineWidth = 1.5;
+      trigCtx.beginPath();
+      trigCtx.moveTo(0, oy);
+      trigCtx.lineTo(width, oy);
+      trigCtx.moveTo(ox, 0);
+      trigCtx.lineTo(ox, height);
+      trigCtx.stroke();
+
+      // 単位円
+      trigCtx.strokeStyle = '#94a3b8';
+      trigCtx.lineWidth = 2;
+      trigCtx.beginPath();
+      trigCtx.arc(ox, oy, radius, 0, Math.PI * 2);
+      trigCtx.stroke();
+
+      const thetaRad = (state.thetaDeg * Math.PI) / 180;
+      const theta90Rad = thetaRad + Math.PI / 2;
+
+      // 直線1の点 P(cos θ, sin θ)
+      const p1x = ox + radius * Math.cos(thetaRad);
+      const p1y = oy - radius * Math.sin(thetaRad);
+
+      // 直線2の点 Q(-sin θ, cos θ)
+      const p2x = ox + radius * Math.cos(theta90Rad);
+      const p2y = oy - radius * Math.sin(theta90Rad);
+
+      // 直線1 (青)
+      trigCtx.strokeStyle = 'rgba(59, 130, 246, 0.3)';
+      trigCtx.lineWidth = 2;
+      trigCtx.beginPath();
+      trigCtx.moveTo(ox - (p1x - ox) * 1.5, oy - (p1y - oy) * 1.5);
+      trigCtx.lineTo(ox + (p1x - ox) * 1.5, oy + (p1y - oy) * 1.5);
+      trigCtx.stroke();
+
+      // 直線2 (橙)
+      trigCtx.strokeStyle = 'rgba(245, 158, 11, 0.3)';
+      trigCtx.beginPath();
+      trigCtx.moveTo(ox - (p2x - ox) * 1.5, oy - (p2y - oy) * 1.5);
+      trigCtx.lineTo(ox + (p2x - ox) * 1.5, oy + (p2y - oy) * 1.5);
+      trigCtx.stroke();
+
+      // 動径ベクトル1
+      drawArrow(trigCtx, ox, oy, p1x, p1y, '#3b82f6', 3.5);
+      // 動径ベクトル2
+      drawArrow(trigCtx, ox, oy, p2x, p2y, '#f59e0b', 3.5);
+
+      // 直角マーク
+      const sz = 20;
+      const u1x = Math.cos(thetaRad), u1y = -Math.sin(thetaRad);
+      const u2x = Math.cos(theta90Rad), u2y = -Math.sin(theta90Rad);
+      trigCtx.strokeStyle = '#10b981';
+      trigCtx.lineWidth = 2;
+      trigCtx.beginPath();
+      trigCtx.moveTo(ox + u1x * sz, oy + u1y * sz);
+      trigCtx.lineTo(ox + (u1x + u2x) * sz, oy + (u1y + u2y) * sz);
+      trigCtx.lineTo(ox + u2x * sz, oy + u2y * sz);
+      trigCtx.stroke();
+
+      // ラベル P
+      trigCtx.fillStyle = '#60a5fa';
+      trigCtx.font = 'bold 11px monospace';
+      trigCtx.fillText('(cos θ, sin θ)', p1x + 8, p1y - 8);
+
+      // ラベル Q
+      trigCtx.fillStyle = '#fcd34d';
+      trigCtx.fillText('(-sin θ, cos θ)', p2x - 110, p2y - 8);
+
+      // 角度 θ の円弧
+      trigCtx.strokeStyle = '#60a5fa';
+      trigCtx.lineWidth = 2;
+      trigCtx.beginPath();
+      trigCtx.arc(ox, oy, 35, 0, -thetaRad, true);
+      trigCtx.stroke();
+      trigCtx.fillStyle = '#93c5fd';
+      trigCtx.font = 'bold 11px sans-serif';
+      trigCtx.fillText('θ', ox + 42, oy - 12);
+    }
+
+    function updateTrigValues() {
+      const deg = state.thetaDeg;
+      const rad = (deg * Math.PI) / 180;
+      const cosVal = Math.cos(rad);
+      const sinVal = Math.sin(rad);
+
+      const tan1 = sinVal / cosVal;
+      const tan2 = cosVal / -sinVal; // tan(theta + 90)
+
+      document.getElementById('thetaDisplay').textContent = `${deg}°`;
+      document.getElementById('thetaPairDisplay').textContent = `θ = ${deg}°  &  θ+90° = ${deg + 90}°`;
+
+      document.getElementById('trigCoord1').textContent = `(${cosVal.toFixed(2)}, ${sinVal.toFixed(2)})`;
+      document.getElementById('tan1Val').textContent = tan1.toFixed(3);
+
+      document.getElementById('trigCoord2').textContent = `(${-sinVal.toFixed(2)}, ${cosVal.toFixed(2)})`;
+      document.getElementById('tan2Val').textContent = tan2.toFixed(3);
+    }
+
+    document.getElementById('thetaSlider').addEventListener('input', (e) => {
+      state.thetaDeg = parseInt(e.target.value);
+      updateTrigValues();
+      drawTrigScene();
+    });
+
+    // =============================================================
+    // タブ切り替えロジック
+    // =============================================================
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('bg-blue-600', 'text-white', 'active');
+        btn.classList.add('text-slate-300');
+      });
+
+      const target = document.getElementById(tabId);
+      if (target) target.classList.remove('hidden');
+
+      const activeBtn = event ? event.currentTarget : document.querySelector(`button[onclick*="${tabId}"]`);
+      if (activeBtn) {
+        activeBtn.classList.add('bg-blue-600', 'text-white', 'active');
+        activeBtn.classList.remove('text-slate-300');
+      }
+
+      // タブごとのリサイズ・再描画
+      setTimeout(() => {
+        if (tabId === 'tab-rotate') {
+          resizeCanvas(rotateCanvas);
+          drawRotateScene();
+        } else if (tabId === 'tab-trig') {
+          resizeCanvas(trigCanvas);
+          updateTrigValues();
+          drawTrigScene();
+        }
+        renderMath();
+      }, 50);
+    }
+
+    // =============================================================
+    // 数式自動レンダリング関数 (KaTeX)
+    // =============================================================
+    function renderMath(targetElement = document.body) {
+      if (window.renderMathInElement) {
+        window.renderMathInElement(targetElement, {
+          delimiters: [
+            { left: '$$', right: '$$', display: true },
+            { left: '$', right: '$', display: false }
+          ],
+          throwOnError: false
+        });
+      }
+    }
+
+    // =============================================================
+    // 理解度チェッククイズロジック
+    // =============================================================
+    const quizData = {
+      1: {
+        correct: 'D',
+        title: '正解：D) -1/3',
+        explanation: '【矢印で復元する手順】<br>① 傾き $3$ は「右へ1、上へ3」進む矢印 $(1, 3)$ です。<br>② 90度回すと「左へ3、上へ1」の $(-3, 1)$ になります。<br>③ 右向きの矢印に直すと $(3, -1)$ なので、横が3、縦が-1。<br>したがって垂直な傾きは <strong>-1/3</strong> です。<br>（積の確認: $3 \\times (-1/3) = -1$）'
+      },
+      2: {
+        correct: 'B',
+        title: '正解：B) 5/2',
+        explanation: '【矢印で復元する手順】<br>① 傾き $-\\frac{2}{5}$ は「右へ5、下へ2」進む矢印 $(5, -2)$ です。<br>② 90度回すと「右へ2、上へ5」の $(2, 5)$ になります。<br>③ 横が2、縦が5なので、傾きは <strong>5/2</strong> です。<br>（右下がりの線に垂直な直線は必ず「右上がり（正）」になります！）'
+      },
+      3: {
+        correct: 'B',
+        title: '正解：B) y + 1 = -(1/2)(x - 3)',
+        explanation: '【直線の方程式への応用】<br>① 直線 $2x - y + 4 = 0$ を変形すると $y = 2x + 4$ なので、元の傾きは $2$。<br>② 垂直な直線の傾きは「負の逆数」なので $m = -1/2$。<br>③ 点 $P(3, -1)$ を通る公式 $y - y_1 = m(x - x_1)$ より、<br>$y - (-1) = -\\frac{1}{2}(x - 3)$ すなわち <strong>$y + 1 = -\\frac{1}{2}(x - 3)$</strong> です。'
+      }
+    };
+
+    function checkQuiz(qNum, selected) {
+      const q = quizData[qNum];
+      const fb = document.getElementById(`q${qNum}Feedback`);
+      const isCorrect = selected === q.correct;
+
+      fb.classList.remove('hidden', 'bg-emerald-50', 'border-emerald-200', 'text-emerald-900', 'bg-rose-50', 'border-rose-200', 'text-rose-900');
+
+      if (isCorrect) {
+        fb.classList.add('bg-emerald-50', 'border-emerald-200', 'text-emerald-900');
+        fb.innerHTML = `
+          <div class="font-bold flex items-center gap-1.5 text-sm text-emerald-700">
+            <span>🎉 大正解！</span> ${q.title}
+          </div>
+          <div class="leading-relaxed mt-1 text-slate-700">${q.explanation}</div>
+        `;
+      } else {
+        fb.classList.add('bg-rose-50', 'border-rose-200', 'text-rose-900');
+        fb.innerHTML = `
+          <div class="font-bold flex items-center gap-1.5 text-sm text-rose-700">
+            <span>❌ おしい！ もう一度考えてみましょう</span>
+          </div>
+          <div class="leading-relaxed mt-1 text-slate-700">${q.explanation}</div>
+        `;
+      }
+
+      // 解説文内の数式を整形
+      renderMath(fb);
+    }
+
+    // --- 初期ロード ---
+    window.addEventListener('load', () => {
+      resizeCanvas(rotateCanvas);
+      resizeCanvas(trigCanvas);
+      updateCalculations();
+      drawRotateScene();
+      updateTrigValues();
+      drawTrigScene();
+      
+      // KaTeX の初期レンダリング（CDNロード完了を考慮して実行）
+      if (window.renderMathInElement) {
+        renderMath();
+      } else {
+        window.addEventListener('DOMContentLoaded', () => renderMath());
+        setTimeout(renderMath, 300);
+      }
+    });
+
+    window.addEventListener('resize', () => {
+      resizeCanvas(rotateCanvas);
+      drawRotateScene();
+      resizeCanvas(trigCanvas);
+      drawTrigScene();
+    });
+  </script>
+</body>
+</html>

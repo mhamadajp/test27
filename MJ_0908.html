@@ -1,0 +1,1779 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>受験数学 本質探究ラボ — 動かして見抜く数学の構造</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- KaTeX for beautiful math rendering -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+JP:wght@400;500;700;900&family=Fira+Code:wght@400;600&display=swap" rel="stylesheet">
+  
+  <style>
+    body {
+      font-family: 'Noto Sans JP', 'Inter', sans-serif;
+    }
+    .code-font {
+      font-family: 'Fira Code', monospace;
+    }
+    /* Custom subtle glassmorphism */
+    .glass-panel {
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(226, 232, 240, 0.8);
+    }
+    .dark-glass {
+      background: rgba(15, 23, 42, 0.95);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(51, 65, 85, 0.8);
+    }
+    /* Slider styling */
+    input[type=range] {
+      -webkit-appearance: none;
+      height: 6px;
+      border-radius: 9999px;
+      background: #cbd5e1;
+      outline: none;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #4f46e5;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(79, 70, 229, 0.4);
+      transition: transform 0.1s ease;
+    }
+    input[type=range]::-webkit-slider-thumb:hover {
+      transform: scale(1.15);
+    }
+    /* Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+  </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col selection:bg-indigo-500 selection:text-white">
+
+  <!-- Navigation Header -->
+  <header class="border-b border-slate-800 bg-slate-950/80 backdrop-blur sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-500 to-cyan-400 flex items-center justify-center font-bold text-white shadow-lg shadow-indigo-500/30">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-base sm:text-lg font-bold tracking-tight text-white flex items-center gap-2">
+            受験数学 本質探究ラボ
+            <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">解法体得編</span>
+          </h1>
+          <p class="text-xs text-slate-400 hidden sm:block">数式を動かして「なぜその式変形をするのか」を自走理解する</p>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <nav class="flex items-center space-x-1 sm:space-x-2 overflow-x-auto py-2">
+        <button onclick="switchTab('act1')" id="tab-btn-act1" class="tab-btn px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-all text-white bg-indigo-600 shadow-sm">
+          Act 1: 座標と比
+        </button>
+        <button onclick="switchTab('act2')" id="tab-btn-act2" class="tab-btn px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800">
+          Act 2: 式の値
+        </button>
+        <button onclick="switchTab('act3')" id="tab-btn-act3" class="tab-btn px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800">
+          Act 3: 頂点と区間
+        </button>
+        <button onclick="switchTab('act4')" id="tab-btn-act4" class="tab-btn px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800">
+          Act 4: 円上の一次式
+        </button>
+        <button onclick="switchTab('act5')" id="tab-btn-act5" class="tab-btn px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-800">
+          Act 5: 分数式の値域
+        </button>
+        <button onclick="switchTab('summary')" id="tab-btn-summary" class="tab-btn px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-all text-amber-400 hover:bg-amber-500/10">
+          思考OS
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Content Area -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
+
+    <!-- ================================================================= -->
+    <!-- SECTION 1: 座標と比 (ACTIVITY 1) -->
+    <!-- ================================================================= -->
+    <section id="act1-view" class="tab-view space-y-6">
+      <!-- Overview Card -->
+      <div class="bg-slate-800/80 rounded-2xl p-5 border border-slate-700/80 shadow-lg">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-indigo-500/20 text-indigo-300 text-xs font-semibold mb-2">
+              <span>ACTIVITY 1</span>
+              <span>•</span>
+              <span>座標と比の根本原理</span>
+            </div>
+            <h2 class="text-xl sm:text-2xl font-bold text-white tracking-tight">公式より先に「移動」を見る</h2>
+            <p class="text-slate-300 text-sm mt-1">
+              内分の公式 $\frac{nx_1 + mx_2}{m+n}$ を覚える前に、<strong class="text-amber-300 font-semibold">「全体で何歩進んで、そのうち何歩進むか」</strong>という移動（ベクトル）の眼を持ちましょう。
+            </p>
+          </div>
+          <div class="bg-slate-900/90 px-4 py-3 rounded-xl border border-slate-700 text-sm">
+            <span class="text-xs text-slate-400 block">問題</span>
+            点 $A(-2, 1)$, $B(4, 7)$ を <span id="act1-ratio-badge" class="font-bold text-amber-400">1 : 2</span> に内分する点 $P$ の座標
+          </div>
+        </div>
+      </div>
+
+      <!-- Interactive Canvas & Controls -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        <!-- Canvas Visualizer -->
+        <div class="lg:col-span-7 bg-slate-950 rounded-2xl border border-slate-800 p-4 shadow-xl flex flex-col items-center">
+          <div class="w-full flex items-center justify-between mb-3 text-xs text-slate-400 px-2">
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-cyan-400 inline-block"></span> 点 $A(-2,1)$</span>
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-400 inline-block"></span> 点 $B(4,7)$</span>
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block"></span> 内分点 $P$</span>
+            <span class="text-slate-500">ドラッグで比を直感操作</span>
+          </div>
+
+          <div class="relative w-full aspect-[4/3] max-w-[560px] bg-slate-900/60 rounded-xl overflow-hidden border border-slate-800/80">
+            <canvas id="act1-canvas" class="w-full h-full block cursor-pointer"></canvas>
+            <div id="act1-tooltip" class="absolute pointer-events-none hidden bg-slate-900/95 text-xs text-white px-3 py-1.5 rounded-lg border border-slate-700 shadow-xl z-20"></div>
+          </div>
+
+          <!-- Step controller -->
+          <div class="w-full mt-4 bg-slate-900/80 rounded-xl p-3 border border-slate-800 flex flex-wrap items-center justify-between gap-3 text-sm">
+            <div class="flex items-center gap-2">
+              <span class="text-slate-400 text-xs">比 $m : n$ :</span>
+              <input type="range" id="act1-m-slider" min="1" max="5" step="1" value="1" class="w-24 accent-indigo-500">
+              <span class="text-amber-300 font-bold" id="act1-m-val">1</span>
+              <span class="text-slate-500">:</span>
+              <input type="range" id="act1-n-slider" min="1" max="5" step="1" value="2" class="w-24 accent-indigo-500">
+              <span class="text-amber-300 font-bold" id="act1-n-val">2</span>
+            </div>
+            <button onclick="act1Reset()" class="text-xs px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700">
+              $1:2$ に戻す
+            </button>
+          </div>
+        </div>
+
+        <!-- Guided Thinking & Mathematical Essence -->
+        <div class="lg:col-span-5 space-y-4">
+          <!-- Thinking Guide Card -->
+          <div class="bg-slate-850 rounded-2xl border border-slate-700/80 p-5 space-y-4">
+            <h3 class="text-sm font-bold uppercase tracking-wider text-indigo-400 flex items-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+              思考のステップ
+            </h3>
+
+            <!-- Step 1 -->
+            <div class="p-3.5 rounded-xl bg-slate-800/90 border-l-4 border-indigo-500 space-y-1.5">
+              <div class="text-xs font-semibold text-indigo-300">STEP 1: AからBへの「全体の移動量」を見る</div>
+              <p class="text-xs text-slate-300">
+                終点から始点を引き算します：
+              </p>
+              <div class="bg-slate-900/90 p-2 rounded text-xs text-center font-mono text-cyan-300">
+                $B - A = (4 - (-2), \; 7 - 1) = (6, \; 6)$
+              </div>
+              <p class="text-xs text-slate-400">
+                $x$ 方向に $+6$、$y$ 方向に $+6$ の「移動」が発生しています。
+              </p>
+            </div>
+
+            <!-- Step 2 -->
+            <div class="p-3.5 rounded-xl bg-slate-800/90 border-l-4 border-amber-500 space-y-1.5">
+              <div class="text-xs font-semibold text-amber-300">STEP 2: 比率で「何分のいくつ進むか」決める</div>
+              <p class="text-xs text-slate-300">
+                比が <span class="font-bold text-amber-300" id="act1-step2-ratio">1 : 2</span> のとき、全体は <span class="font-bold text-white" id="act1-step2-total">3</span> 分割。$P$ は $A$ から <span class="font-bold text-white" id="act1-step2-part">1</span> つ分進んだ場所です。
+              </p>
+              <div class="bg-slate-900/90 p-2 rounded text-xs text-center font-mono text-amber-300" id="act1-step2-calc">
+                移動量 = $\frac{1}{3} \times (6, 6) = (2, 2)$
+              </div>
+            </div>
+
+            <!-- Step 3 -->
+            <div class="p-3.5 rounded-xl bg-slate-800/90 border-l-4 border-emerald-500 space-y-1.5">
+              <div class="text-xs font-semibold text-emerald-300">STEP 3: 始点Aに足し算してPへ到達する</div>
+              <p class="text-xs text-slate-300">
+                始点 $A(-2, 1)$ に移動量を加えるだけで完成：
+              </p>
+              <div class="bg-slate-900/90 p-2 rounded text-xs text-center font-mono text-emerald-300" id="act1-step3-calc">
+                $P = (-2, 1) + (2, 2) = (0, 3)$
+              </div>
+            </div>
+          </div>
+
+          <!-- Key Takeaway -->
+          <div class="bg-gradient-to-br from-indigo-950/60 to-slate-900 rounded-2xl border border-indigo-800/50 p-4 text-xs space-y-2">
+            <span class="font-bold text-indigo-300 flex items-center gap-1.5">
+              <svg class="w-4 h-4 text-indigo-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/></svg>
+              入試での見抜き方・普遍の武器
+            </span>
+            <p class="text-slate-300 leading-relaxed">
+              公式 $\frac{nx_1 + mx_2}{m+n}$ を暗記しようとすると「$m$ と $n$ のクロス」で符号ミスを起こしがちです。しかし、
+              <span class="text-amber-300 font-semibold">$\vec{OP} = \vec{OA} + \frac{m}{m+n}\vec{AB}$</span>
+              という「始点＋移動」の感覚を持っていれば、数Bのベクトルや数Cの空間座標でも全く同一の思考で一撃で復元できます。
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================================================= -->
+    <!-- SECTION 2: 式の値 (ACTIVITY 2) -->
+    <!-- ================================================================= -->
+    <section id="act2-view" class="tab-view hidden space-y-6">
+      <div class="bg-slate-800/80 rounded-2xl p-5 border border-slate-700/80 shadow-lg">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-cyan-500/20 text-cyan-300 text-xs font-semibold mb-2">
+              <span>ACTIVITY 2</span>
+              <span>•</span>
+              <span>代数の発想転換</span>
+            </div>
+            <h2 class="text-xl sm:text-2xl font-bold text-white tracking-tight">未知数を解かずに「欲しい形」を作る</h2>
+            <p class="text-slate-300 text-sm mt-1">
+              方程式を見たら反射的に $x$ を解こうとしていませんか？ 入試では<strong class="text-cyan-300 font-semibold">「$x$ は解けないが、式の値は一瞬で求まる」</strong>ように仕組まれます。
+            </p>
+          </div>
+          <div class="bg-slate-900/90 px-4 py-3 rounded-xl border border-slate-700 text-sm">
+            <span class="text-xs text-slate-400 block">問題</span>
+            $x^2 - 6x + 5 = 0$ のとき、<span class="font-bold text-cyan-400">$x^2 + \frac{25}{x^2}$</span> の値を求めよ。
+          </div>
+        </div>
+      </div>
+
+      <!-- Two-Route Comparison Arena -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Left: The Trap Route -->
+        <div class="bg-rose-950/30 rounded-2xl border border-rose-900/50 p-5 space-y-4">
+          <div class="flex items-center justify-between border-b border-rose-900/40 pb-3">
+            <div class="flex items-center gap-2">
+              <span class="px-2 py-0.5 rounded text-xs font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30">NGアプローチ</span>
+              <h3 class="text-base font-bold text-white">力技で $x$ を直接解く</h3>
+            </div>
+            <span class="text-xs text-rose-400">計算地獄・ミス頻発</span>
+          </div>
+
+          <div class="space-y-3 text-xs text-slate-300">
+            <p>
+              因数分解 $(x-1)(x-5)=0 \implies x = 1, 5$。<br>
+              $x=1$ を代入: $1^2 + \frac{25}{1^2} = 1 + 25 = 26$。<br>
+              $x=5$ を代入: $5^2 + \frac{25}{5^2} = 25 + 1 = 26$。
+            </p>
+            <div class="p-3 rounded-xl bg-rose-950/60 border border-rose-800 text-rose-200">
+              <div class="font-bold text-rose-300 mb-1 flex items-center gap-1.5">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                もし因数分解できない入試問題なら？
+              </div>
+              <p class="text-slate-300">
+                例えば $x^2 - 6x + 2 = 0$ だった場合、$x = 3 \pm \sqrt{7}$ となります。<br>
+                これを $(3+\sqrt{7})^2 + \frac{4}{(3+\sqrt{7})^2}$ に代入して有理化する……？ <strong>試験時間が溶けて計算ミスします。</strong>
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: The Elegant Structural Route -->
+        <div class="bg-cyan-950/30 rounded-2xl border border-cyan-800/50 p-5 space-y-4">
+          <div class="flex items-center justify-between border-b border-cyan-800/40 pb-3">
+            <div class="flex items-center gap-2">
+              <span class="px-2 py-0.5 rounded text-xs font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">本質アプローチ</span>
+              <h3 class="text-base font-bold text-white">塊（ブロック）の関係性を作る</h3>
+            </div>
+            <span class="text-xs text-cyan-400">暗算レベルで求まる</span>
+          </div>
+
+          <!-- Interactive Step by Step Reveal -->
+          <div class="space-y-3" id="act2-interactive-steps">
+            <!-- Step Card 1 -->
+            <div class="p-3 bg-slate-900/90 rounded-xl border border-slate-800 transition-all">
+              <div class="flex items-center justify-between text-xs font-semibold text-cyan-300 mb-1">
+                <span>① 逆算: 求めたい式は何の2乗に近いか？</span>
+              </div>
+              <p class="text-xs text-slate-300">
+                $x^2 + \frac{25}{x^2}$ は、$x$ と $\frac{5}{x}$ を足したものを2乗した形に近い！
+              </p>
+              <div class="mt-1.5 p-2 bg-slate-950 rounded text-center text-xs font-mono text-cyan-200">
+                $\left(x + \frac{5}{x}\right)^2 = x^2 + 2 \cdot x \cdot \frac{5}{x} + \frac{25}{x^2} = x^2 + \mathbf{10} + \frac{25}{x^2}$
+              </div>
+              <div class="text-[11px] text-amber-300 mt-1">★ 中央の $2ab$ で $x$ と $1/x$ が打ち消し合い、ただの「10」になる！</div>
+            </div>
+
+            <!-- Step Card 2 -->
+            <div class="p-3 bg-slate-900/90 rounded-xl border border-slate-800 transition-all">
+              <div class="flex items-center justify-between text-xs font-semibold text-cyan-300 mb-1">
+                <span>② 与式から $x + \frac{5}{x}$ を召喚する</span>
+              </div>
+              <p class="text-xs text-slate-300">
+                $x^2 - 6x + 5 = 0$ において、$x=0$ は不適（$0-0+5 \neq 0$）。<br>
+                したがって<strong>両辺を堂々と $x$ で割ることができます</strong>。
+              </p>
+              <div class="mt-1.5 p-2 bg-slate-950 rounded text-center text-xs font-mono text-emerald-300">
+                $\frac{x^2 - 6x + 5}{x} = 0 \implies x - 6 + \frac{5}{x} = 0 \implies \mathbf{x + \frac{5}{x} = 6}$
+              </div>
+            </div>
+
+            <!-- Step Card 3 -->
+            <div class="p-3 bg-slate-900/90 rounded-xl border border-slate-800 transition-all">
+              <div class="flex items-center justify-between text-xs font-semibold text-cyan-300 mb-1">
+                <span>③ 2乗して真ん中の定数を引く</span>
+              </div>
+              <div class="p-2 bg-slate-950 rounded text-center text-xs font-mono text-amber-300">
+                $\left(x + \frac{5}{x}\right)^2 = 6^2 = 36$ <br>
+                $x^2 + \frac{25}{x^2} = 36 - 10 = \mathbf{26}$
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Generalization Interactive Playground -->
+      <div class="bg-slate-850 rounded-2xl border border-slate-800 p-5 space-y-4">
+        <h4 class="text-sm font-bold text-slate-200 flex items-center gap-2">
+          <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
+          係数を変えて「構造」を体感する
+        </h4>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+          <div class="space-y-1">
+            <span class="text-slate-400">一次の係数 $p$ ($x^2 - px + q = 0$):</span>
+            <div class="flex items-center gap-2">
+              <input type="range" id="act2-p-slider" min="2" max="10" step="1" value="6" class="w-full accent-cyan-400">
+              <span class="font-mono text-cyan-300 text-sm font-bold" id="act2-p-display">6</span>
+            </div>
+          </div>
+          <div class="space-y-1">
+            <span class="text-slate-400">定数項 $q$ (中央項 $2q$ に影響):</span>
+            <div class="flex items-center gap-2">
+              <input type="range" id="act2-q-slider" min="1" max="8" step="1" value="5" class="w-full accent-cyan-400">
+              <span class="font-mono text-cyan-300 text-sm font-bold" id="act2-q-display">5</span>
+            </div>
+          </div>
+          <div class="flex items-center">
+            <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-700 w-full text-center">
+              <span class="text-[11px] text-slate-400 block">求めたい値 $x^2 + \frac{q^2}{x^2}$</span>
+              <span class="text-lg font-bold font-mono text-amber-300" id="act2-result-display">26</span>
+              <span class="text-[10px] text-slate-400 block" id="act2-formula-display">($6^2 - 2 \times 5 = 26$)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================================================= -->
+    <!-- SECTION 3: 頂点と区間 (ACTIVITY 3) -->
+    <!-- ================================================================= -->
+    <section id="act3-view" class="tab-view hidden space-y-6">
+      <div class="bg-slate-800/80 rounded-2xl p-5 border border-slate-700/80 shadow-lg">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-emerald-500/20 text-emerald-300 text-xs font-semibold mb-2">
+              <span>ACTIVITY 3</span>
+              <span>•</span>
+              <span>2次関数の最大・最小</span>
+            </div>
+            <h2 class="text-xl sm:text-2xl font-bold text-white tracking-tight">場合分けは「頂点の位置」で決まる</h2>
+            <p class="text-slate-300 text-sm mt-1">
+              場合分けの境界は公式の暗記ではありません。<strong class="text-emerald-300 font-semibold">「頂点が区間の端（ゲート）をいつ通過するか」</strong>を動かして体感しましょう。
+            </p>
+          </div>
+          <div class="bg-slate-900/90 px-4 py-3 rounded-xl border border-slate-700 text-sm">
+            <span class="text-xs text-slate-400 block">問題</span>
+            $f(x) = (x-a)^2 - 2a$ の <span class="font-bold text-emerald-400">$0 \le x \le 2$</span> における最小値 $m(a)$
+          </div>
+        </div>
+      </div>
+
+      <!-- Canvas and Realtime Visualizer -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        <!-- Dual Graphs Display -->
+        <div class="lg:col-span-8 bg-slate-950 rounded-2xl border border-slate-800 p-4 shadow-xl space-y-4">
+          <div class="flex items-center justify-between text-xs px-2">
+            <div class="flex items-center gap-4">
+              <span class="flex items-center gap-1.5"><span class="w-3 h-0.5 bg-indigo-400 inline-block"></span> 放物線 $y=f(x)$</span>
+              <span class="flex items-center gap-1.5"><span class="w-3 h-3 bg-emerald-500/20 border border-emerald-400 inline-block rounded"></span> 定義域 $[0, 2]$</span>
+              <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block"></span> 最小点 $(x_{min}, m(a))$</span>
+            </div>
+            <span class="text-slate-400 font-mono text-xs">頂点: $(a, -2a)$</span>
+          </div>
+
+          <!-- Main Parabola Canvas -->
+          <div class="relative w-full aspect-[16/9] bg-slate-900/60 rounded-xl overflow-hidden border border-slate-800">
+            <canvas id="act3-canvas" class="w-full h-full block"></canvas>
+            <!-- Current Status Badge inside canvas -->
+            <div id="act3-zone-badge" class="absolute top-3 left-3 text-xs font-bold px-3 py-1 rounded-lg shadow backdrop-blur bg-indigo-500/80 text-white">
+              状態: 頂点は区間内
+            </div>
+          </div>
+
+          <!-- Slider Controls -->
+          <div class="bg-slate-900/80 rounded-xl p-4 border border-slate-800 space-y-2">
+            <div class="flex items-center justify-between text-xs">
+              <span class="text-slate-300 font-semibold">パラメータ $a$ の値をスライドして放物線を旅させる:</span>
+              <span class="font-mono text-base font-bold text-emerald-400" id="act3-a-display">a = 1.00</span>
+            </div>
+            <div class="flex items-center gap-3">
+              <span class="text-xs text-slate-500 font-mono">-1.5</span>
+              <input type="range" id="act3-a-slider" min="-1.5" max="3.5" step="0.02" value="1.0" class="w-full accent-emerald-500">
+              <span class="text-xs text-slate-500 font-mono">+3.5</span>
+            </div>
+            <!-- Quick Preset Jump Buttons -->
+            <div class="flex flex-wrap gap-2 pt-1 text-xs">
+              <span class="text-slate-400 self-center">即時チェック:</span>
+              <button onclick="act3SetA(-0.8)" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-blue-300 border border-slate-700">
+                ① $a < 0$ (左外)
+              </button>
+              <button onclick="act3SetA(1.0)" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-emerald-300 border border-slate-700">
+                ② $0 \le a \le 2$ (区間内)
+              </button>
+              <button onclick="act3SetA(2.8)" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-amber-300 border border-slate-700">
+                ③ $2 < a$ (右外)
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Guided Explanation and m(a) Function Breakdown -->
+        <div class="lg:col-span-4 space-y-4">
+          <!-- Active Case Card -->
+          <div id="act3-case-card" class="rounded-2xl border p-4 transition-all duration-300 bg-slate-850 border-slate-700">
+            <div class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">現在の場合分け領域</div>
+            <h4 id="act3-case-title" class="text-base font-bold text-white mb-2">【場合②】 $0 \le a \le 2$ のとき</h4>
+            <p id="act3-case-desc" class="text-xs text-slate-300 leading-relaxed mb-3">
+              頂点 $x=a$ が区間 $[0, 2]$ の中にすっぽり入っています。下に凸の放物線なので、一番低いのは当然「頂点そのもの」です。
+            </p>
+            <div id="act3-case-math" class="p-2.5 bg-slate-900 rounded-lg text-xs font-mono text-emerald-300 text-center">
+              $m(a) = f(a) = -2a$
+            </div>
+          </div>
+
+          <!-- All Cases Summary Table -->
+          <div class="bg-slate-850 rounded-2xl border border-slate-800 p-4 space-y-2.5 text-xs">
+            <span class="font-bold text-slate-200 block">3つの場合分け一覧</span>
+            <div class="space-y-1.5 font-mono">
+              <div id="act3-row-1" class="p-2 rounded bg-slate-900/60 border border-transparent flex justify-between items-center text-slate-400">
+                <span>$a < 0$</span>
+                <span>$x=0$ で最小</span>
+                <span class="text-blue-400">$m(a)=a^2-2a$</span>
+              </div>
+              <div id="act3-row-2" class="p-2 rounded bg-slate-900/60 border border-transparent flex justify-between items-center text-slate-400">
+                <span>$0 \le a \le 2$</span>
+                <span>$x=a$ で最小</span>
+                <span class="text-emerald-400">$m(a)=-2a$</span>
+              </div>
+              <div id="act3-row-3" class="p-2 rounded bg-slate-900/60 border border-transparent flex justify-between items-center text-slate-400">
+                <span>$2 < a$</span>
+                <span>$x=2$ で最小</span>
+                <span class="text-amber-400">$m(a)=a^2-6a+4$</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Deep Insight -->
+          <div class="bg-slate-900/90 rounded-2xl border border-slate-800 p-4 text-xs space-y-2">
+            <span class="font-bold text-amber-300 flex items-center gap-1.5">
+              <svg class="w-4 h-4 text-amber-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/></svg>
+              なぜ境目は $a=0$ と $a=2$ なのか？
+            </span>
+            <p class="text-slate-300 leading-relaxed">
+              区間の「左端の門（$x=0$）」と「右端の門（$x=2$）」を頂点がすれ違うからです。境目の数値を暗記するのではなく、<strong class="text-white">「動いている頂点 $(a)$ が固定された区間の門をいつくぐるか」</strong>を図上で追うことが極意です。
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================================================= -->
+    <!-- SECTION 4: 円上の一次式 (ACTIVITY 4) -->
+    <!-- ================================================================= -->
+    <section id="act4-view" class="tab-view hidden space-y-6">
+      <div class="bg-slate-800/80 rounded-2xl p-5 border border-slate-700/80 shadow-lg">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-purple-500/20 text-purple-300 text-xs font-semibold mb-2">
+              <span>ACTIVITY 4</span>
+              <span>•</span>
+              <span>代数と幾何の融合</span>
+            </div>
+            <h2 class="text-xl sm:text-2xl font-bold text-white tracking-tight">円上の一次式 — 代数と図形をつなぐ</h2>
+            <p class="text-slate-300 text-sm mt-1">
+              $x^2 + y^2 = 1$ をただの式と見ず、「原点中心の半径1の円」と読み替えます。$x + 2y = k$ の平行移動で最大・最小が見える！
+            </p>
+          </div>
+          <div class="bg-slate-900/90 px-4 py-3 rounded-xl border border-slate-700 text-sm">
+            <span class="text-xs text-slate-400 block">問題</span>
+            $x^2 + y^2 = 1$ のもとで、<span class="font-bold text-purple-300">$x + 2y$</span> の最大値・最小値を求めよ。
+          </div>
+        </div>
+      </div>
+
+      <!-- Visual Interaction Canvas and Algebra Connection -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        <!-- Canvas -->
+        <div class="lg:col-span-7 bg-slate-950 rounded-2xl border border-slate-800 p-4 shadow-xl flex flex-col items-center">
+          <div class="w-full flex items-center justify-between mb-3 text-xs text-slate-400 px-2">
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-cyan-400 inline-block"></span> 円 $x^2+y^2=1$</span>
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-0.5 bg-amber-400 inline-block"></span> 直線 $x+2y=k$</span>
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-0.5 bg-rose-400 inline-block"></span> 原点からの距離 $d$</span>
+          </div>
+
+          <div class="relative w-full aspect-square max-w-[500px] bg-slate-900/60 rounded-xl overflow-hidden border border-slate-800">
+            <canvas id="act4-canvas" class="w-full h-full block"></canvas>
+            <div id="act4-status-badge" class="absolute bottom-3 left-3 text-xs font-bold px-3 py-1 rounded-lg shadow backdrop-blur bg-emerald-600 text-white">
+              共有点あり (実数解存在)
+            </div>
+          </div>
+
+          <!-- Slider Controls -->
+          <div class="w-full mt-4 bg-slate-900/80 rounded-xl p-4 border border-slate-800 space-y-2">
+            <div class="flex items-center justify-between text-xs">
+              <span class="text-slate-300 font-semibold">直線の切片パラメータ $k$ を動かす:</span>
+              <span class="font-mono text-base font-bold text-amber-300" id="act4-k-display">k = 0.00</span>
+            </div>
+            <div class="flex items-center gap-3">
+              <span class="text-xs text-slate-500 font-mono">-3.5</span>
+              <input type="range" id="act4-k-slider" min="-3.5" max="3.5" step="0.05" value="0" class="w-full accent-amber-400">
+              <span class="text-xs text-slate-500 font-mono">+3.5</span>
+            </div>
+            <div class="flex flex-wrap gap-2 pt-1 text-xs">
+              <span class="text-slate-400 self-center">接する限界点へジャンプ:</span>
+              <button onclick="act4SetK(-2.236)" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-rose-300 border border-slate-700">
+                最小値 $k = -\sqrt{5} \approx -2.24$
+              </button>
+              <button onclick="act4SetK(0)" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700">
+                $k = 0$ (中心通過)
+              </button>
+              <button onclick="act4SetK(2.236)" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-amber-300 border border-slate-700">
+                最大値 $k = +\sqrt{5} \approx +2.24$
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mathematical Insights -->
+        <div class="lg:col-span-5 space-y-4">
+          <!-- Distance vs Radius Meter -->
+          <div class="bg-slate-850 rounded-2xl border border-slate-800 p-4 space-y-3">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-purple-400 flex items-center justify-between">
+              <span>共有点の判定基準: 距離 $d$ と 半径 $r$</span>
+              <span id="act4-rel-badge" class="text-[11px] font-mono font-bold text-emerald-400">$d \le r$</span>
+            </h3>
+            
+            <div class="space-y-1.5 text-xs">
+              <div class="flex justify-between text-slate-400 font-mono">
+                <span>原点 $(0,0)$ から直線までの距離 $d = \frac{|k|}{\sqrt{1^2 + 2^2}}$:</span>
+                <span class="text-white font-bold" id="act4-d-val">0.00</span>
+              </div>
+              <div class="w-full bg-slate-900 rounded-full h-2.5 overflow-hidden border border-slate-750">
+                <div id="act4-d-bar" class="bg-emerald-500 h-full transition-all duration-100" style="width: 0%;"></div>
+              </div>
+              <div class="flex justify-between text-[11px] text-slate-500">
+                <span>0 (中心)</span>
+                <span class="text-amber-300 font-bold">半径 $r = 1.0$ (接する限界)</span>
+                <span>1.5+ (離れる)</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Two Perspectives Card -->
+          <div class="bg-slate-850 rounded-2xl border border-slate-800 p-5 space-y-3">
+            <h3 class="text-sm font-bold text-white flex items-center gap-2">
+              <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+              2つの視点が完全に一致する奇跡
+            </h3>
+
+            <!-- Method A -->
+            <div class="p-3 rounded-xl bg-slate-900/90 border border-slate-800 space-y-1 text-xs">
+              <div class="font-bold text-indigo-300">① 図形として見る（点と直線の距離）</div>
+              <p class="text-slate-300">
+                直線 $x + 2y - k = 0$ が円と交わる条件は、原点からの距離が半径以下：
+              </p>
+              <div class="text-center font-mono text-cyan-300 py-1">
+                $\frac{|-k|}{\sqrt{1^2 + 2^2}} \le 1 \iff |k| \le \sqrt{5} \iff -\sqrt{5} \le k \le \sqrt{5}$
+              </div>
+            </div>
+
+            <!-- Method B -->
+            <div class="p-3 rounded-xl bg-slate-900/90 border border-slate-800 space-y-1 text-xs">
+              <div class="font-bold text-amber-300">② 代数として見る（Cauchy-Schwarz / ベクトル）</div>
+              <p class="text-slate-300">
+                $(ax+by)^2 \le (a^2+b^2)(x^2+y^2)$ より：
+              </p>
+              <div class="text-center font-mono text-amber-300 py-1">
+                $(x + 2y)^2 \le (1^2 + 2^2)(x^2 + y^2) = 5 \times 1 = 5$
+              </div>
+              <p class="text-slate-400 text-[11px]">
+                ベクトル $\vec{u}=(1,2)$ と $\vec{v}=(x,y)$ の内積 $\vec{u}\cdot\vec{v} = |\vec{u}||\vec{v}|\cos\theta$ の最大値とも一致！
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================================================= -->
+    <!-- SECTION 5: 分数式の値域 (FINAL CHALLENGE & 自習問題) -->
+    <!-- ================================================================= -->
+    <section id="act5-view" class="tab-view hidden space-y-6">
+      <div class="bg-slate-800/80 rounded-2xl p-5 border border-slate-700/80 shadow-lg">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-rose-500/20 text-rose-300 text-xs font-semibold mb-2">
+              <span>FINAL CHALLENGE & 自習問題</span>
+              <span>•</span>
+              <span>逆手流・存在条件の本質</span>
+            </div>
+            <h2 class="text-xl sm:text-2xl font-bold text-white tracking-tight">分数式の値域を「円と直線の共有点」に変える</h2>
+            <p class="text-slate-300 text-sm mt-1">
+              一見おそろしい分数式も、<strong class="text-rose-400 font-semibold">「$=k$ と置いて分母を払えば直線になる」</strong>。その直線が円と交わる $k$ こそが、値域そのものです！
+            </p>
+          </div>
+          <!-- Mode Switcher -->
+          <div class="flex items-center gap-1 bg-slate-900 p-1.5 rounded-xl border border-slate-700 text-xs">
+            <button onclick="act5SwitchMode('main')" id="act5-mode-main" class="px-3 py-1.5 rounded-lg font-bold bg-indigo-600 text-white transition-all">
+              問題A: 本文の例題
+            </button>
+            <button onclick="act5SwitchMode('exercise')" id="act5-mode-exercise" class="px-3 py-1.5 rounded-lg font-medium text-slate-400 hover:text-white transition-all">
+              問題B: 自習問題
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Problem Presentation Banner -->
+      <div id="act5-problem-banner" class="bg-slate-850 p-4 rounded-2xl border border-slate-700/80 text-sm flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div>
+          <span class="text-xs text-slate-400 block font-semibold">対象条件と分数式</span>
+          <span id="act5-problem-text" class="text-white font-mono text-base font-bold">
+            条件: $x^2 + y^2 = 1$ のもとで、 $k = \frac{x+2y+3}{x+y+2}$ の値域
+          </span>
+        </div>
+        <div class="text-xs text-right text-emerald-400 bg-emerald-950/40 border border-emerald-800/60 px-3 py-1.5 rounded-lg">
+          分母チェック: $x+y \ge -\sqrt{2} \implies x+y+2 > 0$ で0除算なし安全
+        </div>
+      </div>
+
+      <!-- Interactive Canvas & Controls -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        <!-- Visualizer -->
+        <div class="lg:col-span-7 bg-slate-950 rounded-2xl border border-slate-800 p-4 shadow-xl flex flex-col items-center">
+          <div class="w-full flex items-center justify-between mb-3 text-xs text-slate-400 px-2">
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-cyan-400 inline-block"></span> 円</span>
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-0.5 bg-amber-400 inline-block"></span> 直線 $(k-1)x+(k-2)y+...=0$</span>
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-rose-400 inline-block"></span> 原点からの垂線</span>
+          </div>
+
+          <div class="relative w-full aspect-square max-w-[500px] bg-slate-900/60 rounded-xl overflow-hidden border border-slate-800">
+            <canvas id="act5-canvas" class="w-full h-full block"></canvas>
+            <div id="act5-exist-badge" class="absolute bottom-3 left-3 text-xs font-bold px-3 py-1.5 rounded-lg shadow backdrop-blur bg-emerald-600 text-white flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-white animate-pulse"></span>
+              $k$ は存在可能（実数解あり）
+            </div>
+          </div>
+
+          <!-- Slider -->
+          <div class="w-full mt-4 bg-slate-900/80 rounded-xl p-4 border border-slate-800 space-y-2">
+            <div class="flex items-center justify-between text-xs">
+              <span class="text-slate-300 font-semibold">式の値 $k$ を動かして直線と円の共有点をテスト:</span>
+              <span class="font-mono text-base font-bold text-amber-300" id="act5-k-display">k = 1.50</span>
+            </div>
+            <div class="flex items-center gap-3">
+              <span class="text-xs text-slate-500 font-mono" id="act5-k-min-label">0.0</span>
+              <input type="range" id="act5-k-slider" min="0" max="3" step="0.02" value="1.5" class="w-full accent-amber-400">
+              <span class="text-xs text-slate-500 font-mono" id="act5-k-max-label">3.0</span>
+            </div>
+            <!-- Snap presets -->
+            <div class="flex flex-wrap gap-2 pt-1 text-xs" id="act5-preset-buttons">
+              <!-- Dynamically populated based on mode -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Mathematical Walkthrough -->
+        <div class="lg:col-span-5 space-y-4">
+          <!-- Realtime Distance vs Radius Gauge -->
+          <div class="bg-slate-850 rounded-2xl border border-slate-800 p-4 space-y-2.5">
+            <div class="flex items-center justify-between text-xs">
+              <span class="font-bold text-slate-300">中心 $(0,0)$ から直線への距離 $d(k)$</span>
+              <span class="font-mono font-bold text-amber-300" id="act5-dist-num">d = 0.63</span>
+            </div>
+            <div class="w-full bg-slate-900 rounded-full h-3 overflow-hidden border border-slate-700">
+              <div id="act5-dist-gauge" class="h-full bg-emerald-500 transition-all duration-100" style="width: 50%;"></div>
+            </div>
+            <div class="flex justify-between text-[11px] text-slate-400 font-mono">
+              <span>0.0</span>
+              <span id="act5-radius-limit" class="text-amber-400 font-bold">半径 $r = 1.0$ (境界)</span>
+              <span>2.5+</span>
+            </div>
+          </div>
+
+          <!-- Step by step translation mechanism -->
+          <div class="bg-slate-850 rounded-2xl border border-slate-800 p-4 space-y-3 text-xs">
+            <div class="font-bold text-rose-300 uppercase tracking-wider text-[11px] flex items-center gap-1.5">
+              <svg class="w-4 h-4 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+              入試最重要の翻訳フロー
+            </div>
+
+            <div class="space-y-2 text-slate-300">
+              <div class="p-2.5 rounded-lg bg-slate-900/90 border border-slate-800 space-y-1">
+                <span class="text-indigo-300 font-semibold block">1. 分母を払って直線にする</span>
+                <p id="act5-line-equation" class="font-mono text-cyan-200">
+                  $(k-1)x + (k-2)y + (2k-3) = 0$
+                </p>
+              </div>
+
+              <div class="p-2.5 rounded-lg bg-slate-900/90 border border-slate-800 space-y-1">
+                <span class="text-amber-300 font-semibold block">2. 円との共有点条件 $d \le r$ に持ち込む</span>
+                <p id="act5-distance-inequality" class="font-mono text-amber-200">
+                  $\frac{|2k-3|}{\sqrt{(k-1)^2 + (k-2)^2}} \le 1$
+                </p>
+              </div>
+
+              <div class="p-2.5 rounded-lg bg-slate-900/90 border border-slate-800 space-y-1">
+                <span class="text-emerald-300 font-semibold block">3. 2乗して $k$ の2次不等式を解く</span>
+                <p id="act5-solution-inequality" class="font-mono text-emerald-300">
+                  $2(k-1)(k-2) \le 0 \iff 1 \le k \le 2$
+                </p>
+                <p class="text-[11px] text-slate-400" id="act5-result-text">
+                  最小値: <strong class="text-white">1</strong> 、 最大値: <strong class="text-white">2</strong>
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================================================= -->
+    <!-- SECTION 6: 受験数学の思考OS (まとめと自己診断) -->
+    <!-- ================================================================= -->
+    <section id="summary-view" class="tab-view hidden space-y-6">
+      <div class="bg-gradient-to-r from-slate-900 via-indigo-950/50 to-slate-900 rounded-2xl p-6 border border-indigo-800/40 shadow-xl">
+        <div class="max-w-3xl">
+          <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-amber-500/20 text-amber-300 text-xs font-semibold mb-2">
+            <span>CORE PRINCIPLES</span>
+            <span>•</span>
+            <span>80分で持ち帰る「受験数学の見方」</span>
+          </div>
+          <h2 class="text-2xl font-black text-white tracking-tight">数式に命を吹き込む6つの思考OS</h2>
+          <p class="text-slate-300 text-sm mt-2 leading-relaxed">
+            問題の数字や記号が変わっても、背後にある「ものの見方」は共通です。初見の入試問題でペンが止まったら、この6つの問いを思い出してください。
+          </p>
+        </div>
+      </div>
+
+      <!-- 6 Master Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 text-sm">
+        <!-- Card 1 -->
+        <div class="bg-slate-850 rounded-2xl p-5 border border-slate-700/80 space-y-2.5 hover:border-indigo-500/50 transition-all">
+          <div class="w-8 h-8 rounded-lg bg-indigo-500/20 text-indigo-400 font-bold flex items-center justify-center font-mono">01</div>
+          <h3 class="font-bold text-white text-base">比が出たら「移動」を見る</h3>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            公式の丸暗記はクロス掛けミスを生む。「全体の移動量 $(B-A)$ のうち、何分の何進むか」というベクトル感覚を持てば、平面も空間も一貫して解ける。
+          </p>
+        </div>
+
+        <!-- Card 2 -->
+        <div class="bg-slate-850 rounded-2xl p-5 border border-slate-700/80 space-y-2.5 hover:border-cyan-500/50 transition-all">
+          <div class="w-8 h-8 rounded-lg bg-cyan-500/20 text-cyan-400 font-bold flex items-center justify-center font-mono">02</div>
+          <h3 class="font-bold text-white text-base">式の値は「欲しい形」を狙う</h3>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            未知数を解くのが目的ではない。「求めたい式」から逆算し、与式を割る・足す・2乗して塊（ブロック）の関係性を作る。
+          </p>
+        </div>
+
+        <!-- Card 3 -->
+        <div class="bg-slate-850 rounded-2xl p-5 border border-slate-700/80 space-y-2.5 hover:border-emerald-500/50 transition-all">
+          <div class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 font-bold flex items-center justify-center font-mono">03</div>
+          <h3 class="font-bold text-white text-base">動く2次関数は「頂点の旅」</h3>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            場合分けの境界は暗記ではない。平方完成した頂点が「固定された定義域の門（端点）」を通過する瞬間から自然に生まれる。
+          </p>
+        </div>
+
+        <!-- Card 4 -->
+        <div class="bg-slate-850 rounded-2xl p-5 border border-slate-700/80 space-y-2.5 hover:border-purple-500/50 transition-all">
+          <div class="w-8 h-8 rounded-lg bg-purple-500/20 text-purple-400 font-bold flex items-center justify-center font-mono">04</div>
+          <h3 class="font-bold text-white text-base">条件式を図形として読み替える</h3>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            $x^2+y^2=1$ は円、$ax+by=k$ は傾き一定の直線群。最大最小は「直線が円と共有点を持って平行移動できる限界」として図で捉える。
+          </p>
+        </div>
+
+        <!-- Card 5 -->
+        <div class="bg-slate-850 rounded-2xl p-5 border border-slate-700/80 space-y-2.5 hover:border-rose-500/50 transition-all">
+          <div class="w-8 h-8 rounded-lg bg-rose-500/20 text-rose-400 font-bold flex items-center justify-center font-mono">05</div>
+          <h3 class="font-bold text-white text-base">値域は「$=k$ と置く存在条件」</h3>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            複雑な分数式も「$=k$」と仮定して分母を払えば直線。その直線が満たすべき図形と交点を持つ条件（$d \le r$ や $D \ge 0$）へ翻訳する。
+          </p>
+        </div>
+
+        <!-- Card 6 -->
+        <div class="bg-slate-850 rounded-2xl p-5 border border-slate-700/80 space-y-2.5 hover:border-amber-500/50 transition-all">
+          <div class="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-400 font-bold flex items-center justify-center font-mono">06</div>
+          <h3 class="font-bold text-white text-base">公式は「なぜ使えるか」とセット</h3>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            点と直線の距離公式も判別式も、本質は「交点を持つか」を言っているだけ。問題に応じて一番計算が短いルートを選択できることが実力。
+          </p>
+        </div>
+      </div>
+
+      <!-- Interactive Self-Quiz Trigger -->
+      <div class="bg-slate-850 rounded-2xl p-6 border border-slate-800 space-y-4">
+        <h3 class="text-base font-bold text-white flex items-center gap-2">
+          <svg class="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          思考力セルフチェック
+        </h3>
+        <p class="text-xs text-slate-300">
+          次の問いに対して、頭の中で方針が瞬時に浮かぶか確認してみましょう。
+        </p>
+
+        <div class="space-y-3 text-xs">
+          <!-- Q1 -->
+          <div class="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-indigo-300">Q1. $x^2 - 4x + 1 = 0$ のとき $x^2 + \frac{1}{x^2}$ を求めよと言われたら？</span>
+              <button onclick="toggleAnswer('ans1')" class="text-[11px] px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300">方針を表示</button>
+            </div>
+            <div id="ans1" class="hidden text-slate-300 pt-2 border-t border-slate-800">
+              $x=0$ は不適なので両辺を $x$ で割って $x + \frac{1}{x} = 4$ を作る。2乗して $(x+1/x)^2 = 16 \implies x^2 + 2 + \frac{1}{x^2} = 16 \implies 14$。
+            </div>
+          </div>
+
+          <!-- Q2 -->
+          <div class="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-emerald-300">Q2. $y=(x-a)^2$ の $1 \le x \le 3$ での最小値の場合分け境界は？</span>
+              <button onclick="toggleAnswer('ans2')" class="text-[11px] px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300">方針を表示</button>
+            </div>
+            <div id="ans2" class="hidden text-slate-300 pt-2 border-t border-slate-800">
+              頂点 $x=a$ が区間の境界 $x=1$ と $x=3$ をまたぐので、$a < 1$, $1 \le a \le 3$, $3 < a$ の3つ！
+            </div>
+          </div>
+
+          <!-- Q3 -->
+          <div class="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-rose-300">Q3. 分数式 $\frac{2x+y+5}{x-y+3}$ の最大最小を円 $x^2+y^2=4$ のもとで解く最初の一手は？</span>
+              <button onclick="toggleAnswer('ans3')" class="text-[11px] px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300">方針を表示</button>
+            </div>
+            <div id="ans3" class="hidden text-slate-300 pt-2 border-t border-slate-800">
+              全体を $=k$ と置き、分母を払って $(k-2)x + (-k-1)y + (3k-5) = 0$ という直線の方程式を作る。原点とこの直線の距離が半径2以下（$d \le 2$）になる $k$ の範囲を解く！
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    /* =================================================================
+       GLOBAL STATE & TAB SWITCHING
+    ================================================================= */
+    let currentTab = 'act1';
+
+    function switchTab(tabId) {
+      currentTab = tabId;
+      document.querySelectorAll('.tab-view').forEach(view => {
+        view.classList.add('hidden');
+      });
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('bg-indigo-600', 'text-white', 'shadow-sm');
+        btn.classList.add('text-slate-400');
+      });
+
+      const activeView = document.getElementById(`${tabId}-view`);
+      const activeBtn = document.getElementById(`tab-btn-${tabId}`);
+      if (activeView) activeView.classList.remove('hidden');
+      if (activeBtn) {
+        activeBtn.classList.add('bg-indigo-600', 'text-white', 'shadow-sm');
+        activeBtn.classList.remove('text-slate-400');
+      }
+
+      // Re-trigger KaTeX rendering and canvas redraws
+      triggerMathRender();
+      if (tabId === 'act1') drawAct1();
+      if (tabId === 'act3') drawAct3();
+      if (tabId === 'act4') drawAct4();
+      if (tabId === 'act5') drawAct5();
+    }
+
+    function triggerMathRender() {
+      if (window.renderMathInElement) {
+        window.renderMathInElement(document.body, {
+          delimiters: [
+            {left: '$$', right: '$$', display: true},
+            {left: '$', right: '$', display: false}
+          ],
+          throwOnError: false
+        });
+      }
+    }
+
+    function toggleAnswer(id) {
+      const el = document.getElementById(id);
+      if (el) {
+        el.classList.toggle('hidden');
+        triggerMathRender();
+      }
+    }
+
+    /* Helper: High DPI Canvas Resolution Setup */
+    function setupCanvas(canvas) {
+      const rect = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      const ctx = canvas.getContext('2d');
+      ctx.scale(dpr, dpr);
+      return { ctx, width: rect.width, height: rect.height };
+    }
+
+    /* =================================================================
+       ACTIVITY 1: 座標と比 LOGIC
+    ================================================================= */
+    let act1_m = 1;
+    let act1_n = 2;
+    const ptA = { x: -2, y: 1 };
+    const ptB = { x: 4, y: 7 };
+
+    function act1Reset() {
+      document.getElementById('act1-m-slider').value = 1;
+      document.getElementById('act1-n-slider').value = 2;
+      act1_m = 1;
+      act1_n = 2;
+      updateAct1UI();
+      drawAct1();
+    }
+
+    function updateAct1UI() {
+      document.getElementById('act1-m-val').innerText = act1_m;
+      document.getElementById('act1-n-val').innerText = act1_n;
+      document.getElementById('act1-ratio-badge').innerText = `${act1_m} : ${act1_n}`;
+      document.getElementById('act1-step2-ratio').innerText = `${act1_m} : ${act1_n}`;
+      
+      const total = act1_m + act1_n;
+      document.getElementById('act1-step2-total').innerText = total;
+      document.getElementById('act1-step2-part').innerText = act1_m;
+
+      const deltaX = ptB.x - ptA.x; // 6
+      const deltaY = ptB.y - ptA.y; // 6
+      const px = ptA.x + (act1_m / total) * deltaX;
+      const py = ptA.y + (act1_m / total) * deltaY;
+
+      const fracStr = `\\frac{${act1_m}}{${total}}`;
+      const moveX = ((act1_m / total) * deltaX).toFixed(2).replace(/\.00$/, '');
+      const moveY = ((act1_m / total) * deltaY).toFixed(2).replace(/\.00$/, '');
+      const pXStr = px.toFixed(2).replace(/\.00$/, '');
+      const pYStr = py.toFixed(2).replace(/\.00$/, '');
+
+      document.getElementById('act1-step2-calc').innerHTML = 
+        `移動量 = $${fracStr} \\times (6, 6) = (${moveX}, ${moveY})$`;
+      document.getElementById('act1-step3-calc').innerHTML = 
+        `$P = (-2, 1) + (${moveX}, ${moveY}) = (${pXStr}, ${pYStr})$`;
+      
+      triggerMathRender();
+    }
+
+    function drawAct1() {
+      const canvas = document.getElementById('act1-canvas');
+      if (!canvas) return;
+      const { ctx, width, height } = setupCanvas(canvas);
+
+      // Coordinate transformation
+      // Domain: x in [-4, 6], y in [-1, 9]
+      const minX = -3.5, maxX = 5.5;
+      const minY = -0.5, maxY = 8.5;
+
+      const toScreenX = (x) => ((x - minX) / (maxX - minX)) * width;
+      const toScreenY = (y) => height - ((y - minY) / (maxY - minY)) * height;
+
+      // Draw Grid
+      ctx.clearRect(0, 0, width, height);
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = '#1e293b';
+
+      for (let x = Math.ceil(minX); x <= maxX; x++) {
+        ctx.beginPath();
+        ctx.moveTo(toScreenX(x), 0);
+        ctx.lineTo(toScreenX(x), height);
+        ctx.stroke();
+      }
+      for (let y = Math.ceil(minY); y <= maxY; y++) {
+        ctx.beginPath();
+        ctx.moveTo(0, toScreenY(y));
+        ctx.lineTo(width, toScreenY(y));
+        ctx.stroke();
+      }
+
+      // Axes
+      ctx.lineWidth = 1.5;
+      ctx.strokeStyle = '#475569';
+      // X-Axis
+      ctx.beginPath();
+      ctx.moveTo(0, toScreenY(0));
+      ctx.lineTo(width, toScreenY(0));
+      ctx.stroke();
+      // Y-Axis
+      ctx.beginPath();
+      ctx.moveTo(toScreenX(0), 0);
+      ctx.lineTo(toScreenX(0), height);
+      ctx.stroke();
+
+      // Draw Delta X and Delta Y Steps (Triangle)
+      const ax = toScreenX(ptA.x), ay = toScreenY(ptA.y);
+      const bx = toScreenX(ptB.x), by = toScreenY(ptB.y);
+      const cornerX = toScreenX(ptB.x), cornerY = toScreenY(ptA.y);
+
+      // Delta X Line
+      ctx.setLineDash([4, 4]);
+      ctx.strokeStyle = '#38bdf8';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(ax, ay);
+      ctx.lineTo(cornerX, cornerY);
+      ctx.stroke();
+
+      // Delta Y Line
+      ctx.strokeStyle = '#34d399';
+      ctx.beginPath();
+      ctx.moveTo(cornerX, cornerY);
+      ctx.lineTo(bx, by);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Delta labels
+      ctx.font = '11px sans-serif';
+      ctx.fillStyle = '#38bdf8';
+      ctx.fillText('Δx = +6 (横に6進む)', (ax + cornerX)/2 - 50, cornerY + 16);
+      ctx.fillStyle = '#34d399';
+      ctx.fillText('Δy = +6 (縦に6進む)', cornerX + 8, (cornerY + by)/2);
+
+      // Draw Main Line AB
+      ctx.strokeStyle = '#64748b';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(ax, ay);
+      ctx.lineTo(bx, by);
+      ctx.stroke();
+
+      // Ratio Partition Dots along AB
+      const totalParts = act1_m + act1_n;
+      for (let i = 1; i < totalParts; i++) {
+        const tickX = ptA.x + (i / totalParts) * (ptB.x - ptA.x);
+        const tickY = ptA.y + (i / totalParts) * (ptB.y - ptA.y);
+        ctx.fillStyle = '#94a3b8';
+        ctx.beginPath();
+        ctx.arc(toScreenX(tickX), toScreenY(tickY), 3, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // Point P
+      const px = ptA.x + (act1_m / totalParts) * (ptB.x - ptA.x);
+      const py = ptA.y + (act1_m / totalParts) * (ptB.y - ptA.y);
+      const sxP = toScreenX(px), syP = toScreenY(py);
+
+      // Highlight Vector AP
+      ctx.strokeStyle = '#f59e0b';
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(ax, ay);
+      ctx.lineTo(sxP, syP);
+      ctx.stroke();
+
+      // Draw Points A, B, P
+      // Point A
+      ctx.fillStyle = '#38bdf8';
+      ctx.beginPath();
+      ctx.arc(ax, ay, 6, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#0f172a';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.fillStyle = '#e2e8f0';
+      ctx.fillText('A (-2, 1)', ax - 50, ay - 10);
+
+      // Point B
+      ctx.fillStyle = '#34d399';
+      ctx.beginPath();
+      ctx.arc(bx, by, 6, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = '#e2e8f0';
+      ctx.fillText('B (4, 7)', bx + 10, by - 5);
+
+      // Point P
+      ctx.fillStyle = '#f59e0b';
+      ctx.beginPath();
+      ctx.arc(sxP, syP, 8, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = '#fbbf24';
+      ctx.font = 'bold 12px sans-serif';
+      ctx.fillText(`P (${px.toFixed(1)}, ${py.toFixed(1)})`, sxP - 25, syP - 15);
+    }
+
+    /* =================================================================
+       ACTIVITY 2: 式の値 INTERACTION
+    ================================================================= */
+    const act2PSlider = document.getElementById('act2-p-slider');
+    const act2QSlider = document.getElementById('act2-q-slider');
+
+    function updateAct2() {
+      const p = parseInt(act2PSlider.value);
+      const q = parseInt(act2QSlider.value);
+      document.getElementById('act2-p-display').innerText = p;
+      document.getElementById('act2-q-display').innerText = q;
+
+      // Wanted expression: x^2 + (q^2 / x^2)
+      // Since x + q/x = p, (x + q/x)^2 = p^2 => x^2 + 2q + q^2/x^2 = p^2 => result = p^2 - 2q
+      const result = (p * p) - (2 * q);
+      document.getElementById('act2-result-display').innerText = result;
+      document.getElementById('act2-formula-display').innerText = 
+        `(${p}² - 2 × ${q} = ${p*p} - ${2*q} = ${result})`;
+    }
+
+    /* =================================================================
+       ACTIVITY 3: 頂点と区間 (2次関数)
+    ================================================================= */
+    let act3_a = 1.0;
+
+    function act3SetA(val) {
+      act3_a = val;
+      document.getElementById('act3-a-slider').value = val;
+      updateAct3UI();
+      drawAct3();
+    }
+
+    function updateAct3UI() {
+      document.getElementById('act3-a-display').innerText = `a = ${act3_a.toFixed(2)}`;
+      
+      const badge = document.getElementById('act3-zone-badge');
+      const card = document.getElementById('act3-case-card');
+      const title = document.getElementById('act3-case-title');
+      const desc = document.getElementById('act3-case-desc');
+      const math = document.getElementById('act3-case-math');
+
+      // Highlight active row in table
+      const r1 = document.getElementById('act3-row-1');
+      const r2 = document.getElementById('act3-row-2');
+      const r3 = document.getElementById('act3-row-3');
+      [r1, r2, r3].forEach(r => r.classList.remove('bg-slate-800', 'border-indigo-500', 'text-white'));
+
+      if (act3_a < 0) {
+        badge.className = 'absolute top-3 left-3 text-xs font-bold px-3 py-1 rounded-lg shadow backdrop-blur bg-blue-600 text-white';
+        badge.innerText = '状態: 頂点は区間の左外 (x < 0)';
+        title.innerText = '【場合①】 a < 0 のとき';
+        desc.innerText = '放物線の頂点が区間 [0, 2] より左にあります。放物線は右肩上がりに進むため、区間内で一番低いのは「左端の x=0」です。';
+        const val = (act3_a * act3_a - 2 * act3_a).toFixed(2);
+        math.innerHTML = `$m(a) = f(0) = a^2 - 2a$ (現在値: ${val})`;
+        r1.classList.add('bg-slate-800', 'border-indigo-500', 'text-white');
+      } else if (act3_a <= 2) {
+        badge.className = 'absolute top-3 left-3 text-xs font-bold px-3 py-1 rounded-lg shadow backdrop-blur bg-emerald-600 text-white';
+        badge.innerText = '状態: 頂点は区間内 (0 ≦ a ≦ 2)';
+        title.innerText = '【場合②】 0 ≦ a ≦ 2 のとき';
+        desc.innerText = '頂点そのものが区間 [0, 2] に含まれます。下に凸の放物線なので、最小値は当然「頂点そのものの y 座標」です。';
+        const val = (-2 * act3_a).toFixed(2);
+        math.innerHTML = `$m(a) = f(a) = -2a$ (現在値: ${val})`;
+        r2.classList.add('bg-slate-800', 'border-indigo-500', 'text-white');
+      } else {
+        badge.className = 'absolute top-3 left-3 text-xs font-bold px-3 py-1 rounded-lg shadow backdrop-blur bg-amber-600 text-white';
+        badge.innerText = '状態: 頂点は区間の右外 (2 < a)';
+        title.innerText = '【場合③】 2 < a のとき';
+        desc.innerText = '頂点が区間 [0, 2] より右側に抜けてしまいました。区間内では右下がりになり、頂点に一番近い「右端の x=2」で最小になります。';
+        const val = (act3_a * act3_a - 6 * act3_a + 4).toFixed(2);
+        math.innerHTML = `$m(a) = f(2) = a^2 - 6a + 4$ (現在値: ${val})`;
+        r3.classList.add('bg-slate-800', 'border-indigo-500', 'text-white');
+      }
+      triggerMathRender();
+    }
+
+    function drawAct3() {
+      const canvas = document.getElementById('act3-canvas');
+      if (!canvas) return;
+      const { ctx, width, height } = setupCanvas(canvas);
+
+      // Coordinate bounds
+      const minX = -2.5, maxX = 4.5;
+      const minY = -7.5, maxY = 6.5;
+
+      const toScreenX = (x) => ((x - minX) / (maxX - minX)) * width;
+      const toScreenY = (y) => height - ((y - minY) / (maxY - minY)) * height;
+
+      ctx.clearRect(0, 0, width, height);
+
+      // Grid
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = '#1e293b';
+      for (let x = Math.ceil(minX); x <= maxX; x++) {
+        ctx.beginPath();
+        ctx.moveTo(toScreenX(x), 0);
+        ctx.lineTo(toScreenX(x), height);
+        ctx.stroke();
+      }
+      for (let y = Math.ceil(minY); y <= maxY; y++) {
+        ctx.beginPath();
+        ctx.moveTo(0, toScreenY(y));
+        ctx.lineTo(width, toScreenY(y));
+        ctx.stroke();
+      }
+
+      // X and Y Axes
+      ctx.lineWidth = 1.5;
+      ctx.strokeStyle = '#475569';
+      ctx.beginPath();
+      ctx.moveTo(0, toScreenY(0));
+      ctx.lineTo(width, toScreenY(0));
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(toScreenX(0), 0);
+      ctx.lineTo(toScreenX(0), height);
+      ctx.stroke();
+
+      // Highlight Domain [0, 2] Band
+      const d0 = toScreenX(0);
+      const d2 = toScreenX(2);
+      ctx.fillStyle = 'rgba(16, 185, 129, 0.12)';
+      ctx.fillRect(d0, 0, d2 - d0, height);
+
+      // Domain Boundaries lines
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = '#10b981';
+      ctx.setLineDash([4, 4]);
+      ctx.beginPath();
+      ctx.moveTo(d0, 0); ctx.lineTo(d0, height);
+      ctx.moveTo(d2, 0); ctx.lineTo(d2, height);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.fillStyle = '#10b981';
+      ctx.font = '11px sans-serif';
+      ctx.fillText('門 x=0', d0 + 5, 20);
+      ctx.fillText('門 x=2', d2 + 5, 20);
+
+      // Draw Vertex Locus Line: y = -2x
+      ctx.strokeStyle = '#334155';
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([2, 4]);
+      ctx.beginPath();
+      ctx.moveTo(toScreenX(minX), toScreenY(-2 * minX));
+      ctx.lineTo(toScreenX(maxX), toScreenY(-2 * maxX));
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Draw Parabola: f(x) = (x - a)^2 - 2a
+      ctx.lineWidth = 2.5;
+      ctx.strokeStyle = '#818cf8';
+      ctx.beginPath();
+      for (let px = 0; px <= width; px += 2) {
+        const x = minX + (px / width) * (maxX - minX);
+        const y = Math.pow(x - act3_a, 2) - 2 * act3_a;
+        const py = toScreenY(y);
+        if (px === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+      }
+      ctx.stroke();
+
+      // Highlight Active Curve on [0, 2]
+      ctx.lineWidth = 4;
+      ctx.strokeStyle = '#38bdf8';
+      ctx.beginPath();
+      let started = false;
+      for (let px = d0; px <= d2; px += 2) {
+        const x = minX + (px / width) * (maxX - minX);
+        const y = Math.pow(x - act3_a, 2) - 2 * act3_a;
+        const py = toScreenY(y);
+        if (!started) { ctx.moveTo(px, py); started = true; }
+        else ctx.lineTo(px, py);
+      }
+      ctx.stroke();
+
+      // Draw Vertex
+      const vx = toScreenX(act3_a);
+      const vy = toScreenY(-2 * act3_a);
+      ctx.fillStyle = '#a855f7';
+      ctx.beginPath();
+      ctx.arc(vx, vy, 5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#c084fc';
+      ctx.fillText(`頂点 (${act3_a.toFixed(1)}, ${(-2*act3_a).toFixed(1)})`, vx + 8, vy + 4);
+
+      // Determine Minimum Point in [0, 2]
+      let minXPos = 0;
+      let minVal = 0;
+      if (act3_a < 0) {
+        minXPos = 0;
+        minVal = act3_a * act3_a - 2 * act3_a;
+      } else if (act3_a <= 2) {
+        minXPos = act3_a;
+        minVal = -2 * act3_a;
+      } else {
+        minXPos = 2;
+        minVal = act3_a * act3_a - 6 * act3_a + 4;
+      }
+
+      // Draw Minimum Point with glowing red dot
+      const mx = toScreenX(minXPos);
+      const my = toScreenY(minVal);
+      ctx.fillStyle = '#f43f5e';
+      ctx.beginPath();
+      ctx.arc(mx, my, 7, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      ctx.fillStyle = '#fda4af';
+      ctx.font = 'bold 12px sans-serif';
+      ctx.fillText(`最小値 m(a)=${minVal.toFixed(2)} (x=${minXPos.toFixed(1)})`, mx - 40, my - 15);
+    }
+
+    /* =================================================================
+       ACTIVITY 4: 円上の一次式
+    ================================================================= */
+    let act4_k = 0;
+
+    function act4SetK(val) {
+      act4_k = val;
+      document.getElementById('act4-k-slider').value = val;
+      updateAct4UI();
+      drawAct4();
+    }
+
+    function updateAct4UI() {
+      document.getElementById('act4-k-display').innerText = `k = ${act4_k.toFixed(2)}`;
+      
+      // Distance from (0,0) to x + 2y - k = 0 is |k| / sqrt(1^2 + 2^2) = |k| / sqrt(5)
+      const dist = Math.abs(act4_k) / Math.sqrt(5);
+      document.getElementById('act4-d-val').innerText = dist.toFixed(3);
+
+      const dBar = document.getElementById('act4-d-bar');
+      const badge = document.getElementById('act4-status-badge');
+      const relBadge = document.getElementById('act4-rel-badge');
+
+      // 100% on bar corresponds to d = 1.5
+      const pct = Math.min(100, (dist / 1.5) * 100);
+      dBar.style.width = `${pct}%`;
+
+      if (dist <= 1.001) {
+        dBar.className = 'bg-emerald-500 h-full transition-all duration-100';
+        badge.className = 'absolute bottom-3 left-3 text-xs font-bold px-3 py-1 rounded-lg shadow backdrop-blur bg-emerald-600 text-white';
+        badge.innerText = dist > 0.98 ? '限界！ちょうど接している (最大/最小)' : '共有点あり (実数解が存在)';
+        relBadge.innerText = 'd ≦ 1.0 (成立)';
+        relBadge.className = 'text-[11px] font-mono font-bold text-emerald-400';
+      } else {
+        dBar.className = 'bg-rose-500 h-full transition-all duration-100';
+        badge.className = 'absolute bottom-3 left-3 text-xs font-bold px-3 py-1 rounded-lg shadow backdrop-blur bg-rose-600 text-white';
+        badge.innerText = '交点なし (この k は実現不可能)';
+        relBadge.innerText = 'd > 1.0 (不成立)';
+        relBadge.className = 'text-[11px] font-mono font-bold text-rose-400';
+      }
+    }
+
+    function drawAct4() {
+      const canvas = document.getElementById('act4-canvas');
+      if (!canvas) return;
+      const { ctx, width, height } = setupCanvas(canvas);
+
+      // Coordinate bounds: x, y in [-2.2, 2.2]
+      const span = 2.2;
+      const toScreenX = (x) => ((x + span) / (2 * span)) * width;
+      const toScreenY = (y) => height - ((y + span) / (2 * span)) * height;
+
+      ctx.clearRect(0, 0, width, height);
+
+      // Grid
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = '#1e293b';
+      for (let i = -2; i <= 2; i++) {
+        ctx.beginPath();
+        ctx.moveTo(toScreenX(i), 0); ctx.lineTo(toScreenX(i), height);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(0, toScreenY(i)); ctx.lineTo(width, toScreenY(i));
+        ctx.stroke();
+      }
+
+      // Axes
+      ctx.lineWidth = 1.5;
+      ctx.strokeStyle = '#475569';
+      ctx.beginPath();
+      ctx.moveTo(0, toScreenY(0)); ctx.lineTo(width, toScreenY(0));
+      ctx.moveTo(toScreenX(0), 0); ctx.lineTo(toScreenX(0), height);
+      ctx.stroke();
+
+      // Circle x^2 + y^2 = 1
+      const cx = toScreenX(0);
+      const cy = toScreenY(0);
+      const rScreen = (1 / (2 * span)) * width;
+
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = '#38bdf8';
+      ctx.fillStyle = 'rgba(56, 189, 248, 0.08)';
+      ctx.beginPath();
+      ctx.arc(cx, cy, rScreen, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+
+      // Line: x + 2y = k => y = -0.5x + 0.5k
+      ctx.lineWidth = 2.5;
+      ctx.strokeStyle = '#fbbf24';
+      ctx.beginPath();
+      const x1 = -span, y1 = -0.5 * x1 + 0.5 * act4_k;
+      const x2 = span, y2 = -0.5 * x2 + 0.5 * act4_k;
+      ctx.moveTo(toScreenX(x1), toScreenY(y1));
+      ctx.lineTo(toScreenX(x2), toScreenY(y2));
+      ctx.stroke();
+
+      // Perpendicular line from origin to line x + 2y = k
+      // Nearest point: (k/5, 2k/5)
+      const nx = act4_k / 5;
+      const ny = (2 * act4_k) / 5;
+      ctx.setLineDash([3, 3]);
+      ctx.lineWidth = 1.5;
+      ctx.strokeStyle = '#f43f5e';
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(toScreenX(nx), toScreenY(ny));
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Foot of perpendicular dot
+      ctx.fillStyle = '#f43f5e';
+      ctx.beginPath();
+      ctx.arc(toScreenX(nx), toScreenY(ny), 4, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Tangent boundary ghost lines (k = +/- sqrt(5) approx 2.236)
+      const kLimit = Math.sqrt(5);
+      ctx.strokeStyle = 'rgba(251, 191, 36, 0.25)';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([4, 4]);
+      // Top tangent
+      ctx.beginPath();
+      ctx.moveTo(toScreenX(-span), toScreenY(-0.5 * (-span) + 0.5 * kLimit));
+      ctx.lineTo(toScreenX(span), toScreenY(-0.5 * span + 0.5 * kLimit));
+      ctx.stroke();
+      // Bottom tangent
+      ctx.beginPath();
+      ctx.moveTo(toScreenX(-span), toScreenY(-0.5 * (-span) - 0.5 * kLimit));
+      ctx.lineTo(toScreenX(span), toScreenY(-0.5 * span - 0.5 * kLimit));
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    /* =================================================================
+       ACTIVITY 5: 分数式の値域 & 自習問題
+    ================================================================= */
+    let act5_mode = 'main'; // 'main' or 'exercise'
+    let act5_k = 1.5;
+
+    function act5SwitchMode(mode) {
+      act5_mode = mode;
+      const bMain = document.getElementById('act5-mode-main');
+      const bEx = document.getElementById('act5-mode-exercise');
+      const slider = document.getElementById('act5-k-slider');
+
+      if (mode === 'main') {
+        bMain.className = 'px-3 py-1.5 rounded-lg font-bold bg-indigo-600 text-white transition-all';
+        bEx.className = 'px-3 py-1.5 rounded-lg font-medium text-slate-400 hover:text-white transition-all';
+        slider.min = "0.0";
+        slider.max = "3.0";
+        slider.step = "0.02";
+        slider.value = "1.5";
+        act5_k = 1.5;
+        document.getElementById('act5-k-min-label').innerText = '0.0';
+        document.getElementById('act5-k-max-label').innerText = '3.0';
+        
+        document.getElementById('act5-problem-text').innerHTML = 
+          '条件: $x^2 + y^2 = 1$ のもとで、 $k = \\frac{x+2y+3}{x+y+2}$ の値域';
+        document.getElementById('act5-line-equation').innerHTML = 
+          '$(k-1)x + (k-2)y + (2k-3) = 0$';
+        document.getElementById('act5-distance-inequality').innerHTML = 
+          '$\\frac{|2k-3|}{\\sqrt{(k-1)^2 + (k-2)^2}} \\le 1$';
+        document.getElementById('act5-solution-inequality').innerHTML = 
+          '$2(k-1)(k-2) \\le 0 \\iff 1 \\le k \\le 2$';
+        document.getElementById('act5-result-text').innerHTML = 
+          '最小値: <strong class="text-white">1</strong> 、 最大値: <strong class="text-white">2</strong>';
+        document.getElementById('act5-radius-limit').innerHTML = '半径 $r = 1.0$ (境界)';
+
+        // Presets
+        document.getElementById('act5-preset-buttons').innerHTML = `
+          <span class="text-slate-400 self-center">限界値へスナップ:</span>
+          <button onclick="act5SetK(1.0)" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-emerald-300 border border-slate-700">最小値 k = 1.0 (接する)</button>
+          <button onclick="act5SetK(1.5)" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-cyan-300 border border-slate-700">中央 k = 1.5 (2点交差)</button>
+          <button onclick="act5SetK(2.0)" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-amber-300 border border-slate-700">最大値 k = 2.0 (接する)</button>
+        `;
+      } else {
+        // Exercise Mode: x^2 + y^2 = 4, (2x + y + 5)/(x - y + 3) = k
+        bMain.className = 'px-3 py-1.5 rounded-lg font-medium text-slate-400 hover:text-white transition-all';
+        bEx.className = 'px-3 py-1.5 rounded-lg font-bold bg-indigo-600 text-white transition-all';
+        // k range around 11 - 2*sqrt(29) ~ 0.229 to 11 + 2*sqrt(29) ~ 21.77
+        slider.min = "-1.0";
+        slider.max = "23.0";
+        slider.step = "0.1";
+        slider.value = "10.0";
+        act5_k = 10.0;
+        document.getElementById('act5-k-min-label').innerText = '-1.0';
+        document.getElementById('act5-k-max-label').innerText = '23.0';
+
+        document.getElementById('act5-problem-text').innerHTML = 
+          '条件: $x^2 + y^2 = 4$ のもとで、 $k = \\frac{2x+y+5}{x-y+3}$ の値域';
+        document.getElementById('act5-line-equation').innerHTML = 
+          '$(k-2)x + (-k-1)y + (3k-5) = 0$';
+        document.getElementById('act5-distance-inequality').innerHTML = 
+          '$\\frac{|3k-5|}{\\sqrt{(k-2)^2 + (-k-1)^2}} \\le 2$';
+        document.getElementById('act5-solution-inequality').innerHTML = 
+          '$k^2 - 22k + 5 \\le 0 \\iff 11 - 2\\sqrt{29} \\le k \\le 11 + 2\\sqrt{29}$';
+        document.getElementById('act5-result-text').innerHTML = 
+          '最小値: <strong class="text-white">$11-2\\sqrt{29} \\approx 0.23$</strong> 、 最大値: <strong class="text-white">$11+2\\sqrt{29} \\approx 21.77$</strong>';
+        document.getElementById('act5-radius-limit').innerHTML = '半径 $r = 2.0$ (境界)';
+
+        // Presets
+        document.getElementById('act5-preset-buttons').innerHTML = `
+          <span class="text-slate-400 self-center">限界値へスナップ:</span>
+          <button onclick="act5SetK(0.23)" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-emerald-300 border border-slate-700">最小値 k ≈ 0.23</button>
+          <button onclick="act5SetK(10.0)" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-cyan-300 border border-slate-700">中央 k = 10.0</button>
+          <button onclick="act5SetK(21.77)" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-amber-300 border border-slate-700">最大値 k ≈ 21.77</button>
+        `;
+      }
+      updateAct5UI();
+      drawAct5();
+      triggerMathRender();
+    }
+
+    function act5SetK(val) {
+      act5_k = val;
+      document.getElementById('act5-k-slider').value = val;
+      updateAct5UI();
+      drawAct5();
+    }
+
+    function getAct5Coefficients() {
+      if (act5_mode === 'main') {
+        // Line: (k-1)x + (k-2)y + (2k-3) = 0
+        const A = act5_k - 1;
+        const B = act5_k - 2;
+        const C = 2 * act5_k - 3;
+        const r = 1;
+        return { A, B, C, r };
+      } else {
+        // Line: (k-2)x + (-k-1)y + (3k-5) = 0
+        const A = act5_k - 2;
+        const B = -act5_k - 1;
+        const C = 3 * act5_k - 5;
+        const r = 2;
+        return { A, B, C, r };
+      }
+    }
+
+    function updateAct5UI() {
+      document.getElementById('act5-k-display').innerText = `k = ${act5_k.toFixed(2)}`;
+      const { A, B, C, r } = getAct5Coefficients();
+
+      // Distance = |C| / sqrt(A^2 + B^2)
+      const norm = Math.sqrt(A * A + B * B);
+      const dist = norm > 0.0001 ? Math.abs(C) / norm : 999;
+      document.getElementById('act5-dist-num').innerText = `d = ${dist.toFixed(3)}`;
+
+      const badge = document.getElementById('act5-exist-badge');
+      const gauge = document.getElementById('act5-dist-gauge');
+
+      // 100% on gauge corresponds to d = r * 1.5
+      const pct = Math.min(100, (dist / (r * 1.5)) * 100);
+      gauge.style.width = `${pct}%`;
+
+      if (dist <= r + 0.01) {
+        gauge.className = 'h-full bg-emerald-500 transition-all duration-100';
+        badge.className = 'absolute bottom-3 left-3 text-xs font-bold px-3 py-1.5 rounded-lg shadow backdrop-blur bg-emerald-600 text-white flex items-center gap-1.5';
+        badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-white animate-pulse"></span> 円と共有点あり（k = ${act5_k.toFixed(2)} は値として成立！）`;
+      } else {
+        gauge.className = 'h-full bg-rose-600 transition-all duration-100';
+        badge.className = 'absolute bottom-3 left-3 text-xs font-bold px-3 py-1.5 rounded-lg shadow backdrop-blur bg-rose-600 text-white flex items-center gap-1.5';
+        badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-rose-200"></span> 共有点なし（k = ${act5_k.toFixed(2)} を満たす実数x,yは存在しない）`;
+      }
+    }
+
+    function drawAct5() {
+      const canvas = document.getElementById('act5-canvas');
+      if (!canvas) return;
+      const { ctx, width, height } = setupCanvas(canvas);
+      const { A, B, C, r } = getAct5Coefficients();
+
+      // Display bounds
+      const span = r * 2.2;
+      const toScreenX = (x) => ((x + span) / (2 * span)) * width;
+      const toScreenY = (y) => height - ((y + span) / (2 * span)) * height;
+
+      ctx.clearRect(0, 0, width, height);
+
+      // Grid
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = '#1e293b';
+      for (let i = -Math.floor(span); i <= Math.floor(span); i++) {
+        ctx.beginPath();
+        ctx.moveTo(toScreenX(i), 0); ctx.lineTo(toScreenX(i), height);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(0, toScreenY(i)); ctx.lineTo(width, toScreenY(i));
+        ctx.stroke();
+      }
+
+      // Axes
+      ctx.lineWidth = 1.5;
+      ctx.strokeStyle = '#475569';
+      ctx.beginPath();
+      ctx.moveTo(0, toScreenY(0)); ctx.lineTo(width, toScreenY(0));
+      ctx.moveTo(toScreenX(0), 0); ctx.lineTo(toScreenX(0), height);
+      ctx.stroke();
+
+      // Circle
+      const cx = toScreenX(0);
+      const cy = toScreenY(0);
+      const rScreen = (r / (2 * span)) * width;
+
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = '#38bdf8';
+      ctx.fillStyle = 'rgba(56, 189, 248, 0.08)';
+      ctx.beginPath();
+      ctx.arc(cx, cy, rScreen, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+
+      // Line: Ax + By + C = 0
+      ctx.lineWidth = 2.5;
+      ctx.strokeStyle = '#fbbf24';
+      ctx.beginPath();
+
+      if (Math.abs(B) > 0.001) {
+        const x1 = -span, y1 = (-A * x1 - C) / B;
+        const x2 = span, y2 = (-A * x2 - C) / B;
+        ctx.moveTo(toScreenX(x1), toScreenY(y1));
+        ctx.lineTo(toScreenX(x2), toScreenY(y2));
+      } else {
+        const xFixed = -C / A;
+        ctx.moveTo(toScreenX(xFixed), 0);
+        ctx.lineTo(toScreenX(xFixed), height);
+      }
+      ctx.stroke();
+
+      // Foot of perpendicular from (0,0) to line Ax + By + C = 0
+      // p = -C / (A^2 + B^2) * (A, B)
+      const denom = A * A + B * B;
+      if (denom > 0.0001) {
+        const footX = (-C * A) / denom;
+        const footY = (-C * B) / denom;
+
+        ctx.setLineDash([3, 3]);
+        ctx.lineWidth = 1.5;
+        ctx.strokeStyle = '#f43f5e';
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.lineTo(toScreenX(footX), toScreenY(footY));
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        ctx.fillStyle = '#f43f5e';
+        ctx.beginPath();
+        ctx.arc(toScreenX(footX), toScreenY(footY), 4, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    /* =================================================================
+       EVENT LISTENERS & INITIALIZATION
+    ================================================================= */
+    window.onload = function() {
+      // Act 1 Sliders
+      const act1MSlider = document.getElementById('act1-m-slider');
+      const act1NSlider = document.getElementById('act1-n-slider');
+      if (act1MSlider && act1NSlider) {
+        act1MSlider.addEventListener('input', (e) => {
+          act1_m = parseInt(e.target.value);
+          updateAct1UI();
+          drawAct1();
+        });
+        act1NSlider.addEventListener('input', (e) => {
+          act1_n = parseInt(e.target.value);
+          updateAct1UI();
+          drawAct1();
+        });
+      }
+
+      // Act 2 Sliders
+      if (act2PSlider && act2QSlider) {
+        act2PSlider.addEventListener('input', updateAct2);
+        act2QSlider.addEventListener('input', updateAct2);
+      }
+
+      // Act 3 Slider
+      const act3ASlider = document.getElementById('act3-a-slider');
+      if (act3ASlider) {
+        act3ASlider.addEventListener('input', (e) => {
+          act3_a = parseFloat(e.target.value);
+          updateAct3UI();
+          drawAct3();
+        });
+      }
+
+      // Act 4 Slider
+      const act4KSlider = document.getElementById('act4-k-slider');
+      if (act4KSlider) {
+        act4KSlider.addEventListener('input', (e) => {
+          act4_k = parseFloat(e.target.value);
+          updateAct4UI();
+          drawAct4();
+        });
+      }
+
+      // Act 5 Slider
+      const act5KSlider = document.getElementById('act5-k-slider');
+      if (act5KSlider) {
+        act5KSlider.addEventListener('input', (e) => {
+          act5_k = parseFloat(e.target.value);
+          updateAct5UI();
+          drawAct5();
+        });
+      }
+
+      // Resize listener to redraw canvases cleanly
+      window.addEventListener('resize', () => {
+        if (currentTab === 'act1') drawAct1();
+        if (currentTab === 'act3') drawAct3();
+        if (currentTab === 'act4') drawAct4();
+        if (currentTab === 'act5') drawAct5();
+      });
+
+      // Initial view setup
+      act5SwitchMode('main');
+      updateAct1UI();
+      updateAct2();
+      updateAct3UI();
+      updateAct4UI();
+      updateAct5UI();
+      triggerMathRender();
+      drawAct1();
+    };
+  </script>
+</body>
+</html>

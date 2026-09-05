@@ -483,24 +483,24 @@
                   点 $x$ の位置を動かしてみよう：
                 </label>
                 <span class="px-2.5 py-0.5 bg-indigo-50 text-indigo-700 rounded font-mono font-bold text-sm" id="s5-x-val">
-                  x = -3
+                  $x = -3$
                 </span>
               </div>
-              <input type="range" id="slider-s5-x" min="-7" max="1" step="0.1" value="-3" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer">
+              <input type="range" id="slider-s5-x" min="-7" max="1" step="0.5" value="-3" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer">
 
               <!-- Calculation details -->
-              <div class="p-3 bg-slate-50 rounded-lg border border-slate-200 text-xs space-y-1.5 font-mono">
-                <div class="flex justify-between">
-                  <span class="text-slate-600">二乗部分 $(x+3)^2$：</span>
-                  <span id="s5-sq-val" class="font-bold text-indigo-600">0.00</span>
+              <div class="p-3 bg-slate-50 rounded-lg border border-slate-200 text-xs space-y-2 font-mono">
+                <div class="flex justify-between items-center">
+                  <span class="text-slate-600 font-sans">二乗部分 $(x+3)^2$：</span>
+                  <span id="s5-sq-val" class="font-bold text-indigo-600">0</span>
                 </div>
-                <div class="flex justify-between">
-                  <span class="text-slate-600">2倍 $2(x+3)^2$：</span>
-                  <span id="s5-2sq-val" class="font-bold text-indigo-600">0.00</span>
+                <div class="flex justify-between items-center">
+                  <span class="text-slate-600 font-sans">2倍 $2(x+3)^2$：</span>
+                  <span id="s5-2sq-val" class="font-bold text-indigo-600">0</span>
                 </div>
-                <div class="flex justify-between border-t border-slate-200 pt-1 text-sm font-bold">
-                  <span class="text-slate-800">高さ $y$：</span>
-                  <span id="s5-y-val" class="text-rose-600 font-bold">-13.00</span>
+                <div class="flex justify-between items-center border-t border-slate-200 pt-1 text-sm font-bold">
+                  <span class="text-slate-800 font-sans">高さ $y$：</span>
+                  <span id="s5-y-val" class="text-rose-600 font-bold">-13</span>
                 </div>
               </div>
 
@@ -680,7 +680,7 @@
               </button>
             </div>
             <canvas id="canvas-free" width="400" height="320" class="max-w-full h-auto bg-white rounded-lg border border-slate-200 shadow-inner cursor-grab active:cursor-grabbing touch-none"></canvas>
-            <div id="free-vertex-label" class="mt-2 text-xs font-bold text-slate-700">
+            <div id="free-vertex-label" class="mt-2 text-xs font-bold text-slate-700 min-h-[26px] flex items-center justify-center">
               頂点: (-3, -13)
             </div>
           </div>
@@ -724,6 +724,145 @@
 
   <!-- Logic & Visual Script -->
   <script>
+    // Greatest common divisor helper
+    function gcd(a, b) {
+      a = Math.abs(a);
+      b = Math.abs(b);
+      return b === 0 ? a : gcd(b, a % b);
+    }
+
+    // Convert integer numerator and denominator to reduced LaTeX fraction (\frac{n}{d})
+    function makeFrac(n, d, showPlus = false) {
+      if (d === 0) return '0';
+      if (d < 0) { n = -n; d = -d; }
+      const g = gcd(n, d);
+      n = Math.round(n / g);
+      d = Math.round(d / g);
+
+      if (n === 0) return '0';
+      if (d === 1) {
+        if (showPlus && n > 0) return `+${n}`;
+        return `${n}`;
+      }
+      const sign = n < 0 ? '-' : (showPlus ? '+' : '');
+      return `${sign}\\frac{${Math.abs(n)}}{${d}}`;
+    }
+
+    // Convert floating point value to exact rational LaTeX fraction
+    function toLatexFrac(val, showPlus = false) {
+      if (val === null || val === undefined || isNaN(val)) return '0';
+      const eps = 1e-4;
+      const sign = val < -eps ? -1 : 1;
+      const absVal = Math.abs(val);
+
+      if (Math.abs(absVal - Math.round(absVal)) < eps) {
+        const intVal = Math.round(val);
+        if (showPlus && intVal > 0) return `+${intVal}`;
+        return intVal.toString();
+      }
+
+      let bestN = 1, bestD = 1, minErr = 999;
+      for (let d = 2; d <= 64; d++) {
+        const n = Math.round(absVal * d);
+        const err = Math.abs(absVal - n / d);
+        if (err < minErr) {
+          minErr = err;
+          bestN = n;
+          bestD = d;
+          if (err < eps) break;
+        }
+      }
+      return makeFrac(sign * bestN, bestD, showPlus);
+    }
+
+    // Dedicated formula renderer with safe HTML fallback
+    function setMathText(element, latexString, displayMode = false) {
+      if (!element) return;
+      const cleanLatex = latexString.replace(/^\$+|\$+$/g, '').trim();
+      if (window.katex) {
+        try {
+          katex.render(cleanLatex, element, {
+            displayMode: displayMode,
+            throwOnError: false
+          });
+          return;
+        } catch(e) {
+          console.warn("KaTeX render error:", e);
+        }
+      }
+      // Vertical stacked fraction fallback without slashes
+      element.innerHTML = cleanLatex
+        .replace(/\\left\(/g, '(')
+        .replace(/\\right\)/g, ')')
+        .replace(/\\left\[/g, '[')
+        .replace(/\\right\]/g, ']')
+        .replace(/\\quad/g, '&nbsp;&nbsp;')
+        .replace(/\\,/g, '&nbsp;')
+        .replace(/\\text\{([^}]+)\}/g, '$1')
+        .replace(/\\frac\{([^}]+)\}\{([^}]+)\}/g, '<span class="inline-flex flex-col text-center align-middle mx-0.5 text-xs"><span class="border-b border-current pb-0.5 leading-none">$1</span><span class="leading-none pt-0.5">$2</span></span>')
+        .replace(/\^2/g, '<sup>2</sup>')
+        .replace(/\^\{([^}]+)\}/g, '<sup>$1</sup>');
+    }
+
+    // Helper to draw true stacked fractions with horizontal line on Canvas (no slashes)
+    function drawCanvasFrac(ctx, n, d, x, y) {
+      if (d === 0) { ctx.fillText('0', x, y); return ctx.measureText('0').width; }
+      if (d < 0) { n = -n; d = -d; }
+      const g = gcd(n, d);
+      n = Math.round(n / g);
+      d = Math.round(d / g);
+
+      if (d === 1) {
+        const s = n.toString();
+        ctx.fillText(s, x, y);
+        return ctx.measureText(s).width;
+      }
+
+      const isNeg = n < 0;
+      const absN = Math.abs(n).toString();
+      const absD = d.toString();
+
+      ctx.save();
+      let curX = x;
+      if (isNeg) {
+        ctx.fillText('-', curX, y);
+        curX += ctx.measureText('-').width + 1;
+      }
+      const nw = ctx.measureText(absN).width;
+      const dw = ctx.measureText(absD).width;
+      const barW = Math.max(nw, dw) + 4;
+
+      ctx.fillText(absN, curX + (barW - nw) / 2, y - 5);
+      ctx.beginPath();
+      ctx.lineWidth = 1;
+      ctx.moveTo(curX, y - 3);
+      ctx.lineTo(curX + barW, y - 3);
+      ctx.stroke();
+      ctx.fillText(absD, curX + (barW - dw) / 2, y + 6);
+      ctx.restore();
+
+      return (curX - x) + barW;
+    }
+
+    // Canvas value drawer supporting fractional approximation
+    function drawCanvasVal(ctx, val, x, y) {
+      const eps = 1e-4;
+      const absVal = Math.abs(val);
+      if (Math.abs(absVal - Math.round(absVal)) < eps) {
+        const str = Math.round(val).toString();
+        ctx.fillText(str, x, y);
+        return ctx.measureText(str).width;
+      }
+      const sign = val < 0 ? -1 : 1;
+      let bestN = 1, bestD = 1, minErr = 999;
+      for (let d = 2; d <= 32; d++) {
+        const n = Math.round(absVal * d);
+        const err = Math.abs(absVal - n / d);
+        if (err < minErr) { minErr = err; bestN = n; bestD = d; if (err < eps) break; }
+      }
+      return drawCanvasFrac(ctx, sign * bestN, bestD, x, y);
+    }
+
     // Safe Math render utility
     function renderMath(element) {
       if (window.renderMathInElement) {
@@ -753,7 +892,6 @@
         targetBtn.classList.remove('text-slate-600', 'hover:bg-slate-100');
       }
 
-      // Re-render and resize canvases when tab opens
       setTimeout(() => {
         renderMath();
         if (tabId === 'step5') drawStep5Graph(parseFloat(document.getElementById('slider-s5-x').value));
@@ -776,7 +914,6 @@
       const label = document.getElementById('p1-state-label');
       const insight = document.getElementById('p1-insight');
 
-      // Update button highlights
       for (let i = 0; i < 3; i++) {
         const btn = document.getElementById(`btn-p1-${i}`);
         if (i === step) {
@@ -787,7 +924,6 @@
       }
 
       if (step === 0) {
-        // Initial state
         strip2.setAttribute('x', '245');
         strip2.setAttribute('y', '30');
         strip2.setAttribute('width', '65');
@@ -807,7 +943,6 @@
           <p>正方形の周りに均等にくっつけるには、長方形を<strong>左右と上下の2つに分ける</strong>必要があるから「半分（$\\div 2$）」にします。</p>
         `;
       } else if (step === 1) {
-        // Split & move bottom
         strip2.setAttribute('x', '30');
         strip2.setAttribute('y', '175');
         strip2.setAttribute('width', '140');
@@ -827,7 +962,6 @@
           <p>右下に $3 \\times 3$ の空き地ができました。ここを埋めれば一辺が $(x+3)$ の大きな正方形になります！</p>
         `;
       } else if (step === 2) {
-        // Fill corner & finalize
         strip2.setAttribute('x', '30');
         strip2.setAttribute('y', '175');
         strip2.setAttribute('width', '140');
@@ -957,7 +1091,6 @@
       box.classList.toggle('hidden');
       renderMath(box);
     }
-    // Initialize step 4
     setPhaseStep4(1);
 
     /* -------------------------------------------------------------
@@ -971,18 +1104,11 @@
       const h = canvas5.height;
       ctx5.clearRect(0, 0, w, h);
 
-      // Coordinate transforms
-      // x range: -8 to 2
-      // y range: -16 to 10
       const minX = -8, maxX = 2;
       const minY = -16, maxY = 8;
 
-      function toScreenX(x) {
-        return ((x - minX) / (maxX - minX)) * w;
-      }
-      function toScreenY(y) {
-        return h - ((y - minY) / (maxY - minY)) * h;
-      }
+      function toScreenX(x) { return ((x - minX) / (maxX - minX)) * w; }
+      function toScreenY(y) { return h - ((y - minY) / (maxY - minY)) * h; }
 
       // Draw Grid
       ctx5.strokeStyle = "#f1f5f9";
@@ -1003,12 +1129,11 @@
       // Draw Axes
       ctx5.strokeStyle = "#cbd5e1";
       ctx5.lineWidth = 1.5;
-      // x-axis (y=0)
       ctx5.beginPath();
       ctx5.moveTo(0, toScreenY(0));
       ctx5.lineTo(w, toScreenY(0));
       ctx5.stroke();
-      // y-axis (x=0)
+
       ctx5.beginPath();
       ctx5.moveTo(toScreenX(0), 0);
       ctx5.lineTo(toScreenX(0), h);
@@ -1033,7 +1158,7 @@
       ctx5.fillStyle = "#6366f1";
       ctx5.fillText("軸 x = -3", toScreenX(-3) + 4, 25);
 
-      // Draw Parabola y = 2(x+3)^2 - 13
+      // Parabola y = 2(x+3)^2 - 13
       ctx5.strokeStyle = "#4f46e5";
       ctx5.lineWidth = 2.5;
       ctx5.beginPath();
@@ -1042,16 +1167,12 @@
         const xVal = minX + (px / w) * (maxX - minX);
         const yVal = 2 * Math.pow(xVal + 3, 2) - 13;
         const py = toScreenY(yVal);
-        if (!started) {
-          ctx5.moveTo(px, py);
-          started = true;
-        } else {
-          ctx5.lineTo(px, py);
-        }
+        if (!started) { ctx5.moveTo(px, py); started = true; }
+        else { ctx5.lineTo(px, py); }
       }
       ctx5.stroke();
 
-      // Draw Vertex point (-3, -13)
+      // Vertex point (-3, -13)
       const vx = toScreenX(-3);
       const vy = toScreenY(-13);
       ctx5.fillStyle = "#e11d48";
@@ -1060,12 +1181,11 @@
       ctx5.fill();
       ctx5.fillText("頂点 (-3, -13)", vx + 8, vy + 4);
 
-      // Draw Current point on curve
+      // Current point
       const cy = 2 * Math.pow(currentX + 3, 2) - 13;
       const cx = toScreenX(currentX);
       const cpy = toScreenY(cy);
 
-      // Dash line to current point
       ctx5.strokeStyle = "#f43f5e";
       ctx5.lineWidth = 1;
       ctx5.setLineDash([2, 2]);
@@ -1076,7 +1196,6 @@
       ctx5.stroke();
       ctx5.setLineDash([]);
 
-      // Point
       ctx5.fillStyle = "#f43f5e";
       ctx5.beginPath();
       ctx5.arc(cx, cpy, 6, 0, Math.PI * 2);
@@ -1085,12 +1204,24 @@
       ctx5.lineWidth = 2;
       ctx5.stroke();
 
-      // Update values in UI
+      // Point label with exact fractions on Canvas
+      ctx5.font = "10px sans-serif";
+      let curTextX = cx + 8;
+      ctx5.fillText("(", curTextX, cpy - 4);
+      curTextX += ctx5.measureText("(").width;
+      curTextX += drawCanvasVal(ctx5, currentX, curTextX, cpy - 4);
+      ctx5.fillText(", ", curTextX, cpy - 4);
+      curTextX += ctx5.measureText(", ").width;
+      curTextX += drawCanvasVal(ctx5, cy, curTextX, cpy - 4);
+      ctx5.fillText(")", curTextX, cpy - 4);
+
+      // Update values in UI as LaTeX fractions
       const sq = Math.pow(currentX + 3, 2);
-      document.getElementById('s5-x-val').innerText = `x = ${currentX.toFixed(1)}`;
-      document.getElementById('s5-sq-val').innerText = sq.toFixed(2);
-      document.getElementById('s5-2sq-val').innerText = (2 * sq).toFixed(2);
-      document.getElementById('s5-y-val').innerText = cy.toFixed(2);
+      const twoSq = 2 * sq;
+      setMathText(document.getElementById('s5-x-val'), `x = ${toLatexFrac(currentX)}`);
+      setMathText(document.getElementById('s5-sq-val'), toLatexFrac(sq));
+      setMathText(document.getElementById('s5-2sq-val'), toLatexFrac(twoSq));
+      setMathText(document.getElementById('s5-y-val'), toLatexFrac(cy));
     }
 
     const sliderS5 = document.getElementById('slider-s5-x');
@@ -1102,7 +1233,6 @@
       drawStep5Graph(val);
     }
 
-    // Direct touch / drag interaction for Step 5
     let isDraggingStep5 = false;
     function updateStep5FromPointer(evt) {
       const rect = canvas5.getBoundingClientRect();
@@ -1110,7 +1240,7 @@
       const relX = (clientX - rect.left) / rect.width;
       const minX = -8, maxX = 2;
       let targetX = minX + relX * (maxX - minX);
-      targetX = Math.max(-7, Math.min(1, targetX));
+      targetX = Math.max(-7, Math.min(1, Math.round(targetX * 2) / 2));
       sliderS5.value = targetX;
       drawStep5Graph(targetX);
     }
@@ -1153,7 +1283,6 @@
       function toX(x) { return ((x - minX) / (maxX - minX)) * w; }
       function toY(y) { return h - ((y - minY) / (maxY - minY)) * h; }
 
-      // Grid & Axes
       ctx6.strokeStyle = "#f1f5f9";
       ctx6.lineWidth = 1;
       for (let x = -6; x <= 0; x++) {
@@ -1169,7 +1298,6 @@
         ctx6.stroke();
       }
 
-      // Axes
       ctx6.strokeStyle = "#cbd5e1";
       ctx6.lineWidth = 1.5;
       ctx6.beginPath();
@@ -1181,7 +1309,6 @@
       ctx6.lineTo(toX(0), h);
       ctx6.stroke();
 
-      // Axis of symmetry x = -3
       ctx6.strokeStyle = "#cbd5e1";
       ctx6.setLineDash([3, 3]);
       ctx6.beginPath();
@@ -1190,7 +1317,7 @@
       ctx6.stroke();
       ctx6.setLineDash([]);
 
-      // Curve A: y = (x+3)^2 - 13 (a=1)
+      // Curve A: y = (x+3)^2 - 13
       ctx6.strokeStyle = "#94a3b8";
       ctx6.lineWidth = 2;
       ctx6.beginPath();
@@ -1203,7 +1330,7 @@
       }
       ctx6.stroke();
 
-      // Curve B: y = 2(x+3)^2 - 13 (a=2)
+      // Curve B: y = 2(x+3)^2 - 13
       ctx6.strokeStyle = "#4f46e5";
       ctx6.lineWidth = 2.5;
       ctx6.beginPath();
@@ -1216,26 +1343,23 @@
       }
       ctx6.stroke();
 
-      // Draw markers for dx=1
       const x1 = -2;
       const yA1 = Math.pow(x1 + 3, 2) - 13;
       const yB1 = 2 * Math.pow(x1 + 3, 2) - 13;
 
-      // Points
       ctx6.fillStyle = "#94a3b8";
       ctx6.beginPath();
-      ctx6.arc(toX(x1), toY(yA1), 4, 0, Math.PI*2);
+      ctx6.arc(toX(x1), toY(yA1), 4, 0, Math.PI * 2);
       ctx6.fill();
 
       ctx6.fillStyle = "#4f46e5";
       ctx6.beginPath();
-      ctx6.arc(toX(x1), toY(yB1), 5, 0, Math.PI*2);
+      ctx6.arc(toX(x1), toY(yB1), 5, 0, Math.PI * 2);
       ctx6.fill();
 
-      // Common Vertex
       ctx6.fillStyle = "#e11d48";
       ctx6.beginPath();
-      ctx6.arc(toX(-3), toY(-13), 5, 0, Math.PI*2);
+      ctx6.arc(toX(-3), toY(-13), 5, 0, Math.PI * 2);
       ctx6.fill();
       ctx6.fillText("共通の頂点 (-3, -13)", toX(-3) + 8, toY(-13) + 4);
     }
@@ -1250,7 +1374,6 @@
     const inB = document.getElementById('input-b');
     const inC = document.getElementById('input-c');
 
-    // Stable coordinate system bounds to ensure visible movement
     let freeBounds = {
       baseMinX: -8, baseMaxX: 8,
       baseMinY: -22, baseMaxY: 12
@@ -1275,64 +1398,64 @@
       document.getElementById('val-b').innerText = b;
       document.getElementById('val-c').innerText = c;
 
-      // Inside bracket term: b / a
-      const bInside = b / a;
-      const halfB = bInside / 2;
-      const halfBsq = halfB * halfB;
-      const p = -halfB;
-      const q = c - a * halfBsq;
+      // Exact rational terms:
+      // bInside = b / a
+      // halfB = b / (2a)
+      // halfBsq = b^2 / (4a^2)
+      // p = - b / (2a)
+      // q = c - b^2 / (4a) = (4ac - b^2) / (4a)
+      const pVal = -b / (2 * a);
+      const qVal = (4 * a * c - b * b) / (4 * a);
 
-      currentP = p;
-      currentQ = q;
+      currentP = pVal;
+      currentQ = qVal;
 
-      // Generate step-by-step KaTeX friendly strings
+      const pFrac = makeFrac(-b, 2 * a);
+      const qFrac = makeFrac(4 * a * c - b * b, 4 * a);
+      const bInsideFrac = makeFrac(b, a, true);
+      const halfBFrac = makeFrac(b, 2 * a, true);
+      const halfBsqFrac = makeFrac(b * b, 4 * a * a);
+
       const bSign = b >= 0 ? `+ ${b}` : `- ${Math.abs(b)}`;
       const cSign = c >= 0 ? `+ ${c}` : `- ${Math.abs(c)}`;
       const origStr = `${a === 1 ? '' : a}x^2 ${bSign}x ${cSign}`;
-
-      const bInsideSign = bInside >= 0 ? `+ ${formatNum(bInside)}` : `- ${formatNum(Math.abs(bInside))}`;
-      const step1Str = `${a}(x^2 ${bInsideSign}x) ${cSign}`;
-
-      const halfSign = halfB >= 0 ? `+ ${formatNum(halfB)}` : `- ${formatNum(Math.abs(halfB))}`;
-      const step2Str = `${a} \\left[ (x ${halfSign})^2 - ${formatNum(halfBsq)} \\right] ${cSign}`;
-
-      const qSign = q >= 0 ? `+ ${formatNum(q)}` : `- ${formatNum(Math.abs(q))}`;
-      const finalStr = `${a}(x ${halfSign})^2 ${qSign}`;
+      const step1Str = `${a}\\left(x^2 ${bInsideFrac}x\\right) ${cSign}`;
+      const step2Str = `${a} \\left[ \\left(x ${halfBFrac}\\right)^2 - ${halfBsqFrac} \\right] ${cSign}`;
+      const finalStr = `${a}\\left(x ${halfBFrac}\\right)^2 ${makeFrac(4 * a * c - b * b, 4 * a, true)}`;
 
       const stepsBox = document.getElementById('free-math-steps');
       stepsBox.innerHTML = `
-        <div class="text-slate-600">① 元の式： $y = ${origStr}$</div>
-        <div class="text-indigo-600">② $a=${a}$ を外に出す： $y = ${step1Str}$</div>
-        <div class="text-emerald-700">③ かっこ内を平方完成： $y = ${step2Str}$</div>
-        <div class="text-slate-800 font-bold bg-indigo-50/60 p-2 rounded-lg border border-indigo-100">
-          ④ 整理した完成形： $y = ${finalStr}$
+        <div class="text-slate-600">① 元の式： <span id="fms-s1"></span></div>
+        <div class="text-indigo-600">② $a=${a}$ を外に出す： <span id="fms-s2"></span></div>
+        <div class="text-emerald-700">③ かっこ内を平方完成： <span id="fms-s3"></span></div>
+        <div class="text-slate-800 font-bold bg-indigo-50/60 p-2 rounded-lg border border-indigo-100 flex items-center justify-between">
+          <span>④ 整理した完成形：</span>
+          <span id="fms-s4" class="text-indigo-950 font-bold text-base"></span>
         </div>
       `;
+      setMathText(document.getElementById('fms-s1'), `y = ${origStr}`);
+      setMathText(document.getElementById('fms-s2'), `y = ${step1Str}`);
+      setMathText(document.getElementById('fms-s3'), `y = ${step2Str}`);
+      setMathText(document.getElementById('fms-s4'), `y = ${finalStr}`);
 
-      // Update Labels
-      document.getElementById('free-axis-val').innerText = `x = ${formatNum(p)}`;
-      document.getElementById('free-vertex-val').innerText = `(${formatNum(p)}, ${formatNum(q)})`;
-      document.getElementById('free-min-val').innerText = formatNum(q);
-      document.getElementById('free-vertex-label').innerText = `頂点: (${formatNum(p)}, ${formatNum(q)}) / 軸: x = ${formatNum(p)}`;
+      // Property tags with exact LaTeX fractions
+      setMathText(document.getElementById('free-axis-val'), `x = ${pFrac}`);
+      setMathText(document.getElementById('free-vertex-val'), `\\left(${pFrac},\\, ${qFrac}\\right)`);
+      setMathText(document.getElementById('free-min-val'), qFrac);
 
-      renderMath(stepsBox);
-      drawFreeGraph(a, p, q);
+      const vLabel = document.getElementById('free-vertex-label');
+      setMathText(vLabel, `\\text{頂点: } \\left(${pFrac},\\, ${qFrac}\\right) \\quad \\text{軸: } x = ${pFrac}`);
+
+      drawFreeGraph(a, b, c, pVal, qVal);
     }
 
-    function formatNum(num) {
-      if (Number.isInteger(num)) return num.toString();
-      return num.toFixed(2).replace(/\.?0+$/, '');
-    }
-
-    // Store current bounds for interactive drag calculations
     let activeMinX = -8, activeMaxX = 8, activeMinY = -22, activeMaxY = 12;
 
-    function drawFreeGraph(a, p, q) {
+    function drawFreeGraph(a, b, c, p, q) {
       const w = canvasFree.width;
       const h = canvasFree.height;
       ctxFree.clearRect(0, 0, w, h);
 
-      // Keep origin (0, 0) anchored and expand frame if vertex moves far
       activeMinX = Math.min(freeBounds.baseMinX, p - 3);
       activeMaxX = Math.max(freeBounds.baseMaxX, p + 3);
       activeMinY = Math.min(freeBounds.baseMinY, q - 4);
@@ -1357,26 +1480,23 @@
         ctxFree.stroke();
       }
 
-      // Coordinate axes (x=0, y=0) - Always visible anchor!
+      // Coordinate axes
       ctxFree.strokeStyle = "#94a3b8";
       ctxFree.lineWidth = 1.5;
 
-      // x-axis
       ctxFree.beginPath();
       ctxFree.moveTo(0, toY(0));
       ctxFree.lineTo(w, toY(0));
       ctxFree.stroke();
 
-      // y-axis
       ctxFree.beginPath();
       ctxFree.moveTo(toX(0), 0);
       ctxFree.lineTo(toX(0), h);
       ctxFree.stroke();
 
-      // Tick marks and numeric labels on axes
+      // Tick marks and numbers
       ctxFree.fillStyle = "#94a3b8";
       ctxFree.font = "10px sans-serif";
-      // X ticks
       for (let x = Math.ceil(activeMinX / 2) * 2; x <= activeMaxX; x += 2) {
         if (x === 0) continue;
         const sx = toX(x);
@@ -1387,7 +1507,6 @@
         ctxFree.stroke();
         ctxFree.fillText(x.toString(), sx - 5, Math.min(Math.max(sy + 13, 13), h - 6));
       }
-      // Y ticks
       for (let y = Math.ceil(activeMinY / 5) * 5; y <= activeMaxY; y += 5) {
         if (y === 0) continue;
         const sx = toX(0);
@@ -1399,7 +1518,6 @@
         ctxFree.fillText(y.toString(), Math.min(Math.max(sx + 5, 5), w - 24), sy + 4);
       }
 
-      // Origin label
       ctxFree.fillText("O", toX(0) + 4, toY(0) + 12);
       ctxFree.fillText("x", w - 12, toY(0) - 4);
       ctxFree.fillText("y", toX(0) + 4, 14);
@@ -1413,8 +1531,14 @@
       ctxFree.lineTo(toX(p), h);
       ctxFree.stroke();
       ctxFree.setLineDash([]);
+
+      // Axis label using stacked fraction (no slashes)
       ctxFree.fillStyle = "#4f46e5";
-      ctxFree.fillText(`軸 x = ${formatNum(p)}`, toX(p) + 4, 25);
+      ctxFree.font = "10px sans-serif";
+      let axisLabelX = toX(p) + 4;
+      ctxFree.fillText("軸 x = ", axisLabelX, 22);
+      axisLabelX += ctxFree.measureText("軸 x = ").width;
+      drawCanvasFrac(ctxFree, -b, 2 * a, axisLabelX, 22);
 
       // Parabola curve
       ctxFree.strokeStyle = "#4f46e5";
@@ -1425,16 +1549,12 @@
         const xVal = activeMinX + (px / w) * (activeMaxX - activeMinX);
         const yVal = a * Math.pow(xVal - p, 2) + q;
         const py = toY(yVal);
-        if (!started) {
-          ctxFree.moveTo(px, py);
-          started = true;
-        } else {
-          ctxFree.lineTo(px, py);
-        }
+        if (!started) { ctxFree.moveTo(px, py); started = true; }
+        else { ctxFree.lineTo(px, py); }
       }
       ctxFree.stroke();
 
-      // Parallel shift guidelines from origin to vertex
+      // Parallel shift guidelines
       const vx = toX(p);
       const vy = toY(q);
       ctxFree.strokeStyle = "#f43f5e";
@@ -1448,7 +1568,7 @@
       ctxFree.stroke();
       ctxFree.setLineDash([]);
 
-      // Vertex point (Draggable handle)
+      // Draggable vertex point
       ctxFree.fillStyle = "rgba(225, 29, 72, 0.25)";
       ctxFree.beginPath();
       ctxFree.arc(vx, vy, 14, 0, Math.PI * 2);
@@ -1462,12 +1582,19 @@
       ctxFree.lineWidth = 2;
       ctxFree.stroke();
 
+      // Vertex label using stacked fraction on Canvas (no slashes)
       ctxFree.fillStyle = "#be123c";
-      ctxFree.font = "bold 11px sans-serif";
-      ctxFree.fillText(`頂点 (${formatNum(p)}, ${formatNum(q)})`, vx + 10, vy + 4);
+      ctxFree.font = "10px sans-serif";
+      let vTextX = vx + 10;
+      ctxFree.fillText("頂点 (", vTextX, vy + 4);
+      vTextX += ctxFree.measureText("頂点 (").width;
+      vTextX += drawCanvasFrac(ctxFree, -b, 2 * a, vTextX, vy + 4);
+      ctxFree.fillText(", ", vTextX, vy + 4);
+      vTextX += ctxFree.measureText(", ").width;
+      vTextX += drawCanvasFrac(ctxFree, 4 * a * c - b * b, 4 * a, vTextX, vy + 4);
+      ctxFree.fillText(")", vTextX, vy + 4);
     }
 
-    // Direct vertex dragging logic on Free Lab canvas
     let isDraggingVertex = false;
 
     function handleFreePointer(evt) {
@@ -1483,17 +1610,12 @@
 
       const a = parseInt(inA.value);
 
-      // Desired vertex (p, q) snapped smoothly
       const targetP = Math.round(mathX * 2) / 2;
       const targetQ = Math.round(mathY);
 
-      // Reconstruct b and c:
-      // p = - b / (2a) => b = -2 * a * p
-      // q = c - a * p^2 => c = q + a * p^2
       let newB = Math.round(-2 * a * targetP);
       let newC = Math.round(targetQ + a * targetP * targetP);
 
-      // Clamp to slider ranges
       newB = Math.max(-16, Math.min(16, newB));
       newC = Math.max(-15, Math.min(15, newC));
 
@@ -1528,7 +1650,6 @@
       input.addEventListener('input', updateFreeLab);
     });
 
-    // Initial on-load setup
     window.addEventListener('DOMContentLoaded', () => {
       renderMath();
       setPuzzleStep1(0);

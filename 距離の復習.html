@@ -1,153 +1,548 @@
-<!-- ... existing code ... -->
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>数学II 直線の方程式シミュレータ</title>
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- KaTeX for beautiful math formulas -->
+  <!-- KaTeX CSS & JS for formula display -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+  
   <style>
-<!-- ... existing code ... -->
-      <!-- ================= 7. WORKSHEET ANSWERS PANEL ================= -->
-      <div id="panel-worksheet_answers" class="panel-content hidden flex flex-col gap-4">
-        <div class="bg-white p-4 sm:p-5 rounded-2xl shadow-xs border border-slate-200 space-y-3">
-          <div class="border-b border-slate-200 pb-2.5 flex items-center justify-between">
-            <div>
-              <h3 class="font-bold text-sm text-slate-800 flex items-center gap-2">
-                <span>ワークシート全空欄 解答＆解説シート</span>
-                <span class="text-[10px] bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-bold">グラフ連動中</span>
-              </h3>
-              <p class="text-xs text-slate-500 mt-0.5">見たい項目をタップすると、左のグラフが対応する図解に瞬時に切り替わります！</p>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap');
+    body {
+      font-family: 'Noto Sans JP', sans-serif;
+      touch-action: manipulation;
+    }
+    .mono-num {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    /* Smooth custom scrollbars */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+    canvas {
+      touch-action: none;
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col antialiased select-none sm:select-auto">
+
+  <header class="bg-indigo-900 text-white shadow-md sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-3 sm:px-4 py-2.5 flex flex-col sm:flex-row items-center justify-between gap-2">
+      <div class="flex items-center space-x-2.5">
+        <span class="bg-amber-400 text-indigo-950 font-bold px-2 py-0.5 rounded text-xs tracking-wide">数学II</span>
+        <div>
+          <h1 class="text-sm sm:text-base font-bold tracking-tight">直線を式で表す ― 点の集まりが従う「変化のルール」</h1>
+          <p class="text-[11px] text-indigo-200 hidden sm:block">第2回 ワークシート連動型シミュレータ</p>
+        </div>
+      </div>
+      <div class="flex items-center text-xs bg-indigo-950/60 px-3 py-1 rounded-full border border-indigo-700/50">
+        <span class="text-amber-300 font-bold mr-1.5">今日の問い:</span>
+        <span class="text-slate-200">2点の手がかりから、無限に続く直線を1つの式で伝えられるか？</span>
+      </div>
+    </div>
+
+    <!-- Mode Selector Tab Navigation -->
+    <div class="bg-indigo-800 border-t border-indigo-700/60 overflow-x-auto">
+      <div class="max-w-7xl mx-auto px-2 flex space-x-1 py-1.5 text-xs font-medium whitespace-nowrap" id="tabContainer">
+        <button onclick="switchTab('slope')" id="tab-slope" class="tab-btn px-3 py-1.5 rounded-lg transition bg-white text-indigo-900 font-bold shadow-xs">
+          1. 傾き (横と縦の変化)
+        </button>
+        <button onclick="switchTab('formula')" id="tab-formula" class="tab-btn px-3 py-1.5 rounded-lg transition text-indigo-100 hover:bg-indigo-700/70">
+          2. 直線の式の仕組み
+        </button>
+        <button onclick="switchTab('points')" id="tab-points" class="tab-btn px-3 py-1.5 rounded-lg transition text-indigo-100 hover:bg-indigo-700/70">
+          3. 点の集まりのルール
+        </button>
+        <button onclick="switchTab('parallel_perp')" id="tab-parallel_perp" class="tab-btn px-3 py-1.5 rounded-lg transition text-indigo-100 hover:bg-indigo-700/70">
+          4. 平行と垂直
+        </button>
+        <button onclick="switchTab('distance')" id="tab-distance" class="tab-btn px-3 py-1.5 rounded-lg transition text-indigo-100 hover:bg-indigo-700/70">
+          5. 点と直線の距離
+        </button>
+        <button onclick="switchTab('exercises')" id="tab-exercises" class="tab-btn px-3 py-1.5 rounded-lg transition text-indigo-100 hover:bg-indigo-700/70">
+          6. 練習＆出口問題
+        </button>
+        <button onclick="switchTab('worksheet_answers')" id="tab-worksheet_answers" class="tab-btn px-3 py-1.5 rounded-lg transition text-amber-300 font-bold hover:bg-indigo-700/70 border border-amber-400/40">
+          7. ワークシート解答解説 (グラフ連動)
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-3 sm:px-4 py-4 flex-1 flex flex-col lg:flex-row gap-4 w-full">
+    
+    <!-- LEFT COLUMN: Canvas Visualizer Area -->
+    <div class="lg:w-7/12 flex flex-col bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden min-h-[440px] sm:min-h-[520px]">
+      <!-- Toolbar -->
+      <div class="bg-slate-50 px-3.5 py-2 border-b border-slate-200 flex items-center justify-between text-xs text-slate-600">
+        <div class="flex items-center space-x-2">
+          <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span class="font-bold text-slate-700" id="canvasTitle">グラフ操作キャンバス</span>
+          <span class="text-slate-400 text-[11px] hidden sm:inline">（点をドラッグまたは右側で調整できます）</span>
+        </div>
+        <div class="flex items-center space-x-1.5">
+          <button onclick="resetCurrentView()" class="px-2.5 py-1 bg-white hover:bg-slate-100 border border-slate-300 rounded shadow-2xs text-slate-700 transition flex items-center gap-1">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+            リセット
+          </button>
+          <button onclick="toggleGridSnap()" id="btnGridSnap" class="px-2.5 py-1 bg-indigo-50 border border-indigo-200 text-indigo-700 rounded shadow-2xs font-semibold transition">
+            スナップ: ON
+          </button>
+        </div>
+      </div>
+
+      <!-- Canvas Box -->
+      <div class="relative flex-1 bg-slate-900 w-full overflow-hidden" id="canvasWrapper">
+        <canvas id="mainCanvas" class="w-full h-full block cursor-crosshair"></canvas>
+        
+        <!-- Canvas Status Badge -->
+        <div id="canvasBadge" class="absolute bottom-3 left-3 bg-slate-900/90 backdrop-blur-xs border border-slate-700 text-white text-xs px-3 py-1.5 rounded-lg shadow-lg pointer-events-none transition-all">
+          読み込み中...
+        </div>
+
+        <!-- Coordinates Legend -->
+        <div id="pointsLegend" class="absolute top-3 right-3 bg-white/90 backdrop-blur-xs border border-slate-200 text-slate-800 text-[11px] px-2.5 py-1.5 rounded-lg shadow-xs flex flex-col gap-0.5 pointer-events-none">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+
+      <!-- Action Hint Bar -->
+      <div class="bg-amber-50/90 border-t border-amber-200/70 px-3.5 py-1.5 text-xs text-amber-950 flex items-center gap-2">
+        <span class="text-amber-600 font-bold shrink-0">💡 ヒント:</span>
+        <span id="canvasHintText" class="truncate">赤色の点 A, B を指やマウスで動かしてみましょう！</span>
+      </div>
+    </div>
+
+    <!-- RIGHT COLUMN: Interactive Educational Controls -->
+    <div class="lg:w-5/12 flex flex-col gap-4 overflow-y-auto max-h-[820px]">
+
+      <!-- 1. SLOPE PANEL -->
+      <div id="panel-slope" class="panel-content flex flex-col gap-3.5">
+        <div class="bg-white p-4 sm:p-5 rounded-2xl shadow-xs border border-slate-200 space-y-3.5">
+          <div class="flex items-center gap-2 text-indigo-800 font-bold text-sm">
+            <span class="w-5 h-5 rounded-full bg-indigo-100 flex items-center justify-center text-xs text-indigo-700 font-bold">2</span>
+            傾きは「横と縦の変化」
+          </div>
+          <p class="text-xs text-slate-600 leading-relaxed">
+            2点 $A(1, 2)$ と $B(4, 8)$ を結ぶ直線について調べます。グラフ上の点をドラッグするか、下のスライダーで座標を変えて変化を観察できます。
+          </p>
+
+          <!-- Interactive sliders for A and B -->
+          <div class="grid grid-cols-2 gap-2 text-xs bg-slate-50 p-2.5 rounded-xl border border-slate-200">
+            <div class="space-y-1">
+              <div class="font-bold text-red-600 flex justify-between">
+                <span>点 A(x, y)</span>
+                <span id="valA-disp" class="mono-num">(1, 2)</span>
+              </div>
+              <div class="flex items-center gap-1 text-[11px] text-slate-500">
+                <span>x:</span>
+                <input type="range" id="sliderAx" min="-2" max="6" value="1" step="1" oninput="onSliderMoveA()" class="w-full accent-red-500">
+              </div>
+              <div class="flex items-center gap-1 text-[11px] text-slate-500">
+                <span>y:</span>
+                <input type="range" id="sliderAy" min="-2" max="10" value="2" step="1" oninput="onSliderMoveA()" class="w-full accent-red-500">
+              </div>
+            </div>
+            <div class="space-y-1">
+              <div class="font-bold text-red-600 flex justify-between">
+                <span>点 B(x, y)</span>
+                <span id="valB-disp" class="mono-num">(4, 8)</span>
+              </div>
+              <div class="flex items-center gap-1 text-[11px] text-slate-500">
+                <span>x:</span>
+                <input type="range" id="sliderBx" min="-2" max="6" value="4" step="1" oninput="onSliderMoveB()" class="w-full accent-red-500">
+              </div>
+              <div class="flex items-center gap-1 text-[11px] text-slate-500">
+                <span>y:</span>
+                <input type="range" id="sliderBy" min="-2" max="10" value="8" step="1" oninput="onSliderMoveB()" class="w-full accent-red-500">
+              </div>
             </div>
           </div>
 
-          <!-- Interactive Section 1 -->
+          <!-- Delta Calculation Breakdown -->
+          <div class="bg-indigo-50/50 p-3 rounded-xl border border-indigo-100 space-y-2 text-xs">
+            <div class="flex justify-between items-center">
+              <span class="text-slate-700">横の変化 ($x$ の増加量 $dx$):</span>
+              <span class="font-bold text-blue-700 mono-num" id="slope-dx-display">4 - 1 = 3</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-slate-700">縦の変化 ($y$ の増加量 $dy$):</span>
+              <span class="font-bold text-amber-700 mono-num" id="slope-dy-display">8 - 2 = 6</span>
+            </div>
+            <div class="h-px bg-indigo-200/70"></div>
+            <div class="flex justify-between items-center">
+              <span class="font-bold text-slate-800">傾き $m = \frac{dy}{dx}$ :</span>
+              <span class="font-extrabold text-indigo-700 mono-num text-sm" id="slope-m-display">6 / 3 = 2.0</span>
+            </div>
+          </div>
+
+          <!-- Step stairs visual toggle -->
+          <label class="flex items-center gap-2 text-xs text-slate-700 cursor-pointer p-1">
+            <input type="checkbox" id="showStepStairs" onchange="redraw()" checked class="rounded text-indigo-600 focus:ring-indigo-500 w-4 h-4">
+            <span class="font-semibold text-emerald-700">「1進んで2上がる」階段ステップを強調表示</span>
+          </label>
+
+          <!-- Core conceptual insight -->
+          <div class="p-3 bg-blue-50/80 rounded-xl border border-blue-200 text-xs text-blue-950 space-y-1">
+            <div class="font-bold text-blue-900 flex items-center gap-1">
+              <span>💡</span>「横に1進むと？」で考える
+            </div>
+            <p class="leading-relaxed" id="slope-narrative">
+              横に <strong>3</strong> 進むと縦に <strong>6</strong> 進む。<br>
+              ということは、<strong>横に 1 進むなら、縦には 2 進む</strong> というペースを表しています！
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. FORMULA PANEL -->
+      <div id="panel-formula" class="panel-content hidden flex flex-col gap-3.5">
+        <div class="bg-white p-4 sm:p-5 rounded-2xl shadow-xs border border-slate-200 space-y-3">
+          <div class="flex items-center gap-2 text-indigo-800 font-bold text-sm">
+            <span class="w-5 h-5 rounded-full bg-indigo-100 flex items-center justify-center text-xs text-indigo-700 font-bold">3</span>
+            1点と傾きから直線の式をつくる
+          </div>
+          <p class="text-xs text-slate-600 leading-relaxed">
+            基準点 $A(1, 2)$ を通り、傾きが $2$ の直線上の動点を $P(x, y)$ とします。<br>
+            下のスライダーで点 $P$ を動かしても、<strong>「縦の変化 ÷ 横の変化」が常に 2</strong> になることを確認しましょう。
+          </p>
+
+          <!-- Slider for Point P position -->
+          <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2 text-xs">
+            <div class="flex justify-between items-center font-bold">
+              <span class="text-emerald-700">動点 P の位置をスライド:</span>
+              <span id="formula-P-coord" class="mono-num text-emerald-800">P(3.0, 6.0)</span>
+            </div>
+            <input type="range" id="sliderFormulaP" min="-1" max="5" value="3" step="0.2" oninput="onSliderMoveFormulaP(this.value)" class="w-full accent-emerald-600">
+            <div class="flex justify-between text-[11px] text-slate-600 pt-1">
+              <span>横の変化: <strong class="text-blue-700 mono-num" id="formula-dx">x - 1 = 2.0</strong></span>
+              <span>縦の変化: <strong class="text-amber-700 mono-num" id="formula-dy">y - 2 = 4.0</strong></span>
+            </div>
+          </div>
+
+          <!-- Formula reasoning box -->
+          <div class="bg-slate-900 text-white p-3.5 rounded-xl space-y-2 text-xs font-mono">
+            <div class="text-slate-400 text-[11px]">// 縦の変化は横の変化のちょうど2倍</div>
+            <div class="text-amber-300 font-bold text-center text-sm py-1 bg-slate-800 rounded">
+              y - 2 = 2(x - 1)
+            </div>
+            <div class="text-center text-emerald-400 font-bold">
+              整理すると: y = 2x
+            </div>
+          </div>
+
+          <!-- Verification checks -->
+          <div class="space-y-1.5 text-xs">
+            <div class="p-2 bg-emerald-50 rounded-lg border border-emerald-200 flex justify-between items-center">
+              <span>$A(1,2)$ を代入: $2 = 2 \times 1$</span>
+              <span class="font-bold text-emerald-700">成り立つ ✓</span>
+            </div>
+            <div class="p-2 bg-emerald-50 rounded-lg border border-emerald-200 flex justify-between items-center">
+              <span>$B(4,8)$ を代入: $8 = 2 \times 4$</span>
+              <span class="font-bold text-emerald-700">成り立つ ✓</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. POINTS PANEL -->
+      <div id="panel-points" class="panel-content hidden flex flex-col gap-3.5">
+        <div class="bg-white p-4 sm:p-5 rounded-2xl shadow-xs border border-slate-200 space-y-3">
+          <div class="flex items-center gap-2 text-indigo-800 font-bold text-sm">
+            <span class="w-5 h-5 rounded-full bg-indigo-100 flex items-center justify-center text-xs text-indigo-700 font-bold">5</span>
+            直線の式は「点の集まりのルール」
+          </div>
+          <p class="text-xs text-slate-600 leading-relaxed">
+            式 $y = 2x$ とは、「$y$ 座標が $x$ 座標の2倍である点」だけが集まったものです。<br>
+            スライダーで点の数を増やしてみましょう。点と点の間が埋まり、やがて1本の直線になります！
+          </p>
+
+          <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+            <div class="flex justify-between items-center text-xs">
+              <span class="font-bold text-slate-700">直線上にある点の密度:</span>
+              <span class="font-bold text-indigo-700 mono-num" id="pointDensityLabel">5 点</span>
+            </div>
+            <input type="range" id="sliderDensity" min="3" max="70" value="5" step="1" oninput="updateDensity(this.value)" class="w-full accent-indigo-600">
+            <div class="flex justify-between text-[10px] text-slate-400">
+              <span>まばらな点</span>
+              <span>ぎっしり並ぶ</span>
+              <span>1本の直線に見える</span>
+            </div>
+          </div>
+
+          <div class="bg-indigo-50/70 p-3 rounded-xl border border-indigo-200 text-xs text-indigo-950 space-y-1">
+            <div class="font-bold text-indigo-900">なぜ式1つで直線全体を表せるのか？</div>
+            <p class="leading-relaxed text-slate-700">
+              直線には無数の点があります。すべてを書き並べることは不可能ですが、<strong>「$y = 2x$」という共通ルールを1つ書くだけで、直線上すべての点の集まりを完全に指定できる</strong>からです。
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. PARALLEL & PERPENDICULAR PANEL -->
+      <div id="panel-parallel_perp" class="panel-content hidden flex flex-col gap-3.5">
+        <div class="bg-white p-4 sm:p-5 rounded-2xl shadow-xs border border-slate-200 space-y-3">
+          <div class="flex items-center gap-2 text-indigo-800 font-bold text-sm">
+            <span class="w-5 h-5 rounded-full bg-indigo-100 flex items-center justify-center text-xs text-indigo-700 font-bold">6</span>
+            平行と垂直
+          </div>
+
+          <!-- Mode Toggle Buttons -->
+          <div class="flex rounded-lg bg-slate-100 p-1 text-xs font-bold">
+            <button onclick="setParallelMode('parallel')" id="btnSubParallel" class="flex-1 py-1.5 rounded-md bg-white text-indigo-700 shadow-2xs">
+              ① 平行線 ($m_1 = m_2$)
+            </button>
+            <button onclick="setParallelMode('perp')" id="btnSubPerp" class="flex-1 py-1.5 rounded-md text-slate-600 hover:text-indigo-700">
+              ② 垂直線 ($m_1 m_2 = -1$)
+            </button>
+          </div>
+
+          <div id="subpanel-parallel" class="space-y-2.5 text-xs text-slate-700">
+            <p class="leading-relaxed">平行な直線同士は、横に進んだときの縦の変化（<strong>傾き</strong>）が等しくなります。</p>
+            <div class="p-2.5 bg-slate-50 rounded-lg border border-slate-200 space-y-1.5">
+              <div class="flex justify-between items-center">
+                <span class="font-bold text-sky-600">基準線: $y = 2x$</span>
+                <span class="mono-num bg-sky-100 text-sky-800 px-2 py-0.5 rounded font-bold">傾き 2</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="font-bold text-indigo-600">平行線: $y = 2x + 3$</span>
+                <span class="mono-num bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded font-bold">傾き 2</span>
+              </div>
+            </div>
+          </div>
+
+          <div id="subpanel-perp" class="hidden space-y-2.5 text-xs text-slate-700">
+            <p class="leading-relaxed">
+              傾き $2$ の直線の進み方「右に 1, 上に 2」を <strong>反時計回りに $90^\circ$ 回転</strong> させると、「左に 2, 上に 1」となり、傾きは <strong>$-\frac{1}{2}$ ($-0.5$)</strong> になります！
+            </p>
+            <div class="p-3 bg-slate-900 text-white rounded-xl space-y-1.5 font-mono">
+              <div class="flex justify-between text-slate-300">
+                <span>元の進み方:</span>
+                <span class="text-sky-400 font-bold">(1, 2) → 傾き 2</span>
+              </div>
+              <div class="flex justify-between text-slate-300">
+                <span>90°回転後:</span>
+                <span class="text-red-400 font-bold">(-2, 1) → 傾き -0.5</span>
+              </div>
+              <div class="pt-1.5 border-t border-slate-800 flex justify-between items-center text-amber-300 font-bold">
+                <span>傾きの積:</span>
+                <span>2 × (-0.5) = -1</span>
+              </div>
+            </div>
+            <div class="p-2 bg-red-50 rounded border border-red-200 text-red-900 text-center font-bold">
+              垂直の条件: $m_2 = -\frac{1}{m_1} \quad (m_1 m_2 = -1)$
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5. DISTANCE PANEL -->
+      <div id="panel-distance" class="panel-content hidden flex flex-col gap-3.5">
+        <div class="bg-white p-4 sm:p-5 rounded-2xl shadow-xs border border-slate-200 space-y-3">
+          <div class="flex items-center gap-2 text-indigo-800 font-bold text-sm">
+            <span class="w-5 h-5 rounded-full bg-indigo-100 flex items-center justify-center text-xs text-indigo-700 font-bold">7</span>
+            点と直線の距離（最短距離の検証）
+          </div>
+          <p class="text-xs text-slate-600 leading-relaxed">
+            点 $P(2, 5)$ から直線 $y = x$ までの距離を調べます。<br>
+            直線上の点 $H$ をスライダーで動かして、長さがもっとも短くなるときの角度を確認しましょう！
+          </p>
+
+          <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-2.5 text-xs">
+            <div class="flex justify-between items-center">
+              <span class="font-bold text-teal-700">直線上の点 H:</span>
+              <span id="dist-h-coord" class="mono-num font-bold text-teal-800">H(3.5, 3.5)</span>
+            </div>
+            <input type="range" id="sliderDistH" min="1" max="6" value="3.5" step="0.1" oninput="updateDistH(this.value)" class="w-full accent-teal-600">
+            <div class="flex justify-between items-center pt-1 border-t border-slate-200">
+              <span class="text-slate-700">線分 PH の長さ:</span>
+              <span id="dist-len-display" class="mono-num font-extrabold text-base text-indigo-700">2.12</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-slate-700">直線と線分 PH の角度:</span>
+              <span id="dist-angle-display" class="mono-num font-bold text-slate-800">90.0°</span>
+            </div>
+          </div>
+
+          <button onclick="snapToShortestDist()" class="w-full py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-lg text-xs font-bold transition flex items-center justify-center gap-1">
+            <span>⚡ 最短距離（垂線・90度）の位置に移動</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 6. EXERCISES PANEL -->
+      <div id="panel-exercises" class="panel-content hidden flex flex-col gap-3.5">
+        <!-- Exercise A -->
+        <div class="bg-white p-3.5 rounded-2xl shadow-xs border border-slate-200 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-indigo-800 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-200">練習A: 2点を通る直線</span>
+            <span class="text-[11px] text-slate-400">p.3</span>
+          </div>
+          <p class="text-xs text-slate-700">$C(-1, 1)$, $D(3, 9)$ を通る直線の傾きと式</p>
+          <div class="grid grid-cols-2 gap-2 text-xs">
+            <div>
+              <label class="text-slate-600 block mb-0.5 text-[11px]">傾き $m$:</label>
+              <input type="number" id="input-exA-m" placeholder="例: 2" class="w-full p-1.5 border border-slate-300 rounded text-center mono-num text-xs">
+            </div>
+            <div>
+              <label class="text-slate-600 block mb-0.5 text-[11px]">切片 $b$ ($y=mx+b$):</label>
+              <input type="number" id="input-exA-b" placeholder="例: 3" class="w-full p-1.5 border border-slate-300 rounded text-center mono-num text-xs">
+            </div>
+          </div>
+          <button onclick="checkExerciseA()" class="w-full py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded text-xs font-semibold transition">答え合わせ</button>
+          <div id="feedback-exA" class="hidden p-2 rounded text-xs"></div>
+        </div>
+
+        <!-- Exit Problem -->
+        <div class="bg-amber-50/80 p-3.5 rounded-2xl shadow-xs border border-amber-200 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-amber-900 bg-amber-100 px-2 py-0.5 rounded border border-amber-300">8. 出口問題</span>
+            <span class="text-[11px] text-amber-700">p.7</span>
+          </div>
+          <p class="text-xs text-amber-950">① $A(2,3)$ と $B(6,11)$ を通る直線の式: $y = mx + b$</p>
+          <div class="flex items-center gap-1.5 text-xs">
+            <span class="mono-num">$y =$</span>
+            <input type="number" id="input-exit-m" placeholder="傾き" class="w-16 p-1.5 bg-white border border-amber-300 rounded text-center mono-num text-xs">
+            <span class="mono-num">$x +$</span>
+            <input type="number" id="input-exit-b" placeholder="切片" class="w-16 p-1.5 bg-white border border-amber-300 rounded text-center mono-num text-xs">
+          </div>
+
+          <p class="text-xs text-amber-950 pt-1">② ①に平行で、点 $(0, -2)$ を通る直線の式:</p>
+          <div class="flex items-center gap-1.5 text-xs">
+            <span class="mono-num">$y =$</span>
+            <input type="number" id="input-exit2-m" placeholder="傾き" class="w-16 p-1.5 bg-white border border-amber-300 rounded text-center mono-num text-xs">
+            <span class="mono-num">$x +$</span>
+            <input type="number" id="input-exit2-b" placeholder="切片" class="w-16 p-1.5 bg-white border border-amber-300 rounded text-center mono-num text-xs">
+          </div>
+
+          <button onclick="checkExitProblem()" class="w-full py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded text-xs font-bold transition">出口問題を採点</button>
+          <div id="feedback-exit" class="hidden p-2 rounded text-xs"></div>
+        </div>
+      </div>
+
+      <!-- 7. WORKSHEET ANSWERS PANEL (DYNAMIC GRAPH LINKED) -->
+      <div id="panel-worksheet_answers" class="panel-content hidden flex flex-col gap-3">
+        <div class="bg-white p-3.5 sm:p-4 rounded-2xl shadow-xs border border-slate-200 space-y-2.5">
+          <div class="border-b border-slate-200 pb-2">
+            <div class="flex items-center justify-between">
+              <h3 class="font-bold text-xs sm:text-sm text-slate-800 flex items-center gap-1.5">
+                <span>ワークシート全空欄 解答＆解説</span>
+              </h3>
+              <span class="text-[10px] bg-indigo-100 text-indigo-700 font-bold px-2 py-0.5 rounded-full border border-indigo-200">
+                ✨ グラフ連動中
+              </span>
+            </div>
+            <p class="text-[11px] text-slate-500 mt-1">下の項目をタップすると、左のグラフが瞬時にその問題の図解に切り替わります！</p>
+          </div>
+
+          <!-- Interactive Card 1 -->
           <div onclick="selectAnswerSection('ans1')" id="card-ans1" class="ans-card p-3 rounded-xl border border-slate-200 bg-slate-50 hover:bg-indigo-50/40 transition cursor-pointer space-y-1">
             <div class="flex items-center justify-between">
               <span class="font-bold text-xs text-indigo-700 flex items-center gap-1.5">
                 <span class="w-4 h-4 rounded-full bg-indigo-600 text-white flex items-center justify-center text-[10px]">1</span>
                 第1回からつなぐ（座標と直線）
               </span>
-              <span class="text-[11px] font-semibold text-indigo-600 flex items-center gap-0.5">
-                <span>👁️</span> グラフを図解
-              </span>
+              <span class="badge-tag text-[11px] font-medium text-slate-500">👁️ タップで図解</span>
             </div>
-            <div class="text-xs leading-relaxed text-slate-700 pt-1">
-              座標は点の（<strong class="text-indigo-600 bg-indigo-50 px-1 py-0.5 rounded border border-indigo-200">住所／位置</strong>）。直線は、その上にあるたくさんの（<strong class="text-indigo-600 bg-indigo-50 px-1 py-0.5 rounded border border-indigo-200">点</strong>）の集まりと考えられる。<br>
-              直線を相手やコンピュータへ伝えるには、何が必要だと思う？<br>
-              <div class="mt-1 text-slate-600 text-[11px] bg-white p-2 rounded border border-slate-200">
-                👉 <strong>「通る基準となる1点」と「進む方向（傾き）」</strong>、または<strong>「異なる2点の座標」</strong>。
-              </div>
+            <div class="text-xs text-slate-700 leading-relaxed pt-0.5">
+              座標は点の（<strong class="text-indigo-600 bg-white px-1 py-0.5 rounded border border-indigo-200">住所／位置</strong>）。直線は、その上にあるたくさんの（<strong class="text-indigo-600 bg-white px-1 py-0.5 rounded border border-indigo-200">点</strong>）の集まり。<br>
+              相手に伝えるには？ 👉 <strong>「通る基準点と傾き」</strong>または<strong>「異なる2点の座標」</strong>。
             </div>
           </div>
 
-          <!-- Interactive Section 2 -->
-          <div onclick="selectAnswerSection('ans2')" id="card-ans2" class="ans-card p-3 rounded-xl border-2 border-indigo-500 bg-indigo-50/60 transition cursor-pointer space-y-1 shadow-xs">
+          <!-- Interactive Card 2 -->
+          <div onclick="selectAnswerSection('ans2')" id="card-ans2" class="ans-card p-3 rounded-xl border-2 border-indigo-500 bg-indigo-50/70 transition cursor-pointer space-y-1 shadow-2xs">
             <div class="flex items-center justify-between">
               <span class="font-bold text-xs text-indigo-800 flex items-center gap-1.5">
                 <span class="w-4 h-4 rounded-full bg-indigo-600 text-white flex items-center justify-center text-[10px]">2</span>
                 傾きは「横と縦の変化」
               </span>
-              <span class="text-[11px] font-bold text-indigo-700 flex items-center gap-0.5">
-                <span>📍</span> 表示中
-              </span>
+              <span class="badge-tag text-[11px] font-bold text-indigo-700">📍 表示中</span>
             </div>
-            <div class="text-xs leading-relaxed text-slate-700 pt-1 space-y-1">
-              <div>$x$ 方向: ($1$) $\to$ ($4$) なので変化は（<strong class="text-blue-700 font-bold bg-white px-1.5 py-0.5 rounded border border-blue-200">$3$</strong>）</div>
-              <div>$y$ 方向: ($2$) $\to$ ($8$) なので変化は（<strong class="text-amber-700 font-bold bg-white px-1.5 py-0.5 rounded border border-amber-200">$6$</strong>）</div>
-              <div class="text-slate-600 text-[11px]">
-                横に3進むと縦に6進む。横に1進むなら、縦には（<strong class="text-indigo-700 font-bold">$2$</strong>）進む。<br>
-                したがって、この直線の傾きは（<strong class="text-indigo-700 font-bold">$2$</strong>）。 $m = \frac{6}{3} = 2$
-              </div>
-              <div class="text-indigo-900 bg-white p-2 rounded border border-indigo-200 text-[11px]">
-                💬 <strong>「傾き2」を動きで説明:</strong> 「右へ1歩進むごとに、上へ2歩登るペースのこと」
+            <div class="text-xs text-slate-700 leading-relaxed pt-0.5 space-y-1">
+              <div>$x$ 方向: ($1$) $\to$ ($4$) なので変化は（<strong class="text-blue-700 font-bold bg-white px-1 rounded border border-blue-200">$3$</strong>）</div>
+              <div>$y$ 方向: ($2$) $\to$ ($8$) なので変化は（<strong class="text-amber-700 font-bold bg-white px-1 rounded border border-amber-200">$6$</strong>）</div>
+              <div class="text-[11px] text-slate-600">
+                横に1進むなら縦には（<strong class="text-indigo-700 font-bold">$2$</strong>）進む。傾き $m =$（<strong class="text-indigo-700 font-bold">$2$</strong>）。
               </div>
             </div>
           </div>
 
-          <!-- Interactive Section 3 -->
+          <!-- Interactive Card 3 -->
           <div onclick="selectAnswerSection('ans3')" id="card-ans3" class="ans-card p-3 rounded-xl border border-slate-200 bg-slate-50 hover:bg-indigo-50/40 transition cursor-pointer space-y-1">
             <div class="flex items-center justify-between">
               <span class="font-bold text-xs text-indigo-700 flex items-center gap-1.5">
                 <span class="w-4 h-4 rounded-full bg-indigo-600 text-white flex items-center justify-center text-[10px]">3</span>
                 1点と傾きから直線の式をつくる
               </span>
-              <span class="text-[11px] font-semibold text-indigo-600 flex items-center gap-0.5">
-                <span>👁️</span> グラフを図解
-              </span>
+              <span class="badge-tag text-[11px] font-medium text-slate-500">👁️ タップで図解</span>
             </div>
-            <div class="text-xs leading-relaxed text-slate-700 pt-1 space-y-1">
-              <div>横の変化: $x - $（<strong class="text-blue-700 font-bold bg-white px-1.5 py-0.5 rounded border border-blue-200">$1$</strong>）</div>
-              <div>縦の変化: $y - $（<strong class="text-amber-700 font-bold bg-white px-1.5 py-0.5 rounded border border-amber-200">$2$</strong>）</div>
-              <div class="text-[11px] text-slate-600">
-                傾き2とは「縦の変化 $= 2 \times$ 横の変化」なので、$y - 2 = 2(x - 1)$<br>
-                整理すると、$y =$（<strong class="text-emerald-700 font-bold bg-white px-1.5 py-0.5 rounded border border-emerald-200">$2x$</strong>）
-              </div>
+            <div class="text-xs text-slate-700 leading-relaxed pt-0.5">
+              横の変化: $x - $（<strong class="text-blue-700 font-bold bg-white px-1 rounded border border-blue-200">$1$</strong>） &nbsp;|&nbsp;
+              縦の変化: $y - $（<strong class="text-amber-700 font-bold bg-white px-1 rounded border border-amber-200">$2$</strong>）<br>
+              式: $y - 2 = 2(x - 1) \implies y =$（<strong class="text-emerald-700 font-bold bg-white px-1 rounded border border-emerald-200">$2x$</strong>）
             </div>
           </div>
 
-          <!-- Interactive Section 6 -->
+          <!-- Interactive Card 6 -->
           <div onclick="selectAnswerSection('ans6')" id="card-ans6" class="ans-card p-3 rounded-xl border border-slate-200 bg-slate-50 hover:bg-indigo-50/40 transition cursor-pointer space-y-1">
             <div class="flex items-center justify-between">
               <span class="font-bold text-xs text-indigo-700 flex items-center gap-1.5">
                 <span class="w-4 h-4 rounded-full bg-indigo-600 text-white flex items-center justify-center text-[10px]">6</span>
                 平行と垂直
               </span>
-              <span class="text-[11px] font-semibold text-indigo-600 flex items-center gap-0.5">
-                <span>👁️</span> グラフを図解
-              </span>
+              <span class="badge-tag text-[11px] font-medium text-slate-500">👁️ タップで図解</span>
             </div>
-            <div class="text-xs leading-relaxed text-slate-700 pt-1 space-y-1">
-              <div>平行な2直線は、横に進んだときの縦の変化、つまり（<strong class="text-indigo-700 font-bold bg-white px-1.5 py-0.5 rounded border border-indigo-200">傾き</strong>）が同じ。</div>
-              <div>傾き2に垂直な直線は進み方 $(1,2)$ を90°回して $(-2,1)$ と見られるので、傾きは（<strong class="text-red-700 font-bold bg-white px-1.5 py-0.5 rounded border border-red-200">$-0.5$（$-\frac{1}{2}$）</strong>）。</div>
-              <div class="bg-white p-2 rounded border border-slate-200 text-[11px] font-mono text-center text-slate-800">
-                垂直の公式: $m_2 = -\frac{1}{m_1} \quad (\text{または } m_1 m_2 = -1)$
-              </div>
+            <div class="text-xs text-slate-700 leading-relaxed pt-0.5 space-y-1">
+              <div>平行な2直線は（<strong class="text-indigo-700 font-bold bg-white px-1 rounded border border-indigo-200">傾き</strong>）が同じ。</div>
+              <div>垂直な直線は進み方 $(1,2)$ を90°回して傾き（<strong class="text-red-700 font-bold bg-white px-1 rounded border border-red-200">$-0.5$（$-\frac{1}{2}$）</strong>）。</div>
             </div>
           </div>
 
-          <!-- Interactive Section 7 -->
+          <!-- Interactive Card 7 -->
           <div onclick="selectAnswerSection('ans7')" id="card-ans7" class="ans-card p-3 rounded-xl border border-slate-200 bg-slate-50 hover:bg-indigo-50/40 transition cursor-pointer space-y-1">
             <div class="flex items-center justify-between">
               <span class="font-bold text-xs text-indigo-700 flex items-center gap-1.5">
                 <span class="w-4 h-4 rounded-full bg-indigo-600 text-white flex items-center justify-center text-[10px]">7</span>
                 点と直線の距離
               </span>
-              <span class="text-[11px] font-semibold text-indigo-600 flex items-center gap-0.5">
-                <span>👁️</span> グラフを図解
-              </span>
+              <span class="badge-tag text-[11px] font-medium text-slate-500">👁️ タップで図解</span>
             </div>
-            <div class="text-xs leading-relaxed text-slate-700 pt-1 space-y-1">
-              <div>点Pから直線までの距離は、Pと直線上の点を結ぶ線分のうち最も（<strong class="text-teal-700 font-bold bg-white px-1.5 py-0.5 rounded border border-teal-200">短い</strong>）もの。直線とは（<strong class="text-teal-700 font-bold bg-white px-1.5 py-0.5 rounded border border-teal-200">垂直／直角（$90^\circ$）</strong>）に交わる。</div>
-              <div class="text-[11px] text-amber-900 bg-amber-50 p-2 rounded border border-amber-200">
-                ⚠️ 距離はいつも真下（縦）に測るのではなく、直線に対して下ろした<strong>「垂線」</strong>が最短になります！
-              </div>
+            <div class="text-xs text-slate-700 leading-relaxed pt-0.5">
+              結ぶ線分のうち最も（<strong class="text-teal-700 font-bold bg-white px-1 rounded border border-teal-200">短い</strong>）もの。直線とは（<strong class="text-teal-700 font-bold bg-white px-1 rounded border border-teal-200">垂直／直角</strong>）に交わる。
             </div>
           </div>
 
-          <!-- Interactive Section 8 -->
+          <!-- Interactive Card 8 -->
           <div onclick="selectAnswerSection('ans8')" id="card-ans8" class="ans-card p-3 rounded-xl border border-slate-200 bg-slate-50 hover:bg-indigo-50/40 transition cursor-pointer space-y-1">
             <div class="flex items-center justify-between">
               <span class="font-bold text-xs text-amber-800 flex items-center gap-1.5">
                 <span class="w-4 h-4 rounded-full bg-amber-500 text-white flex items-center justify-center text-[10px]">8</span>
                 出口問題の解答
               </span>
-              <span class="text-[11px] font-semibold text-indigo-600 flex items-center gap-0.5">
-                <span>👁️</span> グラフを図解
-              </span>
+              <span class="badge-tag text-[11px] font-medium text-slate-500">👁️ タップで図解</span>
             </div>
-            <div class="text-xs leading-relaxed text-slate-700 pt-1 space-y-1.5">
-              <div class="bg-white p-2 rounded border border-slate-200">
-                <span class="font-semibold text-slate-800">① $A(2,3)$ と $B(6,11)$ を通る直線:</span><br>
-                傾き $m = \frac{11 - 3}{6 - 2} = \frac{8}{4} = \mathbf{2}$<br>
-                式: $y - 3 = 2(x - 2) \implies \mathbf{y = 2x - 1}$
-              </div>
-              <div class="bg-white p-2 rounded border border-slate-200">
-                <span class="font-semibold text-slate-800">② ①に平行で $(0,-2)$ を通る直線:</span><br>
-                平行なので傾き $2$、切片が $-2$ $\implies \mathbf{y = 2x - 2}$
-              </div>
-              <div class="bg-amber-50 p-2 rounded border border-amber-200 text-[11px] text-amber-950 leading-relaxed">
-                <strong>③ 「直線の方程式」とは何か？（記述例）:</strong><br>
-                「直線上に無限に並ぶすべての点 $(x, y)$ の座標が必ず満たす『変化の共通ルール』を表した等式のこと。」
+            <div class="text-xs text-slate-700 leading-relaxed pt-0.5 space-y-1">
+              <div>① $A(2,3), B(6,11) \implies \mathbf{y = 2x - 1}$</div>
+              <div>② 平行で $(0,-2)$ を通る $\implies \mathbf{y = 2x - 2}$</div>
+              <div class="bg-amber-50 p-1.5 rounded border border-amber-200 text-[11px] text-amber-950">
+                ③ <strong>直線の方程式とは？:</strong>「直線上のすべての点 $(x,y)$ の座標が必ず満たす『共通の変化ルール』を表す等式」
               </div>
             </div>
           </div>
@@ -158,19 +553,116 @@
     </div>
   </main>
 
-  <!-- Script: Graphing & State Logic -->
   <script>
     // --- Application State ---
     let currentTab = 'slope';
     let isGridSnap = true;
-    let parallelSubMode = 'parallel'; // 'parallel' or 'perp'
+    let parallelSubMode = 'parallel';
     let pointDensity = 5;
-    let selectedAnswerSection = 'ans2'; // Default selected in worksheet answers
-<!-- ... existing code ... -->
+    let selectedAnswerSection = 'ans2';
+
+    // Interactive Coordinates
+    const state = {
+      slopeA: { x: 1, y: 2 },
+      slopeB: { x: 4, y: 8 },
+      formulaA: { x: 1, y: 2 },
+      formulaP: { x: 3, y: 6 },
+      distP: { x: 2, y: 5 },
+      distH: { x: 3.5, y: 3.5 }
+    };
+
+    // Canvas & Drag Variables
+    const canvas = document.getElementById('mainCanvas');
+    const ctx = canvas.getContext('2d');
+    let hoveredPoint = null;
+    let draggedPoint = null;
+
+    let originX = 100;
+    let originY = 300;
+    let scale = 36;
+
+    // --- Safe Math Renderer (No DOM crash, No re-rendering inside drag) ---
+    function safeRenderMath() {
+      if (window.renderMathInElement) {
+        try {
+          renderMathInElement(document.body, {
+            delimiters: [
+              { left: "$$", right: "$$", display: true },
+              { left: "$", right: "$", display: false }
+            ],
+            throwOnError: false
+          });
+        } catch(e) {
+          console.warn("KaTeX safe render warning:", e);
+        }
+      }
+    }
+
+    // --- Viewport & Coordinate Math ---
+    function updateCanvasSize() {
+      if (!canvas || !canvas.parentElement) return;
+      const rect = canvas.parentElement.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      
+      const width = Math.max(300, rect.width);
+      const height = Math.max(380, rect.height);
+
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+      ctx.resetTransform();
+      ctx.scale(dpr, dpr);
+
+      originX = width * 0.22;
+      originY = height * 0.82;
+      scale = Math.min(width / 13, height / 13);
+      if (scale < 24) scale = 24;
+
+      redraw();
+    }
+
+    function toScreenX(x) { return originX + x * scale; }
+    function toScreenY(y) { return originY - y * scale; }
+    function toMathX(px) { return (px - originX) / scale; }
+    function toMathY(py) { return (originY - py) / scale; }
+
+    function snap(val) {
+      return isGridSnap ? Math.round(val) : Math.round(val * 10) / 10;
+    }
+
+    function toggleGridSnap() {
+      isGridSnap = !isGridSnap;
+      const btn = document.getElementById('btnGridSnap');
+      btn.textContent = `スナップ: ${isGridSnap ? 'ON' : 'OFF'}`;
+      btn.className = isGridSnap 
+        ? "px-2.5 py-1 bg-indigo-50 border border-indigo-200 text-indigo-700 rounded shadow-2xs font-semibold transition"
+        : "px-2.5 py-1 bg-slate-100 border border-slate-300 text-slate-600 rounded shadow-2xs font-semibold transition";
+    }
+
+    function switchTab(tabId) {
+      currentTab = tabId;
+
+      // Update Navigation Tab visual styles
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.className = "tab-btn px-3 py-1.5 rounded-lg transition text-indigo-100 hover:bg-indigo-700/70";
+      });
+      const activeBtn = document.getElementById(`tab-${tabId}`);
+      if (activeBtn) {
+        activeBtn.className = "tab-btn px-3 py-1.5 rounded-lg transition bg-white text-indigo-900 font-bold shadow-xs";
+      }
+
+      // Hide all panels, display active
+      document.querySelectorAll('.panel-content').forEach(p => p.classList.add('hidden'));
+      const activePanel = document.getElementById(`panel-${tabId}`);
+      if (activePanel) activePanel.classList.remove('hidden');
+
+      // Update Header Title & Tooltip Hints
+      const titleEl = document.getElementById('canvasTitle');
+      const hintEl = document.getElementById('canvasHintText');
+      
       switch(tabId) {
         case 'slope':
           titleEl.textContent = "2点 A, B の傾きシミュレータ";
-          hintEl.textContent = "赤色の点 A(1,2) や B(4,8) をドラッグして、傾きがどう変化するか見てみよう。";
+          hintEl.textContent = "赤色の点 A(1,2) や B(4,8) をドラッグ、または右のスライダーで操作できます。";
           break;
         case 'formula':
           titleEl.textContent = "動点 P(x, y) と直線の式";
@@ -200,9 +692,7 @@
 
       updateCalculations();
       redraw();
-      if (window.renderMathInElement) {
-        renderMathInElement(document.body, { delimiters: [{left: "$", right: "$", display: false}] });
-      }
+      setTimeout(safeRenderMath, 30);
     }
 
     function selectAnswerSection(secId) {
@@ -213,24 +703,165 @@
       cards.forEach(id => {
         const card = document.getElementById(`card-${id}`);
         if (!card) return;
+        const tag = card.querySelector('.badge-tag');
         if (id === secId) {
-          card.className = "ans-card p-3 rounded-xl border-2 border-indigo-500 bg-indigo-50/60 transition cursor-pointer space-y-1 shadow-xs";
-          const tag = card.querySelector('.text-\\[11px\\]');
-          if (tag) tag.innerHTML = '<span class="font-bold text-indigo-700">📍 表示中</span>';
+          card.className = "ans-card p-3 rounded-xl border-2 border-indigo-500 bg-indigo-50/70 transition cursor-pointer space-y-1 shadow-2xs";
+          if (tag) {
+            tag.className = "badge-tag text-[11px] font-bold text-indigo-700";
+            tag.textContent = "📍 表示中";
+          }
         } else {
           card.className = "ans-card p-3 rounded-xl border border-slate-200 bg-slate-50 hover:bg-indigo-50/40 transition cursor-pointer space-y-1";
-          const tag = card.querySelector('.text-\\[11px\\]');
-          if (tag) tag.innerHTML = '<span>👁️</span> グラフを図解';
+          if (tag) {
+            tag.className = "badge-tag text-[11px] font-medium text-slate-500";
+            tag.textContent = "👁️ タップで図解";
+          }
         }
       });
 
       redraw();
-      if (window.renderMathInElement) {
-        renderMathInElement(document.body, { delimiters: [{left: "$", right: "$", display: false}] });
+    }
+
+    function resetCurrentView() {
+      state.slopeA = { x: 1, y: 2 };
+      state.slopeB = { x: 4, y: 8 };
+      state.formulaA = { x: 1, y: 2 };
+      state.formulaP = { x: 3, y: 6 };
+      state.distP = { x: 2, y: 5 };
+      state.distH = { x: 3.5, y: 3.5 };
+
+      // Reset UI Sliders
+      const sAx = document.getElementById('sliderAx'); if (sAx) sAx.value = 1;
+      const sAy = document.getElementById('sliderAy'); if (sAy) sAy.value = 2;
+      const sBx = document.getElementById('sliderBx'); if (sBx) sBx.value = 4;
+      const sBy = document.getElementById('sliderBy'); if (sBy) sBy.value = 8;
+      const sFp = document.getElementById('sliderFormulaP'); if (sFp) sFp.value = 3;
+      const sDh = document.getElementById('sliderDistH'); if (sDh) sDh.value = 3.5;
+
+      updateCalculations();
+      redraw();
+    }
+
+    function onSliderMoveA() {
+      state.slopeA.x = parseInt(document.getElementById('sliderAx').value);
+      state.slopeA.y = parseInt(document.getElementById('sliderAy').value);
+      updateCalculations();
+      redraw();
+    }
+
+    function onSliderMoveB() {
+      state.slopeB.x = parseInt(document.getElementById('sliderBx').value);
+      state.slopeB.y = parseInt(document.getElementById('sliderBy').value);
+      updateCalculations();
+      redraw();
+    }
+
+    function onSliderMoveFormulaP(val) {
+      const x = parseFloat(val);
+      state.formulaP.x = x;
+      state.formulaP.y = 2 * x;
+      updateCalculations();
+      redraw();
+    }
+
+    function updateCalculations() {
+      const legend = document.getElementById('pointsLegend');
+      if (!legend) return;
+
+      if (currentTab === 'slope') {
+        const A = state.slopeA;
+        const B = state.slopeB;
+        const dx = B.x - A.x;
+        const dy = B.y - A.y;
+
+        const valA = document.getElementById('valA-disp'); if (valA) valA.textContent = `(${A.x}, ${A.y})`;
+        const valB = document.getElementById('valB-disp'); if (valB) valB.textContent = `(${B.x}, ${B.y})`;
+
+        const dxDisp = document.getElementById('slope-dx-display');
+        if (dxDisp) dxDisp.textContent = `${B.x} - (${A.x}) = ${dx}`;
+        const dyDisp = document.getElementById('slope-dy-display');
+        if (dyDisp) dyDisp.textContent = `${B.y} - (${A.y}) = ${dy}`;
+
+        const mDisp = document.getElementById('slope-m-display');
+        if (mDisp) {
+          if (dx !== 0) {
+            const slopeVal = (dy / dx).toFixed(2).replace(/\.00$/, '');
+            mDisp.textContent = `${dy} / ${dx} = ${slopeVal}`;
+          } else {
+            mDisp.textContent = "垂直 (未定義)";
+          }
+        }
+
+        const narrative = document.getElementById('slope-narrative');
+        if (narrative) {
+          if (dx > 0) {
+            const step = (dy / dx).toFixed(2).replace(/\.00$/, '');
+            narrative.innerHTML = `横に <strong>${dx}</strong> 進むと縦に <strong>${dy}</strong> 進む。<br>横に 1 進むなら、縦には <strong>${step}</strong> 進むペースのこと！`;
+          } else if (dx === 0) {
+            narrative.innerHTML = `横の変化が 0 です。真上に伸びる直線は傾きを定義できません。`;
+          } else {
+            narrative.innerHTML = `左へ進む（横が負）状態です。右向きを基準にすると符号が反転します。`;
+          }
+        }
+
+        legend.innerHTML = `
+          <div class="flex items-center gap-1 text-slate-700 font-bold"><span class="w-2 h-2 rounded-full bg-red-500 inline-block"></span> A(${A.x}, ${A.y})</div>
+          <div class="flex items-center gap-1 text-slate-700 font-bold"><span class="w-2 h-2 rounded-full bg-red-500 inline-block"></span> B(${B.x}, ${B.y})</div>
+        `;
+      }
+      else if (currentTab === 'formula') {
+        const A = state.formulaA;
+        const P = state.formulaP;
+        const dx = P.x - A.x;
+        const dy = P.y - A.y;
+
+        const pCoord = document.getElementById('formula-P-coord');
+        if (pCoord) pCoord.textContent = `P(${P.x.toFixed(1)}, ${P.y.toFixed(1)})`;
+
+        const fDx = document.getElementById('formula-dx');
+        if (fDx) fDx.textContent = `x - 1 = ${dx.toFixed(1)}`;
+        const fDy = document.getElementById('formula-dy');
+        if (fDy) fDy.textContent = `y - 2 = ${dy.toFixed(1)}`;
+
+        legend.innerHTML = `
+          <div class="flex items-center gap-1 font-bold text-red-600"><span class="w-2 h-2 rounded-full bg-red-500 inline-block"></span> A(1, 2)</div>
+          <div class="flex items-center gap-1 font-bold text-emerald-600"><span class="w-2 h-2 rounded-full bg-emerald-500 inline-block"></span> P(${P.x.toFixed(1)}, ${P.y.toFixed(1)})</div>
+        `;
+      }
+      else if (currentTab === 'distance') {
+        const px = state.distP.x, py = state.distP.y;
+        const hx = state.distH.x, hy = state.distH.y;
+        const dist = Math.hypot(px - hx, py - hy);
+
+        const hCoord = document.getElementById('dist-h-coord');
+        if (hCoord) hCoord.textContent = `H(${hx.toFixed(1)}, ${hy.toFixed(1)})`;
+        const lenDisp = document.getElementById('dist-len-display');
+        if (lenDisp) lenDisp.textContent = dist.toFixed(2);
+
+        // Vector angle with line y=x (direction (1,1))
+        const v1x = 1, v1y = 1;
+        const v2x = px - hx, v2y = py - hy;
+        const dot = v1x * v2x + v1y * v2y;
+        const mag1 = Math.SQRT2;
+        const mag2 = dist;
+        let deg = 90;
+        if (mag2 > 0.01) {
+          const cosTheta = Math.max(-1, Math.min(1, dot / (mag1 * mag2)));
+          const acute = Math.acos(Math.abs(cosTheta)) * (180 / Math.PI);
+          deg = acute;
+        }
+        const angDisp = document.getElementById('dist-angle-display');
+        if (angDisp) angDisp.textContent = `${deg.toFixed(1)}°`;
+
+        legend.innerHTML = `
+          <div class="flex items-center gap-1 font-bold text-red-600"><span class="w-2 h-2 rounded-full bg-red-500 inline-block"></span> P(2, 5)</div>
+          <div class="flex items-center gap-1 font-bold text-teal-600"><span class="w-2 h-2 rounded-full bg-teal-500 inline-block"></span> H(${hx.toFixed(1)}, ${hy.toFixed(1)})</div>
+        `;
       }
     }
-<!-- ... existing code ... -->
+
     function redraw() {
+      if (!ctx || !canvas) return;
       const rect = canvas.getBoundingClientRect();
       ctx.clearRect(0, 0, rect.width, rect.height);
 
@@ -261,12 +892,398 @@
       }
     }
 
+    function drawGrid(rect) {
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = '#1e293b';
+      ctx.beginPath();
+
+      const minX = Math.floor(toMathX(0));
+      const maxX = Math.ceil(toMathX(rect.width));
+      const minY = Math.floor(toMathY(rect.height));
+      const maxY = Math.ceil(toMathY(0));
+
+      for (let x = minX; x <= maxX; x++) {
+        const sx = toScreenX(x);
+        ctx.moveTo(sx, 0);
+        ctx.lineTo(sx, rect.height);
+      }
+      for (let y = minY; y <= maxY; y++) {
+        const sy = toScreenY(y);
+        ctx.moveTo(0, sy);
+        ctx.lineTo(rect.width, sy);
+      }
+      ctx.stroke();
+
+      // Main Axes
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = '#475569';
+      ctx.beginPath();
+      const axisY = toScreenY(0);
+      ctx.moveTo(0, axisY);
+      ctx.lineTo(rect.width, axisY);
+      const axisX = toScreenX(0);
+      ctx.moveTo(axisX, 0);
+      ctx.lineTo(axisX, rect.height);
+      ctx.stroke();
+
+      // Labels
+      ctx.font = '11px JetBrains Mono, monospace';
+      ctx.fillStyle = '#94a3b8';
+      ctx.fillText('x', rect.width - 14, axisY + 14);
+      ctx.fillText('y', axisX - 14, 14);
+      ctx.fillText('0', axisX - 12, axisY + 14);
+
+      for (let x = minX; x <= maxX; x++) {
+        if (x !== 0 && x % 2 === 0) {
+          ctx.fillText(x, toScreenX(x) - 4, axisY + 14);
+        }
+      }
+      for (let y = minY; y <= maxY; y++) {
+        if (y !== 0 && y % 2 === 0) {
+          ctx.fillText(y, axisX - 16, toScreenY(y) + 4);
+        }
+      }
+    }
+
+    function drawPoint(x, y, label, color = '#ef4444', isHovered = false, radius = 6) {
+      const sx = toScreenX(x);
+      const sy = toScreenY(y);
+
+      if (isHovered) {
+        ctx.beginPath();
+        ctx.arc(sx, sy, radius + 5, 0, Math.PI * 2);
+        ctx.fillStyle = color + '44';
+        ctx.fill();
+      }
+
+      ctx.beginPath();
+      ctx.arc(sx, sy, radius, 0, Math.PI * 2);
+      ctx.fillStyle = color;
+      ctx.fill();
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = '#ffffff';
+      ctx.stroke();
+
+      if (label) {
+        ctx.font = 'bold 11px "Noto Sans JP", sans-serif';
+        ctx.fillStyle = '#ffffff';
+        ctx.shadowColor = '#000000';
+        ctx.shadowBlur = 4;
+        ctx.fillText(label, sx + 9, sy - 7);
+        ctx.shadowBlur = 0;
+      }
+    }
+
+    function drawSlopeMode() {
+      const A = state.slopeA;
+      const B = state.slopeB;
+      const badge = document.getElementById('canvasBadge');
+
+      const dx = B.x - A.x;
+      const dy = B.y - A.y;
+
+      // Draw Main Line
+      if (dx !== 0) {
+        const m = dy / dx;
+        const b = A.y - m * A.x;
+        ctx.beginPath();
+        ctx.moveTo(toScreenX(-5), toScreenY(m * -5 + b));
+        ctx.lineTo(toScreenX(12), toScreenY(m * 12 + b));
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = '#38bdf8';
+        ctx.stroke();
+      } else {
+        ctx.beginPath();
+        ctx.moveTo(toScreenX(A.x), 0);
+        ctx.lineTo(toScreenX(A.x), canvas.height);
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = '#38bdf8';
+        ctx.stroke();
+      }
+
+      // Delta dashed triangle
+      const cornerX = B.x;
+      const cornerY = A.y;
+
+      ctx.beginPath();
+      ctx.setLineDash([5, 4]);
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = '#60a5fa'; // dx
+      ctx.moveTo(toScreenX(A.x), toScreenY(A.y));
+      ctx.lineTo(toScreenX(cornerX), toScreenY(cornerY));
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.strokeStyle = '#fbbf24'; // dy
+      ctx.moveTo(toScreenX(cornerX), toScreenY(cornerY));
+      ctx.lineTo(toScreenX(B.x), toScreenY(B.y));
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Step Stairs display
+      const showStairs = document.getElementById('showStepStairs')?.checked;
+      if (showStairs && dx > 0) {
+        const stepY = dy / dx;
+        ctx.strokeStyle = '#34d399';
+        ctx.lineWidth = 2;
+        for (let i = 0; i < dx; i++) {
+          const cx = A.x + i;
+          const cy = A.y + i * stepY;
+          ctx.beginPath();
+          ctx.moveTo(toScreenX(cx), toScreenY(cy));
+          ctx.lineTo(toScreenX(cx + 1), toScreenY(cy));
+          ctx.lineTo(toScreenX(cx + 1), toScreenY(cy + stepY));
+          ctx.stroke();
+        }
+      }
+
+      drawPoint(A.x, A.y, `A(${A.x}, ${A.y})`, '#ef4444', hoveredPoint === 'slopeA', 7);
+      drawPoint(B.x, B.y, `B(${B.x}, ${B.y})`, '#ef4444', hoveredPoint === 'slopeB', 7);
+
+      if (badge) {
+        const slopeText = dx !== 0 ? (dy/dx).toFixed(2).replace(/\.00$/, '') : '未定義';
+        badge.innerHTML = `<span class="text-sky-300 font-bold">直線 AB</span> | 横の変化 $dx = ${dx}$, 縦の変化 $dy = ${dy}$ $\\implies$ 傾き $m = \\mathbf{${slopeText}}$`;
+      }
+    }
+
+    function drawFormulaMode() {
+      const A = state.formulaA;
+      const P = state.formulaP;
+      const badge = document.getElementById('canvasBadge');
+
+      // Line y = 2x
+      ctx.beginPath();
+      ctx.moveTo(toScreenX(-3), toScreenY(-6));
+      ctx.lineTo(toScreenX(7), toScreenY(14));
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = '#6366f1';
+      ctx.stroke();
+
+      // Delta to P
+      ctx.beginPath();
+      ctx.setLineDash([5, 4]);
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = '#60a5fa';
+      ctx.moveTo(toScreenX(A.x), toScreenY(A.y));
+      ctx.lineTo(toScreenX(P.x), toScreenY(A.y));
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.strokeStyle = '#fbbf24';
+      ctx.moveTo(toScreenX(P.x), toScreenY(A.y));
+      ctx.lineTo(toScreenX(P.x), toScreenY(P.y));
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      drawPoint(A.x, A.y, `基準点 A(1, 2)`, '#ef4444', false, 7);
+      drawPoint(P.x, P.y, `動点 P(${P.x.toFixed(1)}, ${P.y.toFixed(1)})`, '#10b981', hoveredPoint === 'formulaP', 8);
+
+      if (badge) {
+        badge.innerHTML = `<span class="text-indigo-300 font-bold">直線の式:</span> $y - 2 = 2(x - 1) \\implies \\mathbf{y = 2x}$`;
+      }
+    }
+
+    function drawPointsMode() {
+      const count = pointDensity;
+      const minX = -1.5, maxX = 5;
+      const step = (maxX - minX) / (count - 1);
+      const badge = document.getElementById('canvasBadge');
+
+      if (count > 25) {
+        ctx.beginPath();
+        ctx.moveTo(toScreenX(-2), toScreenY(-4));
+        ctx.lineTo(toScreenX(6), toScreenY(12));
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = '#38bdf855';
+        ctx.stroke();
+      }
+
+      for (let i = 0; i < count; i++) {
+        const x = minX + i * step;
+        const y = 2 * x;
+        const radius = count > 30 ? 3 : 5;
+        
+        ctx.beginPath();
+        ctx.arc(toScreenX(x), toScreenY(y), radius, 0, Math.PI * 2);
+        ctx.fillStyle = '#38bdf8';
+        ctx.fill();
+
+        if (count <= 10) {
+          const rx = Math.round(x);
+          if (Math.abs(x - rx) < 0.05) {
+            ctx.font = '10px JetBrains Mono';
+            ctx.fillStyle = '#cbd5e1';
+            ctx.fillText(`(${rx}, ${2*rx})`, toScreenX(rx) + 7, toScreenY(2*rx) - 5);
+          }
+        }
+      }
+
+      if (badge) {
+        badge.innerHTML = `<span class="text-sky-300 font-bold">規則 $y = 2x$ を満たす点の集まり</span>（表示数: ${count}個）`;
+      }
+    }
+
+    function updateDensity(val) {
+      pointDensity = parseInt(val);
+      document.getElementById('pointDensityLabel').textContent = `${pointDensity} 点`;
+      redraw();
+    }
+
+    function setParallelMode(mode) {
+      parallelSubMode = mode;
+      const btnP = document.getElementById('btnSubParallel');
+      const btnPerp = document.getElementById('btnSubPerp');
+      const panP = document.getElementById('subpanel-parallel');
+      const panPerp = document.getElementById('subpanel-perp');
+
+      if (mode === 'parallel') {
+        btnP.className = "flex-1 py-1.5 rounded-md bg-white text-indigo-700 shadow-2xs font-bold";
+        btnPerp.className = "flex-1 py-1.5 rounded-md text-slate-600 hover:text-indigo-700";
+        panP.classList.remove('hidden');
+        panPerp.classList.add('hidden');
+      } else {
+        btnPerp.className = "flex-1 py-1.5 rounded-md bg-white text-indigo-700 shadow-2xs font-bold";
+        btnP.className = "flex-1 py-1.5 rounded-md text-slate-600 hover:text-indigo-700";
+        panPerp.classList.remove('hidden');
+        panP.classList.add('hidden');
+      }
+      redraw();
+    }
+
+    function drawParallelPerpMode() {
+      const badge = document.getElementById('canvasBadge');
+      
+      // Line 1: y = 2x
+      ctx.beginPath();
+      ctx.moveTo(toScreenX(-3), toScreenY(-6));
+      ctx.lineTo(toScreenX(6), toScreenY(12));
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = '#38bdf8';
+      ctx.stroke();
+
+      if (parallelSubMode === 'parallel') {
+        // Line 2: y = 2x + 3
+        ctx.beginPath();
+        ctx.moveTo(toScreenX(-4), toScreenY(2 * -4 + 3));
+        ctx.lineTo(toScreenX(5), toScreenY(2 * 5 + 3));
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = '#818cf8';
+        ctx.stroke();
+
+        if (badge) {
+          badge.innerHTML = `<span class="text-sky-300">青: $y=2x$</span> &nbsp;|&nbsp; <span class="text-indigo-300">紫: $y=2x+3$</span> $\\implies$ 傾きが共に $2$ で<strong class="text-amber-300">平行！</strong>`;
+        }
+      } else {
+        // Perpendicular: y = -0.5x + 2
+        ctx.beginPath();
+        ctx.moveTo(toScreenX(-4), toScreenY(-0.5 * -4 + 2));
+        ctx.lineTo(toScreenX(8), toScreenY(-0.5 * 8 + 2));
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = '#f87171';
+        ctx.stroke();
+
+        // Right angle marker at (0.8, 1.6)
+        const intX = 0.8, intY = 1.6;
+        drawPoint(intX, intY, '', '#ffffff', false, 4);
+
+        const angle = Math.atan(2);
+        const len = 14;
+        ctx.save();
+        ctx.translate(toScreenX(intX), toScreenY(intY));
+        ctx.rotate(-angle);
+        ctx.strokeStyle = '#fbbf24';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(0, 0, len, -len);
+        ctx.restore();
+
+        if (badge) {
+          badge.innerHTML = `傾き $2$ と傾き $-0.5$ $\\implies 2 \\times (-0.5) = -1$ (<strong class="text-amber-300">直交 90°</strong>)`;
+        }
+      }
+    }
+
+    function drawDistanceMode() {
+      const badge = document.getElementById('canvasBadge');
+      
+      // Line: y = x
+      ctx.beginPath();
+      ctx.moveTo(toScreenX(-3), toScreenY(-3));
+      ctx.lineTo(toScreenX(8), toScreenY(8));
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = '#475569';
+      ctx.stroke();
+
+      const P = state.distP;
+      const H = state.distH;
+
+      ctx.beginPath();
+      ctx.setLineDash([5, 4]);
+      ctx.lineWidth = 2.5;
+      ctx.strokeStyle = '#f59e0b';
+      ctx.moveTo(toScreenX(P.x), toScreenY(P.y));
+      ctx.lineTo(toScreenX(H.x), toScreenY(H.y));
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      drawPoint(P.x, P.y, `P(2, 5)`, '#ef4444', false, 7);
+      drawPoint(H.x, H.y, `H(${H.x.toFixed(1)}, ${H.y.toFixed(1)})`, '#14b8a6', hoveredPoint === 'distH', 8);
+
+      const dist = Math.hypot(P.x - H.x, P.y - H.y).toFixed(2);
+      const isPerp = Math.abs(H.x - 3.5) < 0.05;
+
+      if (badge) {
+        badge.innerHTML = `線分 PH の長さ: <strong class="${isPerp ? 'text-emerald-400 font-bold' : 'text-amber-300'}">${dist}</strong> ${isPerp ? '（★ 最短距離・垂直 $90^\\circ$！）' : ''}`;
+      }
+    }
+
+    function updateDistH(val) {
+      state.distH.x = parseFloat(val);
+      state.distH.y = parseFloat(val);
+      updateCalculations();
+      redraw();
+    }
+
+    function snapToShortestDist() {
+      const s = document.getElementById('sliderDistH');
+      if (s) s.value = 3.5;
+      updateDistH(3.5);
+    }
+
+    function drawExercisesMode() {
+      const badge = document.getElementById('canvasBadge');
+
+      // Practice A line
+      ctx.beginPath();
+      ctx.moveTo(toScreenX(-3), toScreenY(2 * -3 + 3));
+      ctx.lineTo(toScreenX(6), toScreenY(2 * 6 + 3));
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = '#818cf8';
+      ctx.stroke();
+
+      drawPoint(-1, 1, 'C(-1, 1)', '#818cf8', false, 6);
+      drawPoint(3, 9, 'D(3, 9)', '#818cf8', false, 6);
+
+      // Exit problem line
+      ctx.beginPath();
+      ctx.moveTo(toScreenX(-2), toScreenY(2 * -2 - 1));
+      ctx.lineTo(toScreenX(7), toScreenY(2 * 7 - 1));
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = '#fbbf24';
+      ctx.stroke();
+
+      drawPoint(2, 3, 'A(2, 3)', '#f59e0b', false, 5);
+      drawPoint(6, 11, 'B(6, 11)', '#f59e0b', false, 5);
+
+      if (badge) {
+        badge.innerHTML = `<span class="text-indigo-300">紫: 練習A $y = 2x + 3$</span> &nbsp;|&nbsp; <span class="text-amber-300">黄: 出口問題 $y = 2x - 1$</span>`;
+      }
+    }
+
     function drawWorksheetAnswerMode() {
       const legend = document.getElementById('pointsLegend');
       const badge = document.getElementById('canvasBadge');
 
       if (selectedAnswerSection === 'ans1') {
-        // Section 1: Points as addresses forming a line
         ctx.beginPath();
         ctx.moveTo(toScreenX(-2), toScreenY(-4));
         ctx.lineTo(toScreenX(6), toScreenY(12));
@@ -274,7 +1291,6 @@
         ctx.strokeStyle = '#6366f1';
         ctx.stroke();
 
-        // Draw multiple points with step paths from origin
         const pts = [{x: 0, y: 0}, {x: 1, y: 2}, {x: 2, y: 4}, {x: 3, y: 6}, {x: 4, y: 8}];
         pts.forEach((p, idx) => {
           if (idx > 0) {
@@ -292,16 +1308,14 @@
 
         legend.innerHTML = `
           <div class="text-indigo-600 font-bold">1. 座標と直線</div>
-          <div class="text-slate-600">各点の住所が規則正しく並ぶ</div>
+          <div class="text-slate-600">規則正しく並ぶ住所の列</div>
         `;
         badge.innerHTML = `<span class="text-sky-300 font-bold">直線上には無限の点がある</span>：すべて $y = 2x$ の住所ルールに従っている！`;
       }
       else if (selectedAnswerSection === 'ans2') {
-        // Section 2: Delta x = 3, Delta y = 6, Slope = 2
         const A = { x: 1, y: 2 };
         const B = { x: 4, y: 8 };
 
-        // Line
         ctx.beginPath();
         ctx.moveTo(toScreenX(-1), toScreenY(-2));
         ctx.lineTo(toScreenX(5.5), toScreenY(11));
@@ -309,23 +1323,21 @@
         ctx.strokeStyle = '#38bdf8';
         ctx.stroke();
 
-        // Delta triangle
         ctx.beginPath();
         ctx.setLineDash([5, 4]);
         ctx.lineWidth = 2.5;
-        ctx.strokeStyle = '#60a5fa'; // dx
+        ctx.strokeStyle = '#60a5fa';
         ctx.moveTo(toScreenX(A.x), toScreenY(A.y));
         ctx.lineTo(toScreenX(B.x), toScreenY(A.y));
         ctx.stroke();
 
         ctx.beginPath();
-        ctx.strokeStyle = '#fbbf24'; // dy
+        ctx.strokeStyle = '#fbbf24';
         ctx.moveTo(toScreenX(B.x), toScreenY(A.y));
         ctx.lineTo(toScreenX(B.x), toScreenY(B.y));
         ctx.stroke();
         ctx.setLineDash([]);
 
-        // Unit stairs "1進んで2上がる"
         ctx.strokeStyle = '#34d399';
         ctx.lineWidth = 2;
         for (let i = 0; i < 3; i++) {
@@ -338,15 +1350,11 @@
           ctx.stroke();
         }
 
-        // Labels
-        ctx.font = 'bold 12px JetBrains Mono';
+        ctx.font = 'bold 11px JetBrains Mono';
         ctx.fillStyle = '#93c5fd';
-        ctx.fillText('dx = 3 (横に3進む)', toScreenX(2.5) - 35, toScreenY(A.y) + 18);
+        ctx.fillText('dx = 3 (横に3進む)', toScreenX(2.5) - 35, toScreenY(A.y) + 16);
         ctx.fillStyle = '#fde68a';
         ctx.fillText('dy = 6 (縦に6進む)', toScreenX(B.x) + 8, toScreenY(5));
-
-        ctx.fillStyle = '#34d399';
-        ctx.fillText('1進んで2上がる階段', toScreenX(2) - 40, toScreenY(7));
 
         drawPoint(A.x, A.y, 'A(1, 2)', '#ef4444', false, 7);
         drawPoint(B.x, B.y, 'B(4, 8)', '#ef4444', false, 7);
@@ -355,10 +1363,9 @@
           <div class="text-indigo-600 font-bold">2. 傾き = 縦 ÷ 横</div>
           <div>$m = 6 / 3 = 2$</div>
         `;
-        badge.innerHTML = `横の変化 $dx = 4 - 1 = \\mathbf{3}$、縦の変化 $dy = 8 - 2 = \\mathbf{6}$ $\\implies$ 傾き $m = \\mathbf{2}$`;
+        badge.innerHTML = `横の変化 $dx = \\mathbf{3}$、縦の変化 $dy = \\mathbf{6}$ $\\implies$ 傾き $m = \\frac{6}{3} = \\mathbf{2}$`;
       }
       else if (selectedAnswerSection === 'ans3') {
-        // Section 3: Formula derivation A(1,2) to arbitrary point P(3.5, 7)
         const A = { x: 1, y: 2 };
         const P = { x: 3.5, y: 7 };
 
@@ -369,7 +1376,6 @@
         ctx.strokeStyle = '#6366f1';
         ctx.stroke();
 
-        // Dashed lines to P(x, y)
         ctx.beginPath();
         ctx.setLineDash([5, 4]);
         ctx.lineWidth = 2;
@@ -385,12 +1391,6 @@
         ctx.stroke();
         ctx.setLineDash([]);
 
-        ctx.font = 'bold 12px JetBrains Mono';
-        ctx.fillStyle = '#93c5fd';
-        ctx.fillText('横の変化: x - 1', toScreenX(2.2) - 25, toScreenY(A.y) + 16);
-        ctx.fillStyle = '#fde68a';
-        ctx.fillText('縦の変化: y - 2', toScreenX(P.x) + 8, toScreenY(4.5));
-
         drawPoint(A.x, A.y, '基準点 A(1, 2)', '#ef4444', false, 7);
         drawPoint(P.x, P.y, '直線上の点 P(x, y)', '#10b981', false, 7);
 
@@ -401,41 +1401,27 @@
         badge.innerHTML = `「縦の変化 $= 2 \\times$ 横の変化」より $y - 2 = 2(x - 1) \\implies \\mathbf{y = 2x}$`;
       }
       else if (selectedAnswerSection === 'ans6') {
-        // Section 6: Parallel and Perpendicular
-        // Line 1: y = 2x
         ctx.beginPath();
         ctx.moveTo(toScreenX(-3), toScreenY(-6));
         ctx.lineTo(toScreenX(5), toScreenY(10));
         ctx.lineWidth = 3;
-        ctx.strokeStyle = '#38bdf8'; // blue
+        ctx.strokeStyle = '#38bdf8';
         ctx.stroke();
 
-        // Line 2: y = 2x + 3 (Parallel)
         ctx.beginPath();
         ctx.moveTo(toScreenX(-4), toScreenY(-5));
         ctx.lineTo(toScreenX(3.5), toScreenY(10));
         ctx.lineWidth = 2.5;
-        ctx.strokeStyle = '#818cf8'; // purple
+        ctx.strokeStyle = '#818cf8';
         ctx.stroke();
 
-        // Line 3: y = -0.5x + 2 (Perpendicular)
         ctx.beginPath();
         ctx.moveTo(toScreenX(-3), toScreenY(3.5));
         ctx.lineTo(toScreenX(7), toScreenY(-1.5));
         ctx.lineWidth = 2.5;
-        ctx.strokeStyle = '#f87171'; // red
+        ctx.strokeStyle = '#f87171';
         ctx.stroke();
 
-        // Labels
-        ctx.font = 'bold 11px JetBrains Mono';
-        ctx.fillStyle = '#38bdf8';
-        ctx.fillText('y = 2x (傾き 2)', toScreenX(2.5), toScreenY(5) - 8);
-        ctx.fillStyle = '#818cf8';
-        ctx.fillText('平行線: y = 2x + 3 (傾き 2)', toScreenX(-0.5), toScreenY(5) + 12);
-        ctx.fillStyle = '#f87171';
-        ctx.fillText('垂直線: y = -0.5x + 2 (傾き -1/2)', toScreenX(3), toScreenY(0.5) - 8);
-
-        // 90 deg marker at intersection (0.8, 1.6)
         const intX = 0.8, intY = 1.6;
         drawPoint(intX, intY, '', '#ffffff', false, 4);
 
@@ -451,13 +1437,12 @@
 
         legend.innerHTML = `
           <div class="text-indigo-600 font-bold">6. 平行と垂直</div>
-          <div>平行: 傾き等しい</div>
-          <div>垂直: $m_1 m_2 = -1$</div>
+          <div>平行: 傾き一致 (2)</div>
+          <div>垂直: 傾き積 -1 (-1/2)</div>
         `;
         badge.innerHTML = `平行な直線は<span class="text-sky-300">傾きが同じ (2)</span>、垂直な直線は<span class="text-red-300">傾きが $-\\frac{1}{2}$</span>！`;
       }
       else if (selectedAnswerSection === 'ans7') {
-        // Section 7: Distance to line y = x from P(2, 5)
         ctx.beginPath();
         ctx.moveTo(toScreenX(-2), toScreenY(-2));
         ctx.lineTo(toScreenX(7), toScreenY(7));
@@ -467,9 +1452,8 @@
 
         const P = { x: 2, y: 5 };
         const H = { x: 3.5, y: 3.5 };
-        const otherPoint = { x: 5, y: 5 }; // Longer path for contrast
+        const otherPoint = { x: 5, y: 5 };
 
-        // Contrast: long non-perpendicular line
         ctx.beginPath();
         ctx.setLineDash([4, 4]);
         ctx.lineWidth = 1.5;
@@ -478,16 +1462,14 @@
         ctx.lineTo(toScreenX(otherPoint.x), toScreenY(otherPoint.y));
         ctx.stroke();
 
-        // Shortest perpendicular line PH
         ctx.beginPath();
         ctx.setLineDash([]);
         ctx.lineWidth = 3.5;
-        ctx.strokeStyle = '#10b981'; // green
+        ctx.strokeStyle = '#10b981';
         ctx.moveTo(toScreenX(P.x), toScreenY(P.y));
         ctx.lineTo(toScreenX(H.x), toScreenY(H.y));
         ctx.stroke();
 
-        // Right angle mark at H
         const ang = Math.PI / 4;
         const size = 12;
         ctx.save();
@@ -498,25 +1480,16 @@
         ctx.strokeRect(0, 0, size, -size);
         ctx.restore();
 
-        // Text
-        ctx.font = 'bold 11px JetBrains Mono';
-        ctx.fillStyle = '#10b981';
-        ctx.fillText('最短距離 (垂直な垂線)', toScreenX(2.8), toScreenY(4.5));
-        ctx.fillStyle = '#f87171';
-        ctx.fillText('斜めは遠回り', toScreenX(3.5), toScreenY(5.2));
-
         drawPoint(P.x, P.y, 'P(2, 5)', '#ef4444', false, 7);
         drawPoint(H.x, H.y, '垂線の足 H(3.5, 3.5)', '#10b981', false, 7);
 
         legend.innerHTML = `
           <div class="text-teal-600 font-bold">7. 最短距離</div>
-          <div>直線と垂線 ($90^\\circ$)</div>
+          <div>垂線 ($90^\\circ$) が最短</div>
         `;
         badge.innerHTML = `点Pから直線への距離は<span class="text-emerald-300 font-bold">もっとも短い線分</span>で、直線と<span class="text-amber-300 font-bold">垂直（$90^\\circ$）</span>に交わる！`;
       }
       else if (selectedAnswerSection === 'ans8') {
-        // Section 8: Exit Problem 1 and 2
-        // Line 1: y = 2x - 1 through A(2,3), B(6,11)
         ctx.beginPath();
         ctx.moveTo(toScreenX(-1), toScreenY(-3));
         ctx.lineTo(toScreenX(6.5), toScreenY(12));
@@ -524,7 +1497,6 @@
         ctx.strokeStyle = '#f59e0b';
         ctx.stroke();
 
-        // Line 2: y = 2x - 2 through (0,-2)
         ctx.beginPath();
         ctx.moveTo(toScreenX(-1), toScreenY(-4));
         ctx.lineTo(toScreenX(6.5), toScreenY(11));
@@ -536,12 +1508,6 @@
         drawPoint(6, 11, 'B(6, 11)', '#f59e0b', false, 6);
         drawPoint(0, -2, '(0, -2)', '#818cf8', false, 6);
 
-        ctx.font = 'bold 11px JetBrains Mono';
-        ctx.fillStyle = '#f59e0b';
-        ctx.fillText('① y = 2x - 1', toScreenX(4), toScreenY(7) + 16);
-        ctx.fillStyle = '#818cf8';
-        ctx.fillText('② y = 2x - 2 (平行)', toScreenX(3.5), toScreenY(5) + 16);
-
         legend.innerHTML = `
           <div class="text-amber-600 font-bold">8. 出口問題</div>
           <div>① $y = 2x - 1$</div>
@@ -550,4 +1516,153 @@
         badge.innerHTML = `① $A, B$ を通る直線 $y = 2x - 1$ &nbsp;|&nbsp; ② 平行で $(0,-2)$ を通る直線 $y = 2x - 2$`;
       }
     }
-<!-- ... existing code ... -->
+
+    function getPointerPos(e) {
+      const rect = canvas.getBoundingClientRect();
+      const clientX = e.touches && e.touches.length ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches && e.touches.length ? e.touches[0].clientY : e.clientY;
+      return {
+        x: clientX - rect.left,
+        y: clientY - rect.top
+      };
+    }
+
+    function checkHover(pos) {
+      const mx = toMathX(pos.x);
+      const my = toMathY(pos.y);
+      const threshold = 18 / scale;
+
+      if (currentTab === 'slope') {
+        if (Math.hypot(mx - state.slopeA.x, my - state.slopeA.y) < threshold) return 'slopeA';
+        if (Math.hypot(mx - state.slopeB.x, my - state.slopeB.y) < threshold) return 'slopeB';
+      } else if (currentTab === 'formula') {
+        if (Math.hypot(mx - state.formulaP.x, my - state.formulaP.y) < threshold) return 'formulaP';
+      } else if (currentTab === 'distance') {
+        if (Math.hypot(mx - state.distH.x, my - state.distH.y) < threshold) return 'distH';
+      }
+      return null;
+    }
+
+    function handleStart(e) {
+      const pos = getPointerPos(e);
+      const target = checkHover(pos);
+      if (target) {
+        draggedPoint = target;
+        if (e.cancelable) e.preventDefault();
+      }
+    }
+
+    function handleMove(e) {
+      const pos = getPointerPos(e);
+      
+      if (!draggedPoint) {
+        const hover = checkHover(pos);
+        if (hover !== hoveredPoint) {
+          hoveredPoint = hover;
+          canvas.style.cursor = hoveredPoint ? 'grab' : 'crosshair';
+          redraw();
+        }
+        return;
+      }
+
+      if (e.cancelable) e.preventDefault();
+      const rawX = toMathX(pos.x);
+      const rawY = toMathY(pos.y);
+      const mathX = snap(rawX);
+      const mathY = snap(rawY);
+
+      if (draggedPoint === 'slopeA') {
+        state.slopeA.x = mathX;
+        state.slopeA.y = mathY;
+        const saX = document.getElementById('sliderAx'); if (saX) saX.value = mathX;
+        const saY = document.getElementById('sliderAy'); if (saY) saY.value = mathY;
+      } else if (draggedPoint === 'slopeB') {
+        state.slopeB.x = mathX;
+        state.slopeB.y = mathY;
+        const sbX = document.getElementById('sliderBx'); if (sbX) sbX.value = mathX;
+        const sbY = document.getElementById('sliderBy'); if (sbY) sbY.value = mathY;
+      } else if (draggedPoint === 'formulaP') {
+        state.formulaP.x = rawX;
+        state.formulaP.y = 2 * rawX;
+        const sfP = document.getElementById('sliderFormulaP'); if (sfP) sfP.value = rawX;
+      } else if (draggedPoint === 'distH') {
+        const avg = (rawX + rawY) / 2;
+        state.distH.x = avg;
+        state.distH.y = avg;
+        const sdH = document.getElementById('sliderDistH'); if (sdH) sdH.value = avg;
+      }
+
+      updateCalculations();
+      redraw();
+    }
+
+    function handleEnd() {
+      draggedPoint = null;
+      redraw();
+    }
+
+    canvas.addEventListener('mousedown', handleStart);
+    window.addEventListener('mousemove', handleMove);
+    window.addEventListener('mouseup', handleEnd);
+
+    canvas.addEventListener('touchstart', handleStart, { passive: false });
+    window.addEventListener('touchmove', handleMove, { passive: false });
+    window.addEventListener('touchend', handleEnd);
+
+    function checkExerciseA() {
+      const m = parseFloat(document.getElementById('input-exA-m').value);
+      const b = parseFloat(document.getElementById('input-exA-b').value);
+      const fb = document.getElementById('feedback-exA');
+      if (!fb) return;
+      fb.classList.remove('hidden');
+
+      if (m === 2 && b === 3) {
+        fb.className = "p-2 rounded text-xs bg-emerald-100 text-emerald-900 font-bold";
+        fb.innerHTML = "🎉 大正解！<br>傾き $m = \\frac{9 - 1}{3 - (-1)} = 2$。<br>式: $y - 1 = 2(x + 1) \\implies y = 2x + 3$ です。";
+      } else {
+        fb.className = "p-2 rounded text-xs bg-rose-100 text-rose-900";
+        fb.innerHTML = "惜しい！<br>横の変化: $3 - (-1) = 4$、縦の変化: $9 - 1 = 8$ なので傾きは $\\frac{8}{4} = 2$ になります。もう一度計算してみよう。";
+      }
+      safeRenderMath();
+    }
+
+    function checkExitProblem() {
+      const m1 = parseFloat(document.getElementById('input-exit-m').value);
+      const b1 = parseFloat(document.getElementById('input-exit-b').value);
+      const m2 = parseFloat(document.getElementById('input-exit2-m').value);
+      const b2 = parseFloat(document.getElementById('input-exit2-b').value);
+      const fb = document.getElementById('feedback-exit');
+      if (!fb) return;
+      fb.classList.remove('hidden');
+
+      const q1Ok = (m1 === 2 && b1 === -1);
+      const q2Ok = (m2 === 2 && b2 === -2);
+
+      if (q1Ok && q2Ok) {
+        fb.className = "p-2 rounded text-xs bg-emerald-100 text-emerald-900 font-bold";
+        fb.innerHTML = "🌟 全問正解！<br>① $m = 2 \\implies y = 2x - 1$<br>② 平行なので傾き 2、切片 -2 $\\implies y = 2x - 2$";
+      } else {
+        fb.className = "p-2 rounded text-xs bg-rose-100 text-rose-900";
+        fb.innerHTML = "ヒント：<br>① 傾きは $\\frac{11-3}{6-2}=2$、点 $(2,3)$ を通るので $y - 3 = 2(x - 2)$。<br>② 平行なので傾きは①と同じ「2」、点 $(0,-2)$ なので切片は「-2」です。";
+      }
+      safeRenderMath();
+    }
+
+    window.addEventListener('resize', () => {
+      updateCanvasSize();
+    });
+
+    window.addEventListener('DOMContentLoaded', () => {
+      updateCanvasSize();
+      updateCalculations();
+      setTimeout(safeRenderMath, 150);
+    });
+
+    window.addEventListener('load', () => {
+      updateCanvasSize();
+      updateCalculations();
+      setTimeout(safeRenderMath, 300);
+    });
+  </script>
+</body>
+</html>

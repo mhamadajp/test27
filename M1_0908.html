@@ -826,7 +826,24 @@
       let curX = x;
       if (isNeg) {
         ctx.fillText('-', curX, y);
-    <!-- Canvas value drawer supporting fractional approximation -->
+        curX += ctx.measureText('-').width + 1;
+      }
+      const nw = ctx.measureText(absN).width;
+      const dw = ctx.measureText(absD).width;
+      const barW = Math.max(nw, dw) + 4;
+
+      ctx.fillText(absN, curX + (barW - nw) / 2, y - 5);
+      ctx.beginPath();
+      ctx.lineWidth = 1;
+      ctx.moveTo(curX, y - 3);
+      ctx.lineTo(curX + barW, y - 3);
+      ctx.stroke();
+      ctx.fillText(absD, curX + (barW - dw) / 2, y + 6);
+      ctx.restore();
+
+      return (curX - x) + barW;
+    }
+
     function drawCanvasVal(ctx, val, x, y) {
       const eps = 1e-4;
       const absVal = Math.abs(val);
@@ -1179,7 +1196,26 @@
       ctx5.beginPath();
       ctx5.arc(vx, vy, 5, 0, Math.PI * 2);
       ctx5.fill();
-      ctx5.fillText("頂点 (-3, -13)", vx + 8, vy + 4);
+
+      // Vertex label with background badge so dashed lines do not overlap
+      ctx5.save();
+      ctx5.font = "bold 11px sans-serif";
+      const vText5 = "頂点 (-3, -13)";
+      const b5W = ctx5.measureText(vText5).width + 12;
+      const b5H = 20;
+      const b5X = vx + 8;
+      const b5Y = vy - 10;
+      ctx5.fillStyle = "rgba(255, 255, 255, 0.94)";
+      ctx5.strokeStyle = "#e2e8f0";
+      ctx5.lineWidth = 1;
+      ctx5.beginPath();
+      if (ctx5.roundRect) ctx5.roundRect(b5X, b5Y, b5W, b5H, 5);
+      else ctx5.rect(b5X, b5Y, b5W, b5H);
+      ctx5.fill();
+      ctx5.stroke();
+      ctx5.fillStyle = "#e11d48";
+      ctx5.fillText(vText5, b5X + 6, b5Y + 14);
+      ctx5.restore();
 
       // Current point
       const cy = 2 * Math.pow(currentX + 3, 2) - 13;
@@ -1204,16 +1240,30 @@
       ctx5.lineWidth = 2;
       ctx5.stroke();
 
-      // Point label with exact fractions on Canvas
+      // Point label with white badge for readability
+      ctx5.save();
       ctx5.font = "10px sans-serif";
-      let curTextX = cx + 8;
-      ctx5.fillText("(", curTextX, cpy - 4);
+      let curTextX = cx + 12;
+      const ptBadgeY = cpy - 8;
+      const ptBadgeH = 18;
+      ctx5.fillStyle = "rgba(255, 255, 255, 0.92)";
+      ctx5.strokeStyle = "#fecdd3";
+      ctx5.lineWidth = 1;
+      ctx5.beginPath();
+      if (ctx5.roundRect) ctx5.roundRect(curTextX - 4, ptBadgeY - 12, 88, ptBadgeH, 4);
+      else ctx5.rect(curTextX - 4, ptBadgeY - 12, 88, ptBadgeH);
+      ctx5.fill();
+      ctx5.stroke();
+
+      ctx5.fillStyle = "#e11d48";
+      ctx5.fillText("(", curTextX, ptBadgeY + 1);
       curTextX += ctx5.measureText("(").width;
-      curTextX += drawCanvasVal(ctx5, currentX, curTextX, cpy - 4);
-      ctx5.fillText(", ", curTextX, cpy - 4);
+      curTextX += drawCanvasVal(ctx5, currentX, curTextX, ptBadgeY + 1);
+      ctx5.fillText(", ", curTextX, ptBadgeY + 1);
       curTextX += ctx5.measureText(", ").width;
-      curTextX += drawCanvasVal(ctx5, cy, curTextX, cpy - 4);
-      ctx5.fillText(")", curTextX, cpy - 4);
+      curTextX += drawCanvasVal(ctx5, cy, curTextX, ptBadgeY + 1);
+      ctx5.fillText(")", curTextX, ptBadgeY + 1);
+      ctx5.restore();
 
       // Update values in UI as LaTeX fractions
       const sq = Math.pow(currentX + 3, 2);
@@ -1532,13 +1582,27 @@
       ctxFree.stroke();
       ctxFree.setLineDash([]);
 
-      // Axis label using stacked fraction (no slashes)
+      // Axis label with white badge to avoid line clashing
+      ctxFree.save();
+      ctxFree.font = "bold 10px sans-serif";
+      let axisLabelX = toX(p) + 6;
+      if (axisLabelX > w - 82) axisLabelX = toX(p) - 78;
+      const axisBadgeY = 20;
+
+      ctxFree.fillStyle = "rgba(255, 255, 255, 0.94)";
+      ctxFree.strokeStyle = "#c7d2fe";
+      ctxFree.lineWidth = 1;
+      ctxFree.beginPath();
+      if (ctxFree.roundRect) ctxFree.roundRect(axisLabelX - 4, axisBadgeY - 12, 74, 18, 4);
+      else ctxFree.rect(axisLabelX - 4, axisBadgeY - 12, 74, 18);
+      ctxFree.fill();
+      ctxFree.stroke();
+
       ctxFree.fillStyle = "#4f46e5";
-      ctxFree.font = "10px sans-serif";
-      let axisLabelX = toX(p) + 4;
-      ctxFree.fillText("軸 x = ", axisLabelX, 22);
+      ctxFree.fillText("軸 x = ", axisLabelX, axisBadgeY);
       axisLabelX += ctxFree.measureText("軸 x = ").width;
-      drawCanvasFrac(ctxFree, -b, 2 * a, axisLabelX, 22);
+      drawCanvasFrac(ctxFree, -b, 2 * a, axisLabelX, axisBadgeY);
+      ctxFree.restore();
 
       // Parabola curve
       ctxFree.strokeStyle = "#4f46e5";
@@ -1582,17 +1646,38 @@
       ctxFree.lineWidth = 2;
       ctxFree.stroke();
 
-      // Vertex label using stacked fraction on Canvas (no slashes)
+      // Vertex label with protective white badge (never obscured by dashed guidelines)
+      ctxFree.save();
+      ctxFree.font = "bold 11px sans-serif";
+      let badgeX = vx + 10;
+      if (badgeX > w - 120) badgeX = vx - 116;
+      let badgeY = vy - 12;
+      if (badgeY < 20) badgeY = vy + 24;
+
+      const badgeW = 114;
+      const badgeH = 22;
+      ctxFree.fillStyle = "rgba(255, 255, 255, 0.96)";
+      ctxFree.strokeStyle = "#cbd5e1";
+      ctxFree.lineWidth = 1.5;
+      ctxFree.beginPath();
+      if (ctxFree.roundRect) {
+        ctxFree.roundRect(badgeX - 4, badgeY - 14, badgeW, badgeH, 6);
+      } else {
+        ctxFree.rect(badgeX - 4, badgeY - 14, badgeW, badgeH);
+      }
+      ctxFree.fill();
+      ctxFree.stroke();
+
       ctxFree.fillStyle = "#be123c";
-      ctxFree.font = "10px sans-serif";
-      let vTextX = vx + 10;
-      ctxFree.fillText("頂点 (", vTextX, vy + 4);
+      let vTextX = badgeX + 4;
+      ctxFree.fillText("頂点 (", vTextX, badgeY);
       vTextX += ctxFree.measureText("頂点 (").width;
-      vTextX += drawCanvasFrac(ctxFree, -b, 2 * a, vTextX, vy + 4);
-      ctxFree.fillText(", ", vTextX, vy + 4);
+      vTextX += drawCanvasFrac(ctxFree, -b, 2 * a, vTextX, badgeY);
+      ctxFree.fillText(", ", vTextX, badgeY);
       vTextX += ctxFree.measureText(", ").width;
-      vTextX += drawCanvasFrac(ctxFree, 4 * a * c - b * b, 4 * a, vTextX, vy + 4);
-      ctxFree.fillText(")", vTextX, vy + 4);
+      vTextX += drawCanvasFrac(ctxFree, 4 * a * c - b * b, 4 * a, vTextX, badgeY);
+      ctxFree.fillText(")", vTextX, badgeY);
+      ctxFree.restore();
     }
 
     let isDraggingVertex = false;
@@ -1650,12 +1735,17 @@
       input.addEventListener('input', updateFreeLab);
     });
 
-    window.addEventListener('DOMContentLoaded', () => {
+    function initStudio() {
       renderMath();
       setPuzzleStep1(0);
       drawStep5Graph(-3);
       drawStep6Graph();
       updateFreeLab();
+    }
+
+    window.addEventListener('DOMContentLoaded', initStudio);
+    window.addEventListener('load', () => {
+      renderMath();
     });
   </script>
 </body>

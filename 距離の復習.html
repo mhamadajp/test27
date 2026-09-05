@@ -38,11 +38,29 @@
     canvas {
       touch-action: none;
     }
+    /* Resizer Bar Styling */
+    .gutter-col {
+      cursor: col-resize;
+      transition: background-color 0.15s ease;
+    }
+    .gutter-col:hover, .gutter-col.dragging {
+      background-color: #6366f1 !important;
+    }
+    /* Fullscreen canvas mode */
+    .canvas-fullscreen {
+      position: fixed !important;
+      top: 0 !important;
+      left: 0 !important;
+      width: 100vw !important;
+      height: 100vh !important;
+      z-index: 9999 !important;
+      border-radius: 0 !important;
+    }
   </style>
 </head>
-<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col antialiased select-none sm:select-auto">
+<body class="bg-slate-100 text-slate-800 min-h-screen lg:h-screen lg:overflow-hidden flex flex-col antialiased select-none sm:select-auto">
 
-  <header class="bg-indigo-900 text-white shadow-md sticky top-0 z-50">
+  <header class="bg-indigo-900 text-white shadow-md shrink-0 sticky top-0 z-50">
     <div class="max-w-7xl mx-auto px-3 sm:px-4 py-2.5 flex flex-col sm:flex-row items-center justify-between gap-2">
       <div class="flex items-center space-x-2.5">
         <span class="bg-amber-400 text-indigo-950 font-bold px-2 py-0.5 rounded text-xs tracking-wide">数学II</span>
@@ -85,30 +103,44 @@
     </div>
   </header>
 
-  <main class="max-w-7xl mx-auto px-3 sm:px-4 py-4 flex-1 flex flex-col lg:flex-row gap-4 w-full">
+  <main id="mainLayout" class="max-w-7xl mx-auto px-3 sm:px-4 py-3 flex-1 flex flex-col lg:flex-row gap-0 w-full min-h-0 relative">
     
-    <!-- LEFT COLUMN: Canvas Visualizer Area -->
-    <div class="lg:w-7/12 flex flex-col bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden min-h-[440px] sm:min-h-[520px]">
+    <!-- LEFT COLUMN: Dynamic Canvas Visualizer Area -->
+    <div id="canvasColumn" class="flex flex-col bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden min-h-[420px] sm:min-h-[480px] lg:min-h-0 flex-1 transition-[width] duration-75">
       <!-- Toolbar -->
-      <div class="bg-slate-50 px-3.5 py-2 border-b border-slate-200 flex items-center justify-between text-xs text-slate-600">
+      <div class="bg-slate-50 px-3.5 py-2 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-600 shrink-0">
         <div class="flex items-center space-x-2">
           <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
           <span class="font-bold text-slate-700" id="canvasTitle">グラフ操作キャンバス</span>
-          <span class="text-slate-400 text-[11px] hidden sm:inline">（点をドラッグまたは右側で調整できます）</span>
+          <span class="text-slate-400 text-[11px] hidden md:inline">（ホイールでズーム、中央ドラッグで移動）</span>
         </div>
+        
         <div class="flex items-center space-x-1.5">
-          <button onclick="resetCurrentView()" class="px-2.5 py-1 bg-white hover:bg-slate-100 border border-slate-300 rounded shadow-2xs text-slate-700 transition flex items-center gap-1">
+          <!-- Zoom Controls -->
+          <div class="flex items-center bg-white border border-slate-300 rounded shadow-2xs overflow-hidden">
+            <button onclick="changeZoom(-0.15)" title="縮小" class="px-2 py-1 hover:bg-slate-100 text-slate-700 transition font-mono font-bold">－</button>
+            <button onclick="resetZoomAndFit()" title="全体を最適フィット" class="px-2 py-1 hover:bg-slate-100 text-[11px] text-slate-600 border-x border-slate-200 transition font-medium">フィット</button>
+            <button onclick="changeZoom(0.15)" title="拡大" class="px-2 py-1 hover:bg-slate-100 text-slate-700 transition font-mono font-bold">＋</button>
+          </div>
+
+          <button onclick="resetCurrentView()" class="px-2 py-1 bg-white hover:bg-slate-100 border border-slate-300 rounded shadow-2xs text-slate-700 transition flex items-center gap-1">
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-            リセット
+            <span class="hidden sm:inline">リセット</span>
           </button>
-          <button onclick="toggleGridSnap()" id="btnGridSnap" class="px-2.5 py-1 bg-indigo-50 border border-indigo-200 text-indigo-700 rounded shadow-2xs font-semibold transition">
+          
+          <button onclick="toggleGridSnap()" id="btnGridSnap" class="px-2 py-1 bg-indigo-50 border border-indigo-200 text-indigo-700 rounded shadow-2xs font-semibold transition">
             スナップ: ON
+          </button>
+
+          <!-- Fullscreen Toggle -->
+          <button onclick="toggleCanvasFullscreen()" title="グラフを全画面表示" class="p-1 bg-white hover:bg-slate-100 border border-slate-300 rounded shadow-2xs text-slate-700 transition">
+            <svg id="fullscreenIcon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-5h-4m4 0v4m0-4l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
           </button>
         </div>
       </div>
 
       <!-- Canvas Box -->
-      <div class="relative flex-1 bg-slate-900 w-full overflow-hidden" id="canvasWrapper">
+      <div class="relative flex-1 bg-slate-900 w-full overflow-hidden min-h-[360px]" id="canvasWrapper">
         <canvas id="mainCanvas" class="w-full h-full block cursor-crosshair"></canvas>
         
         <!-- Canvas Status Badge -->
@@ -123,14 +155,26 @@
       </div>
 
       <!-- Action Hint Bar -->
-      <div class="bg-amber-50/90 border-t border-amber-200/70 px-3.5 py-1.5 text-xs text-amber-950 flex items-center gap-2">
-        <span class="text-amber-600 font-bold shrink-0">💡 ヒント:</span>
-        <span id="canvasHintText" class="truncate">赤色の点 A, B を指やマウスで動かしてみましょう！</span>
+      <div class="bg-amber-50/90 border-t border-amber-200/70 px-3.5 py-1.5 text-xs text-amber-950 flex items-center justify-between gap-2 shrink-0">
+        <div class="flex items-center gap-2 truncate">
+          <span class="text-amber-600 font-bold shrink-0">💡 ヒント:</span>
+          <span id="canvasHintText" class="truncate">赤色の点 A, B を指やマウスで動かしてみましょう！</span>
+        </div>
+        <div class="text-[11px] text-slate-400 shrink-0 hidden lg:block">
+          ↔ 境界線をドラッグして幅を自由に変更
+        </div>
+      </div>
+    </div>
+
+    <!-- DESKTOP RESIZER SPLITTER (Drag to adjust graph width) -->
+    <div id="colResizer" class="gutter-col hidden lg:flex items-center justify-center w-3 hover:w-3.5 mx-1 cursor-col-resize select-none group z-20" title="ドラッグしてグラフの大きさを変更">
+      <div class="w-1.5 h-12 bg-slate-300 group-hover:bg-indigo-500 rounded-full transition-colors flex items-center justify-center">
+        <div class="w-0.5 h-4 bg-white/70 rounded-full"></div>
       </div>
     </div>
 
     <!-- RIGHT COLUMN: Interactive Educational Controls -->
-    <div class="lg:w-5/12 flex flex-col gap-4 overflow-y-auto max-h-[820px]">
+    <div id="controlColumn" class="flex flex-col gap-3.5 overflow-y-auto min-h-0 pt-4 lg:pt-0 pb-6 lg:pb-2 w-full lg:w-[420px] shrink-0">
 
       <!-- 1. SLOPE PANEL -->
       <div id="panel-slope" class="panel-content flex flex-col gap-3.5">
@@ -577,9 +621,16 @@
     let hoveredPoint = null;
     let draggedPoint = null;
 
+    // Viewport, Pan & Zoom Math
     let originX = 100;
     let originY = 300;
     let scale = 36;
+    let zoomMultiplier = 1.0;
+    let panOffsetX = 0;
+    let panOffsetY = 0;
+    let isPanning = false;
+    let panStart = { x: 0, y: 0 };
+    let isCanvasFullscreen = false;
 
     // --- Safe Math Renderer (No DOM crash, No re-rendering inside drag) ---
     function safeRenderMath() {
@@ -604,20 +655,49 @@
       const rect = canvas.parentElement.getBoundingClientRect();
       const dpr = window.devicePixelRatio || 1;
       
-      const width = Math.max(300, rect.width);
-      const height = Math.max(380, rect.height);
+      const width = Math.max(260, rect.width);
+      const height = Math.max(300, rect.height);
 
       canvas.width = width * dpr;
       canvas.height = height * dpr;
       ctx.resetTransform();
       ctx.scale(dpr, dpr);
 
-      originX = width * 0.22;
-      originY = height * 0.82;
-      scale = Math.min(width / 13, height / 13);
-      if (scale < 24) scale = 24;
+      // Base scale dynamically adapts to container aspect ratio & size
+      const targetMathWidth = 11;
+      const targetMathHeight = 12;
+      const baseScale = Math.min(width / targetMathWidth, height / targetMathHeight);
+      
+      scale = Math.max(22, Math.min(75, baseScale)) * zoomMultiplier;
+      originX = width * 0.22 + panOffsetX;
+      originY = height * 0.80 + panOffsetY;
 
       redraw();
+    }
+
+    function changeZoom(delta) {
+      zoomMultiplier = Math.max(0.6, Math.min(2.5, zoomMultiplier + delta));
+      updateCanvasSize();
+    }
+
+    function resetZoomAndFit() {
+      zoomMultiplier = 1.0;
+      panOffsetX = 0;
+      panOffsetY = 0;
+      updateCanvasSize();
+    }
+
+    function toggleCanvasFullscreen() {
+      const col = document.getElementById('canvasColumn');
+      isCanvasFullscreen = !isCanvasFullscreen;
+      if (isCanvasFullscreen) {
+        col.classList.add('canvas-fullscreen');
+        document.body.style.overflow = 'hidden';
+      } else {
+        col.classList.remove('canvas-fullscreen');
+        document.body.style.overflow = '';
+      }
+      setTimeout(updateCanvasSize, 50);
     }
 
     function toScreenX(x) { return originX + x * scale; }
@@ -634,10 +714,88 @@
       const btn = document.getElementById('btnGridSnap');
       btn.textContent = `スナップ: ${isGridSnap ? 'ON' : 'OFF'}`;
       btn.className = isGridSnap 
-        ? "px-2.5 py-1 bg-indigo-50 border border-indigo-200 text-indigo-700 rounded shadow-2xs font-semibold transition"
-        : "px-2.5 py-1 bg-slate-100 border border-slate-300 text-slate-600 rounded shadow-2xs font-semibold transition";
+        ? "px-2 py-1 bg-indigo-50 border border-indigo-200 text-indigo-700 rounded shadow-2xs font-semibold transition"
+        : "px-2 py-1 bg-slate-100 border border-slate-300 text-slate-600 rounded shadow-2xs font-semibold transition";
     }
 
+    // --- Splitter Resizing Handler ---
+    function setupSplitter() {
+      const splitter = document.getElementById('colResizer');
+      const canvasCol = document.getElementById('canvasColumn');
+      const controlCol = document.getElementById('controlColumn');
+      const layout = document.getElementById('mainLayout');
+      if (!splitter || !canvasCol || !controlCol || !layout) return;
+
+      let isDraggingSplitter = false;
+
+      splitter.addEventListener('mousedown', (e) => {
+        isDraggingSplitter = true;
+        splitter.classList.add('dragging');
+        document.body.style.cursor = 'col-resize';
+        document.body.style.userSelect = 'none';
+        e.preventDefault();
+      });
+
+      window.addEventListener('mousemove', (e) => {
+        if (!isDraggingSplitter) return;
+        const layoutRect = layout.getBoundingClientRect();
+        const pointerX = e.clientX - layoutRect.left;
+        
+        // Limits: canvas width between 35% and 75%
+        const minW = layoutRect.width * 0.35;
+        const maxW = layoutRect.width * 0.78;
+        const clampedW = Math.max(minW, Math.min(maxW, pointerX));
+        
+        canvasCol.style.flex = 'none';
+        canvasCol.style.width = `${clampedW}px`;
+        controlCol.style.width = `${layoutRect.width - clampedW - 16}px`;
+        
+        updateCanvasSize();
+      });
+
+      window.addEventListener('mouseup', () => {
+        if (isDraggingSplitter) {
+          isDraggingSplitter = false;
+          splitter.classList.remove('dragging');
+          document.body.style.cursor = '';
+          document.body.style.userSelect = '';
+          updateCanvasSize();
+        }
+      });
+    }
+
+    // Mouse Wheel Zoom
+    canvas.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      const zoomFactor = e.deltaY < 0 ? 0.08 : -0.08;
+      changeZoom(zoomFactor);
+    }, { passive: false });
+
+    // Middle-click Pan or empty canvas dragging
+    canvas.addEventListener('mousedown', (e) => {
+      if (e.button === 1 || (!hoveredPoint && e.button === 0 && e.shiftKey)) {
+        isPanning = true;
+        panStart = { x: e.clientX - panOffsetX, y: e.clientY - panOffsetY };
+        canvas.style.cursor = 'grabbing';
+      }
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      if (isPanning) {
+        panOffsetX = e.clientX - panStart.x;
+        panOffsetY = e.clientY - panStart.y;
+        updateCanvasSize();
+      }
+    });
+
+    window.addEventListener('mouseup', () => {
+      if (isPanning) {
+        isPanning = false;
+        canvas.style.cursor = hoveredPoint ? 'grab' : 'crosshair';
+      }
+    });
+
+    // --- Tab Switching Logic ---
     function switchTab(tabId) {
       currentTab = tabId;
 
@@ -1652,7 +1810,15 @@
       updateCanvasSize();
     });
 
+    // ResizeObserver dynamically monitors canvas container size changes
+    const resizeObserver = new ResizeObserver(() => {
+      updateCanvasSize();
+    });
+
     window.addEventListener('DOMContentLoaded', () => {
+      const wrapper = document.getElementById('canvasWrapper');
+      if (wrapper) resizeObserver.observe(wrapper);
+      setupSplitter();
       updateCanvasSize();
       updateCalculations();
       setTimeout(safeRenderMath, 150);

@@ -1,0 +1,1778 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>二次関数の設計図スタジオ 〜式とグラフの往復キャンバス〜</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- KaTeX for math rendering -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+  <style>
+    .smooth-transition {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .fade-enter {
+      animation: fadeIn 0.35s ease-out forwards;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    input[type=range] {
+      accent-color: #4f46e5;
+    }
+    /* Pulsing target marker */
+    @keyframes pulseTarget {
+      0%, 100% { transform: scale(1); opacity: 0.9; }
+      50% { transform: scale(1.3); opacity: 0.4; }
+    }
+    .target-glow {
+      animation: pulseTarget 1.6s infinite ease-in-out;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col font-sans antialiased selection:bg-indigo-100 selection:text-indigo-900">
+
+  <!-- Header -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-sky-500 flex items-center justify-center text-white shadow-md shadow-indigo-100 font-bold text-lg">
+          $f(x)$
+        </div>
+        <div>
+          <h1 class="text-lg md:text-xl font-extrabold text-slate-800 tracking-tight">
+            二次関数の設計図スタジオ
+          </h1>
+          <p class="text-xs text-slate-500">放物線の形を暗記せず読む 〜式とグラフの往復〜</p>
+        </div>
+      </div>
+
+      <!-- Navigation Steps -->
+      <nav class="flex items-center overflow-x-auto py-1 space-x-1 sm:space-x-2 text-xs sm:text-sm">
+        <button onclick="switchTab('step1')" id="tab-step1" class="tab-btn px-3 py-1.5 rounded-lg font-medium transition-all bg-indigo-600 text-white shadow-sm">
+          1. 中心の見つけ方
+        </button>
+        <button onclick="switchTab('step2')" id="tab-step2" class="tab-btn px-3 py-1.5 rounded-lg font-medium transition-all text-slate-600 hover:bg-slate-100">
+          2. なぜ左右対称？
+        </button>
+        <button onclick="switchTab('step3')" id="tab-step3" class="tab-btn px-3 py-1.5 rounded-lg font-medium transition-all text-slate-600 hover:bg-slate-100">
+          3. 開き具合 $a$
+        </button>
+        <button onclick="switchTab('step4')" id="tab-step4" class="tab-btn px-3 py-1.5 rounded-lg font-medium transition-all text-slate-600 hover:bg-slate-100">
+          4. $a$ が負になると？
+        </button>
+        <button onclick="switchTab('step5')" id="tab-step5" class="tab-btn px-3 py-1.5 rounded-lg font-medium transition-all text-slate-600 hover:bg-slate-100">
+          5. $p, q$ の平行移動
+        </button>
+        <button onclick="switchTab('step6')" id="tab-step6" class="tab-btn px-3 py-1.5 rounded-lg font-medium transition-all text-slate-600 hover:bg-slate-100">
+          6. グラフから式を作る
+        </button>
+        <button onclick="switchTab('step7')" id="tab-step7" class="tab-btn px-3 py-1.5 rounded-lg font-medium transition-all text-slate-600 hover:bg-slate-100">
+          7. ぴったり挑戦
+        </button>
+        <button onclick="switchTab('free')" id="tab-free" class="tab-btn px-3 py-1.5 rounded-lg font-medium transition-all text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200">
+          🧪 自由キャンバス
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="flex-grow max-w-6xl w-full mx-auto px-4 py-6">
+
+    <!-- ==========================================
+         STEP 1: 式から「中心」を見つける
+         ========================================== -->
+    <section id="section-step1" class="step-section fade-enter space-y-6">
+      <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+        <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-4">
+          <div>
+            <span class="inline-block px-2.5 py-1 text-xs font-semibold rounded-full bg-indigo-50 text-indigo-700 mb-1">ステップ 1</span>
+            <h2 class="text-xl font-bold text-slate-800">式から「中心」を見つける：二乗の中身をゼロにする点</h2>
+          </div>
+          <div class="text-sm bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg text-slate-700 font-sans">
+            式： <span class="math font-serif text-base font-bold text-indigo-950">$y = (x - 2)^2 + 1$</span>
+          </div>
+        </div>
+
+        <p class="text-sm text-slate-600 mt-4 leading-relaxed">
+          「$(x-2)$ だから頂点の $x$ 座標は $2$」と符号を機械的に暗記すると、プラスとマイナスで迷子になりがちです。<br>
+          本質は<strong>「二乗の中身 $(x-2)$ がちょうど $0$ になる瞬間を探すこと（$x-2=0$ を解く）」</strong>にあります。
+        </p>
+
+        <div class="mt-6 grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+          <!-- Interactive Graph Canvas -->
+          <div class="lg:col-span-6 bg-slate-50 rounded-xl p-4 border border-slate-200 flex flex-col items-center">
+            <div class="w-full flex items-center justify-between mb-2 text-xs text-slate-500">
+              <span class="font-medium text-indigo-700">👆 グラフ上をなぞって $x$ を動かせます</span>
+              <span>原点 $(0,0)$ 基準</span>
+            </div>
+            <canvas id="canvas-s1" width="400" height="320" class="max-w-full h-auto bg-white rounded-lg border border-slate-200 shadow-inner cursor-ew-resize touch-none"></canvas>
+            <div class="text-xs text-slate-500 mt-2">現在の点： <span id="s1-cur-point" class="font-mono font-bold text-indigo-600">(2.0, 1.0)</span></div>
+          </div>
+
+          <!-- Controls and Inspection -->
+          <div class="lg:col-span-6 space-y-4">
+            <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
+              <div class="flex justify-between items-center">
+                <label for="slider-s1-x" class="text-xs font-bold text-slate-700">点 $x$ を左右にスライド：</label>
+                <span id="s1-slider-val" class="font-mono font-bold px-2 py-0.5 bg-white border border-slate-200 rounded text-indigo-700 text-sm">x = 2.0</span>
+              </div>
+              <input type="range" id="slider-s1-x" min="-1" max="5" step="0.1" value="2.0" class="w-full">
+            </div>
+
+            <!-- Live Decomposition Box -->
+            <div class="p-4 bg-white border border-slate-200 rounded-xl shadow-sm space-y-3 font-mono text-sm">
+              <div class="flex justify-between items-center text-xs text-slate-500 uppercase tracking-wider font-sans font-bold border-b pb-2">
+                <span>式のパーツの計算</span>
+                <span>値</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-slate-600">中身 $(x - 2)$：</span>
+                <span id="s1-inside-val" class="font-bold text-slate-800">0.00</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-slate-600">二乗 $(x - 2)^2$：</span>
+                <span id="s1-sq-val" class="font-bold text-indigo-600">0.00（二乗は常に 0 以上！）</span>
+              </div>
+              <div class="flex justify-between items-center pt-2 border-t border-slate-100">
+                <span class="text-slate-800 font-sans font-bold">高さ $y = (x-2)^2 + 1$：</span>
+                <span id="s1-y-val" class="text-rose-600 font-bold text-base">1.00</span>
+              </div>
+            </div>
+
+            <!-- Zero lock badge -->
+            <div id="s1-zero-badge" class="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs leading-relaxed transition-all">
+              🎯 <strong>$x = 2$ のとき：</strong> $(x-2) = 0$ となり、二乗部分が最も小さい $0$ になります。だから頂点は $(2, 1)$ で軸は $x=2$ です！
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==========================================
+         STEP 2: なぜ放物線は左右対称になるの？
+         ========================================== -->
+    <section id="section-step2" class="step-section hidden fade-enter space-y-6">
+      <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+        <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-4">
+          <div>
+            <span class="inline-block px-2.5 py-1 text-xs font-semibold rounded-full bg-indigo-50 text-indigo-700 mb-1">ステップ 2</span>
+            <h2 class="text-xl font-bold text-slate-800">なぜ放物線は左右対称になるの？（二乗の魔法）</h2>
+          </div>
+          <div class="text-sm bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg text-slate-700 font-sans">
+            軸 <span class="math font-serif text-base font-bold text-indigo-950">$x = 2$</span> を挟んだペアを観察
+          </div>
+        </div>
+
+        <p class="text-sm text-slate-600 mt-4 leading-relaxed">
+          軸 $x = 2$ から「左へ $d$」「右へ $d$」進んだ2つの点を見てみましょう。<br>
+          符号は逆でも、<strong>二乗すると $(-d)^2 = (+d)^2 = d^2$ となって同じ値になる</strong>ため、高さ $y$ が完全に一致します！
+        </p>
+
+        <div class="mt-6 grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+          <!-- Canvas showing mirror wings -->
+          <div class="lg:col-span-6 bg-slate-50 rounded-xl p-4 border border-slate-200 flex flex-col items-center">
+            <canvas id="canvas-s2" width="400" height="320" class="max-w-full h-auto bg-white rounded-lg border border-slate-200 shadow-inner"></canvas>
+            <div class="flex items-center gap-4 mt-2 text-xs">
+              <span class="text-indigo-600 font-bold">● 左側の点 $(2-d, y)$</span>
+              <span class="text-slate-400">| 軸 $x=2$ |</span>
+              <span class="text-emerald-600 font-bold">● 右側の点 $(2+d, y)$</span>
+            </div>
+          </div>
+
+          <div class="lg:col-span-6 space-y-4">
+            <!-- Distance Slider -->
+            <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
+              <div class="flex justify-between items-center">
+                <label for="slider-s2-d" class="text-xs font-bold text-slate-700">軸からの横の距離 $d$：</label>
+                <span id="s2-d-val" class="font-mono font-bold px-2 py-0.5 bg-indigo-50 border border-indigo-200 rounded text-indigo-700 text-sm"></span>
+              </div>
+              <input type="range" id="slider-s2-d" min="0" max="2.5" step="0.5" value="1.0" class="w-full">
+              <div class="flex justify-between text-[11px] text-slate-400 px-1">
+                <span>0 (頂点)</span>
+                <span>1 (Q2: 1と3)</span>
+                <span>2 (Q2: 0と4)</span>
+                <span>$\frac{5}{2}$</span>
+              </div>
+            </div>
+
+            <!-- Mirror Comparison Table -->
+            <div class="border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+              <table class="w-full text-xs text-center">
+                <thead class="bg-slate-100 text-slate-700 font-semibold border-b border-slate-200">
+                  <tr>
+                    <th class="p-2.5">向き</th>
+                    <th class="p-2.5">x の値</th>
+                    <th class="p-2.5">差 $(x - 2)$</th>
+                    <th class="p-2.5">二乗 $(x - 2)^2$</th>
+                    <th class="p-2.5 font-bold text-rose-700">高さ $y$</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 bg-white font-mono">
+                  <tr class="bg-indigo-50/40">
+                    <td class="p-2 text-indigo-800 font-sans font-bold">左へ $d$</td>
+                    <td id="s2-left-x" class="p-2 font-bold text-indigo-700"></td>
+                    <td id="s2-left-diff" class="p-2 text-slate-600"></td>
+                    <td id="s2-left-sq" class="p-2 font-bold text-indigo-800"></td>
+                    <td id="s2-left-y" class="p-2 font-extrabold text-rose-600"></td>
+                  </tr>
+                  <tr class="bg-emerald-50/40">
+                    <td class="p-2 text-emerald-800 font-sans font-bold">右へ $d$</td>
+                    <td id="s2-right-x" class="p-2 font-bold text-emerald-700"></td>
+                    <td id="s2-right-diff" class="p-2 text-slate-600"></td>
+                    <td id="s2-right-sq" class="p-2 font-bold text-emerald-800"></td>
+                    <td id="s2-right-y" class="p-2 font-extrabold text-rose-600"></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="p-3.5 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900 leading-relaxed">
+              💡 <strong>左右対称の理由：</strong><br>
+              差は $-d$ と $+d$ で正負が逆ですが、二乗すると <strong>$(-d)^2 = (+d)^2 = d^2$</strong> に化けるため、高さ $y$ が完全に同じになります。これが放物線の美しい対称性の正体です！
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==========================================
+         STEP 3: a が変わると、何が変わる？
+         ========================================== -->
+    <section id="section-step3" class="step-section hidden fade-enter space-y-6">
+      <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+        <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-4">
+          <div>
+            <span class="inline-block px-2.5 py-1 text-xs font-semibold rounded-full bg-indigo-50 text-indigo-700 mb-1">ステップ 3</span>
+            <h2 class="text-xl font-bold text-slate-800">$a$ が変わると何が変わる？（縦の上昇スピード）</h2>
+          </div>
+          <div class="text-sm bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg text-slate-700">
+            頂点 $(2, 1)$ は共通で $a$ を比較
+          </div>
+        </div>
+
+        <p class="text-sm text-slate-600 mt-4 leading-relaxed">
+          グラフの細さ・太さは感覚ではなく、<strong>「頂点から横に 1 離れたとき、縦に何マス上がるか」</strong>で決まります。<br>
+          3つの式を同時に見比べてみましょう。
+        </p>
+
+        <div class="mt-6 grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+          <div class="lg:col-span-6 bg-slate-50 rounded-xl p-4 border border-slate-200 flex flex-col items-center">
+            <canvas id="canvas-s3" width="400" height="320" class="max-w-full h-auto bg-white rounded-lg border border-slate-200 shadow-inner"></canvas>
+            <div class="flex flex-wrap items-center justify-center gap-3 mt-3 text-[11px] font-mono">
+              <span class="text-indigo-600 font-bold">● A: $a=1$</span>
+              <span class="text-rose-600 font-bold">● B: $a=2$ (急上昇)</span>
+              <span class="text-amber-600 font-bold">● C: $a=\frac{1}{2}$ (緩やか)</span>
+            </div>
+          </div>
+
+          <div class="lg:col-span-6 space-y-4">
+            <!-- Inspection distance button tabs -->
+            <div class="flex items-center space-x-2">
+              <span class="text-xs font-bold text-slate-700">横の距離でステップ比較：</span>
+              <button onclick="setS3Dist(1)" id="btn-s3-d1" class="px-3 py-1 rounded-lg text-xs font-bold bg-indigo-600 text-white shadow-sm">
+                距離 1 を見る
+              </button>
+              <button onclick="setS3Dist(2)" id="btn-s3-d2" class="px-3 py-1 rounded-lg text-xs font-bold bg-white border border-slate-200 text-slate-700 hover:bg-slate-50">
+                距離 2 を見る
+              </button>
+            </div>
+
+            <!-- Comparison Table -->
+            <div class="border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+              <table class="w-full text-xs text-center">
+                <thead class="bg-slate-100 text-slate-700 font-semibold border-b border-slate-200">
+                  <tr>
+                    <th class="p-2.5">頂点からの横の距離</th>
+                    <th class="p-2.5 text-indigo-700">A ($a=1$) の縦の変化</th>
+                    <th class="p-2.5 text-rose-700 font-bold">B ($a=2$) の縦の変化</th>
+                    <th class="p-2.5 text-amber-700">C ($a=\frac{1}{2}$) の縦の変化</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 bg-white font-mono">
+                  <tr>
+                    <td class="p-2 font-bold text-slate-700">0</td>
+                    <td class="p-2 text-slate-500">0</td>
+                    <td class="p-2 text-slate-500">0</td>
+                    <td class="p-2 text-slate-500">0</td>
+                  </tr>
+                  <tr id="row-s3-1" class="bg-indigo-50/30 font-bold">
+                    <td class="p-2 text-slate-800">1</td>
+                    <td class="p-2 text-indigo-700">$+1$ ($1 \times 1^2$)</td>
+                    <td class="p-2 text-rose-600">$+2$ ($2 \times 1^2$)</td>
+                    <td class="p-2 text-amber-600">$+\frac{1}{2}$ ($\frac{1}{2} \times 1^2$)</td>
+                  </tr>
+                  <tr id="row-s3-2">
+                    <td class="p-2 text-slate-800 font-bold">2</td>
+                    <td class="p-2 text-indigo-700">$+4$ ($1 \times 2^2$)</td>
+                    <td class="p-2 text-rose-600 font-bold">$+8$ ($2 \times 2^2$)</td>
+                    <td class="p-2 text-amber-600">$+2$ ($\frac{1}{2} \times 2^2$)</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-700 leading-relaxed space-y-1">
+              <div class="font-bold text-slate-800">🎯 なぜ $a$ が大きいと細く見えるの？</div>
+              <p>
+                横に 1 マス進むだけで、B は A の <strong>2倍</strong>（$+2$）、C は <strong>半分</strong>（$+\frac{1}{2}$）しか上がりません。<br>
+                $a$ は二乗の変化率を何倍に増幅するかという「ターボ倍率」です。急激に立ち上がるため、縦に引っ張られてスリムに見えます。
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==========================================
+         STEP 4: a が負になると？
+         ========================================== -->
+    <section id="section-step4" class="step-section hidden fade-enter space-y-6">
+      <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+        <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-4">
+          <div>
+            <span class="inline-block px-2.5 py-1 text-xs font-semibold rounded-full bg-rose-50 text-rose-700 mb-1">ステップ 4</span>
+            <h2 class="text-xl font-bold text-slate-800">$a$ が負になると？（山型と最大値の理由）</h2>
+          </div>
+          <div class="text-sm bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg text-slate-700 font-sans">
+            式： <span class="math font-serif text-base font-bold text-rose-950">$y = -2(x - 2)^2 + 1$</span>
+          </div>
+        </div>
+
+        <p class="text-sm text-slate-600 mt-4 leading-relaxed">
+          「マイナスがついたら上凸」と丸暗記していませんか？<br>
+          実数の二乗 $(x-2)^2$ は<strong>絶対に $0$ 以上（$\ge 0$）</strong>です。そこに負の数（$-2$）を掛けると<strong>必ず $0$ 以下（$\le 0$）</strong>に反転します！
+        </p>
+
+        <div class="mt-6 grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+          <div class="lg:col-span-6 bg-slate-50 rounded-xl p-4 border border-slate-200 flex flex-col items-center">
+            <canvas id="canvas-s4" width="400" height="320" class="max-w-full h-auto bg-white rounded-lg border border-slate-200 shadow-inner"></canvas>
+            <div class="mt-2 text-xs text-slate-500 font-mono">
+              頂点： <span class="text-rose-600 font-bold">(2, 1)</span> が一番高い「てっぺん（最大値）」
+            </div>
+          </div>
+
+          <div class="lg:col-span-6 space-y-4">
+            <!-- Sign Toggle / Slider -->
+            <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-slate-700">符号の切り替え比較：</span>
+                <div class="space-x-1">
+                  <button onclick="setS4Sign(1)" id="btn-s4-pos" class="px-2.5 py-1 text-xs rounded font-medium bg-white border border-slate-200 text-slate-700 hover:bg-slate-100">
+                    プラス (+2) 谷型
+                  </button>
+                  <button onclick="setS4Sign(-1)" id="btn-s4-neg" class="px-2.5 py-1 text-xs rounded font-medium bg-rose-600 text-white shadow-sm">
+                    マイナス (-2) 山型
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Mathematical logic deduction card -->
+            <div class="p-4 bg-white border border-slate-200 rounded-xl space-y-2.5 text-xs md:text-sm">
+              <div class="font-bold text-slate-800 flex items-center gap-1.5 border-b pb-2">
+                <span>🔍</span> <span>なぜ下向き（上に凸）で最大値になるのか？</span>
+              </div>
+              <div class="space-y-1.5 font-mono text-slate-700">
+                <div class="flex items-center gap-2">
+                  <span class="w-5 h-5 rounded-full bg-slate-100 text-slate-700 flex items-center justify-center text-[10px] font-bold">1</span>
+                  <span>$(x - 2)^2 \ge 0$</span>
+                  <span class="text-slate-400 font-sans text-xs">（二乗はマイナスにならない）</span>
+                </div>
+                <div class="flex items-center gap-2 text-rose-700 font-bold">
+                  <span class="w-5 h-5 rounded-full bg-rose-100 text-rose-800 flex items-center justify-center text-[10px] font-bold">2</span>
+                  <span>$-2(x - 2)^2 \le 0$</span>
+                  <span class="font-sans text-xs">（$-2$ を掛けると全部ゼロ以下に沈む！）</span>
+                </div>
+                <div class="flex items-center gap-2 text-indigo-900 font-bold pt-1">
+                  <span class="w-5 h-5 rounded-full bg-indigo-100 text-indigo-800 flex items-center justify-center text-[10px] font-bold">3</span>
+                  <span>$y = -2(x - 2)^2 + 1 \le 1$</span>
+                </div>
+              </div>
+              <p class="text-xs text-slate-600 pt-1 leading-relaxed font-sans">
+                二乗部分が $0$ になるときだけ天辺の $1$ に届き、それ以外の $x$ では必ず $1$ から引き算されて下がります。だから<strong>「最大値 1」</strong>になります！
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==========================================
+         STEP 5: pとqは、頂点をどこへ動かす？
+         ========================================== -->
+    <section id="section-step5" class="step-section hidden fade-enter space-y-6">
+      <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+        <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-4">
+          <div>
+            <span class="inline-block px-2.5 py-1 text-xs font-semibold rounded-full bg-indigo-50 text-indigo-700 mb-1">ステップ 5</span>
+            <h2 class="text-xl font-bold text-slate-800">$p$ と $q$ は頂点をどこへ動かす？（平行移動の旅）</h2>
+          </div>
+          <div class="text-sm bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg font-mono text-slate-700">
+            原点から頂点へのナビゲーション
+          </div>
+        </div>
+
+        <p class="text-sm text-slate-600 mt-4 leading-relaxed">
+          基本形 $y=x^2$ の頂点 $(0,0)$ から出発して、式が変わるごとにグラフがどう動くかワープさせてみましょう。
+        </p>
+
+        <div class="mt-6 grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+          <div class="lg:col-span-6 bg-slate-50 rounded-xl p-4 border border-slate-200 flex flex-col items-center">
+            <canvas id="canvas-s5" width="400" height="320" class="max-w-full h-auto bg-white rounded-lg border border-slate-200 shadow-inner"></canvas>
+            <div id="s5-current-label" class="mt-2 text-xs font-bold text-indigo-700">
+              頂点: (0, 0)
+            </div>
+          </div>
+
+          <div class="lg:col-span-6 space-y-3">
+            <div class="text-xs font-bold text-slate-500 uppercase tracking-wider">式の変化をタップして確認：</div>
+
+            <button onclick="setS5Phase(0)" id="btn-s5-0" class="w-full text-left p-3 rounded-xl border text-xs sm:text-sm font-medium transition-all bg-indigo-50 border-indigo-300 text-indigo-900 flex justify-between items-center">
+              <div>
+                <span class="font-bold mr-2">① 出発点：</span> $y = x^2$
+              </div>
+              <span class="font-mono text-xs font-bold">頂点 (0, 0)</span>
+            </button>
+
+            <button onclick="setS5Phase(1)" id="btn-s5-1" class="w-full text-left p-3 rounded-xl border text-xs sm:text-sm font-medium transition-all bg-white border-slate-200 text-slate-700 hover:bg-slate-50 flex justify-between items-center">
+              <div>
+                <span class="font-bold mr-2">② 横へ：</span> $y = (x - 1)^2$
+              </div>
+              <span class="font-mono text-xs font-bold text-indigo-600">右へ +1 → 頂点 (1, 0)</span>
+            </button>
+
+            <button onclick="setS5Phase(2)" id="btn-s5-2" class="w-full text-left p-3 rounded-xl border text-xs sm:text-sm font-medium transition-all bg-white border-slate-200 text-slate-700 hover:bg-slate-50 flex justify-between items-center">
+              <div>
+                <span class="font-bold mr-2">③ さらに横へ：</span> $y = (x - 3)^2$
+              </div>
+              <span class="font-mono text-xs font-bold text-indigo-600">右へ +3 → 頂点 (3, 0)</span>
+            </button>
+
+            <button onclick="setS5Phase(3)" id="btn-s5-3" class="w-full text-left p-3 rounded-xl border text-xs sm:text-sm font-medium transition-all bg-white border-slate-200 text-slate-700 hover:bg-slate-50 flex justify-between items-center">
+              <div>
+                <span class="font-bold mr-2">④ 上へ：</span> $y = (x - 3)^2 + 2$
+              </div>
+              <span class="font-mono text-xs font-bold text-emerald-600">上へ +2 → 頂点 (3, 2)</span>
+            </button>
+
+            <!-- Insight summary -->
+            <div class="mt-2 p-3 rounded-xl bg-slate-100 border border-slate-200 text-xs text-slate-700 leading-relaxed">
+              👉 <strong>設計図の読み方：</strong><br>
+              $y = a(x - \mathbf{p})^2 + \mathbf{q}$ のとき、$\mathbf{p}$ は<strong>横の平行移動（軸）</strong>、$\mathbf{q}$ は<strong>縦の平行移動（高さ）</strong>を直接表しています。
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==========================================
+         STEP 6: グラフから式を作る（ターゲット命中体験）
+         ========================================== -->
+    <section id="section-step6" class="step-section hidden fade-enter space-y-6">
+      <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+        <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-4">
+          <div>
+            <span class="inline-block px-2.5 py-1 text-xs font-semibold rounded-full bg-emerald-50 text-emerald-700 mb-1">ステップ 6</span>
+            <h2 class="text-xl font-bold text-slate-800">今度は逆向き：グラフから式を作る！</h2>
+          </div>
+          <div class="text-sm bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg text-slate-700 font-sans">
+            頂点 <span class="math font-serif text-base font-bold text-indigo-950">$(3, 2)$</span> と 点 <span class="math font-serif text-base font-bold text-rose-600">$(4, 4)$</span>
+          </div>
+        </div>
+
+        <p class="text-sm text-slate-600 mt-4 leading-relaxed">
+          頂点 $(3, 2)$ が分かれば、式の大部分 $y = a(x - 3)^2 + 2$ がもう決まります。<br>
+          あとは開き具合 $a$ を調整して、ターゲットの点 $(4, 4)$ にピタッと重ねてみましょう！
+        </p>
+
+        <div class="mt-6 grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+          <div class="lg:col-span-6 bg-slate-50 rounded-xl p-4 border border-slate-200 flex flex-col items-center">
+            <canvas id="canvas-s6" width="400" height="320" class="max-w-full h-auto bg-white rounded-lg border border-slate-200 shadow-inner"></canvas>
+            <div class="flex items-center gap-3 mt-2 text-xs">
+              <span class="text-indigo-600 font-bold">● 頂点 (3, 2)</span>
+              <span class="text-rose-600 font-bold flex items-center gap-1">
+                <span class="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block"></span>
+                通過点 🎯 (4, 4)
+              </span>
+            </div>
+          </div>
+
+          <div class="lg:col-span-6 space-y-4">
+            <!-- Interactive Slider for a -->
+            <div class="p-4 bg-white border border-slate-200 rounded-xl shadow-sm space-y-3">
+              <div class="flex justify-between items-center">
+                <label for="slider-s6-a" class="text-xs font-bold text-slate-700">
+                  開き具合 $a$ を動かしてターゲットを狙う：
+                </label>
+                <span id="s6-a-val" class="font-mono font-bold px-2 py-0.5 bg-indigo-50 border border-indigo-200 rounded text-indigo-700 text-sm"></span>
+              </div>
+              <input type="range" id="slider-s6-a" min="-2" max="4" step="0.25" value="0.5" class="w-full">
+
+              <!-- Live Formula -->
+              <div class="p-3 bg-slate-50 rounded-lg text-center font-mono text-base font-bold text-slate-800" id="s6-live-formula">
+              </div>
+            </div>
+
+            <!-- Target Match Feedback -->
+            <div id="s6-feedback" class="p-4 rounded-xl border text-xs md:text-sm leading-relaxed transition-all bg-slate-100 border-slate-200 text-slate-600">
+              まだ点 $(4, 4)$ を通っていません。スライダーで $a$ を調整してみよう！
+            </div>
+
+            <!-- Step-by-step guidance card -->
+            <div class="p-3.5 bg-indigo-50/70 border border-indigo-100 rounded-xl text-xs text-indigo-950 space-y-1.5">
+              <div class="font-bold">📘 計算で求める3つの手順：</div>
+              <div>① 頂点 $(3, 2)$ から型を作る： $y = a(x - 3)^2 + 2$</div>
+              <div>② 点 $(4, 4)$ を代入する： $4 = a(4 - 3)^2 + 2$</div>
+              <div>③ $a$ を解く： $4 = a(1) + 2 \implies \mathbf{a = 2}$</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==========================================
+         STEP 7: ぴったり挑戦（自力で往復）
+         ========================================== -->
+    <section id="section-step7" class="step-section hidden fade-enter space-y-6">
+      <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+        <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-4">
+          <div>
+            <span class="inline-block px-2.5 py-1 text-xs font-semibold rounded-full bg-violet-50 text-violet-700 mb-1">ステップ 7</span>
+            <h2 class="text-xl font-bold text-slate-800">自力で往復してみる：ミッションに挑戦！</h2>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="loadMission(1)" id="btn-mission-1" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-indigo-600 text-white shadow-sm">
+              ミッション 1
+            </button>
+            <button onclick="loadMission(2)" id="btn-mission-2" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-white border border-slate-200 text-slate-700 hover:bg-slate-100">
+              ミッション 2
+            </button>
+          </div>
+        </div>
+
+        <div id="s7-mission-desc" class="p-3.5 bg-indigo-50 border border-indigo-200 rounded-xl text-xs md:text-sm text-indigo-900 font-medium">
+          <!-- Dynamically populated -->
+        </div>
+
+        <div class="mt-6 grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+          <div class="lg:col-span-6 bg-slate-50 rounded-xl p-4 border border-slate-200 flex flex-col items-center">
+            <canvas id="canvas-s7" width="400" height="320" class="max-w-full h-auto bg-white rounded-lg border border-slate-200 shadow-inner"></canvas>
+            <div class="mt-2 text-xs text-slate-500 font-mono" id="s7-target-label">
+              目標：頂点 (-1, 3)、通過点 (0, 1)
+            </div>
+          </div>
+
+          <div class="lg:col-span-6 space-y-4">
+            <!-- Controls for p, q, a -->
+            <div class="p-4 bg-white border border-slate-200 rounded-xl space-y-3 shadow-sm text-xs">
+              <div>
+                <div class="flex justify-between font-bold text-slate-700 mb-1">
+                  <span>頂点の x 座標 (p)：</span>
+                  <span id="s7-val-p" class="font-mono text-indigo-600"></span>
+                </div>
+                <input type="range" id="s7-input-p" min="-4" max="4" step="1" value="0" class="w-full">
+              </div>
+
+              <div>
+                <div class="flex justify-between font-bold text-slate-700 mb-1">
+                  <span>頂点の y 座標 (q)：</span>
+                  <span id="s7-val-q" class="font-mono text-indigo-600"></span>
+                </div>
+                <input type="range" id="s7-input-q" min="-4" max="4" step="1" value="0" class="w-full">
+              </div>
+
+              <div>
+                <div class="flex justify-between font-bold text-slate-700 mb-1">
+                  <span>開き具合 (a)：</span>
+                  <span id="s7-val-a" class="font-mono text-indigo-600"></span>
+                </div>
+                <input type="range" id="s7-input-a" min="-3" max="3" step="0.5" value="1" class="w-full">
+              </div>
+            </div>
+
+            <!-- Current Formula Display & Success Message -->
+            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 text-center font-mono font-bold text-slate-800" id="s7-current-formula">
+              $y = 1(x - 0)^2 + 0$
+            </div>
+
+            <div id="s7-status-box" class="p-3.5 rounded-xl border text-xs md:text-sm transition-all bg-amber-50 border-amber-200 text-amber-900 leading-relaxed">
+              頂点と通過点を目指してスライダーを合わせてみよう！
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==========================================
+         STEP 8: 自由キャンバス (FREE LAB)
+         ========================================== -->
+    <section id="section-free" class="step-section hidden fade-enter space-y-6">
+      <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+        <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-4">
+          <div>
+            <span class="inline-block px-2.5 py-1 text-xs font-semibold rounded-full bg-indigo-100 text-indigo-800 mb-1">🧪 自由キャンバス</span>
+            <h2 class="text-xl font-bold text-slate-800">放物線を直接ドラッグして設計図を作る</h2>
+          </div>
+          <button onclick="resetFreeOrigin()" class="px-2.5 py-1 rounded-md text-xs font-semibold bg-white border border-slate-200 text-slate-600 hover:bg-slate-100 shadow-sm transition-colors">
+            初期位置に戻す
+          </button>
+        </div>
+
+        <div class="mt-4 grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+          <div class="lg:col-span-7 bg-slate-50 p-4 rounded-xl border border-slate-200 flex flex-col items-center">
+            <div class="w-full flex items-center justify-between mb-2 text-xs">
+              <span class="inline-flex items-center gap-1 text-indigo-800 bg-indigo-50 px-2.5 py-1 rounded-full font-bold border border-indigo-200">
+                <span>🎯</span> 頂点● と 通過点● を直接ドラッグできます
+              </span>
+              <span class="text-slate-400 text-[11px]">原点固定ビュー</span>
+            </div>
+            <canvas id="canvas-free" width="440" height="340" class="max-w-full h-auto bg-white rounded-lg border border-slate-200 shadow-inner cursor-grab active:cursor-grabbing touch-none"></canvas>
+            <div class="flex items-center gap-4 mt-2 text-xs font-mono">
+              <span class="text-rose-600 font-bold">● 頂点 P(p, q)</span>
+              <span class="text-indigo-600 font-bold">● 通過点 A(x₁, y₁)</span>
+            </div>
+          </div>
+
+          <div class="lg:col-span-5 space-y-4">
+            <!-- Sliders for fine tuning -->
+            <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2 text-xs">
+              <div class="flex justify-between font-bold text-slate-700">
+                <span>開き具合 a：</span>
+                <span id="free-val-a" class="font-mono text-indigo-600"></span>
+              </div>
+              <input type="range" id="free-slider-a" min="-3" max="3" step="0.25" value="1.0" class="w-full">
+            </div>
+
+            <!-- Two Forms of Formula -->
+            <div class="p-4 bg-white border border-slate-200 rounded-xl shadow-sm space-y-3">
+              <div class="text-xs font-bold text-slate-500 uppercase tracking-wider">リアルタイム数式生成</div>
+              
+              <div class="p-3 bg-indigo-50/70 rounded-lg border border-indigo-100">
+                <div class="text-[11px] text-indigo-700 font-semibold mb-1">設計図の形（標準形）：</div>
+                <div id="free-standard-form" class="font-mono text-sm md:text-base font-bold text-indigo-950">
+                </div>
+              </div>
+
+              <div class="p-3 bg-slate-50 rounded-lg border border-slate-200">
+                <div class="text-[11px] text-slate-500 font-semibold mb-1">展開した形（一般形）：</div>
+                <div id="free-general-form" class="font-mono text-sm font-bold text-slate-700">
+                </div>
+              </div>
+            </div>
+
+            <!-- Summary attributes -->
+            <div class="grid grid-cols-3 gap-2 text-center text-xs">
+              <div class="p-2 bg-slate-50 border border-slate-200 rounded-lg">
+                <div class="text-slate-400 text-[10px]">軸</div>
+                <div id="free-axis" class="font-bold text-slate-800 font-mono mt-0.5"></div>
+              </div>
+              <div class="p-2 bg-rose-50 border border-rose-100 rounded-lg">
+                <div class="text-rose-500 text-[10px]">頂点</div>
+                <div id="free-vertex" class="font-bold text-rose-700 font-mono mt-0.5"></div>
+              </div>
+              <div class="p-2 bg-emerald-50 border border-emerald-100 rounded-lg">
+                <div class="text-emerald-600 text-[10px]" id="free-ext-label">最小値</div>
+                <div id="free-ext-val" class="font-bold text-emerald-700 font-mono mt-0.5"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-white border-t border-slate-200 py-4 mt-8 text-center text-xs text-slate-400">
+    高校数学I 二次関数探究スタジオ 〜 式とグラフの往復キャンバス 〜
+  </footer>
+
+  <!-- ==========================================
+       JavaScript Logic
+       ========================================== -->
+  <script>
+    // Convert any number to exact reduced LaTeX fraction (\frac{n}{d})
+    function toLatexFrac(val, showPlus = false) {
+      if (val === null || val === undefined || isNaN(val)) return '0';
+      const eps = 1e-4;
+      const sign = val < -eps ? -1 : 1;
+      const absVal = Math.abs(val);
+
+      // Integer check
+      if (Math.abs(absVal - Math.round(absVal)) < eps) {
+        const intVal = Math.round(val);
+        if (showPlus && intVal > 0) return `+${intVal}`;
+        return intVal.toString();
+      }
+
+      // Find best rational approximation with small denominators
+      let bestN = 1, bestD = 1, minErr = 999;
+      for (let d = 2; d <= 32; d++) {
+        const n = Math.round(absVal * d);
+        const err = Math.abs(absVal - n / d);
+        if (err < minErr) {
+          minErr = err;
+          bestN = n;
+          bestD = d;
+          if (err < eps) break;
+        }
+      }
+
+      function gcd(a, b) { return b === 0 ? a : gcd(b, a % b); }
+      const g = gcd(bestN, bestD);
+      const n = bestN / g;
+      const d = bestD / g;
+
+      if (d === 1) {
+        const intVal = sign * n;
+        if (showPlus && intVal > 0) return `+${intVal}`;
+        return intVal.toString();
+      }
+
+      const signStr = sign < 0 ? '-' : (showPlus ? '+' : '');
+      return `${signStr}\\frac{${n}}{${d}}`;
+    }
+
+    // Format leading quadratic coefficient 'a' (1 is omitted, -1 becomes '-', fractions formatted with \frac)
+    function formatCoeffA(a) {
+      if (Math.abs(a - 1) < 1e-4) return '';
+      if (Math.abs(a - (-1)) < 1e-4) return '-';
+      return toLatexFrac(a);
+    }
+
+    // Format coordinate pairs as LaTeX
+    function toLatexPoint(x, y) {
+      return `(${toLatexFrac(x)},\\, ${toLatexFrac(y)})`;
+    }
+
+    // Helper to draw vertical fractions on HTML5 Canvas without using slashes
+    function drawCanvasVal(ctx, val, x, y) {
+      const eps = 1e-4;
+      const absVal = Math.abs(val);
+      if (Math.abs(absVal - Math.round(absVal)) < eps) {
+        const str = Math.round(val).toString();
+        ctx.fillText(str, x, y);
+        return ctx.measureText(str).width;
+      }
+
+      const isNeg = val < -eps;
+      let bestN = 1, bestD = 1, minErr = 999;
+      for (let d = 2; d <= 16; d++) {
+        const n = Math.round(absVal * d);
+        const err = Math.abs(absVal - n / d);
+        if (err < minErr) { minErr = err; bestN = n; bestD = d; if (err < eps) break; }
+      }
+      function gcd(a, b) { return b === 0 ? a : gcd(b, a % b); }
+      const g = gcd(bestN, bestD);
+      const n = (bestN / g).toString();
+      const d = (bestD / g).toString();
+
+      ctx.save();
+      let curX = x;
+      if (isNeg) {
+        ctx.fillText('-', curX, y);
+        curX += ctx.measureText('-').width + 1;
+      }
+      const nw = ctx.measureText(n).width;
+      const dw = ctx.measureText(d).width;
+      const barW = Math.max(nw, dw) + 3;
+
+      ctx.fillText(n, curX + (barW - nw) / 2, y - 5);
+      ctx.beginPath();
+      ctx.lineWidth = 1;
+      ctx.moveTo(curX, y - 3);
+      ctx.lineTo(curX + barW, y - 3);
+      ctx.stroke();
+      ctx.fillText(d, curX + (barW - dw) / 2, y + 6);
+      ctx.restore();
+
+      return (curX - x) + barW;
+    }
+
+    // Dedicated formula renderer with safe HTML fallback
+    function setMathText(element, latexString, displayMode = false) {
+      if (!element) return;
+      const cleanLatex = latexString.replace(/^\$+|\$+$/g, '').trim();
+      if (window.katex) {
+        try {
+          katex.render(cleanLatex, element, {
+            displayMode: displayMode,
+            throwOnError: false
+          });
+          return;
+        } catch(e) {
+          console.warn("KaTeX render error:", e);
+        }
+      }
+      // Fallback formatting with vertical fractions
+      element.innerHTML = cleanLatex
+        .replace(/\\frac\{([^}]+)\}\{([^}]+)\}/g, '<span class="inline-flex flex-col text-center align-middle mx-0.5 text-xs"><span class="border-b border-current pb-0.5">$1</span><span>$2</span></span>')
+        .replace(/\^2/g, '<sup>2</sup>')
+        .replace(/\^\{([^}]+)\}/g, '<sup>$1</sup>')
+        .replace(/\\le/g, ' ≦ ')
+        .replace(/\\ge/g, ' ≧ ')
+        .replace(/\\implies/g, ' ⇒ ')
+        .replace(/\\mathbf\{([^}]+)\}/g, '<strong>$1</strong>');
+    }
+
+    // KaTeX safe auto-renderer
+    function renderMath(elem) {
+      const target = elem || document.body;
+      if (window.renderMathInElement) {
+        try {
+          renderMathInElement(target, {
+            delimiters: [
+              { left: '$$', right: '$$', display: true },
+              { left: '$', right: '$', display: false }
+            ],
+            throwOnError: false
+          });
+          return;
+        } catch(e) {
+          console.warn(e);
+        }
+      }
+    }
+
+    // Tab switcher
+    function switchTab(tabId) {
+      document.querySelectorAll('.step-section').forEach(sec => sec.classList.add('hidden'));
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('bg-indigo-600', 'text-white', 'shadow-sm');
+        btn.classList.add('text-slate-600', 'hover:bg-slate-100');
+      });
+
+      const targetSec = document.getElementById('section-' + tabId);
+      const targetBtn = document.getElementById('tab-' + tabId);
+      if (targetSec) targetSec.classList.remove('hidden');
+      if (targetBtn) {
+        targetBtn.classList.add('bg-indigo-600', 'text-white', 'shadow-sm');
+        targetBtn.classList.remove('text-slate-600', 'hover:bg-slate-100');
+      }
+
+      setTimeout(() => {
+        renderMath();
+        if (tabId === 'step1') drawS1(parseFloat(document.getElementById('slider-s1-x').value));
+        if (tabId === 'step2') drawS2(parseFloat(document.getElementById('slider-s2-d').value));
+        if (tabId === 'step3') drawS3(currentS3Dist);
+        if (tabId === 'step4') drawS4(currentS4Sign);
+        if (tabId === 'step5') drawS5(currentS5Phase);
+        if (tabId === 'step6') updateS6();
+        if (tabId === 'step7') updateS7();
+        if (tabId === 'free') updateFreeLab();
+      }, 50);
+    }
+
+    /* Common Coordinate Drawer */
+    function drawBaseCoordinates(ctx, w, h, minX, maxX, minY, maxY) {
+      ctx.clearRect(0, 0, w, h);
+      function toX(x) { return ((x - minX) / (maxX - minX)) * w; }
+      function toY(y) { return h - ((y - minY) / (maxY - minY)) * h; }
+
+      // Grid
+      ctx.strokeStyle = "#f1f5f9";
+      ctx.lineWidth = 1;
+      for (let x = Math.ceil(minX); x <= maxX; x++) {
+        ctx.beginPath();
+        ctx.moveTo(toX(x), 0);
+        ctx.lineTo(toX(x), h);
+        ctx.stroke();
+      }
+      for (let y = Math.ceil(minY); y <= maxY; y++) {
+        ctx.beginPath();
+        ctx.moveTo(0, toY(y));
+        ctx.lineTo(w, toY(y));
+        ctx.stroke();
+      }
+
+      // Axes
+      ctx.strokeStyle = "#cbd5e1";
+      ctx.lineWidth = 1.5;
+      if (minY <= 0 && maxY >= 0) {
+        ctx.beginPath();
+        ctx.moveTo(0, toY(0));
+        ctx.lineTo(w, toY(0));
+        ctx.stroke();
+      }
+      if (minX <= 0 && maxX >= 0) {
+        ctx.beginPath();
+        ctx.moveTo(toX(0), 0);
+        ctx.lineTo(toX(0), h);
+        ctx.stroke();
+      }
+
+      // Axis Marks & Labels
+      ctx.fillStyle = "#94a3b8";
+      ctx.font = "10px sans-serif";
+      if (minX <= 0 && maxX >= 0 && minY <= 0 && maxY >= 0) {
+        ctx.fillText("O", toX(0) + 4, toY(0) + 12);
+        ctx.fillText("x", w - 12, toY(0) - 4);
+        ctx.fillText("y", toX(0) + 4, 12);
+      }
+      return { toX, toY };
+    }
+
+    /* -------------------------------------------------------------
+       STEP 1: Center Inspection (y = (x-2)^2 + 1)
+       ------------------------------------------------------------- */
+    const c1 = document.getElementById('canvas-s1');
+    const ctx1 = c1.getContext('2d');
+    const sliderS1 = document.getElementById('slider-s1-x');
+
+    function drawS1(xVal) {
+      const minX = -1, maxX = 5;
+      const minY = -1, maxY = 8;
+      const { toX, toY } = drawBaseCoordinates(ctx1, c1.width, c1.height, minX, maxX, minY, maxY);
+
+      // Axis of symmetry x = 2
+      ctx1.strokeStyle = "#a5b4fc";
+      ctx1.setLineDash([4, 4]);
+      ctx1.beginPath();
+      ctx1.moveTo(toX(2), 0);
+      ctx1.lineTo(toX(2), c1.height);
+      ctx1.stroke();
+      ctx1.setLineDash([]);
+      ctx1.fillStyle = "#6366f1";
+      ctx1.fillText("軸 x = 2", toX(2) + 4, 20);
+
+      // Curve y = (x-2)^2 + 1
+      ctx1.strokeStyle = "#4f46e5";
+      ctx1.lineWidth = 2.5;
+      ctx1.beginPath();
+      for (let px = 0; px <= c1.width; px += 2) {
+        const x = minX + (px / c1.width) * (maxX - minX);
+        const y = Math.pow(x - 2, 2) + 1;
+        const py = toY(y);
+        if (px === 0) ctx1.moveTo(px, py);
+        else ctx1.lineTo(px, py);
+      }
+      ctx1.stroke();
+
+      // Vertex
+      ctx1.fillStyle = "#e11d48";
+      ctx1.beginPath();
+      ctx1.arc(toX(2), toY(1), 5, 0, Math.PI * 2);
+      ctx1.fill();
+
+      // Current moving point
+      const curY = Math.pow(xVal - 2, 2) + 1;
+      const cx = toX(xVal);
+      const cy = toY(curY);
+
+      // Projections
+      ctx1.strokeStyle = "#f43f5e";
+      ctx1.lineWidth = 1;
+      ctx1.setLineDash([2, 2]);
+      ctx1.beginPath();
+      ctx1.moveTo(cx, toY(0));
+      ctx1.lineTo(cx, cy);
+      ctx1.lineTo(toX(0), cy);
+      ctx1.stroke();
+      ctx1.setLineDash([]);
+
+      ctx1.fillStyle = "#f43f5e";
+      ctx1.beginPath();
+      ctx1.arc(cx, cy, 6, 0, Math.PI * 2);
+      ctx1.fill();
+      ctx1.strokeStyle = "#ffffff";
+      ctx1.lineWidth = 2;
+      ctx1.stroke();
+
+      // Update text in fraction form
+      const diff = xVal - 2;
+      const sq = diff * diff;
+
+      setMathText(document.getElementById('s1-slider-val'), `x = ${toLatexFrac(xVal)}`);
+      setMathText(document.getElementById('s1-cur-point'), toLatexPoint(xVal, curY));
+      setMathText(document.getElementById('s1-inside-val'), toLatexFrac(diff));
+      setMathText(document.getElementById('s1-sq-val'), `${toLatexFrac(sq)} \\quad \\text{（二乗は常に 0 以上！）}`);
+      setMathText(document.getElementById('s1-y-val'), toLatexFrac(curY));
+
+      const badge = document.getElementById('s1-zero-badge');
+      if (Math.abs(diff) < 0.05) {
+        badge.className = "p-3 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-950 text-xs leading-relaxed transition-all shadow-sm font-bold";
+        badge.innerHTML = `🎯 <strong>ピタリ！ $x = 2$ に到達：</strong> $(x-2) = 0$ となり二乗部分が完全な $0$ になりました。このとき放物線はもっとも低く、頂点 $(2, 1)$ になります！`;
+      } else {
+        badge.className = "p-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-700 text-xs leading-relaxed transition-all";
+        badge.innerHTML = `二乗の中身 $(x-2) = ${toLatexFrac(diff)}$ なので、二乗すると必ず正の数（$+${toLatexFrac(sq)}$）が増加して高さが高くなります。`;
+      }
+      renderMath(badge);
+    }
+
+    sliderS1.addEventListener('input', e => drawS1(parseFloat(e.target.value)));
+
+    // Dragging support for step 1
+    let isDraggingS1 = false;
+    function handleS1Pointer(evt) {
+      const rect = c1.getBoundingClientRect();
+      const clientX = evt.touches ? evt.touches[0].clientX : evt.clientX;
+      const relX = (clientX - rect.left) / rect.width;
+      let targetX = -1 + relX * 6;
+      targetX = Math.max(-1, Math.min(5, Math.round(targetX * 2) / 2));
+      sliderS1.value = targetX;
+      drawS1(targetX);
+    }
+    c1.addEventListener('mousedown', e => { isDraggingS1 = true; handleS1Pointer(e); });
+    window.addEventListener('mousemove', e => { if (isDraggingS1) handleS1Pointer(e); });
+    window.addEventListener('mouseup', () => isDraggingS1 = false);
+    c1.addEventListener('touchstart', e => { isDraggingS1 = true; handleS1Pointer(e); if (e.cancelable) e.preventDefault(); }, { passive: false });
+    window.addEventListener('touchmove', e => { if (isDraggingS1) { handleS1Pointer(e); if (e.cancelable) e.preventDefault(); } }, { passive: false });
+    window.addEventListener('touchend', () => isDraggingS1 = false);
+
+    /* -------------------------------------------------------------
+       STEP 2: Symmetry and (-d)^2 = d^2
+       ------------------------------------------------------------- */
+    const c2 = document.getElementById('canvas-s2');
+    const ctx2 = c2.getContext('2d');
+    const sliderS2 = document.getElementById('slider-s2-d');
+
+    function drawS2(d) {
+      const minX = -1, maxX = 5;
+      const minY = -1, maxY = 8;
+      const { toX, toY } = drawBaseCoordinates(ctx2, c2.width, c2.height, minX, maxX, minY, maxY);
+
+      // Axis of symmetry x = 2
+      ctx2.strokeStyle = "#818cf8";
+      ctx2.lineWidth = 1.5;
+      ctx2.setLineDash([4, 4]);
+      ctx2.beginPath();
+      ctx2.moveTo(toX(2), 0);
+      ctx2.lineTo(toX(2), c2.height);
+      ctx2.stroke();
+      ctx2.setLineDash([]);
+      ctx2.fillStyle = "#4f46e5";
+      ctx2.fillText("軸 x = 2", toX(2) + 4, 18);
+
+      // Curve
+      ctx2.strokeStyle = "#cbd5e1";
+      ctx2.lineWidth = 2;
+      ctx2.beginPath();
+      for (let px = 0; px <= c2.width; px += 2) {
+        const x = minX + (px / c2.width) * (maxX - minX);
+        const y = Math.pow(x - 2, 2) + 1;
+        const py = toY(y);
+        if (px === 0) ctx2.moveTo(px, py);
+        else ctx2.lineTo(px, py);
+      }
+      ctx2.stroke();
+
+      // Vertex
+      ctx2.fillStyle = "#94a3b8";
+      ctx2.beginPath();
+      ctx2.arc(toX(2), toY(1), 4, 0, Math.PI * 2);
+      ctx2.fill();
+
+      // Left and right points
+      const leftX = 2 - d;
+      const rightX = 2 + d;
+      const commonY = d * d + 1;
+
+      // Horizontal connection bar
+      ctx2.strokeStyle = "#f43f5e";
+      ctx2.lineWidth = 1.5;
+      ctx2.setLineDash([3, 3]);
+      ctx2.beginPath();
+      ctx2.moveTo(toX(leftX), toY(commonY));
+      ctx2.lineTo(toX(rightX), toY(commonY));
+      ctx2.stroke();
+      ctx2.setLineDash([]);
+
+      // Symmetric span arrows
+      ctx2.strokeStyle = "#6366f1";
+      ctx2.lineWidth = 1.5;
+      ctx2.beginPath();
+      ctx2.moveTo(toX(2), toY(commonY));
+      ctx2.lineTo(toX(leftX), toY(commonY));
+      ctx2.moveTo(toX(2), toY(commonY));
+      ctx2.lineTo(toX(rightX), toY(commonY));
+      ctx2.stroke();
+
+      // Left Point
+      ctx2.fillStyle = "#4f46e5";
+      ctx2.beginPath();
+      ctx2.arc(toX(leftX), toY(commonY), 6, 0, Math.PI * 2);
+      ctx2.fill();
+
+      // Right Point
+      ctx2.fillStyle = "#059669";
+      ctx2.beginPath();
+      ctx2.arc(toX(rightX), toY(commonY), 6, 0, Math.PI * 2);
+      ctx2.fill();
+
+      // Table update with proper fraction math
+      setMathText(document.getElementById('s2-d-val'), `d = ${toLatexFrac(d)}`);
+      setMathText(document.getElementById('s2-left-x'), toLatexFrac(leftX));
+      setMathText(document.getElementById('s2-left-diff'), toLatexFrac(-d));
+      setMathText(document.getElementById('s2-left-sq'), toLatexFrac(d * d));
+      setMathText(document.getElementById('s2-left-y'), toLatexFrac(commonY));
+
+      setMathText(document.getElementById('s2-right-x'), toLatexFrac(rightX));
+      setMathText(document.getElementById('s2-right-diff'), toLatexFrac(d, true));
+      setMathText(document.getElementById('s2-right-sq'), toLatexFrac(d * d));
+      setMathText(document.getElementById('s2-right-y'), toLatexFrac(commonY));
+    }
+    sliderS2.addEventListener('input', e => drawS2(parseFloat(e.target.value)));
+
+    /* -------------------------------------------------------------
+       STEP 3: Opening Factor a
+       ------------------------------------------------------------- */
+    const c3 = document.getElementById('canvas-s3');
+    const ctx3 = c3.getContext('2d');
+    let currentS3Dist = 1;
+
+    function setS3Dist(dist) {
+      currentS3Dist = dist;
+      const b1 = document.getElementById('btn-s3-d1');
+      const b2 = document.getElementById('btn-s3-d2');
+      const r1 = document.getElementById('row-s3-1');
+      const r2 = document.getElementById('row-s3-2');
+
+      if (dist === 1) {
+        b1.className = "px-3 py-1 rounded-lg text-xs font-bold bg-indigo-600 text-white shadow-sm";
+        b2.className = "px-3 py-1 rounded-lg text-xs font-bold bg-white border border-slate-200 text-slate-700 hover:bg-slate-50";
+        r1.className = "bg-indigo-50/50 font-bold";
+        r2.className = "";
+      } else {
+        b2.className = "px-3 py-1 rounded-lg text-xs font-bold bg-indigo-600 text-white shadow-sm";
+        b1.className = "px-3 py-1 rounded-lg text-xs font-bold bg-white border border-slate-200 text-slate-700 hover:bg-slate-50";
+        r2.className = "bg-indigo-50/50 font-bold";
+        r1.className = "";
+      }
+      drawS3(dist);
+    }
+
+    function drawS3(dist) {
+      const minX = -1, maxX = 5;
+      const minY = -1, maxY = 10;
+      const { toX, toY } = drawBaseCoordinates(ctx3, c3.width, c3.height, minX, maxX, minY, maxY);
+
+      // Curves
+      const curves = [
+        { a: 1, color: "#4f46e5", width: 2 },
+        { a: 2, color: "#e11d48", width: 2.5 },
+        { a: 0.5, color: "#d97706", width: 2 }
+      ];
+
+      curves.forEach(c => {
+        ctx3.strokeStyle = c.color;
+        ctx3.lineWidth = c.width;
+        ctx3.beginPath();
+        for (let px = 0; px <= c3.width; px += 2) {
+          const x = minX + (px / c3.width) * (maxX - minX);
+          const y = c.a * Math.pow(x - 2, 2) + 1;
+          const py = toY(y);
+          if (px === 0) ctx3.moveTo(px, py);
+          else ctx3.lineTo(px, py);
+        }
+        ctx3.stroke();
+      });
+
+      // Vertex (2, 1)
+      ctx3.fillStyle = "#1e293b";
+      ctx3.beginPath();
+      ctx3.arc(toX(2), toY(1), 5, 0, Math.PI * 2);
+      ctx3.fill();
+      ctx3.fillText("頂点 (2, 1)", toX(2) + 8, toY(1) + 4);
+
+      // Horizontal step line
+      const targetX = 2 + dist;
+      ctx3.strokeStyle = "#94a3b8";
+      ctx3.setLineDash([2, 2]);
+      ctx3.beginPath();
+      ctx3.moveTo(toX(targetX), toY(0));
+      ctx3.lineTo(toX(targetX), toY(9));
+      ctx3.stroke();
+      ctx3.setLineDash([]);
+
+      // Vertical rise indicators
+      curves.forEach(c => {
+        const yVal = c.a * (dist * dist) + 1;
+        ctx3.fillStyle = c.color;
+        ctx3.beginPath();
+        ctx3.arc(toX(targetX), toY(yVal), 5, 0, Math.PI * 2);
+        ctx3.fill();
+
+        ctx3.strokeStyle = c.color;
+        ctx3.lineWidth = 2;
+        ctx3.beginPath();
+        ctx3.moveTo(toX(targetX) + (c.a === 2 ? 6 : (c.a === 1 ? 0 : -6)), toY(1));
+        ctx3.lineTo(toX(targetX) + (c.a === 2 ? 6 : (c.a === 1 ? 0 : -6)), toY(yVal));
+        ctx3.stroke();
+      });
+    }
+
+    /* -------------------------------------------------------------
+       STEP 4: Negative Factor a
+       ------------------------------------------------------------- */
+    const c4 = document.getElementById('canvas-s4');
+    const ctx4 = c4.getContext('2d');
+    let currentS4Sign = -1;
+
+    function setS4Sign(sign) {
+      currentS4Sign = sign;
+      const bPos = document.getElementById('btn-s4-pos');
+      const bNeg = document.getElementById('btn-s4-neg');
+
+      if (sign > 0) {
+        bPos.className = "px-2.5 py-1 text-xs rounded font-medium bg-indigo-600 text-white shadow-sm";
+        bNeg.className = "px-2.5 py-1 text-xs rounded font-medium bg-white border border-slate-200 text-slate-700 hover:bg-slate-100";
+      } else {
+        bNeg.className = "px-2.5 py-1 text-xs rounded font-medium bg-rose-600 text-white shadow-sm";
+        bPos.className = "px-2.5 py-1 text-xs rounded font-medium bg-white border border-slate-200 text-slate-700 hover:bg-slate-100";
+      }
+      drawS4(sign);
+    }
+
+    function drawS4(sign) {
+      const a = sign * 2;
+      const minX = -1, maxX = 5;
+      const minY = sign > 0 ? -1 : -9;
+      const maxY = sign > 0 ? 9 : 2;
+      const { toX, toY } = drawBaseCoordinates(ctx4, c4.width, c4.height, minX, maxX, minY, maxY);
+
+      // Axis of symmetry x = 2
+      ctx4.strokeStyle = "#cbd5e1";
+      ctx4.setLineDash([3, 3]);
+      ctx4.beginPath();
+      ctx4.moveTo(toX(2), 0);
+      ctx4.lineTo(toX(2), c4.height);
+      ctx4.stroke();
+      ctx4.setLineDash([]);
+
+      // Curve
+      ctx4.strokeStyle = sign > 0 ? "#4f46e5" : "#e11d48";
+      ctx4.lineWidth = 2.5;
+      ctx4.beginPath();
+      for (let px = 0; px <= c4.width; px += 2) {
+        const x = minX + (px / c4.width) * (maxX - minX);
+        const y = a * Math.pow(x - 2, 2) + 1;
+        const py = toY(y);
+        if (px === 0) ctx4.moveTo(px, py);
+        else ctx4.lineTo(px, py);
+      }
+      ctx4.stroke();
+
+      // Vertex (2, 1)
+      ctx4.fillStyle = sign > 0 ? "#4f46e5" : "#e11d48";
+      ctx4.beginPath();
+      ctx4.arc(toX(2), toY(1), 6, 0, Math.PI * 2);
+      ctx4.fill();
+      ctx4.fillStyle = "#1e293b";
+      ctx4.font = "bold 11px sans-serif";
+      ctx4.fillText(`頂点 (2, 1) [${sign > 0 ? '最小値' : '最大値'}]`, toX(2) + 8, toY(1) + (sign > 0 ? 12 : -6));
+    }
+
+    /* -------------------------------------------------------------
+       STEP 5: Translations of p and q
+       ------------------------------------------------------------- */
+    const c5 = document.getElementById('canvas-s5');
+    const ctx5 = c5.getContext('2d');
+    let currentS5Phase = 0;
+
+    const s5States = [
+      { p: 0, q: 0, formula: "y = x^2", label: "頂点 (0, 0)" },
+      { p: 1, q: 0, formula: "y = (x - 1)^2", label: "右へ +1 → 頂点 (1, 0)" },
+      { p: 3, q: 0, formula: "y = (x - 3)^2", label: "右へ +3 → 頂点 (3, 0)" },
+      { p: 3, q: 2, formula: "y = (x - 3)^2 + 2", label: "上へ +2 → 頂点 (3, 2)" }
+    ];
+
+    function setS5Phase(phase) {
+      currentS5Phase = phase;
+      for (let i = 0; i < 4; i++) {
+        const btn = document.getElementById(`btn-s5-${i}`);
+        if (i === phase) {
+          btn.className = "w-full text-left p-3 rounded-xl border text-xs sm:text-sm font-medium transition-all bg-indigo-50 border-indigo-300 text-indigo-900 flex justify-between items-center";
+        } else {
+          btn.className = "w-full text-left p-3 rounded-xl border text-xs sm:text-sm font-medium transition-all bg-white border-slate-200 text-slate-700 hover:bg-slate-50 flex justify-between items-center";
+        }
+      }
+      drawS5(phase);
+    }
+
+    function drawS5(phase) {
+      const state = s5States[phase];
+      document.getElementById('s5-current-label').innerText = `${state.formula} ｜ ${state.label}`;
+
+      const minX = -1, maxX = 6;
+      const minY = -1, maxY = 7;
+      const { toX, toY } = drawBaseCoordinates(ctx5, c5.width, c5.height, minX, maxX, minY, maxY);
+
+      // Base ghost curve y = x^2
+      ctx5.strokeStyle = "#e2e8f0";
+      ctx5.lineWidth = 1.5;
+      ctx5.beginPath();
+      for (let px = 0; px <= c5.width; px += 2) {
+        const x = minX + (px / c5.width) * (maxX - minX);
+        const y = x * x;
+        const py = toY(y);
+        if (px === 0) ctx5.moveTo(px, py);
+        else ctx5.lineTo(px, py);
+      }
+      ctx5.stroke();
+
+      // Shift vector from (0,0)
+      if (state.p !== 0 || state.q !== 0) {
+        ctx5.strokeStyle = "#f43f5e";
+        ctx5.lineWidth = 1.5;
+        ctx5.setLineDash([3, 3]);
+        ctx5.beginPath();
+        ctx5.moveTo(toX(0), toY(0));
+        ctx5.lineTo(toX(state.p), toY(0));
+        ctx5.lineTo(toX(state.p), toY(state.q));
+        ctx5.stroke();
+        ctx5.setLineDash([]);
+      }
+
+      // Active Curve
+      ctx5.strokeStyle = "#4f46e5";
+      ctx5.lineWidth = 2.5;
+      ctx5.beginPath();
+      for (let px = 0; px <= c5.width; px += 2) {
+        const x = minX + (px / c5.width) * (maxX - minX);
+        const y = Math.pow(x - state.p, 2) + state.q;
+        const py = toY(y);
+        if (px === 0) ctx5.moveTo(px, py);
+        else ctx5.lineTo(px, py);
+      }
+      ctx5.stroke();
+
+      // Vertex
+      ctx5.fillStyle = "#e11d48";
+      ctx5.beginPath();
+      ctx5.arc(toX(state.p), toY(state.q), 6, 0, Math.PI * 2);
+      ctx5.fill();
+      ctx5.fillStyle = "#be123c";
+      ctx5.font = "bold 11px sans-serif";
+      ctx5.fillText(`(${state.p}, ${state.q})`, toX(state.p) + 8, toY(state.q) - 4);
+    }
+
+    /* -------------------------------------------------------------
+       STEP 6: Graph to Formula (Target Fitting)
+       ------------------------------------------------------------- */
+    const c6 = document.getElementById('canvas-s6');
+    const ctx6 = c6.getContext('2d');
+    const sliderS6A = document.getElementById('slider-s6-a');
+
+    function updateS6() {
+      const a = parseFloat(sliderS6A.value);
+      setMathText(document.getElementById('s6-a-val'), `a = ${toLatexFrac(a)}`);
+
+      const aSign = formatCoeffA(a);
+      const fBox = document.getElementById('s6-live-formula');
+      setMathText(fBox, `y = ${aSign}(x - 3)^2 + 2`, true);
+
+      const minX = 0, maxX = 6;
+      const minY = 0, maxY = 7;
+      const { toX, toY } = drawBaseCoordinates(ctx6, c6.width, c6.height, minX, maxX, minY, maxY);
+
+      // Curve
+      ctx6.strokeStyle = "#4f46e5";
+      ctx6.lineWidth = 2.5;
+      ctx6.beginPath();
+      for (let px = 0; px <= c6.width; px += 2) {
+        const x = minX + (px / c6.width) * (maxX - minX);
+        const y = a * Math.pow(x - 3, 2) + 2;
+        const py = toY(y);
+        if (px === 0) ctx6.moveTo(px, py);
+        else ctx6.lineTo(px, py);
+      }
+      ctx6.stroke();
+
+      // Vertex (3, 2)
+      ctx6.fillStyle = "#4f46e5";
+      ctx6.beginPath();
+      ctx6.arc(toX(3), toY(2), 6, 0, Math.PI * 2);
+      ctx6.fill();
+      ctx6.fillText("頂点 (3, 2)", toX(3) - 30, toY(2) + 18);
+
+      // Target Point (4, 4)
+      const tx = toX(4);
+      const ty = toY(4);
+
+      // Target ring
+      ctx6.strokeStyle = "rgba(225, 29, 72, 0.4)";
+      ctx6.lineWidth = 3;
+      ctx6.beginPath();
+      ctx6.arc(tx, ty, 10, 0, Math.PI * 2);
+      ctx6.stroke();
+
+      ctx6.fillStyle = "#e11d48";
+      ctx6.beginPath();
+      ctx6.arc(tx, ty, 5, 0, Math.PI * 2);
+      ctx6.fill();
+      ctx6.fillText("🎯 目標 (4, 4)", tx + 10, ty + 4);
+
+      // Check hit (a == 2)
+      const feed = document.getElementById('s6-feedback');
+      if (Math.abs(a - 2.0) < 0.01) {
+        feed.className = "p-4 rounded-xl border text-xs md:text-sm leading-relaxed transition-all bg-emerald-50 border-emerald-300 text-emerald-950 font-bold shadow-sm";
+        feed.innerHTML = `🎉 <strong>大正解！ $a = 2$ でピッタリ命中！</strong><br>
+        点 $(4, 4)$ を代入すると： $4 = a(4-3)^2 + 2 \\implies 4 = a(1) + 2 \\implies a = 2$。<br>
+        完成した式は <strong>$y = 2(x - 3)^2 + 2$</strong> です！`;
+      } else {
+        const curYat4 = a * Math.pow(4 - 3, 2) + 2;
+        feed.className = "p-4 rounded-xl border text-xs md:text-sm leading-relaxed transition-all bg-slate-50 border-slate-200 text-slate-700";
+        feed.innerHTML = `現在の放物線は $x=4$ のとき高さ $y = ${toLatexFrac(curYat4)}$ を通っています。<br>
+        目標の高さ $4$ に合わせるには、$a$ をどう調整すればいいでしょう？`;
+      }
+      renderMath(feed);
+    }
+    sliderS6A.addEventListener('input', updateS6);
+
+    /* -------------------------------------------------------------
+       STEP 7: Challenge Missions
+       ------------------------------------------------------------- */
+    const c7 = document.getElementById('canvas-s7');
+    const ctx7 = c7.getContext('2d');
+
+    const s7InP = document.getElementById('s7-input-p');
+    const s7InQ = document.getElementById('s7-input-q');
+    const s7InA = document.getElementById('s7-input-a');
+
+    let currentMission = 1;
+    const missionData = {
+      1: {
+        targetP: -1, targetQ: 3,
+        passX: 0, passY: 1,
+        expectedA: -2,
+        title: "ミッション 1：ワークシート Q8 に挑戦",
+        desc: "頂点が $(-1, 3)$ で、点 $(0, 1)$ を通る放物線を作ろう！"
+      },
+      2: {
+        targetP: 2, targetQ: -1,
+        passX: 4, passY: 3,
+        expectedA: 1,
+        title: "ミッション 2：レベルアップ",
+        desc: "頂点が $(2, -1)$ で、点 $(4, 3)$ を通る放物線を作ろう！"
+      }
+    };
+
+    function loadMission(mId) {
+      currentMission = mId;
+      const b1 = document.getElementById('btn-mission-1');
+      const b2 = document.getElementById('btn-mission-2');
+      if (mId === 1) {
+        b1.className = "px-2.5 py-1 rounded-lg text-xs font-bold bg-indigo-600 text-white shadow-sm";
+        b2.className = "px-2.5 py-1 rounded-lg text-xs font-bold bg-white border border-slate-200 text-slate-700 hover:bg-slate-100";
+      } else {
+        b2.className = "px-2.5 py-1 rounded-lg text-xs font-bold bg-indigo-600 text-white shadow-sm";
+        b1.className = "px-2.5 py-1 rounded-lg text-xs font-bold bg-white border border-slate-200 text-slate-700 hover:bg-slate-100";
+      }
+
+      const m = missionData[mId];
+      const mDesc = document.getElementById('s7-mission-desc');
+      mDesc.innerHTML = `<strong>${m.title}</strong>： ${m.desc}`;
+      document.getElementById('s7-target-label').innerText = `目標：頂点 (${m.targetP}, ${m.targetQ})、通過点 (${m.passX}, ${m.passY})`;
+      renderMath(mDesc);
+
+      s7InP.value = 0;
+      s7InQ.value = 0;
+      s7InA.value = 1;
+      updateS7();
+    }
+
+    function updateS7() {
+      const p = parseFloat(s7InP.value);
+      const q = parseFloat(s7InQ.value);
+      const a = parseFloat(s7InA.value);
+
+      setMathText(document.getElementById('s7-val-p'), toLatexFrac(p));
+      setMathText(document.getElementById('s7-val-q'), toLatexFrac(q));
+      setMathText(document.getElementById('s7-val-a'), toLatexFrac(a));
+
+      const m = missionData[currentMission];
+
+      const pSign = p >= 0 ? `- ${toLatexFrac(p)}` : `+ ${toLatexFrac(Math.abs(p))}`;
+      const qSign = q >= 0 ? `+ ${toLatexFrac(q)}` : `- ${toLatexFrac(Math.abs(q))}`;
+      const aSign = formatCoeffA(a);
+      const fBox = document.getElementById('s7-current-formula');
+      setMathText(fBox, `y = ${aSign}(x ${pSign})^2 ${qSign}`, true);
+
+      const minX = -4, maxX = 5;
+      const minY = -4, maxY = 6;
+      const { toX, toY } = drawBaseCoordinates(ctx7, c7.width, c7.height, minX, maxX, minY, maxY);
+
+      // Parabola
+      ctx7.strokeStyle = "#4f46e5";
+      ctx7.lineWidth = 2.5;
+      ctx7.beginPath();
+      for (let px = 0; px <= c7.width; px += 2) {
+        const x = minX + (px / c7.width) * (maxX - minX);
+        const y = a * Math.pow(x - p, 2) + q;
+        const py = toY(y);
+        if (px === 0) ctx7.moveTo(px, py);
+        else ctx7.lineTo(px, py);
+      }
+      ctx7.stroke();
+
+      // Current Vertex
+      ctx7.fillStyle = "#4f46e5";
+      ctx7.beginPath();
+      ctx7.arc(toX(p), toY(q), 5, 0, Math.PI * 2);
+      ctx7.fill();
+
+      // Target vertex ghost
+      ctx7.strokeStyle = "#6366f1";
+      ctx7.setLineDash([2, 2]);
+      ctx7.beginPath();
+      ctx7.arc(toX(m.targetP), toY(m.targetQ), 7, 0, Math.PI * 2);
+      ctx7.stroke();
+
+      // Target passing point
+      ctx7.fillStyle = "#e11d48";
+      ctx7.beginPath();
+      ctx7.arc(toX(m.passX), toY(m.passY), 6, 0, Math.PI * 2);
+      ctx7.fill();
+      ctx7.fillText(`🎯 (${m.passX}, ${m.passY})`, toX(m.passX) + 8, toY(m.passY) + 4);
+      ctx7.setLineDash([]);
+
+      // Check success
+      const statusBox = document.getElementById('s7-status-box');
+      const isVertexMatch = (p === m.targetP && q === m.targetQ);
+      const isPassMatch = Math.abs(a * Math.pow(m.passX - p, 2) + q - m.passY) < 0.05;
+
+      if (isVertexMatch && isPassMatch) {
+        statusBox.className = "p-3.5 rounded-xl border text-xs md:text-sm transition-all bg-emerald-50 border-emerald-300 text-emerald-950 font-bold shadow-sm";
+        statusBox.innerHTML = `🎉 <strong>完璧です！両方の条件をクリア！</strong><br>
+        頂点から型 $y = a(x - ${m.targetP})^2 + ${m.targetQ}$ を作り、点 (${m.passX}, ${m.passY}) を代入すると $a = ${m.expectedA}$ が導けます！`;
+      } else if (isVertexMatch) {
+        statusBox.className = "p-3.5 rounded-xl border text-xs md:text-sm transition-all bg-indigo-50 border-indigo-200 text-indigo-900";
+        statusBox.innerHTML = `👍 <strong>頂点はピッタリ合いました！</strong><br>あとは開き具合 $a$ を調整して、赤い点 🎯 (${m.passX}, ${m.passY}) を通るように合わせよう！`;
+      } else {
+        statusBox.className = "p-3.5 rounded-xl border text-xs md:text-sm transition-all bg-amber-50 border-amber-200 text-amber-900";
+        statusBox.innerHTML = `まずは頂点の位置を目標の点 (${m.targetP}, ${m.targetQ}) に合わせてみよう！`;
+      }
+      renderMath(statusBox);
+    }
+
+    [s7InP, s7InQ, s7InA].forEach(inp => inp.addEventListener('input', updateS7));
+
+    /* -------------------------------------------------------------
+       STEP 8: Free Canvas (Interactive Drag Lab)
+       ------------------------------------------------------------- */
+    const cFree = document.getElementById('canvas-free');
+    const ctxFree = cFree.getContext('2d');
+    const freeSliderA = document.getElementById('free-slider-a');
+
+    let freeP = 2;
+    let freeQ = 1;
+    let freeA = 1;
+    let freePassX = 3;
+
+    function resetFreeOrigin() {
+      freeP = 2;
+      freeQ = 1;
+      freeA = 1;
+      freeSliderA.value = 1.0;
+      updateFreeLab();
+    }
+
+    function updateFreeLab() {
+      freeA = parseFloat(freeSliderA.value);
+      setMathText(document.getElementById('free-val-a'), `a = ${toLatexFrac(freeA)}`);
+
+      const passY = freeA * Math.pow(freePassX - freeP, 2) + freeQ;
+
+      // Update Standard Form with exact fraction display
+      const pSign = freeP >= 0 ? `- ${toLatexFrac(freeP)}` : `+ ${toLatexFrac(Math.abs(freeP))}`;
+      const qSign = freeQ >= 0 ? `+ ${toLatexFrac(freeQ)}` : `- ${toLatexFrac(Math.abs(freeQ))}`;
+      const aSign = formatCoeffA(freeA);
+
+      const sBox = document.getElementById('free-standard-form');
+      setMathText(sBox, `y = ${aSign}(x ${pSign})^2 ${qSign}`, true);
+
+      // Update General Form: y = a x^2 - 2 a p x + (a p^2 + q)
+      const bCoeff = -2 * freeA * freeP;
+      const cCoeff = freeA * freeP * freeP + freeQ;
+
+      const bSign = toLatexFrac(bCoeff, true);
+      const cSign = toLatexFrac(cCoeff, true);
+      const gBox = document.getElementById('free-general-form');
+      setMathText(gBox, `y = ${aSign}x^2 ${bSign}x ${cSign}`, true);
+
+      // Attributes formatted in fraction math
+      setMathText(document.getElementById('free-axis'), `x = ${toLatexFrac(freeP)}`);
+      setMathText(document.getElementById('free-vertex'), toLatexPoint(freeP, freeQ));
+      document.getElementById('free-ext-label').innerText = freeA >= 0 ? '最小値' : '最大値';
+      setMathText(document.getElementById('free-ext-val'), toLatexFrac(freeQ));
+
+      drawFree(passY);
+    }
+
+    const freeBounds = { minX: -4, maxX: 6, minY: -5, maxY: 8 };
+
+    function drawFree(passY) {
+      const { minX, maxX, minY, maxY } = freeBounds;
+      const { toX, toY } = drawBaseCoordinates(ctxFree, cFree.width, cFree.height, minX, maxX, minY, maxY);
+
+      // Axis of symmetry
+      ctxFree.strokeStyle = "#c7d2fe";
+      ctxFree.lineWidth = 1.5;
+      ctxFree.setLineDash([3, 3]);
+      ctxFree.beginPath();
+      ctxFree.moveTo(toX(freeP), 0);
+      ctxFree.lineTo(toX(freeP), cFree.height);
+      ctxFree.stroke();
+      ctxFree.setLineDash([]);
+      ctxFree.fillStyle = "#6366f1";
+      ctxFree.font = "10px sans-serif";
+      ctxFree.fillText("軸 x = ", toX(freeP) + 4, 18);
+      drawCanvasVal(ctxFree, freeP, toX(freeP) + 38, 18);
+
+      // Parabola curve
+      ctxFree.strokeStyle = freeA >= 0 ? "#4f46e5" : "#e11d48";
+      ctxFree.lineWidth = 2.5;
+      ctxFree.beginPath();
+      for (let px = 0; px <= cFree.width; px += 2) {
+        const x = minX + (px / cFree.width) * (maxX - minX);
+        const y = freeA * Math.pow(x - freeP, 2) + freeQ;
+        const py = toY(y);
+        if (px === 0) ctxFree.moveTo(px, py);
+        else ctxFree.lineTo(px, py);
+      }
+      ctxFree.stroke();
+
+      // Draggable Passing Point
+      const px = toX(freePassX);
+      const py = toY(passY);
+      ctxFree.fillStyle = "rgba(79, 70, 229, 0.2)";
+      ctxFree.beginPath();
+      ctxFree.arc(px, py, 12, 0, Math.PI * 2);
+      ctxFree.fill();
+
+      ctxFree.fillStyle = "#4f46e5";
+      ctxFree.beginPath();
+      ctxFree.arc(px, py, 5, 0, Math.PI * 2);
+      ctxFree.fill();
+      ctxFree.strokeStyle = "#ffffff";
+      ctxFree.lineWidth = 1.5;
+      ctxFree.stroke();
+
+      // Draw point A label on canvas without slashes
+      ctxFree.font = "10px sans-serif";
+      let textCursor = px + 8;
+      ctxFree.fillText("A(", textCursor, py - 4);
+      textCursor += ctxFree.measureText("A(").width;
+      textCursor += drawCanvasVal(ctxFree, freePassX, textCursor, py - 4);
+      ctxFree.fillText(", ", textCursor, py - 4);
+      textCursor += ctxFree.measureText(", ").width;
+      textCursor += drawCanvasVal(ctxFree, passY, textCursor, py - 4);
+      ctxFree.fillText(")", textCursor, py - 4);
+
+      // Draggable Vertex Point
+      const vx = toX(freeP);
+      const vy = toY(freeQ);
+      ctxFree.fillStyle = "rgba(225, 29, 72, 0.25)";
+      ctxFree.beginPath();
+      ctxFree.arc(vx, vy, 14, 0, Math.PI * 2);
+      ctxFree.fill();
+
+      ctxFree.fillStyle = "#e11d48";
+      ctxFree.beginPath();
+      ctxFree.arc(vx, vy, 6, 0, Math.PI * 2);
+      ctxFree.fill();
+      ctxFree.strokeStyle = "#ffffff";
+      ctxFree.lineWidth = 2;
+      ctxFree.stroke();
+
+      // Draw vertex label on canvas without slashes
+      let vCursor = vx + 8;
+      ctxFree.fillText("頂点 (", vCursor, vy + 4);
+      vCursor += ctxFree.measureText("頂点 (").width;
+      vCursor += drawCanvasVal(ctxFree, freeP, vCursor, vy + 4);
+      ctxFree.fillText(", ", vCursor, vy + 4);
+      vCursor += ctxFree.measureText(", ").width;
+      vCursor += drawCanvasVal(ctxFree, freeQ, vCursor, vy + 4);
+      ctxFree.fillText(")", vCursor, vy + 4);
+    }
+
+    // Direct Dragging on Free Canvas
+    let draggingTarget = null;
+
+    function handleFreePointer(evt) {
+      const rect = cFree.getBoundingClientRect();
+      const clientX = evt.touches ? evt.touches[0].clientX : evt.clientX;
+      const clientY = evt.touches ? evt.touches[0].clientY : evt.clientY;
+
+      const relX = (clientX - rect.left) / rect.width;
+      const relY = (clientY - rect.top) / rect.height;
+
+      const { minX, maxX, minY, maxY } = freeBounds;
+      const mathX = minX + relX * (maxX - minX);
+      const mathY = maxY - relY * (maxY - minY);
+
+      if (draggingTarget === 'vertex') {
+        freeP = Math.round(mathX * 2) / 2;
+        freeQ = Math.round(mathY * 2) / 2;
+      } else if (draggingTarget === 'point') {
+        const targetX = Math.round(mathX * 2) / 2;
+        if (Math.abs(targetX - freeP) >= 0.5) {
+          freePassX = targetX;
+          const desiredA = (mathY - freeQ) / Math.pow(targetX - freeP, 2);
+          const clampedA = Math.max(-3, Math.min(3, Math.round(desiredA * 4) / 4));
+          if (clampedA !== 0) {
+            freeA = clampedA;
+            freeSliderA.value = clampedA;
+          }
+        }
+      }
+      updateFreeLab();
+    }
+
+    cFree.addEventListener('mousedown', e => {
+      const rect = cFree.getBoundingClientRect();
+      const relX = (e.clientX - rect.left) / rect.width;
+      const relY = (e.clientY - rect.top) / rect.height;
+      const { minX, maxX, minY, maxY } = freeBounds;
+      const mathX = minX + relX * (maxX - minX);
+      const mathY = maxY - relY * (maxY - minY);
+
+      const dVertex = Math.hypot(mathX - freeP, mathY - freeQ);
+      const passY = freeA * Math.pow(freePassX - freeP, 2) + freeQ;
+      const dPoint = Math.hypot(mathX - freePassX, mathY - passY);
+
+      if (dVertex < 0.9) draggingTarget = 'vertex';
+      else if (dPoint < 0.9) draggingTarget = 'point';
+      else draggingTarget = 'vertex';
+      handleFreePointer(e);
+    });
+
+    window.addEventListener('mousemove', e => { if (draggingTarget) handleFreePointer(e); });
+    window.addEventListener('mouseup', () => draggingTarget = null);
+
+    cFree.addEventListener('touchstart', e => {
+      draggingTarget = 'vertex';
+      handleFreePointer(e);
+      if (e.cancelable) e.preventDefault();
+    }, { passive: false });
+    window.addEventListener('touchmove', e => {
+      if (draggingTarget) {
+        handleFreePointer(e);
+        if (e.cancelable) e.preventDefault();
+      }
+    }, { passive: false });
+    window.addEventListener('touchend', () => draggingTarget = null);
+
+    freeSliderA.addEventListener('input', updateFreeLab);
+
+    // Initial setup on DOM ready
+    window.addEventListener('DOMContentLoaded', () => {
+      renderMath();
+      drawS1(2.0);
+      drawS2(1.0);
+      drawS3(1);
+      drawS4(-1);
+      drawS5(0);
+      updateS6();
+      loadMission(1);
+      updateFreeLab();
+    });
+  </script>
+</body>
+</html>

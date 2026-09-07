@@ -1,0 +1,2117 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>見えないペンが描く図形：点の対応から「軌跡」を解き明かすシミュレータ</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&family=M+PLUS+Rounded+1c:wght@400;500;700;800&display=swap" rel="stylesheet">
+  <!-- KaTeX (数式組版) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <style>
+    body {
+      font-family: 'M PLUS Rounded 1c', 'Inter', sans-serif;
+    }
+    .font-mono-num {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .custom-range {
+      accent-color: #4f46e5;
+    }
+    canvas {
+      touch-action: none;
+    }
+    html {
+      scroll-behavior: smooth;
+    }
+    ::-webkit-scrollbar {
+      width: 7px;
+      height: 7px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col selection:bg-indigo-100 selection:text-indigo-900">
+
+  <!-- ヘッダー -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
+    <div class="max-w-6xl mx-auto px-4 py-3">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        <div class="flex items-center space-x-3">
+          <span class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-sm">
+            数学Ⅱ 図形と方程式
+          </span>
+          <div>
+            <h1 class="text-base sm:text-lg font-bold text-slate-900 tracking-tight">
+              見えないペンが描く図形：点の対応から「軌跡」を暴く
+            </h1>
+            <p class="text-[11px] text-slate-500 hidden sm:block">動かす点Qと、あとをついて動く中点Pの航跡を追う自学自習ラボ</p>
+          </div>
+        </div>
+        <div class="flex items-center justify-between sm:justify-end gap-3 text-xs">
+          <span class="text-slate-500 font-medium">学習ステップ:</span>
+          <span id="progress-text" class="font-bold text-indigo-600 font-mono-num bg-indigo-50 px-2 py-0.5 rounded border border-indigo-200">Step 1 / 6</span>
+        </div>
+      </div>
+
+      <!-- プログレスバー -->
+      <div class="w-full bg-slate-100 h-1.5 rounded-full mt-3 overflow-hidden">
+        <div id="progress-bar" class="bg-gradient-to-r from-blue-500 to-indigo-600 h-full w-1/6 transition-all duration-300"></div>
+      </div>
+
+      <!-- ステップ切り替えタブ -->
+      <div class="flex items-center overflow-x-auto space-x-1 sm:space-x-2 mt-2 pt-1 pb-1 text-xs">
+        <button onclick="goToStep(1)" id="tab-btn-1" class="tab-btn px-3 py-1.5 rounded-lg whitespace-nowrap font-medium transition-colors bg-indigo-50 text-indigo-700 border border-indigo-200">
+          1. 中点お絵描き装置
+        </button>
+        <button onclick="goToStep(2)" id="tab-btn-2" class="tab-btn px-3 py-1.5 rounded-lg whitespace-nowrap font-medium transition-colors text-slate-600 hover:bg-slate-100">
+          2. 四点プロットから予想
+        </button>
+        <button onclick="goToStep(3)" id="tab-btn-3" class="tab-btn px-3 py-1.5 rounded-lg whitespace-nowrap font-medium transition-colors text-slate-600 hover:bg-slate-100">
+          3. PからQへ逆算して証明
+        </button>
+        <button onclick="goToStep(4)" id="tab-btn-4" class="tab-btn px-3 py-1.5 rounded-lg whitespace-nowrap font-medium transition-colors text-slate-600 hover:bg-slate-100">
+          4. 直線上を動くQへの応用
+        </button>
+        <button onclick="goToStep(5)" id="tab-btn-5" class="tab-btn px-3 py-1.5 rounded-lg whitespace-nowrap font-medium transition-colors text-slate-600 hover:bg-slate-100">
+          5. パラメータと動ける範囲
+        </button>
+        <button onclick="goToStep(6)" id="tab-btn-6" class="tab-btn px-3 py-1.5 rounded-lg whitespace-nowrap font-medium transition-colors text-slate-600 hover:bg-slate-100">
+          6. 出口チェック (まとめ)
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="flex-1 max-w-6xl w-full mx-auto px-4 py-6 sm:py-8">
+
+    <!-- 状況設定バナー -->
+    <div class="mb-6 bg-gradient-to-r from-slate-900 to-indigo-950 text-white rounded-2xl p-4 sm:p-5 shadow-sm border border-slate-800">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div class="space-y-1">
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 text-[10px] font-bold tracking-wide uppercase bg-cyan-400/20 text-cyan-300 border border-cyan-400/30 rounded">
+              連動装置の探究
+            </span>
+            <span class="text-xs text-slate-300 font-mono">操縦する点Q ➔ 追従する描画ペンP</span>
+          </div>
+          <h2 class="text-base sm:text-lg font-bold">
+            「点Qが条件の図形を動くとき、線分AQの中点Pはどんな軌跡を描くか？」
+          </h2>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            求めたいのは「点Pの通り道」なのに、動かせる条件を持っているのは「点Q」だけ…？<br class="hidden sm:inline">
+            この連動トリックを暴く鍵は、<b>「描かせたいPの位置から、元のQへ逆算して戻る」</b>という数学的発想にあります！
+          </p>
+        </div>
+
+        <div class="flex items-center gap-3 bg-slate-800/80 p-3 rounded-xl border border-slate-700/80 shrink-0 text-xs">
+          <div class="text-center px-2">
+            <span class="text-[10px] text-slate-400 block font-mono">固定点 A</span>
+            <span id="banner-pt-a" class="font-bold text-amber-400 font-mono">(0, 4)</span>
+          </div>
+          <div class="h-6 w-[1px] bg-slate-700"></div>
+          <div class="text-center px-2">
+            <span class="text-[10px] text-slate-400 block font-mono">動く点 Q (操縦)</span>
+            <span class="font-bold text-sky-400 font-mono">円周上</span>
+          </div>
+          <div class="h-6 w-[1px] bg-slate-700"></div>
+          <div class="text-center px-2">
+            <span class="text-[10px] text-slate-400 block font-mono">追従ペン P</span>
+            <span class="font-bold text-rose-400 font-mono">AQ の中点</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================================
+         STEP 1: 装置のルールと予想（中点お絵描きマシン）
+         ======================================================== -->
+    <section id="step-1" class="step-panel space-y-6">
+      <div class="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200 shadow-sm">
+        <div class="inline-flex items-center gap-2 px-3 py-1 bg-indigo-50 border border-indigo-200 text-indigo-800 text-xs font-bold rounded-full mb-3">
+          <span>🎮 探究 1</span>
+          <span>手元の点Qを回すと、赤いペンPが自動的にお絵描きする！</span>
+        </div>
+
+        <h3 class="text-xl sm:text-2xl font-bold text-slate-900 mb-2">
+          青い点Qを円の上でぐるっと回して、赤いペンPの「足跡」を観察しよう
+        </h3>
+        <p class="text-slate-600 text-sm sm:text-base leading-relaxed">
+          方眼図の上に、<span class="font-bold text-amber-600">固定点 A(0, 4)</span> と、<span class="font-bold text-sky-600">青い円 $u^2 + (v-2)^2 = 16$</span>（中心 $(0, 2)$、半径 $4$）があります。<br>
+          円周上の <span class="font-bold text-sky-600">点Q</span> をドラッグして1周させてみましょう。<br>
+          <span class="font-bold text-rose-600">赤い点P</span> は、常に線分AQの真ん中（中点）をキープしながらついてきます。Pはどんな図形を描くでしょうか？
+        </p>
+
+        <!-- インタラクティブ・キャンバス 1 -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 my-6">
+          <div class="lg:col-span-8 bg-slate-900 rounded-2xl p-4 shadow-inner flex flex-col justify-between">
+            <div class="flex items-center justify-between text-xs text-slate-400 mb-2">
+              <span class="flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-sky-400 animate-ping"></span>
+                <span>円周上の青い点Qをドラッグ、または下の自動回転スライダーを動かそう</span>
+              </span>
+              <span class="font-mono text-slate-300">1目盛 = 1</span>
+            </div>
+
+            <!-- Canvas Step 1 -->
+            <div class="relative w-full aspect-square max-h-[440px] bg-slate-950 rounded-xl overflow-hidden border border-slate-800 mx-auto">
+              <canvas id="canvas-step1" class="w-full h-full cursor-grab active:cursor-grabbing"></canvas>
+            </div>
+
+            <!-- 操作ツールバー -->
+            <div class="flex flex-wrap items-center justify-between gap-3 mt-3 pt-3 border-t border-slate-800 text-xs">
+              <div class="flex items-center gap-2">
+                <button onclick="toggleAutoRotateStep1()" id="btn-autorotate-1" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white font-bold rounded-xl shadow transition flex items-center gap-1.5">
+                  <span id="autorotate-icon-1">▶</span> <span id="autorotate-label-1">自動で1周させる</span>
+                </button>
+                <button onclick="clearStep1Path()" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl transition">
+                  足跡を消す
+                </button>
+              </div>
+              <div class="flex items-center gap-2 text-slate-300">
+                <span>Qの回転角度 $\theta$:</span>
+                <input type="range" id="step1-angle-slider" min="0" max="360" value="90" oninput="onAngleSliderStep1(this.value)" class="w-28 custom-range">
+                <span id="step1-angle-val" class="font-mono-num font-bold text-sky-400 w-10 text-right">90°</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- リアルタイム座標メーター -->
+          <div class="lg:col-span-4 flex flex-col justify-between space-y-4">
+            <div class="bg-slate-50 border border-slate-200 rounded-2xl p-5 space-y-4">
+              <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500">リアルタイム測定メーター</h4>
+
+              <!-- 固定点A -->
+              <div class="p-3 bg-amber-50 rounded-xl border border-amber-200">
+                <div class="flex justify-between items-center text-xs text-amber-800 mb-0.5">
+                  <span class="font-bold">固定点 A (動かない錨)</span>
+                  <span class="font-mono text-[10px]">A(0, 4)</span>
+                </div>
+                <div class="text-lg font-bold font-mono-num text-amber-900">
+                  (0.0, 4.0)
+                </div>
+              </div>
+
+              <!-- 動かす点Q -->
+              <div class="p-3 bg-sky-50 rounded-xl border border-sky-200">
+                <div class="flex justify-between items-center text-xs text-sky-800 mb-0.5">
+                  <span class="font-bold">動かす点 Q (円周上)</span>
+                  <span class="font-mono text-[10px]">Q(u, v)</span>
+                </div>
+                <div class="text-lg font-bold font-mono-num text-sky-700">
+                  (<span id="step1-q-u">0.00</span>, <span id="step1-q-v">6.00</span>)
+                </div>
+                <div class="text-[10px] text-sky-600 mt-1 font-mono">
+                  $u^2 + (v-2)^2 = 16$ を常に満たす
+                </div>
+              </div>
+
+              <!-- 描画ペンP -->
+              <div class="p-3 bg-rose-50 rounded-xl border border-rose-200">
+                <div class="flex justify-between items-center text-xs text-rose-800 mb-0.5">
+                  <span class="font-bold">描画ペン P (線分AQの中点)</span>
+                  <span class="font-mono text-[10px]">P(x, y)</span>
+                </div>
+                <div class="text-xl font-black font-mono-num text-rose-600">
+                  (<span id="step1-p-x">0.00</span>, <span id="step1-p-y">5.00</span>)
+                </div>
+                <div class="text-[10px] text-rose-700 mt-1 font-mono-num">
+                  $x = \frac{0 + u}{2}$, $y = \frac{4 + v}{2}$
+                </div>
+              </div>
+
+              <!-- 気づきカード -->
+              <div class="p-3.5 bg-indigo-50/70 border border-indigo-200 rounded-xl text-xs space-y-1.5 text-indigo-950 leading-relaxed">
+                <span class="font-bold block">💡 観察のポイント：</span>
+                赤い点Pの描いた足跡を見ると、元の青い円とよく似た<b>「一回り小さな円」</b>が浮かんできました！<br>
+                中心の位置や半径の大きさはどう変化したでしょうか？
+              </div>
+            </div>
+
+            <div class="flex justify-end pt-2">
+              <button onclick="goToStep(2)" class="w-full px-5 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-md transition flex items-center justify-center gap-2 text-sm">
+                <span>次へ進む：東西南北の4点で中心と半径を暴く</span>
+                <span>&rarr;</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================
+         STEP 2: 四点を動かして確かめる（東西南北スナップと予想）
+         ======================================================== -->
+    <section id="step-2" class="step-panel hidden space-y-6">
+      <div class="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200 shadow-sm">
+        <div class="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 border border-blue-200 text-blue-800 text-xs font-bold rounded-full mb-3">
+          <span>🧭 探究 2</span>
+          <span>計算しやすい「上・右・下・左」の4点から形を予想する</span>
+        </div>
+
+        <h3 class="text-xl sm:text-2xl font-bold text-slate-900 mb-2">
+          東西南北の4点にQを置いたとき、中点Pはどこに来る？
+        </h3>
+        <p class="text-slate-600 text-sm sm:text-base leading-relaxed">
+          曲線全体の式をいきなり作ろうとせず、まずは<b>計算しやすい頂上・右端・最下点・左端の4か所</b>に点Qを置いてみましょう。<br>
+          下のボタンを押すと、Qが瞬時にその位置へジャンプします。4つの中点Pの座標を表に記録して、円の中心と半径を予想しましょう！
+        </p>
+
+        <!-- 4点スナップ切り替えバー -->
+        <div class="flex flex-wrap items-center gap-2 p-3 bg-slate-100 rounded-xl border border-slate-200 my-4 text-xs">
+          <span class="font-bold text-slate-700 mr-1">Qのジャンプ先：</span>
+          <button onclick="snapStep2Point('top')" id="snap-btn-top" class="px-3 py-1.5 rounded-lg font-bold transition bg-indigo-600 text-white shadow-sm">
+            ① 頂上 Q(0, 6)
+          </button>
+          <button onclick="snapStep2Point('right')" id="snap-btn-right" class="px-3 py-1.5 rounded-lg font-medium transition bg-white text-slate-700 border border-slate-300 hover:bg-slate-50">
+            ② 右端 Q(4, 2)
+          </button>
+          <button onclick="snapStep2Point('bottom')" id="snap-btn-bottom" class="px-3 py-1.5 rounded-lg font-medium transition bg-white text-slate-700 border border-slate-300 hover:bg-slate-50">
+            ③ 最下点 Q(0, -2)
+          </button>
+          <button onclick="snapStep2Point('left')" id="snap-btn-left" class="px-3 py-1.5 rounded-lg font-medium transition bg-white text-slate-700 border border-slate-300 hover:bg-slate-50">
+            ④ 左端 Q(-4, 2)
+          </button>
+          <button onclick="snapStep2All()" class="ml-auto px-3.5 py-1.5 rounded-lg font-bold transition bg-emerald-600 hover:bg-emerald-500 text-white shadow-sm">
+            ✨ 4点一括プロット
+          </button>
+        </div>
+
+        <!-- インタラクティブ・キャンバス 2 -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 my-6">
+          <div class="lg:col-span-7 bg-slate-900 rounded-2xl p-4 shadow-inner flex flex-col justify-between">
+            <div class="flex items-center justify-between text-xs text-slate-400 mb-2">
+              <span class="text-rose-400 font-bold">🔴 中点Pの4つのプロット点</span>
+              <span class="font-mono text-slate-300">A(0, 4) は固定</span>
+            </div>
+
+            <div class="relative w-full aspect-square max-h-[400px] bg-slate-950 rounded-xl overflow-hidden border border-slate-800 mx-auto">
+              <canvas id="canvas-step2" class="w-full h-full"></canvas>
+            </div>
+
+            <div class="flex items-center justify-between text-xs text-slate-400 mt-3 pt-3 border-t border-slate-800">
+              <label class="inline-flex items-center gap-1.5 cursor-pointer select-none">
+                <input type="checkbox" id="step2-toggle-hypo" onchange="renderStep2()" class="w-4 h-4 rounded text-indigo-600">
+                <span>予想される円の輪郭をうっすら重ねる</span>
+              </label>
+              <span class="font-mono text-emerald-400 font-bold" id="step2-plotted-count">プロット済み: 1 / 4 点</span>
+            </div>
+          </div>
+
+          <!-- 4点対応表と予想カード -->
+          <div class="lg:col-span-5 flex flex-col justify-between space-y-4">
+            <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3">
+              <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500">QとPの4点対応テーブル</h4>
+
+              <div class="overflow-x-auto">
+                <table class="w-full text-xs text-left border-collapse border border-slate-200 rounded-xl overflow-hidden shadow-sm bg-white font-mono-num">
+                  <thead class="bg-slate-100 text-slate-700 font-bold border-b border-slate-200">
+                    <tr>
+                      <th class="p-2 font-sans">場所</th>
+                      <th class="p-2 text-sky-700 font-sans">Qの座標 $(u, v)$</th>
+                      <th class="p-2 text-rose-700 font-sans">中点P $(x, y)$</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-slate-100">
+                    <tr id="step2-row-top" class="bg-indigo-50/60 font-bold">
+                      <td class="p-2 font-sans text-slate-800">上</td>
+                      <td class="p-2 text-sky-600">Q(0, 6)</td>
+                      <td class="p-2 text-rose-600">P(0, 5)</td>
+                    </tr>
+                    <tr id="step2-row-right">
+                      <td class="p-2 font-sans text-slate-800">右</td>
+                      <td class="p-2 text-sky-600">Q(4, 2)</td>
+                      <td class="p-2 text-rose-600">P(2, 3)</td>
+                    </tr>
+                    <tr id="step2-row-bottom">
+                      <td class="p-2 font-sans text-slate-800">下</td>
+                      <td class="p-2 text-sky-600">Q(0, -2)</td>
+                      <td class="p-2 text-rose-600">P(0, 1)</td>
+                    </tr>
+                    <tr id="step2-row-left">
+                      <td class="p-2 font-sans text-slate-800">左</td>
+                      <td class="p-2 text-sky-600">Q(-4, 2)</td>
+                      <td class="p-2 text-rose-600">P(-2, 3)</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- 4点から導く中心と半径 -->
+              <div class="p-3.5 bg-white rounded-xl border border-slate-200 space-y-2 text-xs">
+                <div class="font-bold text-slate-800 flex items-center gap-1.5">
+                  <span class="text-indigo-600">🎯</span> 4点から見えてくる円の正体：
+                </div>
+                <div class="space-y-1 text-slate-600 font-mono-num">
+                  <div class="flex justify-between">
+                    <span>上下の真ん中（中心のy座標）:</span>
+                    <strong class="text-indigo-600 font-bold">(5 + 1) ÷ 2 = 3</strong>
+                  </div>
+                  <div class="flex justify-between">
+                    <span>左右の真ん中（中心のx座標）:</span>
+                    <strong class="text-indigo-600 font-bold">(2 + (-2)) ÷ 2 = 0</strong>
+                  </div>
+                  <div class="flex justify-between border-t border-slate-100 pt-1">
+                    <span>中心からの距離（半径）:</span>
+                    <strong class="text-emerald-600 font-bold">5 - 3 = 2</strong>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 本質的な問いかけ -->
+            <div class="p-4 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-950 leading-relaxed space-y-1">
+              <strong class="text-amber-900 block font-bold">🤔 ここで立ち止まって考えよう：</strong>
+              4つの点がきれいに円に乗っていることが分かりました。<br>
+              でも、<b>「その間にある無数の点」も本当に円を描くと言い切れるでしょうか？</b><br>
+              ひょっとしたら四角や菱形に歪んでいるかもしれません。次はいよいよ、<b>数式による完全証明</b>に挑みましょう！
+            </div>
+
+            <div class="flex justify-between pt-2">
+              <button onclick="goToStep(1)" class="px-5 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 font-medium rounded-xl transition text-sm">
+                &larr; 前に戻る
+              </button>
+              <button onclick="goToStep(3)" class="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-md transition flex items-center gap-2 text-sm">
+                <span>次へ進む：PからQへ逆算して証明する</span>
+                <span>&rarr;</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================
+         STEP 3: 描かせたい点PからQへ逆算する（軌跡の方程式の核心）
+         ======================================================== -->
+    <section id="step-3" class="step-panel hidden space-y-6">
+      <div class="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200 shadow-sm">
+        <div class="inline-flex items-center gap-2 px-3 py-1 bg-purple-50 border border-purple-200 text-purple-800 text-xs font-bold rounded-full mb-3">
+          <span>📐 探究 3（最重要）</span>
+          <span>なぜ元の円の式に直接 P(x, y) を代入してはいけないのか？</span>
+        </div>
+
+        <h3 class="text-xl sm:text-2xl font-bold text-slate-900 mb-2">
+          「描かせたいP」の位置から「必要なQ」を逆算して、条件に流し込む！
+        </h3>
+        <p class="text-slate-600 text-sm sm:text-base leading-relaxed">
+          多くの人がつまずく最大の落とし穴：<b>「円の式 $u^2 + (v-2)^2 = 16$ の文字を、そのまま $x$ と $y$ に置き換えてしまうミス」</b>。<br>
+          円の上を走っているのはあくまで <span class="font-bold text-sky-600 font-mono">Q(u, v)</span> であって、<span class="font-bold text-rose-600 font-mono">P(x, y)</span> ではありません！<br>
+          だから、<b>「Pが $(x, y)$ にいるためには、Qはどこに居なければいけないか？」</b>を逆算（復元）するのです。
+        </p>
+
+        <!-- 逆算ギア・インタラクティブ可視化 -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 my-6">
+          <div class="lg:col-span-7 bg-slate-900 rounded-2xl p-4 shadow-inner flex flex-col justify-between">
+            <div class="flex items-center justify-between text-xs text-slate-400 mb-2">
+              <span class="text-rose-400 font-bold">⚙️ 逆算ギア：Pをドラッグすると、必要なQが自動復元される！</span>
+              <span class="font-mono text-slate-300 font-bold" id="step3-pin-count-badge">プロット済み: 0 点</span>
+            </div>
+
+            <!-- Canvas Step 3 -->
+            <div class="relative w-full aspect-square max-h-[400px] bg-slate-950 rounded-xl overflow-hidden border border-slate-800 mx-auto">
+              <canvas id="canvas-step3" class="w-full h-full cursor-grab active:cursor-grabbing"></canvas>
+            </div>
+
+            <!-- 操作・判定ツールバー -->
+            <div class="space-y-3 mt-3 pt-3 border-t border-slate-800 text-xs">
+              <!-- Qが円上にあるかのリアルタイム判定ステータス -->
+              <div class="flex items-center justify-between bg-slate-800/80 p-2.5 rounded-xl border border-slate-700">
+                <div class="flex items-center gap-2">
+                  <span class="w-3 h-3 rounded-full shrink-0" id="step3-on-circle-dot"></span>
+                  <span id="step3-on-circle-text" class="font-bold">復元されたQは青い円上にある？</span>
+                </div>
+                <button onclick="snapStep3ToCircle()" class="px-2.5 py-1 bg-slate-700 hover:bg-slate-600 active:scale-95 text-slate-200 font-bold rounded-lg transition text-[11px] shrink-0">
+                  ⚡ 円上の位置へスナップ
+                </button>
+              </div>
+
+              <!-- プロット操作ボタン群 -->
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <div class="flex items-center gap-2">
+                  <button onclick="pinCandidatePointStep3()" id="btn-pin-step3" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-bold rounded-xl shadow transition flex items-center gap-1.5 text-xs">
+                    <span>📍 正しい点Pをプロットする</span>
+                  </button>
+                  <button onclick="autoSampleStep3Points()" class="px-3 py-2 bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white font-bold rounded-xl transition text-xs">
+                    ✨ 8点一括プロット
+                  </button>
+                  <button onclick="clearStep3Pins()" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl transition text-xs">
+                    クリア
+                  </button>
+                </div>
+                <!-- 誤代入との比較トグル -->
+                <label class="inline-flex items-center gap-1.5 cursor-pointer text-slate-300 select-none text-[11px] ml-auto">
+                  <input type="checkbox" id="step3-toggle-wrong-circle" onchange="renderStep3()" class="w-3.5 h-3.5 rounded text-rose-500">
+                  <span>❌ 直接代入した誤りの円と比較</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- 数式変形のステップバイステップ解説 -->
+          <div class="lg:col-span-5 flex flex-col justify-between space-y-4">
+            <div class="bg-slate-900 text-white rounded-2xl p-5 border border-slate-800 space-y-4 font-mono-num text-xs">
+              <div class="border-b border-slate-800 pb-2 flex justify-between items-center">
+                <span class="text-amber-400 font-bold text-xs font-sans">📝 逆算と代入の3ステップ</span>
+                <span class="text-[11px] text-slate-400">A(0, 4)</span>
+              </div>
+
+              <!-- 第1ステップ: 中点の式 -->
+              <div class="p-3 bg-slate-800/90 rounded-xl border border-slate-700 space-y-1">
+                <div class="text-[11px] font-sans text-slate-400 font-bold">
+                  【第1歩】中点の関係から、QをPで表す
+                </div>
+                <div class="text-slate-200 text-center py-1">
+                  $$x = \frac{0 + u}{2} \quad \Longleftrightarrow \quad \mathbf{u = 2x}$$
+                  $$y = \frac{4 + v}{2} \quad \Longleftrightarrow \quad \mathbf{v = 2y - 4}$$
+                </div>
+                <p class="text-[10px] text-slate-400 font-sans">
+                  ※ $y$ を2倍して4を引くことで、$v$ の居場所が完全に逆算されました。
+                </p>
+              </div>
+
+              <!-- 第2ステップ: 元の条件へ代入 -->
+              <div class="p-3 bg-slate-800/90 rounded-xl border border-slate-700 space-y-1">
+                <div class="text-[11px] font-sans text-slate-400 font-bold">
+                  【第2歩】Qが円上にいる条件式に代入する
+                </div>
+                <div class="text-indigo-300 text-center py-1 overflow-x-auto">
+                  $$u^2 + (v - 2)^2 = 16$$
+                  $$(2x)^2 + ((2y - 4) - 2)^2 = 16$$
+                  $$4x^2 + (2y - 6)^2 = 16$$
+                  $$4x^2 + 4(y - 3)^2 = 16$$
+                </div>
+              </div>
+
+              <!-- 第3ステップ: 両辺を4で割る -->
+              <div class="p-3 bg-indigo-950/80 rounded-xl border border-indigo-500/50 space-y-1">
+                <div class="text-[11px] font-sans text-indigo-300 font-bold flex justify-between">
+                  <span>【第3歩】両辺を4で割ると…？</span>
+                  <span class="text-amber-400">完成！</span>
+                </div>
+                <div class="text-emerald-400 font-bold text-center text-sm py-1">
+                  $$x^2 + (y - 3)^2 = 4$$
+                </div>
+                <p class="text-[10px] text-slate-300 font-sans leading-relaxed">
+                  中心 <strong class="text-white">(0, 3)</strong>、半径 <strong class="text-white">2</strong> の円！<br>
+                  Step 2で予想した通りの図形が、数学的に完璧に証明されました。
+                </p>
+              </div>
+            </div>
+
+            <!-- 逆の確認カード -->
+            <div class="p-4 bg-emerald-50 border border-emerald-300 rounded-xl text-xs text-emerald-950 leading-relaxed">
+              <strong class="text-emerald-900 block font-bold mb-1">🔄 逆も成り立つか？（十分性の確認）</strong>
+              逆に、円 $x^2 + (y-3)^2 = 4$ 上に好きな点 $P$ を取ると、そこから復元した点 $Q(2x, 2y-4)$ は<b>必ず元の円 $u^2 + (v-2)^2 = 16$ 上に乗ります</b>。<br>
+              したがって、余分な点は1つもなく、<b>この円全体が求める軌跡</b>になります！
+            </div>
+
+            <div class="flex justify-between pt-2">
+              <button onclick="goToStep(2)" class="px-5 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 font-medium rounded-xl transition text-sm">
+                &larr; 前に戻る
+              </button>
+              <button onclick="goToStep(4)" class="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-md transition flex items-center gap-2 text-sm">
+                <span>次へ進む：Qが直線上を動く場合へ応用</span>
+                <span>&rarr;</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================
+         STEP 4: 直線上を動くQの問題（平行な直線の軌跡）
+         ======================================================== -->
+    <section id="step-4" class="step-panel hidden space-y-6">
+      <div class="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200 shadow-sm">
+        <div class="inline-flex items-center gap-2 px-3 py-1 bg-amber-50 border border-amber-200 text-amber-800 text-xs font-bold rounded-full mb-3">
+          <span>📏 探究 4（入試・定期試験の定番）</span>
+          <span>元の図形が円から「直線」に変わっても、解法の手順は1ミリも変わらない！</span>
+        </div>
+
+        <h3 class="text-xl sm:text-2xl font-bold text-slate-900 mb-2">
+          点Qが直線 $3u - v - 5 = 0$ 上を走るとき、中点Pの軌跡は？
+        </h3>
+        <p class="text-slate-600 text-sm sm:text-base leading-relaxed">
+          固定点を <span class="font-bold text-amber-600 font-mono">A(2, 5)</span> とし、点Qは <span class="font-bold text-sky-600 font-mono">直線 3u - v - 5 = 0</span> 上を自由に動くものとします。<br>
+          スライダーやドラッグで点Qを直線上で滑らせてみましょう。<span class="font-bold text-rose-600">中点Pがリアルタイムに描く足跡</span>に注目してください！
+        </p>
+
+        <!-- インタラクティブ・キャンバス 4 -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 my-6">
+          <div class="lg:col-span-7 bg-slate-900 rounded-2xl p-4 shadow-inner flex flex-col justify-between">
+            <div class="flex items-center justify-between text-xs text-slate-400 mb-2">
+              <span class="text-sky-400 font-bold flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
+                <span>青い点Qを動かすと、赤い中点Pの足跡（軌跡）が現れる！</span>
+              </span>
+              <span class="font-mono text-slate-300">A(2, 5)</span>
+            </div>
+
+            <!-- Canvas Step 4 -->
+            <div class="relative w-full aspect-square max-h-[400px] bg-slate-950 rounded-xl overflow-hidden border border-slate-800 mx-auto">
+              <canvas id="canvas-step4" class="w-full h-full cursor-grab active:cursor-grabbing"></canvas>
+            </div>
+
+            <!-- コントロールバー -->
+            <div class="flex flex-wrap items-center justify-between gap-3 mt-3 pt-3 border-t border-slate-800 text-xs">
+              <div class="flex items-center gap-2 text-slate-300 w-full sm:w-auto">
+                <span>点Qのx座標 ($u$):</span>
+                <input type="range" id="step4-u-slider" min="0.4" max="4.6" step="0.05" value="2.0" oninput="onStep4Slider(this.value)" class="w-32 custom-range">
+                <span id="step4-u-val" class="font-mono-num font-bold text-sky-400 w-10 text-right">2.0</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <button onclick="toggleStep4Animate()" id="btn-step4-anim" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-lg transition text-xs flex items-center gap-1">
+                  <span id="btn-step4-anim-icon">▶</span> <span id="btn-step4-anim-text">自動スライド</span>
+                </button>
+                <button onclick="clearStep4Path()" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg transition text-xs">
+                  足跡を消す
+                </button>
+                <button onclick="extendStep4FullLine()" id="btn-step4-extend" class="px-3 py-1.5 bg-rose-600 hover:bg-rose-500 active:scale-95 text-white font-bold rounded-lg transition text-xs flex items-center gap-1 shadow">
+                  <span>📐 直線全体へ延長</span>
+                </button>
+              </div>
+              <label class="inline-flex items-center gap-1.5 cursor-pointer text-slate-300 select-none text-[11px] ml-auto sm:ml-0">
+                <input type="checkbox" id="step4-toggle-ideal" onchange="renderStep4()" class="w-3.5 h-3.5 rounded text-rose-500">
+                <span>正解の直線（全体）を重ねて確認</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- 式の変形ステップと幾何学的な意味 -->
+          <div class="lg:col-span-5 flex flex-col justify-between space-y-4">
+            <div class="bg-slate-50 border border-slate-200 rounded-2xl p-5 space-y-3 font-mono-num text-xs">
+              <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500 font-sans">式変形の手順（完全一致！）</h4>
+
+              <div class="p-3 bg-white rounded-xl border border-slate-200 space-y-1">
+                <span class="font-bold text-slate-700 font-sans block text-[11px]">① 中点の関係からQを復元</span>
+                <div class="text-slate-800 text-center py-1">
+                  $$x = \frac{2 + u}{2} \implies \mathbf{u = 2x - 2}$$
+                  $$y = \frac{5 + v}{2} \implies \mathbf{v = 2y - 5}$$
+                </div>
+              </div>
+
+              <div class="p-3 bg-white rounded-xl border border-slate-200 space-y-1">
+                <span class="font-bold text-slate-700 font-sans block text-[11px]">② Qの条件式 $3u - v - 5 = 0$ に代入</span>
+                <div class="text-slate-800 text-center py-1">
+                  $$3(2x - 2) - (2y - 5) - 5 = 0$$
+                  $$6x - 6 - 2y + 5 - 5 = 0$$
+                  $$6x - 2y - 6 = 0$$
+                </div>
+                <div class="text-rose-600 font-bold text-center text-sm pt-1 border-t border-slate-100">
+                  $$3x - y - 3 = 0$$
+                </div>
+              </div>
+
+              <div class="p-3 bg-amber-50 border border-amber-300 rounded-xl space-y-1 text-[11px] font-sans text-amber-950">
+                <strong class="text-amber-900 block font-bold flex items-center gap-1">
+                  <span>⚠️</span> 重要：軌跡は「線分」ではなく「直線全体」！
+                </strong>
+                スライダーで動かせるのは画面の都合上 $0.4 \le u \le 4.6$ の範囲ですが、点Qは直線 $3u - v - 5 = 0$ の上を<b>上下の彼方まで無限に動く</b>ことができます。<br>
+                したがって、中点Pの軌跡も端点で止まらず、<b>「直線 $3x - y - 3 = 0$ 全体」</b>になります！「直線全体へ延長」ボタンを押して画面外まで突き抜ける線を確認しましょう。
+              </div>
+
+              <div class="p-3 bg-indigo-50 border border-indigo-200 rounded-xl space-y-1 text-[11px] font-sans text-indigo-950">
+                <strong class="text-indigo-900 block font-bold">💡 幾何学的な発見（中点連結定理）：</strong>
+                元の直線の傾きは $v = 3u - 5$ なので <b>傾き 3</b>。<br>
+                求めた軌跡の直線も $y = 3x - 3$ なので <b>傾き 3</b>。<br>
+                <b>2本の直線は完全に「平行」</b>になっています！固定点Aから直線上へ引いた線分の中点を集めると、中点連結定理により必ず元の直線と平行な直線になるのです。
+              </div>
+            </div>
+
+            <div class="flex justify-between pt-2">
+              <button onclick="goToStep(3)" class="px-5 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 font-medium rounded-xl transition text-sm">
+                &larr; 前に戻る
+              </button>
+              <button onclick="goToStep(5)" class="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-md transition flex items-center gap-2 text-sm">
+                <span>次へ進む：パラメータaと動ける範囲の制限</span>
+                <span>&rarr;</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================
+         STEP 5: パラメータaと動ける範囲の制限（線分・点列への変化）
+         ======================================================== -->
+    <section id="step-5" class="step-panel hidden space-y-6">
+      <div class="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200 shadow-sm">
+        <div class="inline-flex items-center gap-2 px-3 py-1 bg-rose-50 border border-rose-200 text-rose-800 text-xs font-bold rounded-full mb-3">
+          <span>⚠️ 盲点突破</span>
+          <span>「式は直線なのに、答えは線分？」範囲制限の魔術</span>
+        </div>
+
+        <h3 class="text-xl sm:text-2xl font-bold text-slate-900 mb-2">
+          点 $P(2a-1, -6a+5)$：パラメータ $a$ の範囲を絞ると軌跡はどうなる？
+        </h3>
+        <p class="text-slate-600 text-sm sm:text-base leading-relaxed">
+          今度は、1つの数値 $a$（パラメータ）によって横と縦の座標が同時に決まる動点 $P$ を考えます。<br>
+          $a$ を消去すれば通る道筋（直線）が分かりますが、<b>もし $a$ に「動ける限界（$0 \le a \le 1$ など）」がついていたら…？</b><br>
+          下のモードを切り替えて、軌跡が「直線」から「線分」や「離れた点の集まり」に姿を変える瞬間を目撃しましょう！
+        </p>
+
+        <!-- 範囲制限モード切り替えバー -->
+        <div class="flex flex-wrap items-center gap-2 p-3 bg-slate-100 rounded-xl border border-slate-200 my-4 text-xs">
+          <span class="font-bold text-slate-700 mr-1">パラメータ $a$ の制限条件：</span>
+          <button onclick="setParamMode('all')" id="param-btn-all" class="px-3 py-1.5 rounded-lg font-bold transition bg-indigo-600 text-white shadow-sm">
+            ① 制限なし (すべての実数)
+          </button>
+          <button onclick="setParamMode('segment')" id="param-btn-segment" class="px-3 py-1.5 rounded-lg font-medium transition bg-white text-slate-700 border border-slate-300 hover:bg-slate-50">
+            ② 範囲あり ($0 \le a \le 1$)
+          </button>
+          <button onclick="setParamMode('integer')" id="param-btn-integer" class="px-3 py-1.5 rounded-lg font-medium transition bg-white text-slate-700 border border-slate-300 hover:bg-slate-50">
+            ③ 発展：整数のみ ($a \in \mathbb{Z}$)
+          </button>
+          <button onclick="setParamMode('exclude')" id="param-btn-exclude" class="px-3 py-1.5 rounded-lg font-medium transition bg-white text-slate-700 border border-slate-300 hover:bg-slate-50">
+            ④ 発展：1点を除く ($a \ne 0$)
+          </button>
+        </div>
+
+        <!-- インタラクティブ・キャンバス 5 -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 my-6">
+          <div class="lg:col-span-7 bg-slate-900 rounded-2xl p-4 shadow-inner flex flex-col justify-between">
+            <div class="flex items-center justify-between text-xs text-slate-400 mb-2">
+              <span id="step5-mode-badge" class="font-bold text-emerald-400">現在：① すべての実数（直線全体）</span>
+              <span class="font-mono text-slate-300">$P(2a-1, -6a+5)$</span>
+            </div>
+
+            <!-- Canvas Step 5 -->
+            <div class="relative w-full aspect-square max-h-[400px] bg-slate-950 rounded-xl overflow-hidden border border-slate-800 mx-auto">
+              <canvas id="canvas-step5" class="w-full h-full"></canvas>
+            </div>
+
+            <!-- パラメータa スライダー -->
+            <div class="flex items-center justify-between gap-3 mt-3 pt-3 border-t border-slate-800 text-xs">
+              <div class="flex items-center gap-2 text-slate-300 w-full">
+                <span>数値 $a$ を動かす:</span>
+                <input type="range" id="step5-a-slider" min="-1" max="2" step="0.05" value="0.5" oninput="onParamASlider(this.value)" class="w-full custom-range">
+                <span id="step5-a-val" class="font-mono-num font-bold text-amber-400 w-12 text-right">0.50</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- パラメータ消去ロジック解説 -->
+          <div class="lg:col-span-5 flex flex-col justify-between space-y-4">
+            <div class="bg-slate-50 border border-slate-200 rounded-2xl p-5 space-y-3 text-xs font-mono-num">
+              <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500 font-sans">パラメータ消去のロジック</h4>
+
+              <div class="p-3 bg-white rounded-xl border border-slate-200 space-y-1">
+                <span class="font-bold text-slate-700 font-sans block text-[11px]">① 横の座標 $x$ から $a$ を逆算</span>
+                <div class="text-slate-800 text-center py-1">
+                  $$x = 2a - 1 \quad \Longleftrightarrow \quad \mathbf{a = \frac{x + 1}{2}}$$
+                </div>
+              </div>
+
+              <div class="p-3 bg-white rounded-xl border border-slate-200 space-y-1">
+                <span class="font-bold text-slate-700 font-sans block text-[11px]">② 縦の座標 $y$ に代入して $a$ を消去</span>
+                <div class="text-slate-800 text-center py-1">
+                  $$y = -6a + 5 = -6\left(\frac{x + 1}{2}\right) + 5$$
+                  $$y = -3(x + 1) + 5$$
+                  <strong class="text-indigo-600 text-sm block pt-1">y = -3x + 2</strong>
+                </div>
+              </div>
+
+              <!-- 動的解説ボックス -->
+              <div id="step5-explanation-card" class="p-3.5 bg-indigo-50/80 border border-indigo-200 rounded-xl font-sans text-indigo-950 space-y-1.5 leading-relaxed">
+                <strong class="text-indigo-900 block font-bold" id="step5-expl-title">直線全体の軌跡</strong>
+                <p class="text-[11px]" id="step5-expl-desc">
+                  $a$ がすべての実数を取るとき、$x = 2a-1$ もすべての実数を取ることができます。<br>
+                  そのため、軌跡は遮るもののない<b>「直線 $y = -3x + 2$ 全体」</b>になります！
+                </p>
+              </div>
+            </div>
+
+            <div class="flex justify-between pt-2">
+              <button onclick="goToStep(4)" class="px-5 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 font-medium rounded-xl transition text-sm">
+                &larr; 前に戻る
+              </button>
+              <button onclick="goToStep(6)" class="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-md transition flex items-center gap-2 text-sm">
+                <span>次へ進む：自習出口チェック（振り返り）</span>
+                <span>&rarr;</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================
+         STEP 6: 出口チェック & 本時のまとめ
+         ======================================================== -->
+    <section id="step-6" class="step-panel hidden space-y-6">
+      <div class="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200 shadow-sm">
+        <div class="inline-flex items-center gap-2 px-3 py-1 bg-green-50 border border-green-200 text-green-800 text-xs font-bold rounded-full mb-3">
+          <span>🎓 学習の完了</span>
+          <span>自分の言葉で説明できるかセルフチェック！</span>
+        </div>
+
+        <h3 class="text-xl sm:text-2xl font-bold text-slate-900 mb-2">
+          理解度セルフチェック（出口問題）
+        </h3>
+        <p class="text-slate-600 text-sm sm:text-base leading-relaxed">
+          「点の対応から軌跡を考える」最重要ポイントを3つの問いで確認してみましょう。<br>
+          選択肢をタップすると、即座にフィードバックが表示されます。
+        </p>
+
+        <!-- クイズカード群 -->
+        <div class="space-y-4 my-6">
+          <!-- 問 1 -->
+          <div class="p-5 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
+            <div class="text-xs font-bold text-indigo-600">【問 1】</div>
+            <p class="text-sm font-bold text-slate-800">
+              点Pの軌跡を求めるとき、「Pの座標からQの座標へ戻って（逆算して）考える」と何が良いのですか？
+            </p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 text-xs">
+              <button onclick="checkExitQuiz(1, 'a')" class="exit-quiz-btn-1 p-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-left transition">
+                A. Pが満たすべき条件は未知だが、Qが満たす条件（円や直線）は最初から分かっているため、QをPで表して代入できるから。
+              </button>
+              <button onclick="checkExitQuiz(1, 'b')" class="exit-quiz-btn-1 p-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-left transition">
+                B. 中点の計算は割り算よりも2倍する掛け算のほうが計算ミスが減って簡単だから。
+              </button>
+            </div>
+            <div id="exit-quiz-fb-1" class="hidden text-xs mt-2 font-bold p-3 rounded-xl"></div>
+          </div>
+
+          <!-- 問 2 -->
+          <div class="p-5 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
+            <div class="text-xs font-bold text-indigo-600">【問 2】</div>
+            <p class="text-sm font-bold text-slate-800">
+              元の円の式 $u^2 + (v-2)^2 = 16$ に、中点Pの座標 $(x, y)$ をそのまま直接代入してはいけない理由は何ですか？
+            </p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 text-xs">
+              <button onclick="checkExitQuiz(2, 'a')" class="exit-quiz-btn-2 p-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-left transition">
+                A. 数学のルールとして、小文字の x と y は円の方程式に使ってはいけない決まりがあるから。
+              </button>
+              <button onclick="checkExitQuiz(2, 'b')" class="exit-quiz-btn-2 p-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-left transition">
+                B. その円の上を動いているのは点Qであり、点Pはその円の上を動いているわけではないから。
+              </button>
+            </div>
+            <div id="exit-quiz-fb-2" class="hidden text-xs mt-2 font-bold p-3 rounded-xl"></div>
+          </div>
+
+          <!-- 問 3 -->
+          <div class="p-5 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
+            <div class="text-xs font-bold text-indigo-600">【問 3】</div>
+            <p class="text-sm font-bold text-slate-800">
+              点 $P(2a-1, -6a+5)$ において、数値 $a$ の範囲が $0 \le a \le 1$ に制限されると、直線全体を描けなくなるのはなぜですか？
+            </p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 text-xs">
+              <button onclick="checkExitQuiz(3, 'a')" class="exit-quiz-btn-3 p-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-left transition">
+                A. $a$ の動ける範囲が限定されることで、横の座標 $x = 2a-1$ も $-1 \le x \le 1$ に制限され、線分になるから。
+              </button>
+              <button onclick="checkExitQuiz(3, 'b')" class="exit-quiz-btn-3 p-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-left transition">
+                B. 範囲がつくと直線の傾きが途中で折れ曲がって放物線に変化してしまうから。
+              </button>
+            </div>
+            <div id="exit-quiz-fb-3" class="hidden text-xs mt-2 font-bold p-3 rounded-xl"></div>
+          </div>
+        </div>
+
+        <!-- 本時のまとめバナー -->
+        <div class="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-700 text-white p-6 sm:p-8 rounded-2xl shadow-lg mt-8">
+          <div class="text-center max-w-2xl mx-auto space-y-3">
+            <span class="px-3 py-1 bg-white/20 text-white rounded-full text-xs font-bold tracking-wider uppercase backdrop-blur-sm">
+              Takeaway
+            </span>
+            <h3 class="text-xl sm:text-2xl font-black tracking-tight">
+              「動かす点Q」と「追う点P」の役割を明確に分ける！
+            </h3>
+            <div class="py-2 flex flex-wrap items-center justify-center gap-2 sm:gap-3 font-mono text-xs sm:text-sm text-amber-300 font-bold">
+              <span>描かせたい点 $P(x, y)$</span>
+              <span>&xrarr;</span>
+              <span class="bg-white/10 px-2.5 py-1 rounded-lg border border-white/20 text-white">QをPで表す（逆算）</span>
+              <span>&xrarr;</span>
+              <span>Qの条件式に代入</span>
+              <span>&xrarr;</span>
+              <span class="text-emerald-300">Pの方程式が完成！</span>
+            </div>
+            <p class="text-xs sm:text-sm text-slate-100 leading-relaxed">
+              直接式が作れない点でも、連動する相手の条件を借りて復元する。<br>
+              さらにパラメータの範囲に気を配ることで、どんなに複雑な連動装置の軌跡も迷わず解き明かすことができます！
+            </p>
+            <div class="pt-3">
+              <button onclick="goToStep(1)" class="px-5 py-2.5 bg-white text-indigo-950 hover:bg-slate-100 font-bold rounded-xl text-xs transition shadow active:scale-95">
+                🔄 もう一度最初から試す
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    // 状態管理
+    let currentStep = 1;
+    const totalSteps = 6;
+
+    // Step 1: 装置設定
+    const fixedA = { x: 0, y: 4 };
+    const baseCircle = { x: 0, y: 2, r: 4 }; // u^2 + (v-2)^2 = 16
+    let step1Angle = 90; // 度
+    let step1Path = []; // Pの足跡
+    let isAutoRotating1 = false;
+    let autoRotateTimer1 = null;
+    let isDraggingQ1 = false;
+
+    // Step 2: 4点プロット状態
+    let step2Plotted = { top: true, right: false, bottom: false, left: false };
+    const fourPoints = {
+      top:    { label: '上', q: { u: 0, v: 6 },  p: { x: 0, y: 5 } },
+      right:  { label: '右', q: { u: 4, v: 2 },  p: { x: 2, y: 3 } },
+      bottom: { label: '下', q: { u: 0, v: -2 }, p: { x: 0, y: 1 } },
+      left:   { label: '左', q: { u: -4, v: 2 }, p: { x: -2, y: 3 } }
+    };
+    let step2CurrentSnap = 'top';
+
+    // Step 3: PからQへ逆算 (Pの位置をドラッグ & プロット)
+    let step3P = { x: 2, y: 3 }; // 初期中点
+    let step3Pins = []; // 正しい点Pのプロットリスト
+    let isDraggingP3 = false;
+
+    // Step 4: 直線上のQ (A(2, 5), 3u - v - 5 = 0 => v = 3u - 5)
+    const step4FixedA = { x: 2, y: 5 };
+    let step4U = 2.0; // 描画範囲の中央付近を初期位置に設定
+    let isStep4Animating = false;
+    let step4AnimTimer = null;
+    let step4AnimDirection = 1;
+    let step4Path = []; // 中点Pが通って描いた足跡リスト
+    let isDraggingStep4Q = false;
+    let step4IsExtended = false; // 直線全体（スライダー範囲外を含む）への延長表示フラグ
+
+    // Step 5: パラメータa と動ける範囲
+    // P(2a-1, -6a+5)
+    let step5ParamA = 0.5;
+    let step5Mode = 'all'; // 'all' | 'segment' | 'integer' | 'exclude'
+
+    // Canvas要素とContext
+    const canvas1 = document.getElementById('canvas-step1');
+    const ctx1 = canvas1 ? canvas1.getContext('2d') : null;
+
+    const canvas2 = document.getElementById('canvas-step2');
+    const ctx2 = canvas2 ? canvas2.getContext('2d') : null;
+
+    const canvas3 = document.getElementById('canvas-step3');
+    const ctx3 = canvas3 ? canvas3.getContext('2d') : null;
+
+    const canvas4 = document.getElementById('canvas-step4');
+    const ctx4 = canvas4 ? canvas4.getContext('2d') : null;
+
+    const canvas5 = document.getElementById('canvas-step5');
+    const ctx5 = canvas5 ? canvas5.getContext('2d') : null;
+
+    // Canvas DPI対応
+    function setupCanvasDPI(canvas, ctx) {
+      const rect = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.resetTransform ? ctx.resetTransform() : ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.scale(dpr, dpr);
+      return { width: rect.width, height: rect.height };
+    }
+
+    // 数学座標 (Math) ➔ Canvas座標（アスペクト比1:1を厳密に保証）
+    function toCanvasCoord(mx, my, width, height, viewRange) {
+      const scale = Math.min(
+        width / (viewRange.maxX - viewRange.minX),
+        height / (viewRange.maxY - viewRange.minY)
+      );
+      const offsetX = (width - (viewRange.maxX - viewRange.minX) * scale) / 2;
+      const offsetY = (height - (viewRange.maxY - viewRange.minY) * scale) / 2;
+      const cx = offsetX + (mx - viewRange.minX) * scale;
+      const cy = height - offsetY - (my - viewRange.minY) * scale;
+      return { x: cx, y: cy };
+    }
+
+    // Canvas座標 ➔ 数学座標
+    function toMathCoord(cx, cy, width, height, viewRange) {
+      const scale = Math.min(
+        width / (viewRange.maxX - viewRange.minX),
+        height / (viewRange.maxY - viewRange.minY)
+      );
+      const offsetX = (width - (viewRange.maxX - viewRange.minX) * scale) / 2;
+      const offsetY = (height - (viewRange.maxY - viewRange.minY) * scale) / 2;
+      const mx = (cx - offsetX) / scale + viewRange.minX;
+      const my = (height - offsetY - cy) / scale + viewRange.minY;
+      return { x: mx, y: my };
+    }
+
+    // 方眼グリッドと座標軸の描画
+    function drawCoordinateGrid(ctx, width, height, viewRange) {
+      ctx.clearRect(0, 0, width, height);
+
+      // グリッド線
+      ctx.strokeStyle = '#1e293b';
+      ctx.lineWidth = 1;
+
+      for (let x = Math.ceil(viewRange.minX); x <= Math.floor(viewRange.maxX); x++) {
+        const p1 = toCanvasCoord(x, viewRange.minY, width, height, viewRange);
+        const p2 = toCanvasCoord(x, viewRange.maxY, width, height, viewRange);
+        ctx.beginPath();
+        ctx.moveTo(p1.x, p1.y);
+        ctx.lineTo(p2.x, p2.y);
+        ctx.stroke();
+      }
+
+      for (let y = Math.ceil(viewRange.minY); y <= Math.floor(viewRange.maxY); y++) {
+        const p1 = toCanvasCoord(viewRange.minX, y, width, height, viewRange);
+        const p2 = toCanvasCoord(viewRange.maxX, y, width, height, viewRange);
+        ctx.beginPath();
+        ctx.moveTo(p1.x, p1.y);
+        ctx.lineTo(p2.x, p2.y);
+        ctx.stroke();
+      }
+
+      // 座標軸
+      ctx.strokeStyle = '#475569';
+      ctx.lineWidth = 2;
+
+      const xAxis1 = toCanvasCoord(viewRange.minX, 0, width, height, viewRange);
+      const xAxis2 = toCanvasCoord(viewRange.maxX, 0, width, height, viewRange);
+      ctx.beginPath();
+      ctx.moveTo(xAxis1.x, xAxis1.y);
+      ctx.lineTo(xAxis2.x, xAxis2.y);
+      ctx.stroke();
+
+      const yAxis1 = toCanvasCoord(0, viewRange.minY, width, height, viewRange);
+      const yAxis2 = toCanvasCoord(0, viewRange.maxY, width, height, viewRange);
+      ctx.beginPath();
+      ctx.moveTo(yAxis1.x, yAxis1.y);
+      ctx.lineTo(yAxis2.x, yAxis2.y);
+      ctx.stroke();
+
+      // 目盛り数値
+      ctx.fillStyle = '#64748b';
+      ctx.font = '10px JetBrains Mono, monospace';
+      ctx.textAlign = 'center';
+
+      for (let x = Math.ceil(viewRange.minX); x <= Math.floor(viewRange.maxX); x++) {
+        if (x === 0) continue;
+        const pt = toCanvasCoord(x, 0, width, height, viewRange);
+        ctx.fillText(x.toString(), pt.x, pt.y + 14);
+      }
+
+      ctx.textAlign = 'right';
+      for (let y = Math.ceil(viewRange.minY); y <= Math.floor(viewRange.maxY); y++) {
+        if (y === 0) continue;
+        const pt = toCanvasCoord(0, y, width, height, viewRange);
+        ctx.fillText(y.toString(), pt.x - 6, pt.y + 3);
+      }
+    }
+
+    // ステップ遷移
+    function goToStep(step) {
+      currentStep = step;
+      document.querySelectorAll('.step-panel').forEach(p => p.classList.add('hidden'));
+      const active = document.getElementById(`step-${step}`);
+      if (active) active.classList.remove('hidden');
+
+      // タブボタンスタイル更新
+      document.querySelectorAll('.tab-btn').forEach((btn, idx) => {
+        if (idx + 1 === step) {
+          btn.className = "tab-btn px-3 py-1.5 rounded-lg whitespace-nowrap font-medium transition-colors bg-indigo-50 text-indigo-700 border border-indigo-200";
+        } else {
+          btn.className = "tab-btn px-3 py-1.5 rounded-lg whitespace-nowrap font-medium transition-colors text-slate-600 hover:bg-slate-100";
+        }
+      });
+
+      // プログレスバー
+      const pct = (step / totalSteps) * 100;
+      document.getElementById('progress-bar').style.width = `${pct}%`;
+      document.getElementById('progress-text').innerText = `Step ${step} / ${totalSteps}`;
+
+      // 各ステップの初回描画
+      setTimeout(() => {
+        if (step === 1) renderStep1();
+        if (step === 2) renderStep2();
+        if (step === 3) renderStep3();
+        if (step === 4) renderStep4();
+        if (step === 5) renderStep5();
+      }, 50);
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // ========================================================
+    // Step 1: お絵描き装置（円上のQと中点Pの連動）
+    // ========================================================
+    function getQFromAngle(deg) {
+      const rad = (deg * Math.PI) / 180;
+      return {
+        u: baseCircle.x + baseCircle.r * Math.cos(rad),
+        v: baseCircle.y + baseCircle.r * Math.sin(rad)
+      };
+    }
+
+    function getPFromQ(q) {
+      return {
+        x: (fixedA.x + q.u) / 2,
+        y: (fixedA.y + q.v) / 2
+      };
+    }
+
+    function renderStep1() {
+      if (!canvas1 || !ctx1) return;
+      const { width, height } = setupCanvasDPI(canvas1, ctx1);
+      // 円全体(y: -2〜6, x: -4〜4)と固定点A(0,4)が十分収まる14x14の正方形空間
+      const viewRange = { minX: -7, maxX: 7, minY: -4, maxY: 10 };
+
+      drawCoordinateGrid(ctx1, width, height, viewRange);
+
+      const q = getQFromAngle(step1Angle);
+      const p = getPFromQ(q);
+
+      // 足跡リストに追加
+      step1Path.push({ x: p.x, y: p.y });
+      if (step1Path.length > 360) step1Path.shift();
+
+      const scale = Math.min(
+        width / (viewRange.maxX - viewRange.minX),
+        height / (viewRange.maxY - viewRange.minY)
+      );
+
+      // 1. 元の青い円 u^2 + (v-2)^2 = 16
+      const ptCenterQ = toCanvasCoord(baseCircle.x, baseCircle.y, width, height, viewRange);
+      ctx1.strokeStyle = '#0284c7';
+      ctx1.lineWidth = 2.5;
+      ctx1.beginPath();
+      ctx1.arc(ptCenterQ.x, ptCenterQ.y, baseCircle.r * scale, 0, Math.PI * 2);
+      ctx1.stroke();
+
+      ctx1.fillStyle = '#38bdf8';
+      ctx1.font = 'bold 11px JetBrains Mono';
+      ctx1.textAlign = 'left';
+      ctx1.fillText('元の円: u² + (v-2)² = 16', ptCenterQ.x + baseCircle.r * scale * 0.55, ptCenterQ.y - baseCircle.r * scale * 0.72);
+
+      // 2. 赤いペンPの足跡（軌跡の輪郭）
+      if (step1Path.length > 1) {
+        ctx1.strokeStyle = 'rgba(244, 63, 94, 0.8)';
+        ctx1.lineWidth = 3;
+        ctx1.beginPath();
+        step1Path.forEach((pt, idx) => {
+          const cpt = toCanvasCoord(pt.x, pt.y, width, height, viewRange);
+          if (idx === 0) ctx1.moveTo(cpt.x, cpt.y);
+          else ctx1.lineTo(cpt.x, cpt.y);
+        });
+        ctx1.stroke();
+      }
+
+      // 3. 線分 AQ
+      const ptA = toCanvasCoord(fixedA.x, fixedA.y, width, height, viewRange);
+      const ptQ = toCanvasCoord(q.u, q.v, width, height, viewRange);
+      const ptP = toCanvasCoord(p.x, p.y, width, height, viewRange);
+
+      ctx1.strokeStyle = '#94a3b8';
+      ctx1.lineWidth = 2;
+      ctx1.setLineDash([4, 4]);
+      ctx1.beginPath();
+      ctx1.moveTo(ptA.x, ptA.y);
+      ctx1.lineTo(ptQ.x, ptQ.y);
+      ctx1.stroke();
+      ctx1.setLineDash([]);
+
+      // 4. 等分割マーク（中点）
+      ctx1.strokeStyle = '#cbd5e1';
+      ctx1.lineWidth = 2;
+      const midAP = { x: (ptA.x + ptP.x) / 2, y: (ptA.y + ptP.y) / 2 };
+      ctx1.beginPath();
+      ctx1.arc(midAP.x, midAP.y, 2.5, 0, Math.PI * 2);
+      ctx1.stroke();
+      const midPQ = { x: (ptP.x + ptQ.x) / 2, y: (ptP.y + ptQ.y) / 2 };
+      ctx1.beginPath();
+      ctx1.arc(midPQ.x, midPQ.y, 2.5, 0, Math.PI * 2);
+      ctx1.stroke();
+
+      // 5. 固定点 A(0, 4)
+      ctx1.fillStyle = '#f59e0b';
+      ctx1.beginPath();
+      ctx1.arc(ptA.x, ptA.y, 6, 0, Math.PI * 2);
+      ctx1.fill();
+      ctx1.strokeStyle = '#ffffff';
+      ctx1.lineWidth = 2;
+      ctx1.stroke();
+      ctx1.fillStyle = '#fde68a';
+      ctx1.font = 'bold 11px JetBrains Mono';
+      ctx1.textAlign = 'right';
+      ctx1.fillText('固定点 A(0, 4)', ptA.x - 10, ptA.y - 6);
+
+      // 6. 点 Q(u, v) (青・円周上)
+      ctx1.fillStyle = '#0284c7';
+      ctx1.beginPath();
+      ctx1.arc(ptQ.x, ptQ.y, 8, 0, Math.PI * 2);
+      ctx1.fill();
+      ctx1.strokeStyle = '#ffffff';
+      ctx1.lineWidth = 2.5;
+      ctx1.stroke();
+      ctx1.fillStyle = '#bae6fd';
+      ctx1.textAlign = 'left';
+      ctx1.fillText(`Q(${q.u.toFixed(1)}, ${q.v.toFixed(1)})`, ptQ.x + 12, ptQ.y + 4);
+
+      // 7. 点 P(x, y) (赤・ペン先)
+      ctx1.fillStyle = '#e11d48';
+      ctx1.beginPath();
+      ctx1.arc(ptP.x, ptP.y, 8, 0, Math.PI * 2);
+      ctx1.fill();
+      ctx1.strokeStyle = '#ffffff';
+      ctx1.lineWidth = 2.5;
+      ctx1.stroke();
+      ctx1.fillStyle = '#fda4af';
+      ctx1.fillText(`P(${p.x.toFixed(1)}, ${p.y.toFixed(1)})`, ptP.x + 12, ptP.y + 4);
+
+      // UIメーター更新
+      document.getElementById('step1-q-u').innerText = q.u.toFixed(2);
+      document.getElementById('step1-q-v').innerText = q.v.toFixed(2);
+      document.getElementById('step1-p-x').innerText = p.x.toFixed(2);
+      document.getElementById('step1-p-y').innerText = p.y.toFixed(2);
+      document.getElementById('step1-angle-val').innerText = `${Math.round(step1Angle)}°`;
+      document.getElementById('step1-angle-slider').value = Math.round(step1Angle);
+    }
+
+    function onAngleSliderStep1(val) {
+      step1Angle = parseFloat(val);
+      renderStep1();
+    }
+
+    function toggleAutoRotateStep1() {
+      isAutoRotating1 = !isAutoRotating1;
+      const icon = document.getElementById('autorotate-icon-1');
+      const label = document.getElementById('autorotate-label-1');
+
+      if (isAutoRotating1) {
+        icon.innerText = '⏸';
+        label.innerText = '一時停止';
+        autoRotateTimer1 = setInterval(() => {
+          step1Angle = (step1Angle + 2) % 360;
+          renderStep1();
+        }, 30);
+      } else {
+        icon.innerText = '▶';
+        label.innerText = '自動で1周させる';
+        clearInterval(autoRotateTimer1);
+      }
+    }
+
+    function clearStep1Path() {
+      step1Path = [];
+      renderStep1();
+    }
+
+    function handlePointerStep1(e) {
+      if (!canvas1) return;
+      const rect = canvas1.getBoundingClientRect();
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      const cx = clientX - rect.left;
+      const cy = clientY - rect.top;
+
+      const viewRange = { minX: -7, maxX: 7, minY: -4, maxY: 10 };
+      const mathPt = toMathCoord(cx, cy, rect.width, rect.height, viewRange);
+
+      // 中心(0, 2)からの角度を計算
+      const du = mathPt.x - baseCircle.x;
+      const dv = mathPt.y - baseCircle.y;
+      let rad = Math.atan2(dv, du);
+      let deg = (rad * 180) / Math.PI;
+      if (deg < 0) deg += 360;
+
+      step1Angle = deg;
+      renderStep1();
+    }
+
+    canvas1.addEventListener('mousedown', (e) => { isDraggingQ1 = true; handlePointerStep1(e); });
+    window.addEventListener('mousemove', (e) => { if (isDraggingQ1) handlePointerStep1(e); });
+    window.addEventListener('mouseup', () => { isDraggingQ1 = false; });
+
+    canvas1.addEventListener('touchstart', (e) => { isDraggingQ1 = true; handlePointerStep1(e); }, { passive: true });
+    window.addEventListener('touchmove', (e) => { if (isDraggingQ1) handlePointerStep1(e); }, { passive: true });
+    window.addEventListener('touchend', () => { isDraggingQ1 = false; });
+
+    // ========================================================
+    // Step 2: 四点を動かして確かめる（東西南北スナップと予想）
+    // ========================================================
+    function snapStep2Point(dir) {
+      step2CurrentSnap = dir;
+      step2Plotted[dir] = true;
+
+      ['top', 'right', 'bottom', 'left'].forEach(k => {
+        const btn = document.getElementById(`snap-btn-${k}`);
+        const row = document.getElementById(`step2-row-${k}`);
+        if (!btn || !row) return;
+
+        if (k === dir) {
+          btn.className = "px-3 py-1.5 rounded-lg font-bold transition bg-indigo-600 text-white shadow-sm";
+          row.className = "bg-indigo-50/70 font-bold";
+        } else {
+          btn.className = "px-3 py-1.5 rounded-lg font-medium transition bg-white text-slate-700 border border-slate-300 hover:bg-slate-50";
+          row.className = "";
+        }
+      });
+
+      updateStep2PlottedCount();
+      renderStep2();
+    }
+
+    function snapStep2All() {
+      ['top', 'right', 'bottom', 'left'].forEach(k => step2Plotted[k] = true);
+      updateStep2PlottedCount();
+      renderStep2();
+    }
+
+    function updateStep2PlottedCount() {
+      const count = Object.values(step2Plotted).filter(Boolean).length;
+      document.getElementById('step2-plotted-count').innerText = `プロット済み: ${count} / 4 点`;
+    }
+
+    function renderStep2() {
+      if (!canvas2 || !ctx2) return;
+      const { width, height } = setupCanvasDPI(canvas2, ctx2);
+      const viewRange = { minX: -7, maxX: 7, minY: -4, maxY: 10 };
+
+      drawCoordinateGrid(ctx2, width, height, viewRange);
+
+      const scale = Math.min(
+        width / (viewRange.maxX - viewRange.minX),
+        height / (viewRange.maxY - viewRange.minY)
+      );
+
+      // 元の円 u^2 + (v-2)^2 = 16
+      const ptCenterQ = toCanvasCoord(baseCircle.x, baseCircle.y, width, height, viewRange);
+      ctx2.strokeStyle = '#0284c7';
+      ctx2.lineWidth = 2;
+      ctx2.beginPath();
+      ctx2.arc(ptCenterQ.x, ptCenterQ.y, baseCircle.r * scale, 0, Math.PI * 2);
+      ctx2.stroke();
+
+      // 予想される円の輪郭（中心(0,3), 半径2）
+      const showHypo = document.getElementById('step2-toggle-hypo')?.checked ?? false;
+      if (showHypo) {
+        const ptCenterP = toCanvasCoord(0, 3, width, height, viewRange);
+        ctx2.strokeStyle = 'rgba(244, 63, 94, 0.4)';
+        ctx2.lineWidth = 2;
+        ctx2.setLineDash([5, 4]);
+        ctx2.beginPath();
+        ctx2.arc(ptCenterP.x, ptCenterP.y, 2 * scale, 0, Math.PI * 2);
+        ctx2.stroke();
+        ctx2.setLineDash([]);
+      }
+
+      // 固定点 A(0, 4)
+      const ptA = toCanvasCoord(fixedA.x, fixedA.y, width, height, viewRange);
+      ctx2.fillStyle = '#f59e0b';
+      ctx2.beginPath();
+      ctx2.arc(ptA.x, ptA.y, 6, 0, Math.PI * 2);
+      ctx2.fill();
+      ctx2.strokeStyle = '#ffffff';
+      ctx2.lineWidth = 2;
+      ctx2.stroke();
+
+      ctx2.fillStyle = '#fde68a';
+      ctx2.font = 'bold 11px JetBrains Mono';
+      ctx2.textAlign = 'right';
+      ctx2.fillText('A(0, 4)', ptA.x - 8, ptA.y - 6);
+
+      // 4点の描画
+      Object.keys(fourPoints).forEach(key => {
+        if (!step2Plotted[key]) return;
+        const ptData = fourPoints[key];
+        const cQ = toCanvasCoord(ptData.q.u, ptData.q.v, width, height, viewRange);
+        const cP = toCanvasCoord(ptData.p.x, ptData.p.y, width, height, viewRange);
+
+        // 結ぶ点線
+        ctx2.strokeStyle = 'rgba(148, 163, 184, 0.5)';
+        ctx2.lineWidth = 1.5;
+        ctx2.setLineDash([3, 3]);
+        ctx2.beginPath();
+        ctx2.moveTo(ptA.x, ptA.y);
+        ctx2.lineTo(cQ.x, cQ.y);
+        ctx2.stroke();
+        ctx2.setLineDash([]);
+
+        // 点Q
+        ctx2.fillStyle = '#0284c7';
+        ctx2.beginPath();
+        ctx2.arc(cQ.x, cQ.y, 5, 0, Math.PI * 2);
+        ctx2.fill();
+
+        // 中点P (赤・プロット)
+        ctx2.fillStyle = '#e11d48';
+        ctx2.beginPath();
+        ctx2.arc(cP.x, cP.y, 7, 0, Math.PI * 2);
+        ctx2.fill();
+        ctx2.strokeStyle = '#ffffff';
+        ctx2.lineWidth = 2;
+        ctx2.stroke();
+
+        ctx2.fillStyle = '#fda4af';
+        ctx2.font = 'bold 11px JetBrains Mono';
+        ctx2.textAlign = 'left';
+        ctx2.fillText(`P${ptData.label}(${ptData.p.x}, ${ptData.p.y})`, cP.x + 9, cP.y + 4);
+      });
+    }
+
+    // ========================================================
+    // Step 3: PからQへ逆算して証明する（逆算ギア）
+    // ========================================================
+    function renderStep3() {
+      if (!canvas3 || !ctx3) return;
+      const { width, height } = setupCanvasDPI(canvas3, ctx3);
+      const viewRange = { minX: -7, maxX: 7, minY: -4, maxY: 10 };
+
+      drawCoordinateGrid(ctx3, width, height, viewRange);
+
+      const scale = Math.min(
+        width / (viewRange.maxX - viewRange.minX),
+        height / (viewRange.maxY - viewRange.minY)
+      );
+
+      // 1. 元の青い円 u^2 + (v-2)^2 = 16
+      const ptCenterQ = toCanvasCoord(baseCircle.x, baseCircle.y, width, height, viewRange);
+      ctx3.strokeStyle = '#0284c7';
+      ctx3.lineWidth = 2.5;
+      ctx3.beginPath();
+      ctx3.arc(ptCenterQ.x, ptCenterQ.y, baseCircle.r * scale, 0, Math.PI * 2);
+      ctx3.stroke();
+
+      ctx3.fillStyle = '#38bdf8';
+      ctx3.font = 'bold 11px JetBrains Mono';
+      ctx3.textAlign = 'left';
+      ctx3.fillText('Qの条件: u² + (v-2)² = 16', ptCenterQ.x + baseCircle.r * scale * 0.55, ptCenterQ.y - baseCircle.r * scale * 0.75);
+
+      // 2. 誤って直接代入した円（中心(0,2), 半径4）の破線比較
+      const showWrong = document.getElementById('step3-toggle-wrong-circle')?.checked ?? false;
+      if (showWrong) {
+        ctx3.strokeStyle = 'rgba(239, 68, 68, 0.45)';
+        ctx3.lineWidth = 2;
+        ctx3.setLineDash([5, 4]);
+        ctx3.beginPath();
+        ctx3.arc(ptCenterQ.x, ptCenterQ.y, 4 * scale, 0, Math.PI * 2);
+        ctx3.stroke();
+        ctx3.setLineDash([]);
+
+        ctx3.fillStyle = '#f87171';
+        ctx3.font = 'bold 10px sans-serif';
+        ctx3.fillText('❌ 誤代入：x² + (y-2)² = 16（Pはここにはいない！）', ptCenterQ.x - 4 * scale + 10, ptCenterQ.y + 4 * scale - 12);
+      }
+
+      // 3. プロットされた正しい点Pたちの描画
+      step3Pins.forEach((pin, idx) => {
+        const cpt = toCanvasCoord(pin.x, pin.y, width, height, viewRange);
+        ctx3.fillStyle = 'rgba(244, 63, 94, 0.35)';
+        ctx3.beginPath();
+        ctx3.arc(cpt.x, cpt.y, 8, 0, Math.PI * 2);
+        ctx3.fill();
+
+        ctx3.fillStyle = '#f43f5e';
+        ctx3.beginPath();
+        ctx3.arc(cpt.x, cpt.y, 4, 0, Math.PI * 2);
+        ctx3.fill();
+        ctx3.strokeStyle = '#ffffff';
+        ctx3.lineWidth = 1.5;
+        ctx3.stroke();
+      });
+
+      // 4. Pから逆算したQ: u = 2x, v = 2y - 4
+      const recoveredQ = {
+        u: 2 * step3P.x,
+        v: 2 * step3P.y - 4
+      };
+
+      // Qが円上にあるか判定: u^2 + (v-2)^2 == 16 ?
+      const distSqFromQCenter = Math.pow(recoveredQ.u - baseCircle.x, 2) + Math.pow(recoveredQ.v - baseCircle.y, 2);
+      const diffCircle = Math.abs(distSqFromQCenter - 16);
+      const isOnCircle = diffCircle < 0.65;
+
+      const ptA = toCanvasCoord(fixedA.x, fixedA.y, width, height, viewRange);
+      const ptP = toCanvasCoord(step3P.x, step3P.y, width, height, viewRange);
+      const ptQ = toCanvasCoord(recoveredQ.u, recoveredQ.v, width, height, viewRange);
+
+      // ベクトル矢印: A ➔ P
+      ctx3.strokeStyle = '#f59e0b';
+      ctx3.lineWidth = 2.5;
+      ctx3.beginPath();
+      ctx3.moveTo(ptA.x, ptA.y);
+      ctx3.lineTo(ptP.x, ptP.y);
+      ctx3.stroke();
+
+      // ベクトル矢印: P ➔ Q (同じ分だけもう1回進む)
+      ctx3.strokeStyle = '#38bdf8';
+      ctx3.lineWidth = 2.5;
+      ctx3.setLineDash([4, 3]);
+      ctx3.beginPath();
+      ctx3.moveTo(ptP.x, ptP.y);
+      ctx3.lineTo(ptQ.x, ptQ.y);
+      ctx3.stroke();
+      ctx3.setLineDash([]);
+
+      // 固定点 A
+      ctx3.fillStyle = '#f59e0b';
+      ctx3.beginPath();
+      ctx3.arc(ptA.x, ptA.y, 6, 0, Math.PI * 2);
+      ctx3.fill();
+      ctx3.strokeStyle = '#ffffff';
+      ctx3.lineWidth = 2;
+      ctx3.stroke();
+      ctx3.fillStyle = '#fde68a';
+      ctx3.font = 'bold 11px JetBrains Mono';
+      ctx3.textAlign = 'right';
+      ctx3.fillText('A(0, 4)', ptA.x - 8, ptA.y - 6);
+
+      // 描画したい点 P(x, y)
+      ctx3.fillStyle = '#e11d48';
+      ctx3.beginPath();
+      ctx3.arc(ptP.x, ptP.y, 8, 0, Math.PI * 2);
+      ctx3.fill();
+      ctx3.strokeStyle = '#ffffff';
+      ctx3.lineWidth = 2.5;
+      ctx3.stroke();
+
+      ctx3.fillStyle = '#fda4af';
+      ctx3.font = 'bold 11px JetBrains Mono';
+      ctx3.textAlign = 'left';
+      ctx3.fillText(`P(${step3P.x.toFixed(1)}, ${step3P.y.toFixed(1)})`, ptP.x + 10, ptP.y + 4);
+
+      // 逆算された点 Q(2x, 2y-4)
+      ctx3.fillStyle = isOnCircle ? '#10b981' : '#0284c7';
+      ctx3.beginPath();
+      ctx3.arc(ptQ.x, ptQ.y, 8, 0, Math.PI * 2);
+      ctx3.fill();
+      ctx3.strokeStyle = '#ffffff';
+      ctx3.lineWidth = 2.5;
+      ctx3.stroke();
+
+      ctx3.fillStyle = isOnCircle ? '#6ee7b7' : '#bae6fd';
+      ctx3.fillText(`Q(${recoveredQ.u.toFixed(1)}, ${recoveredQ.v.toFixed(1)})`, ptQ.x + 10, ptQ.y + 4);
+
+      // UIステータス判定とボタン更新
+      const dot = document.getElementById('step3-on-circle-dot');
+      const text = document.getElementById('step3-on-circle-text');
+      const pinBtn = document.getElementById('btn-pin-step3');
+
+      if (isOnCircle) {
+        dot.className = 'w-3 h-3 rounded-full bg-emerald-400 animate-pulse';
+        text.className = 'font-bold text-emerald-400 text-xs';
+        text.innerText = `🎯 復元Qが青い円に乗っています！(プロット可能)`;
+        if (pinBtn) {
+          pinBtn.className = 'px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-bold rounded-xl shadow-lg ring-2 ring-emerald-300 transition flex items-center gap-1.5 text-xs';
+        }
+      } else {
+        dot.className = 'w-3 h-3 rounded-full bg-rose-400';
+        text.className = 'font-bold text-rose-300 text-xs';
+        text.innerText = `⚠️ 復元Qが青い円から外れています (誤差: ${diffCircle.toFixed(1)})`;
+        if (pinBtn) {
+          pinBtn.className = 'px-3.5 py-2 bg-slate-700 hover:bg-slate-600 active:scale-95 text-slate-300 font-bold rounded-xl shadow transition flex items-center gap-1.5 text-xs';
+        }
+      }
+
+      document.getElementById('step3-pin-count-badge').innerText = `プロット済み: ${step3Pins.length} 点`;
+    }
+
+    function pinCandidatePointStep3() {
+      // 復元されたQが円上にあるか判定
+      const recoveredQ = { u: 2 * step3P.x, v: 2 * step3P.y - 4 };
+      const distSq = Math.pow(recoveredQ.u - baseCircle.x, 2) + Math.pow(recoveredQ.v - baseCircle.y, 2);
+      const diff = Math.abs(distSq - 16);
+
+      if (diff < 1.2) {
+        // 近傍の重複チェック
+        const isDuplicate = step3Pins.some(pt => Math.hypot(pt.x - step3P.x, pt.y - step3P.y) < 0.3);
+        if (!isDuplicate) {
+          step3Pins.push({ x: step3P.x, y: step3P.y });
+        }
+        renderStep3();
+      } else {
+        // 円上にない場合の案内スナップ
+        snapStep3ToCircle();
+        step3Pins.push({ x: step3P.x, y: step3P.y });
+        renderStep3();
+      }
+    }
+
+    function autoSampleStep3Points() {
+      // 答えの円 x^2 + (y-3)^2 = 4 (中心(0,3), 半径2) 上の8点をプロット
+      step3Pins = [];
+      for (let i = 0; i < 8; i++) {
+        const rad = (i / 8) * Math.PI * 2;
+        const px = 2 * Math.cos(rad);
+        const py = 3 + 2 * Math.sin(rad);
+        step3Pins.push({ x: px, y: py });
+      }
+      renderStep3();
+    }
+
+    function clearStep3Pins() {
+      step3Pins = [];
+      renderStep3();
+    }
+
+    function snapStep3ToCircle() {
+      // 答えの円 x^2 + (y-3)^2 = 4 上の点にスナップ
+      const dx = step3P.x - 0;
+      const dy = step3P.y - 3;
+      let rad = Math.atan2(dy, dx);
+      step3P.x = 2 * Math.cos(rad);
+      step3P.y = 3 + 2 * Math.sin(rad);
+      renderStep3();
+    }
+
+    function handlePointerStep3(e) {
+      if (!canvas3) return;
+      const rect = canvas3.getBoundingClientRect();
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      const cx = clientX - rect.left;
+      const cy = clientY - rect.top;
+
+      const viewRange = { minX: -7, maxX: 7, minY: -4, maxY: 10 };
+      const mathPt = toMathCoord(cx, cy, rect.width, rect.height, viewRange);
+
+      step3P.x = Math.max(-6.5, Math.min(6.5, mathPt.x));
+      step3P.y = Math.max(-3.5, Math.min(9.5, mathPt.y));
+      renderStep3();
+    }
+
+    canvas3.addEventListener('mousedown', (e) => { isDraggingP3 = true; handlePointerStep3(e); });
+    window.addEventListener('mousemove', (e) => { if (isDraggingP3) handlePointerStep3(e); });
+    window.addEventListener('mouseup', () => { isDraggingP3 = false; });
+
+    canvas3.addEventListener('touchstart', (e) => { isDraggingP3 = true; handlePointerStep3(e); }, { passive: true });
+    window.addEventListener('touchmove', (e) => { if (isDraggingP3) handlePointerStep3(e); }, { passive: true });
+    window.addEventListener('touchend', () => { isDraggingP3 = false; });
+
+    // ========================================================
+    // Step 4: 直線上を動くQの問題（平行な直線）
+    // ========================================================
+    function onStep4Slider(val) {
+      step4U = parseFloat(val);
+      document.getElementById('step4-u-val').innerText = step4U.toFixed(2);
+      recordStep4Point();
+      renderStep4();
+    }
+
+    function recordStep4Point() {
+      const q = { u: step4U, v: 3 * step4U - 5 };
+      const p = { x: (step4FixedA.x + q.u) / 2, y: (step4FixedA.y + q.v) / 2 };
+
+      // 直前の点と近すぎる場合は間引きつつ、滑らかに足跡を追加
+      if (step4Path.length === 0) {
+        step4Path.push(p);
+      } else {
+        const last = step4Path[step4Path.length - 1];
+        if (Math.hypot(last.x - p.x, last.y - p.y) > 0.08) {
+          step4Path.push(p);
+          if (step4Path.length > 250) step4Path.shift();
+        }
+      }
+    }
+
+    function extendStep4FullLine() {
+      step4IsExtended = !step4IsExtended;
+      const btn = document.getElementById('btn-step4-extend');
+      if (btn) {
+        btn.innerHTML = step4IsExtended 
+          ? '<span>↩ 足跡のみに戻す</span>' 
+          : '<span>📐 直線全体へ延長</span>';
+        btn.className = step4IsExtended
+          ? 'px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-200 font-bold rounded-lg transition text-xs flex items-center gap-1'
+          : 'px-3 py-1.5 bg-rose-600 hover:bg-rose-500 active:scale-95 text-white font-bold rounded-lg transition text-xs flex items-center gap-1 shadow';
+      }
+      renderStep4();
+    }
+
+    function clearStep4Path() {
+      step4Path = [];
+      step4IsExtended = false;
+      const btn = document.getElementById('btn-step4-extend');
+      if (btn) {
+        btn.innerHTML = '<span>📐 直線全体へ延長</span>';
+        btn.className = 'px-3 py-1.5 bg-rose-600 hover:bg-rose-500 active:scale-95 text-white font-bold rounded-lg transition text-xs flex items-center gap-1 shadow';
+      }
+      renderStep4();
+    }
+
+    function toggleStep4Animate() {
+      isStep4Animating = !isStep4Animating;
+      const icon = document.getElementById('btn-step4-anim-icon');
+      const text = document.getElementById('btn-step4-anim-text');
+
+      if (isStep4Animating) {
+        if (icon) icon.innerText = '⏸';
+        if (text) text.innerText = '停止';
+        step4AnimTimer = setInterval(() => {
+          step4U += 0.05 * step4AnimDirection;
+          if (step4U >= 4.6) {
+            step4U = 4.6;
+            step4AnimDirection = -1;
+          }
+          if (step4U <= 0.4) {
+            step4U = 0.4;
+            step4AnimDirection = 1;
+          }
+
+          const slider = document.getElementById('step4-u-slider');
+          if (slider) slider.value = step4U.toFixed(2);
+          document.getElementById('step4-u-val').innerText = step4U.toFixed(2);
+
+          recordStep4Point();
+          renderStep4();
+        }, 30);
+      } else {
+        if (icon) icon.innerText = '▶';
+        if (text) text.innerText = '自動スライド';
+        clearInterval(step4AnimTimer);
+      }
+    }
+
+    function renderStep4() {
+      if (!canvas4 || !ctx4) return;
+      const { width, height } = setupCanvasDPI(canvas4, ctx4);
+      // Q(0.4, -3.8) 〜 Q(4.6, 8.8) および A(2, 5) が余白を持って美しく収まる描画範囲
+      const viewRange = { minX: -1.5, maxX: 5.5, minY: -4.5, maxY: 9.5 };
+
+      drawCoordinateGrid(ctx4, width, height, viewRange);
+
+      // 1. 元の直線: 3u - v - 5 = 0 => v = 3u - 5
+      const p1Original = toCanvasCoord(viewRange.minX, 3 * viewRange.minX - 5, width, height, viewRange);
+      const p2Original = toCanvasCoord(viewRange.maxX, 3 * viewRange.maxX - 5, width, height, viewRange);
+
+      ctx4.strokeStyle = '#0284c7';
+      ctx4.lineWidth = 2.5;
+      ctx4.beginPath();
+      ctx4.moveTo(p1Original.x, p1Original.y);
+      ctx4.lineTo(p2Original.x, p2Original.y);
+      ctx4.stroke();
+
+      // 直線ラベル（画面内の見やすい位置）
+      const ptLabelOrig = toCanvasCoord(1.2, 3 * 1.2 - 5, width, height, viewRange);
+      ctx4.fillStyle = '#38bdf8';
+      ctx4.font = 'bold 11px JetBrains Mono';
+      ctx4.textAlign = 'left';
+      ctx4.fillText('Qが動く直線: 3u - v - 5 = 0', ptLabelOrig.x + 12, ptLabelOrig.y - 10);
+
+      // 2. 直線全体への延長線（スライダー範囲外の領域も含む真の軌跡）
+      if (step4IsExtended) {
+        const p1Full = toCanvasCoord(viewRange.minX, 3 * viewRange.minX - 3, width, height, viewRange);
+        const p2Full = toCanvasCoord(viewRange.maxX, 3 * viewRange.maxX - 3, width, height, viewRange);
+
+        // スライダー範囲外へ突き抜ける線（実線）
+        ctx4.strokeStyle = '#e11d48';
+        ctx4.lineWidth = 3.5;
+        ctx4.beginPath();
+        ctx4.moveTo(p1Full.x, p1Full.y);
+        ctx4.lineTo(p2Full.x, p2Full.y);
+        ctx4.stroke();
+
+        // 画面上下の延長端に「無限に続く直線」のラベル
+        const ptTopLabel = toCanvasCoord(3.8, 3 * 3.8 - 3, width, height, viewRange);
+        ctx4.fillStyle = '#fda4af';
+        ctx4.font = 'bold 11px JetBrains Mono';
+        ctx4.textAlign = 'left';
+        ctx4.fillText('軌跡: 直線 3x - y - 3 = 0 全体 (∞)', ptTopLabel.x + 12, ptTopLabel.y + 4);
+
+        const ptBottomLabel = toCanvasCoord(0.0, 3 * 0.0 - 3, width, height, viewRange);
+        ctx4.fillText('← どこまでも続く直線', ptBottomLabel.x + 12, ptBottomLabel.y + 16);
+      }
+
+      // 3. 正解の直線（トグルがオンの時だけ重ねて確認）
+      const showIdeal = document.getElementById('step4-toggle-ideal')?.checked ?? false;
+      if (showIdeal && !step4IsExtended) {
+        const p1Locus = toCanvasCoord(viewRange.minX, 3 * viewRange.minX - 3, width, height, viewRange);
+        const p2Locus = toCanvasCoord(viewRange.maxX, 3 * viewRange.maxX - 3, width, height, viewRange);
+
+        ctx4.strokeStyle = 'rgba(244, 63, 94, 0.45)';
+        ctx4.lineWidth = 2;
+        ctx4.setLineDash([5, 4]);
+        ctx4.beginPath();
+        ctx4.moveTo(p1Locus.x, p1Locus.y);
+        ctx4.lineTo(p2Locus.x, p2Locus.y);
+        ctx4.stroke();
+        ctx4.setLineDash([]);
+
+        const ptLabelLocus = toCanvasCoord(2.0, 3 * 2.0 - 3, width, height, viewRange);
+        ctx4.fillStyle = '#fda4af';
+        ctx4.fillText('正解の軌跡: 3x - y - 3 = 0 (平行！)', ptLabelLocus.x + 12, ptLabelLocus.y - 10);
+      }
+
+      // 4. 中点Pの動いた足跡（軌跡パス）を描画（延長されていない場合）
+      if (!step4IsExtended && step4Path.length > 1) {
+        ctx4.strokeStyle = 'rgba(244, 63, 94, 0.85)';
+        ctx4.lineWidth = 3.5;
+        ctx4.lineCap = 'round';
+        ctx4.lineJoin = 'round';
+        ctx4.beginPath();
+        step4Path.forEach((pt, idx) => {
+          const cpt = toCanvasCoord(pt.x, pt.y, width, height, viewRange);
+          if (idx === 0) ctx4.moveTo(cpt.x, cpt.y);
+          else ctx4.lineTo(cpt.x, cpt.y);
+        });
+        ctx4.stroke();
+
+        // 過去の各点に小さなドットも添えて「点の集まり」であることを強調
+        step4Path.forEach((pt, idx) => {
+          if (idx % 3 === 0) {
+            const cpt = toCanvasCoord(pt.x, pt.y, width, height, viewRange);
+            ctx4.fillStyle = 'rgba(254, 205, 211, 0.7)';
+            ctx4.beginPath();
+            ctx4.arc(cpt.x, cpt.y, 2, 0, Math.PI * 2);
+            ctx4.fill();
+          }
+        });
+      }
+
+      // 点Q(u, 3u-5)
+      const q = { u: step4U, v: 3 * step4U - 5 };
+      // 中点P: x = (2+u)/2, y = (5+v)/2
+      const p = { x: (step4FixedA.x + q.u) / 2, y: (step4FixedA.y + q.v) / 2 };
+
+      const ptA = toCanvasCoord(step4FixedA.x, step4FixedA.y, width, height, viewRange);
+      const ptQ = toCanvasCoord(q.u, q.v, width, height, viewRange);
+      const ptP = toCanvasCoord(p.x, p.y, width, height, viewRange);
+
+      // 線分 AQ
+      ctx4.strokeStyle = '#94a3b8';
+      ctx4.lineWidth = 1.8;
+      ctx4.setLineDash([4, 4]);
+      ctx4.beginPath();
+      ctx4.moveTo(ptA.x, ptA.y);
+      ctx4.lineTo(ptQ.x, ptQ.y);
+      ctx4.stroke();
+      ctx4.setLineDash([]);
+
+      // 固定点 A(2, 5)
+      ctx4.fillStyle = '#f59e0b';
+      ctx4.beginPath();
+      ctx4.arc(ptA.x, ptA.y, 6, 0, Math.PI * 2);
+      ctx4.fill();
+      ctx4.strokeStyle = '#ffffff';
+      ctx4.lineWidth = 2;
+      ctx4.stroke();
+
+      ctx4.fillStyle = '#fde68a';
+      ctx4.font = 'bold 11px JetBrains Mono';
+      ctx4.textAlign = 'right';
+      ctx4.fillText('A(2, 5)', ptA.x - 8, ptA.y - 6);
+
+      // 点Q (青・直線上)
+      ctx4.fillStyle = '#0284c7';
+      ctx4.beginPath();
+      ctx4.arc(ptQ.x, ptQ.y, 7.5, 0, Math.PI * 2);
+      ctx4.fill();
+      ctx4.strokeStyle = '#ffffff';
+      ctx4.lineWidth = 2;
+      ctx4.stroke();
+      ctx4.fillStyle = '#bae6fd';
+      ctx4.textAlign = 'left';
+      ctx4.fillText(`Q(${q.u.toFixed(1)}, ${q.v.toFixed(1)})`, ptQ.x + 10, ptQ.y + 4);
+
+      // 点P (赤・描画ペン)
+      ctx4.fillStyle = '#e11d48';
+      ctx4.beginPath();
+      ctx4.arc(ptP.x, ptP.y, 8, 0, Math.PI * 2);
+      ctx4.fill();
+      ctx4.strokeStyle = '#ffffff';
+      ctx4.lineWidth = 2.5;
+      ctx4.stroke();
+      ctx4.fillStyle = '#fda4af';
+      ctx4.fillText(`P(${p.x.toFixed(1)}, ${p.y.toFixed(1)})`, ptP.x + 10, ptP.y + 4);
+    }
+
+    // Step 4のドラッグ操作（キャンバス上でも直接Qを掴んでスライド可能）
+    function handlePointerStep4(e) {
+      if (!canvas4) return;
+      const rect = canvas4.getBoundingClientRect();
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      const cx = clientX - rect.left;
+      const cy = clientY - rect.top;
+
+      const viewRange = { minX: -1.5, maxX: 5.5, minY: -4.5, maxY: 9.5 };
+      const mathPt = toMathCoord(cx, cy, rect.width, rect.height, viewRange);
+
+      // 直線 v = 3u - 5 上への射影（描画範囲内にクランプ）
+      step4U = Math.max(0.4, Math.min(4.6, mathPt.x));
+
+      const slider = document.getElementById('step4-u-slider');
+      if (slider) slider.value = step4U.toFixed(2);
+      document.getElementById('step4-u-val').innerText = step4U.toFixed(2);
+
+      recordStep4Point();
+      renderStep4();
+    }
+
+    canvas4.addEventListener('mousedown', (e) => { isDraggingStep4Q = true; handlePointerStep4(e); });
+    window.addEventListener('mousemove', (e) => { if (isDraggingStep4Q) handlePointerStep4(e); });
+    window.addEventListener('mouseup', () => { isDraggingStep4Q = false; });
+
+    canvas4.addEventListener('touchstart', (e) => { isDraggingStep4Q = true; handlePointerStep4(e); }, { passive: true });
+    window.addEventListener('touchmove', (e) => { if (isDraggingStep4Q) handlePointerStep4(e); }, { passive: true });
+    window.addEventListener('touchend', () => { isDraggingStep4Q = false; });
+
+    // ========================================================
+    // Step 5: パラメータa と動ける範囲の制限
+    // ========================================================
+    function setParamMode(mode) {
+      step5Mode = mode;
+
+      ['all', 'segment', 'integer', 'exclude'].forEach(m => {
+        const btn = document.getElementById(`param-btn-${m}`);
+        if (!btn) return;
+        if (m === mode) {
+          btn.className = "px-3 py-1.5 rounded-lg font-bold transition bg-indigo-600 text-white shadow-sm";
+        } else {
+          btn.className = "px-3 py-1.5 rounded-lg font-medium transition bg-white text-slate-700 border border-slate-300 hover:bg-slate-50";
+        }
+      });
+
+      const badge = document.getElementById('step5-mode-badge');
+      const title = document.getElementById('step5-expl-title');
+      const desc = document.getElementById('step5-expl-desc');
+
+      if (mode === 'all') {
+        badge.innerText = "現在：① すべての実数（直線全体）";
+        badge.className = "font-bold text-emerald-400";
+        title.innerText = "直線全体の軌跡";
+        desc.innerHTML = `
+          $a$ がすべての実数を取るとき、$x = 2a-1$ もすべての実数を取ることができます。<br>
+          そのため、軌跡は遮るもののない<b>「直線 $y = -3x + 2$ 全体」</b>になります！
+        `;
+      } else if (mode === 'segment') {
+        badge.innerText = "現在：② 範囲あり 0 ≦ a ≦ 1（線分）";
+        badge.className = "font-bold text-amber-400";
+        title.innerText = "両端を含む「線分」への変化";
+        desc.innerHTML = `
+          $0 \\le a \\le 1$ のとき、横の座標は $2(0)-1 \\le x \\le 2(1)-1$ より <b>$-1 \\le x \\le 1$</b> となります！<br>
+          端点 $(-1, 5)$ と $(1, -1)$ を両端に含む<b>「線分」</b>だけが軌跡になります（黒丸で表現）。
+        `;
+      } else if (mode === 'integer') {
+        badge.innerText = "現在：③ 整数のみ（点列）";
+        badge.className = "font-bold text-sky-400";
+        title.innerText = "線ではなく「飛び飛びの点列」";
+        desc.innerHTML = `
+          $a$ が整数のとき、$a = \\dots, -1, 0, 1, 2, \\dots$ に対応して<br>
+          点 $(-3, 11), (-1, 5), (1, -1), (3, -7)$ のように<b>「離れた点の集まり」</b>になります！線で結んではいけません。
+        `;
+      } else if (mode === 'exclude') {
+        badge.innerText = "現在：④ a ≠ 0（1点を除く直線）";
+        badge.className = "font-bold text-rose-400";
+        title.innerText = "1点だけ穴が開いた直線（白丸）";
+        desc.innerHTML = `
+          $a \\ne 0$ のとき、$a=0$ に対応する点 $(-1, 5)$ だけが実現できません！<br>
+          この場合、軌跡は<b>「直線 $y = -3x + 2$（ただし点 $(-1, 5)$ を除く）」</b>となり、白丸で穴が開きます。
+        `;
+      }
+
+      renderStep5();
+      if (typeof renderMathInElement === 'function') {
+        renderMathInElement(document.getElementById('step5-explanation-card'), {
+          delimiters: [{ left: '$', right: '$', display: false }]
+        });
+      }
+    }
+
+    function onParamASlider(val) {
+      step5ParamA = parseFloat(val);
+      document.getElementById('step5-a-val').innerText = step5ParamA.toFixed(2);
+      renderStep5();
+    }
+
+    function renderStep5() {
+      if (!canvas5 || !ctx5) return;
+      const { width, height } = setupCanvasDPI(canvas5, ctx5);
+      const viewRange = { minX: -3.5, maxX: 3.5, minY: -8, maxY: 9 };
+
+      drawCoordinateGrid(ctx5, width, height, viewRange);
+
+      // 直線 y = -3x + 2
+      if (step5Mode === 'all') {
+        const p1 = toCanvasCoord(viewRange.minX, -3 * viewRange.minX + 2, width, height, viewRange);
+        const p2 = toCanvasCoord(viewRange.maxX, -3 * viewRange.maxX + 2, width, height, viewRange);
+        ctx5.strokeStyle = '#e11d48';
+        ctx5.lineWidth = 3;
+        ctx5.beginPath();
+        ctx5.moveTo(p1.x, p1.y);
+        ctx5.lineTo(p2.x, p2.y);
+        ctx5.stroke();
+      } else if (step5Mode === 'segment') {
+        // -1 <= x <= 1
+        // 背景にうっすら直線
+        const p1 = toCanvasCoord(viewRange.minX, -3 * viewRange.minX + 2, width, height, viewRange);
+        const p2 = toCanvasCoord(viewRange.maxX, -3 * viewRange.maxX + 2, width, height, viewRange);
+        ctx5.strokeStyle = 'rgba(225, 29, 72, 0.2)';
+        ctx5.lineWidth = 2;
+        ctx5.setLineDash([4, 4]);
+        ctx5.beginPath();
+        ctx5.moveTo(p1.x, p1.y);
+        ctx5.lineTo(p2.x, p2.y);
+        ctx5.stroke();
+        ctx5.setLineDash([]);
+
+        // 線分本体
+        const ptStart = toCanvasCoord(-1, 5, width, height, viewRange);
+        const ptEnd = toCanvasCoord(1, -1, width, height, viewRange);
+        ctx5.strokeStyle = '#e11d48';
+        ctx5.lineWidth = 4;
+        ctx5.beginPath();
+        ctx5.moveTo(ptStart.x, ptStart.y);
+        ctx5.lineTo(ptEnd.x, ptEnd.y);
+        ctx5.stroke();
+
+        // 端点の黒丸
+        [ptStart, ptEnd].forEach((pt, idx) => {
+          ctx5.fillStyle = '#e11d48';
+          ctx5.beginPath();
+          ctx5.arc(pt.x, pt.y, 6, 0, Math.PI * 2);
+          ctx5.fill();
+          ctx5.strokeStyle = '#ffffff';
+          ctx5.lineWidth = 2;
+          ctx5.stroke();
+
+          ctx5.fillStyle = '#fda4af';
+          ctx5.font = 'bold 11px JetBrains Mono';
+          ctx5.textAlign = idx === 0 ? 'left' : 'left';
+          ctx5.fillText(idx === 0 ? '(-1, 5)' : '(1, -1)', pt.x + 10, pt.y + 4);
+        });
+      } else if (step5Mode === 'integer') {
+        // a = -1, 0, 1, 2
+        [-1, 0, 1, 2].forEach(a => {
+          const px = 2 * a - 1;
+          const py = -6 * a + 5;
+          const pt = toCanvasCoord(px, py, width, height, viewRange);
+          ctx5.fillStyle = '#38bdf8';
+          ctx5.beginPath();
+          ctx5.arc(pt.x, pt.y, 7, 0, Math.PI * 2);
+          ctx5.fill();
+          ctx5.strokeStyle = '#ffffff';
+          ctx5.lineWidth = 2;
+          ctx5.stroke();
+
+          ctx5.fillStyle = '#bae6fd';
+          ctx5.font = 'bold 10px JetBrains Mono';
+          ctx5.fillText(`a=${a} (${px}, ${py})`, pt.x + 10, pt.y + 4);
+        });
+      } else if (step5Mode === 'exclude') {
+        // 直線全体（ただし (-1, 5) は白丸）
+        const p1 = toCanvasCoord(viewRange.minX, -3 * viewRange.minX + 2, width, height, viewRange);
+        const p2 = toCanvasCoord(viewRange.maxX, -3 * viewRange.maxX + 2, width, height, viewRange);
+        ctx5.strokeStyle = '#e11d48';
+        ctx5.lineWidth = 3;
+        ctx5.beginPath();
+        ctx5.moveTo(p1.x, p1.y);
+        ctx5.lineTo(p2.x, p2.y);
+        ctx5.stroke();
+
+        // 除外点の白丸 (-1, 5)
+        const ptEx = toCanvasCoord(-1, 5, width, height, viewRange);
+        ctx5.fillStyle = '#0f172a';
+        ctx5.beginPath();
+        ctx5.arc(ptEx.x, ptEx.y, 6, 0, Math.PI * 2);
+        ctx5.fill();
+        ctx5.strokeStyle = '#ef4444';
+        ctx5.lineWidth = 2.5;
+        ctx5.stroke();
+
+        ctx5.fillStyle = '#fca5a5';
+        ctx5.font = 'bold 11px JetBrains Mono';
+        ctx5.textAlign = 'left';
+        ctx5.fillText('除外 (-1, 5)', ptEx.x + 10, ptEx.y - 6);
+      }
+
+      // 現在のaによる点P(2a-1, -6a+5)
+      const curX = 2 * step5ParamA - 1;
+      const curY = -6 * step5ParamA + 5;
+      const ptCur = toCanvasCoord(curX, curY, width, height, viewRange);
+
+      ctx5.fillStyle = '#facc15';
+      ctx5.beginPath();
+      ctx5.arc(ptCur.x, ptCur.y, 8, 0, Math.PI * 2);
+      ctx5.fill();
+      ctx5.strokeStyle = '#ffffff';
+      ctx5.lineWidth = 2.5;
+      ctx5.stroke();
+
+      ctx5.fillStyle = '#fef08a';
+      ctx5.font = 'bold 11px JetBrains Mono';
+      ctx5.textAlign = 'left';
+      ctx5.fillText(`P(${curX.toFixed(1)}, ${curY.toFixed(1)})`, ptCur.x + 12, ptCur.y + 4);
+    }
+
+    // ========================================================
+    // Step 6: 出口チェック判定
+    // ========================================================
+    function checkExitQuiz(qNum, choice) {
+      const fb = document.getElementById(`exit-quiz-fb-${qNum}`);
+      fb.classList.remove('hidden');
+
+      if (qNum === 1) {
+        if (choice === 'a') {
+          fb.className = 'text-xs mt-2 font-bold p-3 rounded-xl bg-emerald-50 text-emerald-900 border border-emerald-300';
+          fb.innerHTML = '⭕ <b>大正解！本質を完璧に捉えています。</b><br>点Pの満たす方程式を直接ひらめくのは困難ですが、点Qが満たす式（円や直線）はすでに手元にあります。中点の関係を使ってQをPで表し、既知の式に代入することで、Pが従うべき法則を自動的に引き出せるのです！';
+        } else {
+          fb.className = 'text-xs mt-2 font-bold p-3 rounded-xl bg-rose-50 text-rose-900 border border-rose-300';
+          fb.innerText = '❌ 惜しい！ 計算のしやすさではなく、「すでに分かっているQの条件式に流し込めるようにするため」が数学的な理由です。';
+        }
+      } else if (qNum === 2) {
+        if (choice === 'b') {
+          fb.className = 'text-xs mt-2 font-bold p-3 rounded-xl bg-emerald-50 text-emerald-900 border border-emerald-300';
+          fb.innerHTML = '⭕ <b>素晴らしい！最重要ポイントです。</b><br>円の上を走っているのはあくまで青い点Qです。赤い点Pはその円の上を走っているわけではないので、文字をそのまま置き換えて代入するとまったく別の意味になってしまいます。必ずPからQを逆算して代入しましょう。';
+        } else {
+          fb.className = 'text-xs mt-2 font-bold p-3 rounded-xl bg-rose-50 text-rose-900 border border-rose-300';
+          fb.innerText = '❌ 文字の決まりではありません！ 「その円の上を動いているのが誰なのか（主語）」を意識することが大切です。';
+        }
+      } else if (qNum === 3) {
+        if (choice === 'a') {
+          fb.className = 'text-xs mt-2 font-bold p-3 rounded-xl bg-emerald-50 text-emerald-900 border border-emerald-300';
+          fb.innerHTML = '⭕ <b>完璧です！</b><br>式 y = -3x + 2 は「通り道の形」を表し、パラメータ a の制限は「その道のどこまで行けるか」を決めます。横の座標が -1 から 1 までに遮られるため、軌跡は直線全体ではなく線分になります。';
+        } else {
+          fb.className = 'text-xs mt-2 font-bold p-3 rounded-xl bg-rose-50 text-rose-900 border border-rose-300';
+          fb.innerText = '❌ 式 y = -3x + 2 自体は直線のままです！ 変わるのは形ではなく「動ける長さ（範囲）」です。';
+        }
+      }
+    }
+
+    function renderAllMath() {
+      if (typeof renderMathInElement === 'function') {
+        renderMathInElement(document.body, {
+          delimiters: [
+            { left: '$$', right: '$$', display: true },
+            { left: '$', right: '$', display: false }
+          ],
+          throwOnError: false
+        });
+      }
+    }
+
+    window.addEventListener('load', () => {
+      renderStep1();
+      renderAllMath();
+    });
+
+    window.addEventListener('resize', () => {
+      if (currentStep === 1) renderStep1();
+      if (currentStep === 2) renderStep2();
+      if (currentStep === 3) renderStep3();
+      if (currentStep === 4) renderStep4();
+      if (currentStep === 5) renderStep5();
+    });
+  </script>
+</body>
+</html>

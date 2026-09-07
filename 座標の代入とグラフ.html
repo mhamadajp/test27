@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>グラフのひみつ探検隊 〜点と式のふしぎな関係〜</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'M PLUS Rounded 1c', sans-serif;
+      touch-action: manipulation;
+    }
+    .custom-shadow {
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+    }
+  </style>
+</head>
+<body class="bg-amber-50 min-h-screen text-slate-800 flex flex-col items-center p-3 md:p-6 select-none">
+
+  <!-- ヘッダー -->
+  <header class="w-full max-w-4xl text-center mb-4 md:mb-6">
+    <div class="inline-flex items-center gap-2 bg-amber-200/70 border border-amber-300 text-amber-900 px-4 py-1.5 rounded-full text-sm font-bold shadow-sm mb-2">
+      <span>🎒 数学のなぞ解きワーク</span>
+      <span class="text-amber-400">●</span>
+      <span>「なぜ代入できるの？」を解き明かそう！</span>
+    </div>
+    <h1 class="text-2xl md:text-4xl font-extrabold text-slate-800 tracking-tight">
+      グラフのひみつ探検隊 ✨
+    </h1>
+    <p class="text-slate-600 text-xs md:text-sm mt-1">
+      「グラフが点を通ると代入できる」の本当の理由を、自分の手で確かめてみよう！
+    </p>
+  </header>
+
+  <!-- ルール式セレクタ -->
+  <div class="w-full max-w-4xl bg-white border border-slate-200 rounded-2xl p-3 md:p-4 mb-4 custom-shadow flex flex-wrap items-center justify-between gap-3">
+    <div class="flex items-center gap-2">
+      <span class="bg-indigo-600 text-white font-black text-xs px-2.5 py-1 rounded-lg">ルール</span>
+      <span class="text-xs md:text-sm font-bold text-slate-500">探検する式：</span>
+      <span id="formula-badge" class="text-lg md:text-xl font-black text-indigo-700 bg-indigo-50 px-3 py-0.5 rounded-lg border border-indigo-100 tracking-wide">
+        y = 2x
+      </span>
+    </div>
+
+    <!-- ルール切り替えボタン -->
+    <div class="flex items-center gap-1.5 overflow-x-auto pb-1 max-w-full text-xs font-bold">
+      <button onclick="changeFormula('2x')" id="btn-f-2x" class="px-3 py-1.5 rounded-xl border transition-all bg-indigo-600 text-white border-indigo-600 shadow-sm shrink-0">
+        基本: y = 2x
+      </button>
+      <button onclick="changeFormula('x2')" id="btn-f-x2" class="px-3 py-1.5 rounded-xl border transition-all bg-white text-slate-600 border-slate-200 hover:bg-slate-50 shrink-0">
+        中3: y = x²
+      </button>
+      <button onclick="changeFormula('quad1')" id="btn-f-quad1" class="px-3 py-1.5 rounded-xl border transition-all bg-white text-slate-600 border-slate-200 hover:bg-slate-50 shrink-0">
+        数Ⅰ: y = (x-2)² - 1
+      </button>
+      <button onclick="changeFormula('quad2')" id="btn-f-quad2" class="px-3 py-1.5 rounded-xl border transition-all bg-white text-slate-600 border-slate-200 hover:bg-slate-50 shrink-0">
+        数Ⅰ: y = -x² + 2x + 3
+      </button>
+    </div>
+  </div>
+
+  <!-- ステップ・ナビゲーション -->
+  <div class="w-full max-w-4xl grid grid-cols-3 gap-2 mb-4">
+    <button onclick="setStep(1)" id="step-tab-1" class="step-btn py-2.5 px-2 rounded-2xl font-black text-xs md:text-sm flex flex-col md:flex-row items-center justify-center gap-1.5 transition-all bg-indigo-600 text-white shadow-md">
+      <span class="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center text-xs">1</span>
+      <span>合格点さがし</span>
+    </button>
+    <button onclick="setStep(2)" id="step-tab-2" class="step-btn py-2.5 px-2 rounded-2xl font-black text-xs md:text-sm flex flex-col md:flex-row items-center justify-center gap-1.5 transition-all bg-white text-slate-600 border border-slate-200 hover:bg-slate-100">
+      <span class="w-5 h-5 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center text-xs">2</span>
+      <span>全員あつまれ！</span>
+    </button>
+    <button onclick="setStep(3)" id="step-tab-3" class="step-btn py-2.5 px-2 rounded-2xl font-black text-xs md:text-sm flex flex-col md:flex-row items-center justify-center gap-1.5 transition-all bg-white text-slate-600 border border-slate-200 hover:bg-slate-100">
+      <span class="w-5 h-5 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center text-xs">3</span>
+      <span>どこでも虫眼鏡</span>
+    </button>
+  </div>
+
+  <!-- メインワークエリア -->
+  <main class="w-full max-w-4xl grid grid-cols-1 lg:grid-cols-12 gap-4">
+
+    <!-- 左側：方眼紙キャンバス（座標平面） -->
+    <section class="lg:col-span-7 bg-white rounded-3xl p-3 md:p-5 border border-slate-200 custom-shadow flex flex-col items-center">
+      <div class="w-full flex items-center justify-between mb-2 px-1">
+        <div class="flex items-center gap-2">
+          <span class="w-3 h-3 rounded-full bg-indigo-500 animate-pulse"></span>
+          <span class="text-xs md:text-sm font-black text-slate-700">合格点のパレード広場（座標平面）</span>
+        </div>
+        <div id="canvas-hint" class="text-[11px] font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-md">
+          審査して点を打とう
+        </div>
+      </div>
+
+      <!-- キャンバスコンテナ -->
+      <div class="relative w-full aspect-square max-w-[420px] bg-slate-50 rounded-2xl overflow-hidden border border-slate-200 cursor-crosshair">
+        <canvas id="graphCanvas" class="w-full h-full block"></canvas>
+      </div>
+
+      <!-- 下部の凡例 -->
+      <div class="flex flex-wrap items-center justify-center gap-4 text-xs font-bold text-slate-600 mt-3 pt-2 border-t border-slate-100 w-full">
+        <div class="flex items-center gap-1.5">
+          <span class="w-3 h-3 rounded-full bg-amber-400 border border-amber-500 inline-block shadow-sm"></span>
+          <span>合格した点（仲間）</span>
+        </div>
+        <div class="flex items-center gap-1.5">
+          <span class="w-3 h-3 rounded-full bg-slate-300 border border-slate-400 inline-block"></span>
+          <span>不合格（入れない点）</span>
+        </div>
+        <div class="flex items-center gap-1.5">
+          <span class="w-4 h-1 bg-indigo-500 rounded-full inline-block"></span>
+          <span>パレードの列（グラフ）</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 右側：体験インタラクションパネル -->
+    <section class="lg:col-span-5 flex flex-col gap-4">
+
+      <!-- STEP 1 パネル: 審査ゲーム -->
+      <div id="panel-step-1" class="bg-white rounded-3xl p-4 md:p-5 border border-slate-200 custom-shadow flex-1 flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-black text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-lg border border-indigo-100">
+              ステップ 1
+            </span>
+            <span id="score-counter" class="text-xs font-bold text-slate-500">審査した点: 0 / 6</span>
+          </div>
+
+          <h2 class="text-base md:text-lg font-black text-slate-800 mb-1">
+            この点は合格？ 不合格？
+          </h2>
+          <p class="text-xs text-slate-600 mb-4">
+            審査基準：<span class="font-black text-indigo-600" id="step1-rule-text">右の数 y は、左の数 x の2倍</span> になっているかな？
+          </p>
+
+          <!-- 挑戦中の点カード -->
+          <div class="bg-gradient-to-br from-indigo-50 to-blue-50 border-2 border-indigo-200 rounded-2xl p-4 text-center mb-4 relative overflow-hidden">
+            <div class="text-[11px] font-bold text-indigo-500 mb-1">審査にやってきた点</div>
+            <div id="candidate-point" class="text-3xl md:text-4xl font-black text-indigo-900 tracking-wider">
+              ( 1 , 2 )
+            </div>
+
+            <!-- 計算のヒントボックス -->
+            <div id="calc-hint" class="mt-3 bg-white/80 backdrop-blur rounded-xl p-2.5 text-xs border border-indigo-100 font-bold text-slate-700">
+              式に入れてみよう：<br>
+              <span id="calc-lhs" class="text-amber-600">y = 2</span> は、<span id="calc-rhs" class="text-indigo-600">2 × 1 = 2</span> と等しい？
+            </div>
+          </div>
+        </div>
+
+        <!-- アクションボタン -->
+        <div>
+          <div id="feedback-msg" class="text-center font-black text-sm mb-3 min-h-[24px] text-slate-500">
+            どちらか選んでみよう！
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <button onclick="judgeCandidate(true)" id="btn-pass" class="py-3 px-4 bg-emerald-500 hover:bg-emerald-600 active:scale-95 text-white font-black rounded-2xl shadow-md transition-all flex flex-col items-center">
+              <span class="text-xl">⭕️</span>
+              <span class="text-xs mt-0.5">合格！（式が成り立つ）</span>
+            </button>
+            <button onclick="judgeCandidate(false)" id="btn-fail" class="py-3 px-4 bg-rose-500 hover:bg-rose-600 active:scale-95 text-white font-black rounded-2xl shadow-md transition-all flex flex-col items-center">
+              <span class="text-xl">❌</span>
+              <span class="text-xs mt-0.5">不合格（式が合わない）</span>
+            </button>
+          </div>
+
+          <button onclick="nextCandidate()" id="btn-next-candidate" class="w-full mt-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition-all">
+            次の点を審査する ➔
+          </button>
+        </div>
+      </div>
+
+      <!-- STEP 2 パネル: 全員あつまれ！ -->
+      <div id="panel-step-2" class="hidden bg-white rounded-3xl p-4 md:p-5 border border-slate-200 custom-shadow flex-1 flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-black text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-lg border border-indigo-100">
+              ステップ 2
+            </span>
+            <span class="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">大発見モード</span>
+          </div>
+
+          <h2 class="text-base md:text-lg font-black text-slate-800 mb-1">
+            合格した仲間を一気に集めよう！
+          </h2>
+          <p class="text-xs text-slate-600 mb-4">
+            「式が成り立つ点」を、10個、50個、100個…と増やしていくと、どんな姿になるかな？
+          </p>
+
+          <!-- スライダー操作 -->
+          <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 mb-4">
+            <div class="flex items-center justify-between text-xs font-bold mb-2">
+              <span class="text-slate-600">あつまった合格点の数：</span>
+              <span id="points-count-label" class="text-base font-black text-indigo-600">5 点</span>
+            </div>
+            <input id="pointDensitySlider" type="range" min="3" max="250" value="5" step="1" oninput="onDensityChange(this.value)" class="w-full accent-indigo-600 h-2 bg-slate-200 rounded-lg cursor-pointer">
+            <div class="flex justify-between text-[10px] font-bold text-slate-400 mt-1">
+              <span>パラパラ (数個)</span>
+              <span>ぎっしり (250個)</span>
+            </div>
+          </div>
+
+          <!-- 気づきのメッセージカード -->
+          <div id="step2-insight" class="bg-amber-50 border border-amber-200 rounded-2xl p-3 text-xs text-amber-900 leading-relaxed font-bold">
+            💡 スライダーを右に動かしてみて！ 点と点の間がぎっしり埋まると……？
+          </div>
+        </div>
+
+        <div class="mt-4 pt-3 border-t border-slate-100 flex flex-col gap-2">
+          <button onclick="autoPopulatePoints()" class="py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-black rounded-xl text-xs shadow-md transition-all flex items-center justify-center gap-2">
+            <span>✨ 魔法で一気にぎっしり並べる！</span>
+          </button>
+          <button onclick="setStep(3)" class="py-2 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition-all text-center">
+            次へ：線の上を調べてみる ➔
+          </button>
+        </div>
+      </div>
+
+      <!-- STEP 3 パネル: どこでも虫眼鏡 -->
+      <div id="panel-step-3" class="hidden bg-white rounded-3xl p-4 md:p-5 border border-slate-200 custom-shadow flex-1 flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-black text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-lg border border-indigo-100">
+              ステップ 3
+            </span>
+            <span class="text-xs font-bold text-purple-600 bg-purple-50 px-2 py-0.5 rounded-full">最終テスト</span>
+          </div>
+
+          <h2 class="text-base md:text-lg font-black text-slate-800 mb-1">
+            線の上と外をタップしてみよう！
+          </h2>
+          <p class="text-xs text-slate-600 mb-3">
+            左の広場のすきな場所をタップ（クリック）して、本当に式が成り立つか確かめよう！
+          </p>
+
+          <!-- 検査結果カード -->
+          <div id="inspect-card" class="border-2 border-dashed border-slate-200 bg-slate-50 rounded-2xl p-4 text-center transition-all">
+            <div class="text-xs font-bold text-slate-400 mb-1">タップした場所の座標</div>
+            <div id="inspect-coord" class="text-2xl font-black text-slate-700 mb-2">
+              ( まだ選ばれていません )
+            </div>
+
+            <!-- 代入チェックエリア -->
+            <div id="inspect-math" class="hidden text-xs bg-white rounded-xl p-3 border border-slate-200 font-mono text-left space-y-1">
+              <div class="text-slate-500 font-sans font-bold text-[11px] mb-1">式に代入してみると…</div>
+              <div id="inspect-lhs" class="text-slate-700">y の値: --</div>
+              <div id="inspect-rhs" class="text-slate-700">式の計算: --</div>
+              <div id="inspect-result" class="mt-2 font-sans font-black text-sm pt-1 border-t border-slate-100">
+                --
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-4 pt-3 border-t border-slate-100">
+          <div class="bg-indigo-50/80 border border-indigo-100 rounded-xl p-2.5 text-xs text-indigo-900 leading-relaxed font-bold">
+            🎯 <span class="text-indigo-700 font-extrabold">大発見：</span>「線の上（通る点）」は、どこをタップしても必ず「代入するとピッタリ計算が合う」ね！
+          </div>
+        </div>
+      </div>
+
+    </section>
+  </main>
+
+  <!-- なっとく解説カード（まとめ） -->
+  <section class="w-full max-w-4xl bg-white border border-slate-200 rounded-3xl p-5 md:p-6 mt-4 custom-shadow">
+    <div class="flex items-center gap-2 mb-3">
+      <span class="text-xl">🎓</span>
+      <h3 class="text-base md:text-lg font-black text-slate-800">
+        なぜ「通る点」の座標を式に代入できるの？【まとめ】
+      </h3>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs md:text-sm text-slate-600 leading-relaxed">
+      <div class="bg-amber-50/60 border border-amber-200/70 rounded-2xl p-4 flex flex-col justify-between">
+        <div>
+          <div class="font-black text-amber-900 flex items-center gap-2 text-sm mb-1.5">
+            <span class="w-5 h-5 bg-amber-200 text-amber-900 rounded-full flex items-center justify-center text-xs font-bold">1</span>
+            学校でよくある「かんちがい」
+          </div>
+          <p>
+            「線がそこをたまたま通ったから、後から特別に代入していいのかな？」と思いがち。
+          </p>
+        </div>
+        <div class="mt-2 text-rose-600 font-bold text-xs bg-white/80 p-2 rounded-xl border border-rose-100">
+          ✕ 順序が逆！ たまたま線が通ったのではありません。
+        </div>
+      </div>
+
+      <div class="bg-indigo-50/60 border border-indigo-200/70 rounded-2xl p-4 flex flex-col justify-between">
+        <div>
+          <div class="font-black text-indigo-900 flex items-center gap-2 text-sm mb-1.5">
+            <span class="w-5 h-5 bg-indigo-200 text-indigo-900 rounded-full flex items-center justify-center text-xs font-bold">2</span>
+            数学の「本当の順番」
+          </div>
+          <p>
+            「代入して計算が合う（合格した）点」だけを招待して並べたら、<strong class="text-indigo-700">結果として1本の線（グラフ）になった</strong>のです。
+          </p>
+        </div>
+        <div class="mt-2 text-indigo-700 font-bold text-xs bg-white/80 p-2 rounded-xl border border-indigo-100">
+          ◯ だから、線の上にある点は「最初から計算が合うとわかっている点」なのです！
+        </div>
+      </div>
+    </div>
+
+    <!-- 数学Ⅰの重要テーマへの架け橋 -->
+    <div class="mt-4 pt-4 border-t border-slate-100 bg-gradient-to-r from-purple-50 to-indigo-50 rounded-2xl p-4 border border-purple-100">
+      <div class="flex items-center gap-2 mb-1.5">
+        <span class="bg-purple-600 text-white text-[10px] font-black px-2 py-0.5 rounded-md">高校 数学Ⅰ コラム</span>
+        <span class="font-black text-purple-900 text-sm">「3点を通る2次関数を求めよ」が解けるカラクリ</span>
+      </div>
+      <p class="text-xs text-purple-950 leading-relaxed font-bold">
+        数Ⅰで頻出の「$3$ つの点を通る放物線 $y = ax^2 + bx + c$ を求めよ」という問題。<br>
+        「通る点」なのだから、それぞれの $(x, y)$ を代入した $3$ つの等式（$a, b, c$ の連立方程式）が<strong>必ず成立する</strong>ことが保証されています。だから、連立方程式を解くだけで未知数 $a, b, c$ がピタリと求まるのです！
+      </p>
+    </div>
+  </section>
+
+  <!-- 効果音（Web Audio API） & メインロジック -->
+  <script>
+    // --- 音響効果（Web Audio API） ---
+    let audioCtx = null;
+    function playSound(type) {
+      try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        const now = audioCtx.currentTime;
+        if (type === 'pass') {
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(523.25, now);
+          osc.frequency.exponentialRampToValueAtTime(783.99, now + 0.15);
+          gain.gain.setValueAtTime(0.15, now);
+          gain.gain.linearRampToValueAtTime(0.01, now + 0.3);
+          osc.start(now);
+          osc.stop(now + 0.3);
+        } else if (type === 'fail') {
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(196, now);
+          osc.frequency.linearRampToValueAtTime(130, now + 0.2);
+          gain.gain.setValueAtTime(0.15, now);
+          gain.gain.linearRampToValueAtTime(0.01, now + 0.2);
+          osc.start(now);
+          osc.stop(now + 0.2);
+        } else if (type === 'pop') {
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(440, now);
+          gain.gain.setValueAtTime(0.08, now);
+          gain.gain.linearRampToValueAtTime(0.01, now + 0.08);
+          osc.start(now);
+          osc.stop(now + 0.08);
+        }
+      } catch (e) {
+        // Audio disabled
+      }
+    }
+
+    // --- 状態管理 ---
+    let currentStep = 1;
+    let currentFormulaKey = '2x';
+    let userPoints = []; 
+    let densityPoints = []; 
+    let inspectedPoint = null; 
+
+    // 定義する数式定義（※すべての候補点はグラフの表示領域内にゆったり収まる点のみを厳選）
+    const formulas = {
+      '2x': {
+        name: 'y = 2x',
+        ruleDesc: '右の数 y は、左の数 x を「2倍」した数',
+        fn: (x) => 2 * x,
+        check: (x, y) => Math.abs(y - (2 * x)) < 0.001,
+        evalStr: (x) => `2 × (${x}) = ${2 * x}`,
+        domain: [-4, 4],
+        range: [-8, 8],
+        candidates: [
+          { x: 1, y: 2, isCorrectPass: true },
+          { x: 2, y: 3, isCorrectPass: false },
+          { x: 0, y: 0, isCorrectPass: true },
+          { x: -1, y: -2, isCorrectPass: true },
+          { x: 2, y: 4, isCorrectPass: true },
+          { x: 1, y: 4, isCorrectPass: false },
+          { x: -2, y: -4, isCorrectPass: true },
+          { x: -1, y: 1, isCorrectPass: false }
+        ]
+      },
+      'x2': {
+        name: 'y = x²',
+        ruleDesc: '右の数 y は、左の数 x を「自分自身とかけ算」した数（原点が頂点）',
+        fn: (x) => x * x,
+        check: (x, y) => Math.abs(y - (x * x)) < 0.001,
+        evalStr: (x) => `(${x}) × (${x}) = ${x * x}`,
+        domain: [-3.5, 3.5],
+        range: [-1, 9],
+        candidates: [
+          { x: 0, y: 0, isCorrectPass: true },
+          { x: 1, y: 1, isCorrectPass: true },
+          { x: 2, y: 4, isCorrectPass: true },
+          { x: 2, y: 2, isCorrectPass: false },
+          { x: -1, y: 1, isCorrectPass: true },
+          { x: -2, y: 4, isCorrectPass: true },
+          { x: 1, y: 3, isCorrectPass: false },
+          { x: -1, y: -1, isCorrectPass: false }
+        ]
+      },
+      'quad1': {
+        name: 'y = (x - 2)² - 1  [展開: x² - 4x + 3]',
+        ruleDesc: '高校数Ⅰ：頂点(2, -1)に平行移動した下に凸の放物線',
+        fn: (x) => Math.pow(x - 2, 2) - 1,
+        check: (x, y) => Math.abs(y - (Math.pow(x - 2, 2) - 1)) < 0.001,
+        evalStr: (x) => `(${x} - 2)² - 1 = ${(Math.pow(x - 2, 2) - 1)}`,
+        domain: [-1, 5],
+        range: [-2, 8],
+        candidates: [
+          { x: 2, y: -1, isCorrectPass: true }, // 頂点
+          { x: 1, y: 0, isCorrectPass: true },  // x切片
+          { x: 3, y: 0, isCorrectPass: true },  // x切片
+          { x: 0, y: 3, isCorrectPass: true },  // y切片
+          { x: 4, y: 3, isCorrectPass: true },  // 対称点
+          { x: 2, y: 1, isCorrectPass: false },
+          { x: 1, y: 2, isCorrectPass: false },
+          { x: 3, y: 2, isCorrectPass: false }
+        ]
+      },
+      'quad2': {
+        name: 'y = -x² + 2x + 3  [頂点: (1, 4)]',
+        ruleDesc: '高校数Ⅰ：上に凸の放物線（頂点で最大値をとる山型）',
+        fn: (x) => -Math.pow(x, 2) + 2 * x + 3,
+        check: (x, y) => Math.abs(y - (-Math.pow(x, 2) + 2 * x + 3)) < 0.001,
+        evalStr: (x) => `-(${x})² + 2×(${x}) + 3 = ${-Math.pow(x, 2) + 2 * x + 3}`,
+        domain: [-2, 4],
+        range: [-3, 6],
+        candidates: [
+          { x: 1, y: 4, isCorrectPass: true },  // 頂点
+          { x: 0, y: 3, isCorrectPass: true },  // y切片
+          { x: 2, y: 3, isCorrectPass: true },  // 対称点
+          { x: 3, y: 0, isCorrectPass: true },  // x切片
+          { x: -1, y: 0, isCorrectPass: true }, // x切片
+          { x: 1, y: 2, isCorrectPass: false },
+          { x: 0, y: 1, isCorrectPass: false },
+          { x: 2, y: 1, isCorrectPass: false }
+        ]
+      }
+    };
+
+    let candidateIndex = 0;
+
+    // --- キャンバス描画エンジン ---
+    const canvas = document.getElementById('graphCanvas');
+    const ctx = canvas.getContext('2d');
+    let canvasW = 400;
+    let canvasH = 400;
+
+    function resizeCanvas() {
+      const rect = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      canvasW = rect.width;
+      canvasH = rect.height;
+      canvas.width = canvasW * dpr;
+      canvas.height = canvasH * dpr;
+      ctx.scale(dpr, dpr);
+      renderGraph();
+    }
+
+    // 数学座標 (x, y) -> キャンバスピクセル (px, py)
+    function mathToCanvas(mx, my) {
+      const f = formulas[currentFormulaKey];
+      const xRange = f.domain[1] - f.domain[0];
+      const yRange = f.range[1] - f.range[0];
+
+      const px = ((mx - f.domain[0]) / xRange) * canvasW;
+      const py = canvasH - ((my - f.range[0]) / yRange) * canvasH;
+      return { x: px, y: py };
+    }
+
+    // キャンバスピクセル (px, py) -> 数学座標 (mx, my)
+    function canvasToMath(px, py) {
+      const f = formulas[currentFormulaKey];
+      const xRange = f.domain[1] - f.domain[0];
+      const yRange = f.range[1] - f.range[0];
+
+      const mx = f.domain[0] + (px / canvasW) * xRange;
+      const my = f.range[0] + ((canvasH - py) / canvasH) * yRange;
+      return { x: mx, y: my };
+    }
+
+    function renderGraph() {
+      if (!canvasW || !canvasH) return;
+      ctx.clearRect(0, 0, canvasW, canvasH);
+
+      const f = formulas[currentFormulaKey];
+      const origin = mathToCanvas(0, 0);
+
+      // 1. グリッド線の描画
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = '#e2e8f0';
+      ctx.beginPath();
+
+      // 縦グリッド
+      for (let x = Math.ceil(f.domain[0]); x <= Math.floor(f.domain[1]); x++) {
+        const p = mathToCanvas(x, 0);
+        ctx.moveTo(p.x, 0);
+        ctx.lineTo(p.x, canvasH);
+      }
+      // 横グリッド
+      for (let y = Math.ceil(f.range[0]); y <= Math.floor(f.range[1]); y++) {
+        const p = mathToCanvas(0, y);
+        ctx.moveTo(0, p.y);
+        ctx.lineTo(canvasW, p.y);
+      }
+      ctx.stroke();
+
+      // 2. 座標軸 (x軸, y軸)
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = '#94a3b8';
+      ctx.beginPath();
+      // x軸
+      ctx.moveTo(0, origin.y);
+      ctx.lineTo(canvasW, origin.y);
+      // y軸
+      ctx.moveTo(origin.x, 0);
+      ctx.lineTo(origin.x, canvasH);
+      ctx.stroke();
+
+      // 軸ラベル
+      ctx.fillStyle = '#64748b';
+      ctx.font = 'bold 11px sans-serif';
+      ctx.fillText('x', canvasW - 14, origin.y - 6);
+      ctx.fillText('y', origin.x + 6, 14);
+      ctx.fillText('O', origin.x - 14, origin.y + 14);
+
+      // 目盛り数値
+      ctx.font = '9px sans-serif';
+      for (let x = Math.ceil(f.domain[0]); x <= Math.floor(f.domain[1]); x++) {
+        if (x !== 0) {
+          const p = mathToCanvas(x, 0);
+          ctx.fillText(x, p.x - 3, origin.y + 12);
+        }
+      }
+      for (let y = Math.ceil(f.range[0]); y <= Math.floor(f.range[1]); y++) {
+        if (y !== 0 && y % 2 === 0) {
+          const p = mathToCanvas(0, y);
+          ctx.fillText(y, origin.x - 14, p.y + 3);
+        }
+      }
+
+      // 3. Step 2 または 3 での「パレードの列（線の骨組み）」描画
+      if (currentStep === 2 || currentStep === 3) {
+        const sliderVal = parseInt(document.getElementById('pointDensitySlider').value, 10);
+        const lineAlpha = currentStep === 3 ? 0.8 : Math.min(1, (sliderVal - 20) / 100);
+
+        if (lineAlpha > 0.05) {
+          ctx.strokeStyle = `rgba(99, 102, 241, ${lineAlpha})`;
+          ctx.lineWidth = 3.5;
+          ctx.beginPath();
+
+          const stepX = (f.domain[1] - f.domain[0]) / 150;
+          let first = true;
+          for (let x = f.domain[0]; x <= f.domain[1]; x += stepX) {
+            const y = f.fn(x);
+            const pt = mathToCanvas(x, y);
+            if (first) {
+              ctx.moveTo(pt.x, pt.y);
+              first = false;
+            } else {
+              ctx.lineTo(pt.x, pt.y);
+            }
+          }
+          ctx.stroke();
+        }
+      }
+
+      // 4. Step 2 の大量プロット点の描画
+      if (currentStep === 2 && densityPoints.length > 0) {
+        densityPoints.forEach(pt => {
+          const p = mathToCanvas(pt.x, pt.y);
+          ctx.fillStyle = '#f59e0b';
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
+          ctx.fill();
+        });
+      }
+
+      // 5. Step 1 で審査した点のプロット
+      userPoints.forEach(pt => {
+        const p = mathToCanvas(pt.x, pt.y);
+        if (pt.isPassed) {
+          ctx.fillStyle = '#f59e0b';
+          ctx.strokeStyle = '#b45309';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, 6.5, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.stroke();
+
+          ctx.fillStyle = '#78350f';
+          ctx.font = 'bold 10px sans-serif';
+          ctx.fillText(`(${pt.x},${pt.y})`, p.x + 8, p.y - 4);
+        } else {
+          ctx.strokeStyle = '#94a3b8';
+          ctx.lineWidth = 2.5;
+          const s = 4.5;
+          ctx.beginPath();
+          ctx.moveTo(p.x - s, p.y - s);
+          ctx.lineTo(p.x + s, p.y + s);
+          ctx.moveTo(p.x + s, p.y - s);
+          ctx.lineTo(p.x - s, p.y + s);
+          ctx.stroke();
+
+          ctx.fillStyle = '#94a3b8';
+          ctx.font = '9px sans-serif';
+          ctx.fillText(`(${pt.x},${pt.y})`, p.x + 6, p.y + 4);
+        }
+      });
+
+      // 6. Step 3 でクリックされた点のハイライト
+      if (currentStep === 3 && inspectedPoint) {
+        const p = mathToCanvas(inspectedPoint.x, inspectedPoint.y);
+        ctx.save();
+        ctx.fillStyle = inspectedPoint.isMatch ? '#10b981' : '#f43f5e';
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 8, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.strokeStyle = inspectedPoint.isMatch ? 'rgba(16, 185, 129, 0.5)' : 'rgba(244, 63, 94, 0.5)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 14, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+      }
+    }
+
+    // --- ステップ切替 ---
+    function setStep(step) {
+      currentStep = step;
+      playSound('pop');
+
+      for (let i = 1; i <= 3; i++) {
+        const tab = document.getElementById(`step-tab-${i}`);
+        const panel = document.getElementById(`panel-step-${i}`);
+        if (i === step) {
+          tab.className = "step-btn py-2.5 px-2 rounded-2xl font-black text-xs md:text-sm flex flex-col md:flex-row items-center justify-center gap-1.5 transition-all bg-indigo-600 text-white shadow-md";
+          tab.querySelector('span').className = "w-5 h-5 rounded-full bg-white/20 flex items-center justify-center text-xs";
+          panel.classList.remove('hidden');
+        } else {
+          tab.className = "step-btn py-2.5 px-2 rounded-2xl font-black text-xs md:text-sm flex flex-col md:flex-row items-center justify-center gap-1.5 transition-all bg-white text-slate-600 border border-slate-200 hover:bg-slate-100";
+          tab.querySelector('span').className = "w-5 h-5 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center text-xs";
+          panel.classList.add('hidden');
+        }
+      }
+
+      const hint = document.getElementById('canvas-hint');
+      if (step === 1) {
+        hint.textContent = '審査して点を打とう';
+      } else if (step === 2) {
+        hint.textContent = '点が増えて線になるよ';
+        onDensityChange(document.getElementById('pointDensitySlider').value);
+      } else if (step === 3) {
+        hint.textContent = '線の上・外をタップ！';
+      }
+
+      renderGraph();
+    }
+
+    // --- ルール切り替え（完全初期化を実施） ---
+    function changeFormula(fKey) {
+      if (!formulas[fKey]) return;
+      currentFormulaKey = fKey;
+      playSound('pop');
+
+      // バッジと説明テキストの更新
+      document.getElementById('formula-badge').textContent = formulas[fKey].name;
+      document.getElementById('step1-rule-text').textContent = formulas[fKey].ruleDesc;
+
+      // ボタンのアクティブ状態の更新
+      const allKeys = ['2x', 'x2', 'quad1', 'quad2'];
+      allKeys.forEach(k => {
+        const b = document.getElementById(`btn-f-${k}`);
+        if (!b) return;
+        if (k === fKey) {
+          b.className = "px-3 py-1.5 rounded-xl border transition-all bg-indigo-600 text-white border-indigo-600 shadow-sm shrink-0";
+        } else {
+          b.className = "px-3 py-1.5 rounded-xl border transition-all bg-white text-slate-600 border-slate-200 hover:bg-slate-50 shrink-0";
+        }
+      });
+
+      // === 完全初期化処理 ===
+      // 1. 状態変数をリセット
+      candidateIndex = 0;
+      userPoints = [];
+      densityPoints = [];
+      inspectedPoint = null;
+
+      // 2. ステップ1に自動復帰
+      setStep(1);
+
+      // 3. Step 1 のUIを初期化
+      document.getElementById('score-counter').textContent = `審査した点: 0 / ${formulas[fKey].candidates.length}`;
+      loadCandidate(0);
+
+      // 4. Step 2 のスライダーを初期値(5)にリセット
+      const slider = document.getElementById('pointDensitySlider');
+      slider.value = 5;
+      onDensityChange(5);
+
+      // 5. Step 3 の検査カード表示を未選択状態にリセット
+      const coordEl = document.getElementById('inspect-coord');
+      const mathBox = document.getElementById('inspect-math');
+      const card = document.getElementById('inspect-card');
+      coordEl.textContent = '( まだ選ばれていません )';
+      coordEl.className = 'text-2xl font-black text-slate-700 mb-2';
+      mathBox.classList.add('hidden');
+      card.className = 'border-2 border-dashed border-slate-200 bg-slate-50 rounded-2xl p-4 text-center transition-all';
+
+      // 6. グラフを再描画
+      renderGraph();
+    }
+
+    // --- STEP 1: 審査ゲームロジック ---
+    function loadCandidate(index) {
+      const f = formulas[currentFormulaKey];
+      const list = f.candidates;
+      const c = list[index % list.length];
+
+      document.getElementById('candidate-point').textContent = `( ${c.x} , ${c.y} )`;
+      document.getElementById('calc-lhs').textContent = `y = ${c.y}`;
+      document.getElementById('calc-rhs').textContent = `${f.evalStr(c.x)}`;
+
+      document.getElementById('btn-pass').disabled = false;
+      document.getElementById('btn-fail').disabled = false;
+      document.getElementById('feedback-msg').textContent = 'どちらか選んでみよう！';
+      document.getElementById('feedback-msg').className = 'text-center font-black text-sm mb-3 min-h-[24px] text-slate-500';
+    }
+
+    function judgeCandidate(userChosePass) {
+      const f = formulas[currentFormulaKey];
+      const c = f.candidates[candidateIndex % f.candidates.length];
+      const isActuallyPassed = c.isCorrectPass;
+      const fb = document.getElementById('feedback-msg');
+
+      if (userChosePass === isActuallyPassed) {
+        playSound('pass');
+        if (isActuallyPassed) {
+          fb.innerHTML = `🎉 <span class="text-emerald-600">せいかい！</span> 式が成り立つので【合格点の仲間】です！`;
+        } else {
+          fb.innerHTML = `🎉 <span class="text-emerald-600">せいかい！</span> 計算が合わないので【不合格】入れません！`;
+        }
+
+        if (!userPoints.some(p => p.x === c.x && p.y === c.y)) {
+          userPoints.push({ x: c.x, y: c.y, isPassed: isActuallyPassed });
+        }
+
+        document.getElementById('score-counter').textContent = `審査した点: ${userPoints.length} / ${f.candidates.length}`;
+      } else {
+        playSound('fail');
+        if (isActuallyPassed) {
+          fb.innerHTML = `😮 <span class="text-rose-500">おしい！</span> 代入すると両辺が一致するよ。合格です！`;
+          userPoints.push({ x: c.x, y: c.y, isPassed: true });
+        } else {
+          fb.innerHTML = `😮 <span class="text-rose-500">おしい！</span> 代入しても計算が合わないね。不合格です！`;
+          userPoints.push({ x: c.x, y: c.y, isPassed: false });
+        }
+      }
+
+      document.getElementById('btn-pass').disabled = true;
+      document.getElementById('btn-fail').disabled = true;
+      renderGraph();
+    }
+
+    function nextCandidate() {
+      playSound('pop');
+      candidateIndex++;
+      loadCandidate(candidateIndex);
+    }
+
+    // --- STEP 2: 大量プロットロジック ---
+    function onDensityChange(count) {
+      const f = formulas[currentFormulaKey];
+      document.getElementById('points-count-label').textContent = `${count} 点`;
+      densityPoints = [];
+
+      const n = parseInt(count, 10);
+      const minX = f.domain[0];
+      const maxX = f.domain[1];
+      const step = (maxX - minX) / (n - 1);
+
+      for (let i = 0; i < n; i++) {
+        const x = minX + i * step;
+        const y = f.fn(x);
+        densityPoints.push({ x: Number(x.toFixed(2)), y: Number(y.toFixed(2)) });
+      }
+
+      const insight = document.getElementById('step2-insight');
+      if (n < 15) {
+        insight.innerHTML = `🔍 <strong>まだパラパラ：</strong> 点と点の間がすいていて、まだ「ただの点の集まり」に見えるね。`;
+        insight.className = "bg-slate-50 border border-slate-200 rounded-2xl p-3 text-xs text-slate-700 leading-relaxed font-bold";
+      } else if (n < 70) {
+        insight.innerHTML = `👀 <strong>おや…？：</strong> 合格点がどんどん近づいて、なんだか「列（ライン）」が見えてきたぞ！`;
+        insight.className = "bg-amber-50 border border-amber-200 rounded-2xl p-3 text-xs text-amber-900 leading-relaxed font-bold";
+      } else {
+        insight.innerHTML = `✨ <strong>大発見！：</strong> 隙間なく合格点が集まったら、完全に「1本の線（グラフ）」になった！「グラフ」＝「合格点の行列」だったんだ！`;
+        insight.className = "bg-indigo-50 border border-indigo-200 rounded-2xl p-3 text-xs text-indigo-950 leading-relaxed font-black shadow-inner";
+      }
+
+      renderGraph();
+    }
+
+    function autoPopulatePoints() {
+      playSound('pass');
+      const slider = document.getElementById('pointDensitySlider');
+      let currentVal = parseInt(slider.value, 10);
+      const targetVal = 200;
+
+      const timer = setInterval(() => {
+        currentVal += 15;
+        if (currentVal >= targetVal) {
+          currentVal = targetVal;
+          clearInterval(timer);
+        }
+        slider.value = currentVal;
+        onDensityChange(currentVal);
+      }, 35);
+    }
+
+    // --- STEP 3: どこでも虫眼鏡ロジック ---
+    function handleCanvasInteraction(evt) {
+      if (currentStep !== 3) return;
+
+      const rect = canvas.getBoundingClientRect();
+      const clientX = evt.touches ? evt.touches[0].clientX : evt.clientX;
+      const clientY = evt.touches ? evt.touches[0].clientY : evt.clientY;
+
+      const px = clientX - rect.left;
+      const py = clientY - rect.top;
+
+      const mathPt = canvasToMath(px, py);
+      const f = formulas[currentFormulaKey];
+
+      const expectedY = f.fn(mathPt.x);
+      const diff = Math.abs(mathPt.y - expectedY);
+      const isCloseToLine = diff < 0.6;
+
+      let finalX = Number(mathPt.x.toFixed(1));
+      let finalY = Number(mathPt.y.toFixed(1));
+      let match = false;
+
+      if (isCloseToLine) {
+        finalY = Number(expectedY.toFixed(1));
+        match = true;
+        playSound('pass');
+      } else {
+        match = false;
+        playSound('fail');
+      }
+
+      inspectedPoint = { x: finalX, y: finalY, isMatch: match };
+
+      const coordEl = document.getElementById('inspect-coord');
+      const mathBox = document.getElementById('inspect-math');
+      const lhsEl = document.getElementById('inspect-lhs');
+      const rhsEl = document.getElementById('inspect-rhs');
+      const resEl = document.getElementById('inspect-result');
+      const card = document.getElementById('inspect-card');
+
+      coordEl.textContent = `( x : ${finalX} , y : ${finalY} )`;
+      mathBox.classList.remove('hidden');
+
+      lhsEl.textContent = `左辺 (y の値) = ${finalY}`;
+      rhsEl.textContent = `右辺 (${f.name.split('[')[0].replace(/.*=/, '').trim()} の計算) = ${Number(f.fn(finalX).toFixed(1))}`;
+
+      if (match) {
+        card.className = "border-2 border-emerald-400 bg-emerald-50 rounded-2xl p-4 text-center transition-all";
+        coordEl.className = "text-2xl font-black text-emerald-700 mb-2";
+        resEl.innerHTML = `<span class="text-emerald-600">🎉 ピタリ一致！(等式が成り立つ)</span><br><span class="text-[11px] font-bold text-slate-600">この場所はグラフの線の上だから、計算が必ず合います！</span>`;
+      } else {
+        card.className = "border-2 border-rose-300 bg-rose-50 rounded-2xl p-4 text-center transition-all";
+        coordEl.className = "text-2xl font-black text-rose-700 mb-2";
+        resEl.innerHTML = `<span class="text-rose-600">❌ 一致しない！(等式が成り立たない)</span><br><span class="text-[11px] font-bold text-slate-600">線の外にある点は不合格だから、グラフの列に入れません。</span>`;
+      }
+
+      renderGraph();
+    }
+
+    canvas.addEventListener('click', handleCanvasInteraction);
+    canvas.addEventListener('touchstart', (e) => {
+      handleCanvasInteraction(e);
+      e.preventDefault();
+    }, { passive: false });
+
+    window.addEventListener('resize', resizeCanvas);
+    window.addEventListener('DOMContentLoaded', () => {
+      resizeCanvas();
+      changeFormula('2x');
+    });
+  </script>
+</body>
+</html>

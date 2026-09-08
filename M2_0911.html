@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>図形と方程式 体験型ワークシート</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'M PLUS Rounded 1c', sans-serif; }
+        /* カスタム入力欄のスタイル */
+        .math-input {
+            width: 4rem;
+            border: 2px solid #cbd5e1;
+            border-radius: 0.375rem;
+            padding: 0.25rem;
+            text-align: center;
+            font-weight: bold;
+            color: #1e293b;
+            transition: all 0.2s;
+            outline: none;
+        }
+        .math-input:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3); }
+        .math-input.correct { border-color: #22c55e; background-color: #f0fdf4; color: #15803d; }
+        .math-input.incorrect { border-color: #ef4444; background-color: #fef2f2; color: #b91c1c; }
+        
+        .math-select {
+            border: 2px solid #cbd5e1;
+            border-radius: 0.375rem;
+            padding: 0.25rem 0.5rem;
+            font-weight: bold;
+            color: #1e293b;
+            outline: none;
+        }
+        .math-select:focus { border-color: #3b82f6; }
+        .math-select.correct { border-color: #22c55e; background-color: #f0fdf4; color: #15803d; }
+        .math-select.incorrect { border-color: #ef4444; background-color: #fef2f2; color: #b91c1c; }
+
+        @keyframes spin-slow { 100% { transform: rotate(360deg); } }
+        .animate-spin-slow { animation: spin-slow 20s linear infinite; transform-origin: center; }
+        
+        /* スクロールバーのカスタマイズ */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 h-screen flex flex-col overflow-hidden">
+
+    <header class="bg-blue-700 text-white p-3 shadow-md z-20 flex flex-col sm:flex-row justify-between items-center gap-2">
+        <h1 class="text-lg font-bold flex items-center gap-2">
+            <svg class="w-6 h-6 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5"></path></svg>
+            数学II 図形と方程式
+        </h1>
+        <div class="flex flex-wrap justify-center gap-1">
+            <button onclick="App.showStep(1)" id="tab-1" class="step-tab px-3 py-1.5 text-sm rounded-full font-bold transition-colors bg-white text-blue-700 shadow">1. 円の式</button>
+            <button onclick="App.showStep(2)" id="tab-2" class="step-tab px-3 py-1.5 text-sm rounded-full font-bold transition-colors bg-blue-800 text-blue-200 hover:bg-blue-600">2. 点の位置</button>
+            <button onclick="App.showStep(3)" id="tab-3" class="step-tab px-3 py-1.5 text-sm rounded-full font-bold transition-colors bg-blue-800 text-blue-200 hover:bg-blue-600">3. 円と直線</button>
+            <button onclick="App.showStep(4)" id="tab-4" class="step-tab px-3 py-1.5 text-sm rounded-full font-bold transition-colors bg-blue-800 text-blue-200 hover:bg-blue-600">4. 接線</button>
+            <button onclick="App.showStep(5)" id="tab-5" class="step-tab px-3 py-1.5 text-sm rounded-full font-bold transition-colors bg-blue-800 text-blue-200 hover:bg-blue-600">5. まとめ</button>
+        </div>
+    </header>
+
+    <main class="flex-1 p-2 sm:p-4 flex flex-col md:flex-row gap-4 overflow-hidden">
+        
+        <!-- 左側：シミュレータエリア -->
+        <div class="w-full md:w-3/5 lg:w-2/3 bg-white rounded-2xl shadow-lg relative flex flex-col overflow-hidden border border-slate-200 min-h-[300px]">
+            <div id="svg-container" class="w-full h-full relative cursor-crosshair">
+                <svg id="main-svg" class="w-full h-full"></svg>
+                
+                <!-- ツールチップ -->
+                <div id="tooltip" class="absolute bg-slate-800 text-white text-sm px-3 py-1.5 rounded-md shadow-lg hidden pointer-events-none transform -translate-x-1/2 -translate-y-full mt-[-10px] z-50 transition-opacity"></div>
+                
+                <!-- Step 1 Overlay -->
+                <div id="sim-panel-1" class="sim-panel absolute top-4 left-4 bg-white/95 p-3 rounded-lg shadow-md pointer-events-none border border-slate-100">
+                    <p class="font-bold text-slate-700">グラフをクリックして<br>中心C(2,3)から距離5の点を探そう</p>
+                    <p class="text-sm mt-1">見つけた点: <span id="s1-found-count" class="text-blue-600 font-bold text-xl">0</span> / 3</p>
+                </div>
+                
+                <!-- Step 2 Overlay -->
+                <div id="sim-panel-2" class="sim-panel absolute top-4 left-4 bg-white/95 p-3 rounded-lg shadow-md pointer-events-none border border-slate-100 hidden">
+                    <p class="font-bold text-slate-700 flex items-center gap-1">
+                        <svg class="w-4 h-4 text-red-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9 9V5a1 1 0 112 0v4h4a1 1 0 110 2h-4v4a1 1 0 11-2 0v-4H5a1 1 0 110-2h4z" clip-rule="evenodd"></path></svg>
+                        赤い点Pをドラッグしよう
+                    </p>
+                    <div class="mt-2 text-sm space-y-1">
+                        <p class="flex justify-between w-40"><span>Pの座標:</span> <span id="s2-p-coord" class="font-mono font-bold">(3.0, 4.0)</span></p>
+                        <p class="flex justify-between w-40"><span>x² + y² =</span> <span id="s2-p-val" class="font-mono font-bold text-blue-600">25.0</span></p>
+                        <hr class="my-1">
+                        <p class="text-center"><span id="s2-p-comp" class="font-bold text-green-600">= (円周上)</span></p>
+                    </div>
+                </div>
+
+                <!-- Step 3 Overlay -->
+                <div id="sim-panel-3" class="sim-panel absolute bottom-4 left-4 right-4 bg-white/95 p-4 rounded-xl shadow-lg border border-slate-200 hidden flex flex-col sm:flex-row items-center gap-4 z-10">
+                    <div class="flex-1 w-full">
+                        <label class="block font-bold text-slate-700 mb-2">直線 <span class="font-serif italic">y = x + k</span> の切片 <span class="font-serif italic">k</span> を動かす</label>
+                        <input type="range" id="s3-k-slider" min="-10" max="10" step="0.5" value="1" class="w-full accent-blue-600 cursor-pointer">
+                        <div class="flex justify-between text-xs text-slate-500 font-mono mt-1 px-1">
+                            <span>-10</span><span class="font-bold text-slate-800 text-sm">k = <span id="s3-k-val">1.0</span></span><span>10</span>
+                        </div>
+                    </div>
+                    <div class="hidden sm:block w-px h-12 bg-slate-300"></div>
+                    <div class="w-full sm:w-1/3 text-center bg-slate-50 p-2 rounded-lg border border-slate-100">
+                        <p class="text-sm text-slate-600 mb-1">判別式 <span class="font-serif italic">D</span> と交点数</p>
+                        <p><span id="s3-d-sign" class="font-bold text-lg text-blue-600 mr-2">D > 0</span> <span class="text-sm font-bold bg-blue-100 text-blue-800 px-2 py-1 rounded-full"><span id="s3-intersect-count">2</span> 個</span></p>
+                    </div>
+                </div>
+
+                <!-- Step 4 Overlay -->
+                <div id="sim-panel-4" class="sim-panel absolute bottom-4 left-4 right-4 bg-white/95 p-4 rounded-xl shadow-lg border border-slate-200 hidden flex items-center gap-4 z-10">
+                    <div class="flex-1">
+                        <label class="block font-bold text-slate-700 mb-2 flex items-center gap-1">
+                            <svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                            接点Tを動かす
+                        </label>
+                        <input type="range" id="s4-angle-slider" min="0" max="360" step="1" value="53" class="w-full accent-orange-500 cursor-pointer">
+                    </div>
+                    <div class="w-1/3 text-center">
+                        <p class="text-xs font-bold text-slate-500 mb-1">半径と接線のなす角</p>
+                        <p class="text-3xl font-black text-orange-600">90°</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 右側：ワークシートエリア -->
+        <div class="w-full md:w-2/5 lg:w-1/3 bg-white rounded-2xl shadow-lg p-5 overflow-y-auto border border-slate-200 flex flex-col relative" id="worksheet-container">
+            
+            <!-- Step 1 Content -->
+            <div id="worksheet-1" class="worksheet-step flex-1 space-y-6">
+                <div class="bg-orange-50 border-l-4 border-orange-400 p-3 rounded-r">
+                    <p class="font-bold text-orange-800 text-sm">今日の問い</p>
+                    <p class="text-slate-700 text-sm mt-1">円を「丸い形」と言わず、中心と距離の条件だけで説明し、その条件から式を作れるだろうか。</p>
+                </div>
+                
+                <section>
+                    <h2 class="text-lg font-bold text-blue-800 border-b-2 border-blue-200 pb-1 mb-3">1. 距離を使って円を説明する</h2>
+                    <p class="text-sm text-slate-600 mb-3">左のシミュレータを使って、中心C(2,3)から距離が5になる点を3つ予想してタップしよう。</p>
+                    <div class="flex items-center gap-2 p-3 bg-slate-50 rounded-lg">
+                        <div id="s1-status-icon" class="w-6 h-6 rounded-full bg-slate-300 flex items-center justify-center text-white font-bold">!</div>
+                        <span id="s1-status-text" class="text-sm font-bold text-slate-500">点を探しています...</span>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="text-lg font-bold text-blue-800 border-b-2 border-blue-200 pb-1 mb-3">2. 円の方程式を自分で作る</h2>
+                    <p class="text-sm text-slate-600 mb-3">円周上の点をP(x,y)とする。C(2,3)からPまでの横と縦の差は、</p>
+                    <div class="bg-blue-50 p-4 rounded-xl space-y-4">
+                        <p class="text-center font-bold">横の差: <span class="font-serif">x -</span> <input type="number" id="s1-q1" class="math-input" disabled></p>
+                        <p class="text-center font-bold">縦の差: <span class="font-serif">y -</span> <input type="number" id="s1-q2" class="math-input" disabled></p>
+                        <p class="text-sm text-slate-600 leading-relaxed text-center">距離が5だから、三平方の定理より<br><span class="font-serif italic">√(横の差)² + (縦の差)² = 5</span></p>
+                        <p class="text-center font-bold text-slate-800">両辺を2乗すると、円の方程式は</p>
+                        <div class="flex items-center justify-center gap-2 font-serif text-lg">
+                            <span>(x - 2)² + (y - 3)² =</span>
+                            <input type="number" id="s1-q3" class="math-input" disabled>
+                        </div>
+                    </div>
+                </section>
+                <button onclick="App.checkStep(1)" id="btn-check-1" class="w-full bg-slate-300 text-slate-500 font-bold py-3 rounded-xl shadow-sm transition-all cursor-not-allowed" disabled>答え合わせをする</button>
+                <div id="step1-feedback" class="text-center mt-2 h-6"></div>
+            </div>
+
+            <!-- Step 2 Content -->
+            <div id="worksheet-2" class="worksheet-step flex-1 space-y-6 hidden">
+                <section>
+                    <h2 class="text-lg font-bold text-blue-800 border-b-2 border-blue-200 pb-1 mb-3">3. 中心と半径を読み取る</h2>
+                    <p class="text-sm text-slate-600 mb-2">読み方：<span class="font-serif italic">(x-a)² + (y-b)² = r²</span> は、中心<span class="font-serif">(a,b)</span>から点<span class="font-serif">(x,y)</span>までの距離が <span class="font-serif">r</span> という意味。</p>
+                    <ul class="space-y-4 bg-slate-50 p-4 rounded-xl text-sm">
+                        <li class="flex flex-col gap-2">
+                            <span class="font-serif font-bold text-base">(x - 4)² + (y + 1)² = 9</span>
+                            <div class="flex items-center gap-2 pl-4">
+                                中心( <input type="number" id="s2-q1-x" class="math-input"> , <input type="number" id="s2-q1-y" class="math-input"> ) 
+                                半径 <input type="number" id="s2-q1-r" class="math-input">
+                            </div>
+                        </li>
+                        <li class="flex flex-col gap-2 border-t border-slate-200 pt-3">
+                            <span class="font-serif font-bold text-base">(x + 2)² + (y - 5)² = 16</span>
+                            <div class="flex items-center gap-2 pl-4">
+                                中心( <input type="number" id="s2-q2-x" class="math-input"> , <input type="number" id="s2-q2-y" class="math-input"> ) 
+                                半径 <input type="number" id="s2-q2-r" class="math-input">
+                            </div>
+                        </li>
+                    </ul>
+                </section>
+
+                <section>
+                    <h2 class="text-lg font-bold text-blue-800 border-b-2 border-blue-200 pb-1 mb-3">4. 点は円の上・内・外のどこ？</h2>
+                    <p class="text-sm text-slate-600 mb-3">円 <span class="font-serif italic">x² + y² = 25</span> について、点を代入して比較しよう。シミュレータの赤い点Pを動かして確かめてね。</p>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-center border-collapse">
+                            <thead>
+                                <tr class="bg-blue-100 text-blue-800">
+                                    <th class="p-2 border border-blue-200 rounded-tl-lg">点</th>
+                                    <th class="p-2 border border-blue-200">左辺(x²+y²)</th>
+                                    <th class="p-2 border border-blue-200">25と比較</th>
+                                    <th class="p-2 border border-blue-200 rounded-tr-lg">位置</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="p-2 border border-slate-200 font-bold font-serif">A(3,4)</td>
+                                    <td class="p-2 border border-slate-200"><input type="number" id="s2-q3-val" class="math-input w-12"></td>
+                                    <td class="p-2 border border-slate-200">
+                                        <select id="s2-q3-comp" class="math-select">
+                                            <option value="">-</option><option value="=">=</option><option value="<">&lt;</option><option value=">">&gt;</option>
+                                        </select>
+                                    </td>
+                                    <td class="p-2 border border-slate-200">
+                                        <select id="s2-q3-pos" class="math-select text-xs">
+                                            <option value="">-</option><option value="on">円周上</option><option value="in">内側</option><option value="out">外側</option>
+                                        </select>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="p-2 border border-slate-200 font-bold font-serif">B(1,2)</td>
+                                    <td class="p-2 border border-slate-200"><input type="number" id="s2-q4-val" class="math-input w-12"></td>
+                                    <td class="p-2 border border-slate-200">
+                                        <select id="s2-q4-comp" class="math-select">
+                                            <option value="">-</option><option value="=">=</option><option value="<">&lt;</option><option value=">">&gt;</option>
+                                        </select>
+                                    </td>
+                                    <td class="p-2 border border-slate-200">
+                                        <select id="s2-q4-pos" class="math-select text-xs">
+                                            <option value="">-</option><option value="on">円周上</option><option value="in">内側</option><option value="out">外側</option>
+                                        </select>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="p-2 border border-slate-200 font-bold font-serif">C(6,0)</td>
+                                    <td class="p-2 border border-slate-200"><input type="number" id="s2-q5-val" class="math-input w-12"></td>
+                                    <td class="p-2 border border-slate-200">
+                                        <select id="s2-q5-comp" class="math-select">
+                                            <option value="">-</option><option value="=">=</option><option value="<">&lt;</option><option value=">">&gt;</option>
+                                        </select>
+                                    </td>
+                                    <td class="p-2 border border-slate-200">
+                                        <select id="s2-q5-pos" class="math-select text-xs">
+                                            <option value="">-</option><option value="on">円周上</option><option value="in">内側</option><option value="out">外側</option>
+                                        </select>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+                <button onclick="App.checkStep(2)" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl shadow-md transition-all">答え合わせをする</button>
+                <div id="step2-feedback" class="text-center mt-2 h-6"></div>
+            </div>
+
+            <!-- Step 3 Content -->
+            <div id="worksheet-3" class="worksheet-step flex-1 space-y-6 hidden">
+                <section>
+                    <h2 class="text-lg font-bold text-blue-800 border-b-2 border-blue-200 pb-1 mb-3">5. 円と直線の交点</h2>
+                    <p class="text-sm text-slate-600 mb-3">円 <span class="font-serif italic">x² + y² = 25</span> と直線 <span class="font-serif italic">y = x + 1</span> の交点は、2つの式を同時に満たす点です。</p>
+                    <div class="bg-blue-50 p-4 rounded-xl text-sm space-y-3 font-serif">
+                        <p><span class="not-italic">y を代入:</span> x² + ( <input type="text" id="s3-q1" class="math-input w-16 px-1"> )² = 25</p>
+                        <p><span class="not-italic">整理すると:</span> 2x² + 2x - 24 = 0<br>→ x² + x - 12 = 0</p>
+                        <p><span class="not-italic">因数分解:</span> (x + <input type="number" id="s3-q2" class="math-input">)(x - <input type="number" id="s3-q3" class="math-input">) = 0</p>
+                        <div class="mt-2 bg-white p-2 rounded border border-blue-200 text-center">
+                            <span class="font-bold">交点 P( <input type="number" id="s3-q4-x" class="math-input">, <input type="number" id="s3-q4-y" class="math-input"> )</span><br>
+                            <span class="font-bold mt-2 inline-block">交点 Q( <input type="number" id="s3-q5-x" class="math-input">, <input type="number" id="s3-q5-y" class="math-input"> )</span>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="text-lg font-bold text-blue-800 border-b-2 border-blue-200 pb-1 mb-3">6. 判別式で交点の個数を判断する</h2>
+                    <p class="text-sm text-slate-600 mb-3">シミュレータの切片 <span class="font-serif italic">k</span> を動かして、2次方程式の判別式 <span class="font-serif italic">D</span> と交点の数の関係を確認しよう。</p>
+                    <ul class="space-y-2 bg-slate-50 p-4 rounded-xl text-sm font-bold">
+                        <li class="flex justify-between items-center text-blue-700">
+                            <span>D > 0 のとき</span>
+                            <span>交点は <input type="number" id="s3-d-gt" class="math-input"> 個</span>
+                        </li>
+                        <li class="flex justify-between items-center text-green-700 border-t border-slate-200 pt-2">
+                            <span>D = 0 のとき</span>
+                            <span>交点は <input type="number" id="s3-d-eq" class="math-input"> 個</span>
+                        </li>
+                        <li class="flex justify-between items-center text-red-700 border-t border-slate-200 pt-2">
+                            <span>D < 0 のとき</span>
+                            <span>交点は <input type="number" id="s3-d-lt" class="math-input"> 個</span>
+                        </li>
+                    </ul>
+                </section>
+                <button onclick="App.checkStep(3)" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl shadow-md transition-all">答え合わせをする</button>
+                <div id="step3-feedback" class="text-center mt-2 h-6"></div>
+            </div>
+
+            <!-- Step 4 Content -->
+            <div id="worksheet-4" class="worksheet-step flex-1 space-y-6 hidden">
+                <section>
+                    <h2 class="text-lg font-bold text-blue-800 border-b-2 border-blue-200 pb-1 mb-3">7. 接線と半径</h2>
+                    <p class="text-sm text-slate-600 mb-4">シミュレータで接点Tをぐるぐると動かしてみよう。半径OTと接線の関係はどうなっているかな？</p>
+                    <div class="bg-orange-50 p-5 rounded-xl border border-orange-200 text-center space-y-4">
+                        <p class="font-bold text-slate-800 leading-relaxed">
+                            接点Tへ引いた半径OTと接線は<br>
+                            <select id="s4-q1" class="math-select mt-2 mb-2">
+                                <option value="">- 選択 -</option>
+                                <option value="平行">平行</option>
+                                <option value="垂直">垂直</option>
+                                <option value="交わらない">交わらない</option>
+                            </select><br>
+                            に交わる。
+                        </p>
+                        <p class="font-bold text-slate-800">
+                            角度は <input type="number" id="s4-q2" class="math-input"> ° になる。
+                        </p>
+                    </div>
+                </section>
+                <div class="mt-auto">
+                    <button onclick="App.checkStep(4)" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl shadow-md transition-all">答え合わせをする</button>
+                    <div id="step4-feedback" class="text-center mt-2 h-6"></div>
+                </div>
+            </div>
+
+            <!-- Step 5 Content -->
+            <div id="worksheet-5" class="worksheet-step flex-1 space-y-6 hidden">
+                <section>
+                    <h2 class="text-lg font-bold text-blue-800 border-b-2 border-blue-200 pb-1 mb-3">8. 出口問題</h2>
+                    <div class="space-y-4 text-sm">
+                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                            <p class="font-bold mb-2">① 中心(1, -2)、半径3の円の方程式を作る。</p>
+                            <p class="text-center font-serif text-base">
+                                (x - <input type="number" id="s5-q1-x" class="math-input">)² + (y + <input type="number" id="s5-q1-y" class="math-input">)² = <input type="number" id="s5-q1-r" class="math-input">
+                            </p>
+                        </div>
+                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                            <p class="font-bold mb-2">② 点A(4, -2)は、この円の上・内・外のどこか。</p>
+                            <div class="text-center">
+                                代入して計算すると <span class="font-serif">3² + 0² = 9</span> だから...<br>
+                                <select id="s5-q2" class="math-select mt-2">
+                                    <option value="">- 選択 -</option>
+                                    <option value="on">円周上</option>
+                                    <option value="in">円の内側</option>
+                                    <option value="out">円の外側</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="text-lg font-bold text-blue-800 border-b-2 border-blue-200 pb-1 mb-3">9. 3回の学習をつなぐ</h2>
+                    <p class="text-sm text-slate-600 mb-3">正しい言葉を選んで文章を完成させよう！</p>
+                    <div class="bg-blue-50 p-5 rounded-xl border border-blue-100 text-sm leading-loose text-slate-800 font-bold">
+                        点は 
+                        <select id="s5-q3-1" class="math-select mx-1 py-0 text-sm bg-white"><option value="">-</option><option value="座標">座標</option><option value="距離">距離</option><option value="角度">角度</option></select> 
+                        で表す。直線は点が従う 
+                        <select id="s5-q3-2" class="math-select mx-1 py-0 text-sm bg-white"><option value="">-</option><option value="関係式">関係式</option><option value="交点">交点</option><option value="図形">図形</option></select> 
+                        のルール。円は中心から 
+                        <select id="s5-q3-3" class="math-select mx-1 py-0 text-sm bg-white"><option value="">-</option><option value="座標">座標</option><option value="距離">距離</option><option value="角度">角度</option></select> 
+                        が一定の点の集まり。交点は2つの 
+                        <select id="s5-q3-4" class="math-select mx-1 py-0 text-sm bg-white"><option value="">-</option><option value="方程式">方程式</option><option value="点">点</option><option value="距離">距離</option></select> 
+                        を同時に満たす点である。
+                    </div>
+                </section>
+                <div class="mt-auto pb-4">
+                    <button onclick="App.checkStep(5)" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl shadow-md transition-all">全問チェックして修了！</button>
+                    <div id="step5-feedback" class="text-center mt-2 h-6"></div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        const SVG_NS = "http://www.w3.org/2000/svg";
+        const CANVAS_SIZE = 500;
+
+        // --- 描画エンジン ---
+        class GraphCanvas {
+            constructor(svgElement) {
+                this.svg = svgElement;
+                this.svg.setAttribute('viewBox', `0 0 ${CANVAS_SIZE} ${CANVAS_SIZE}`);
+                this.setWindow(-10, 10, -10, 10);
+            }
+
+            setWindow(xMin, xMax, yMin, yMax) {
+                this.xMin = xMin;
+                this.xMax = xMax;
+                this.yMin = yMin;
+                this.yMax = yMax;
+                this.scaleX = CANVAS_SIZE / (xMax - xMin);
+                this.scaleY = CANVAS_SIZE / (yMax - yMin);
+            }
+
+            clear() {
+                this.svg.innerHTML = '';
+            }
+
+            toSvgX(x) { return (x - this.xMin) * this.scaleX; }
+            toSvgY(y) { return (this.yMax - y) * this.scaleY; }
+            fromSvgX(sx) { return sx / this.scaleX + this.xMin; }
+            fromSvgY(sy) { return this.yMax - sy / this.scaleY; }
+
+            drawAxes(showGrid = true) {
+                if (showGrid) {
+                    for (let x = Math.ceil(this.xMin); x <= Math.floor(this.xMax); x++) {
+                        this.svg.appendChild(this.createLine(x, this.yMin, x, this.yMax, '#f1f5f9', x === 0 ? 2 : 1));
+                    }
+                    for (let y = Math.ceil(this.yMin); y <= Math.floor(this.yMax); y++) {
+                        this.svg.appendChild(this.createLine(this.xMin, y, this.xMax, y, '#f1f5f9', y === 0 ? 2 : 1));
+                    }
+                }
+                // Main axes
+                this.svg.appendChild(this.createLine(0, this.yMin, 0, this.yMax, '#94a3b8', 2));
+                this.svg.appendChild(this.createLine(this.xMin, 0, this.xMax, 0, '#94a3b8', 2));
+                
+                // Labels
+                const textX = document.createElementNS(SVG_NS, 'text');
+                textX.setAttribute('x', this.toSvgX(this.xMax) - 15);
+                textX.setAttribute('y', this.toSvgY(0) + 20);
+                textX.setAttribute('fill', '#64748b');
+                textX.textContent = 'x';
+                this.svg.appendChild(textX);
+
+                const textY = document.createElementNS(SVG_NS, 'text');
+                textY.setAttribute('x', this.toSvgX(0) + 10);
+                textY.setAttribute('y', this.toSvgY(this.yMax) + 15);
+                textY.setAttribute('fill', '#64748b');
+                textY.textContent = 'y';
+                this.svg.appendChild(textY);
+            }
+
+            createLine(x1, y1, x2, y2, color, strokeWidth = 1, dashArray = "") {
+                const line = document.createElementNS(SVG_NS, 'line');
+                line.setAttribute('x1', this.toSvgX(x1));
+                line.setAttribute('y1', this.toSvgY(y1));
+                line.setAttribute('x2', this.toSvgX(x2));
+                line.setAttribute('y2', this.toSvgY(y2));
+                line.setAttribute('stroke', color);
+                line.setAttribute('stroke-width', strokeWidth);
+                if(dashArray) line.setAttribute('stroke-dasharray', dashArray);
+                return line;
+            }
+
+            createCircle(x, y, r, strokeColor, fillColor, strokeWidth=2) {
+                const circle = document.createElementNS(SVG_NS, 'circle');
+                circle.setAttribute('cx', this.toSvgX(x));
+                circle.setAttribute('cy', this.toSvgY(y));
+                circle.setAttribute('r', r * this.scaleX);
+                circle.setAttribute('stroke', strokeColor);
+                circle.setAttribute('fill', fillColor);
+                circle.setAttribute('stroke-width', strokeWidth);
+                return circle;
+            }
+
+            createPoint(x, y, color, labelText, radius=5) {
+                const group = document.createElementNS(SVG_NS, 'g');
+                const dot = document.createElementNS(SVG_NS, 'circle');
+                dot.setAttribute('cx', this.toSvgX(x));
+                dot.setAttribute('cy', this.toSvgY(y));
+                dot.setAttribute('r', radius);
+                dot.setAttribute('fill', color);
+                
+                if (labelText) {
+                    const text = document.createElementNS(SVG_NS, 'text');
+                    text.setAttribute('x', this.toSvgX(x) + 8);
+                    text.setAttribute('y', this.toSvgY(y) - 8);
+                    text.setAttribute('fill', color);
+                    text.setAttribute('font-size', '16px');
+                    text.setAttribute('font-weight', 'bold');
+                    text.setAttribute('font-family', 'serif');
+                    text.textContent = labelText;
+                    group.appendChild(text);
+                }
+                group.appendChild(dot);
+                return group;
+            }
+        }
+
+        // --- アプリケーション状態とロジック ---
+        const App = {
+            currentStep: 1,
+            graph: null,
+            
+            step1: { foundPoints: [], isCompleted: false },
+            step2: { isDragging: false, p: {x: 3, y: 4} },
+            step3: { k: 1 },
+            step4: { angle: 53 },
+            
+            init() {
+                this.graph = new GraphCanvas(document.getElementById('main-svg'));
+                this.bindEvents();
+                this.showStep(1);
+            },
+            
+            bindEvents() {
+                const svgEl = document.getElementById('main-svg');
+                
+                // SVGに対するマウス/タッチイベント (Step 1 のクリック判定用)
+                const handleClick = (e) => {
+                    if (this.currentStep === 1) this.handleStep1Click(e);
+                };
+                svgEl.addEventListener('click', handleClick);
+                
+                // Drag Events (グローバル)
+                window.addEventListener('mousemove', (e) => this.handleDragMove(e));
+                window.addEventListener('touchmove', (e) => this.handleDragMove(e), {passive: false});
+                window.addEventListener('mouseup', () => this.handleDragEnd());
+                window.addEventListener('touchend', () => this.handleDragEnd());
+                
+                // Sliders
+                document.getElementById('s3-k-slider').addEventListener('input', (e) => {
+                    this.step3.k = parseFloat(e.target.value);
+                    this.initStep3();
+                });
+                document.getElementById('s4-angle-slider').addEventListener('input', (e) => {
+                    this.step4.angle = parseInt(e.target.value);
+                    this.initStep4();
+                });
+
+                // フォームの入力時に自動で簡易チェック（色を変えない、エラーを消す等）
+                document.querySelectorAll('input, select').forEach(el => {
+                    el.addEventListener('input', () => el.classList.remove('incorrect'));
+                });
+            },
+
+            showStep(stepNum) {
+                this.currentStep = stepNum;
+                
+                // タブ切り替え
+                document.querySelectorAll('.step-tab').forEach(t => {
+                    t.classList.remove('bg-white', 'text-blue-700', 'shadow');
+                    t.classList.add('bg-blue-800', 'text-blue-200');
+                });
+                const activeTab = document.getElementById(`tab-${stepNum}`);
+                activeTab.classList.remove('bg-blue-800', 'text-blue-200');
+                activeTab.classList.add('bg-white', 'text-blue-700', 'shadow');
+                
+                // ワークシート切り替え
+                document.querySelectorAll('.worksheet-step').forEach(w => w.classList.add('hidden'));
+                document.getElementById(`worksheet-${stepNum}`).classList.remove('hidden');
+                
+                // シミュレータのオーバーレイUI切り替え
+                document.querySelectorAll('.sim-panel').forEach(p => p.classList.add('hidden'));
+                const simPanel = document.getElementById(`sim-panel-${stepNum}`);
+                if (simPanel) simPanel.classList.remove('hidden');
+                
+                // 描画更新
+                if(stepNum === 1) this.initStep1();
+                if(stepNum === 2) this.initStep2();
+                if(stepNum === 3) this.initStep3();
+                if(stepNum === 4) this.initStep4();
+                if(stepNum === 5) this.initStep5();
+            },
+
+            getMathCoords(e) {
+                const rect = this.graph.svg.getBoundingClientRect();
+                // タッチイベントのサポート
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                
+                const ratioX = CANVAS_SIZE / rect.width;
+                const ratioY = CANVAS_SIZE / rect.height;
+                const svgX = (clientX - rect.left) * ratioX;
+                const svgY = (clientY - rect.top) * ratioY;
+                
+                return { x: this.graph.fromSvgX(svgX), y: this.graph.fromSvgY(svgY), cx: clientX, cy: clientY };
+            },
+
+            showTooltip(x, y, text, bgClass) {
+                const tt = document.getElementById('tooltip');
+                tt.textContent = text;
+                tt.className = `absolute text-white text-xs px-3 py-1.5 rounded shadow-lg pointer-events-none transform -translate-x-1/2 -translate-y-full mt-[-15px] z-50 transition-opacity ${bgClass}`;
+                
+                const container = document.getElementById('svg-container');
+                const rect = container.getBoundingClientRect();
+                tt.style.left = `${x - rect.left}px`;
+                tt.style.top = `${y - rect.top}px`;
+                tt.classList.remove('hidden');
+                
+                setTimeout(() => tt.classList.add('hidden'), 1500);
+            },
+
+            initStep1() {
+                this.graph.setWindow(-4, 10, -3, 11);
+                this.graph.clear();
+                this.graph.drawAxes();
+                
+                const cx = 2, cy = 3;
+                this.graph.svg.appendChild(this.graph.createPoint(cx, cy, '#ef4444', 'C(2,3)', 6));
+                
+                // うっすらと正解の円（ヒント）
+                const hint = this.graph.createCircle(cx, cy, 5, '#cbd5e1', 'none', 1);
+                hint.setAttribute('stroke-dasharray', '5,5');
+                this.graph.svg.appendChild(hint);
+                
+                // 見つけた点
+                this.step1.foundPoints.forEach(p => {
+                    this.graph.svg.appendChild(this.graph.createLine(cx, cy, p.x, p.y, 'rgba(59,130,246,0.3)', 2));
+                    this.graph.svg.appendChild(this.graph.createPoint(p.x, p.y, '#3b82f6', `(${p.x},${p.y})`));
+                });
+                
+                document.getElementById('s1-found-count').textContent = this.step1.foundPoints.length;
+                
+                if (this.step1.foundPoints.length >= 3) {
+                    this.step1.isCompleted = true;
+                    this.graph.svg.appendChild(this.graph.createCircle(cx, cy, 5, '#2563eb', 'none', 3));
+                    
+                    // フォームを有効化
+                    ['s1-q1', 's1-q2', 's1-q3'].forEach(id => {
+                        const el = document.getElementById(id);
+                        el.disabled = false;
+                        el.classList.add('bg-white');
+                    });
+                    const btn = document.getElementById('btn-check-1');
+                    btn.disabled = false;
+                    btn.className = "w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl shadow-md transition-all";
+                    
+                    const statusIcon = document.getElementById('s1-status-icon');
+                    statusIcon.className = "w-6 h-6 rounded-full bg-green-500 flex items-center justify-center text-white font-bold";
+                    statusIcon.innerHTML = "✓";
+                    document.getElementById('s1-status-text').textContent = "円が完成した！右の式を埋めよう。";
+                    document.getElementById('s1-status-text').className = "text-sm font-bold text-green-600";
+                }
+            },
+
+            handleStep1Click(e) {
+                if (this.step1.isCompleted) return;
+                
+                const coords = this.getMathCoords(e);
+                const mx = Math.round(coords.x);
+                const my = Math.round(coords.y);
+                
+                const distSq = Math.pow(mx - 2, 2) + Math.pow(my - 3, 2);
+                
+                if (distSq === 25) {
+                    const exists = this.step1.foundPoints.some(p => p.x === mx && p.y === my);
+                    if (!exists) {
+                        this.step1.foundPoints.push({x: mx, y: my});
+                        this.showTooltip(coords.cx, coords.cy, "正解！距離5です✨", "bg-green-600");
+                        this.initStep1();
+                    } else {
+                        this.showTooltip(coords.cx, coords.cy, "すでに見つけています", "bg-yellow-600");
+                    }
+                } else {
+                    const dist = Math.sqrt(distSq).toFixed(1);
+                    this.showTooltip(coords.cx, coords.cy, `距離は ${dist} (惜しい)`, "bg-red-500");
+                    const cross = this.graph.createPoint(mx, my, '#ef4444', '');
+                    this.graph.svg.appendChild(cross);
+                    setTimeout(() => cross.remove(), 1000);
+                }
+            },
+
+            initStep2() {
+                this.graph.setWindow(-8, 8, -8, 8);
+                this.graph.clear();
+                this.graph.drawAxes();
+                
+                // x^2 + y^2 = 25
+                this.graph.svg.appendChild(this.graph.createCircle(0, 0, 5, '#2563eb', 'rgba(37,99,235,0.05)', 2));
+                
+                // Draggable Point P
+                this.drawDraggablePointP2();
+                this.updateStep2UI();
+            },
+
+            drawDraggablePointP2() {
+                const group = document.createElementNS(SVG_NS, 'g');
+                const dot = document.createElementNS(SVG_NS, 'circle');
+                dot.setAttribute('r', 10);
+                dot.setAttribute('fill', '#ef4444');
+                dot.setAttribute('stroke', '#fff');
+                dot.setAttribute('stroke-width', '2');
+                dot.setAttribute('cursor', 'pointer');
+                dot.style.filter = "drop-shadow(0px 2px 2px rgba(0,0,0,0.3))";
+                
+                const text = document.createElementNS(SVG_NS, 'text');
+                text.setAttribute('dx', 15);
+                text.setAttribute('dy', -10);
+                text.setAttribute('font-size', '16px');
+                text.setAttribute('font-weight', 'bold');
+                text.setAttribute('font-family', 'serif');
+                text.setAttribute('fill', '#ef4444');
+
+                group.appendChild(dot);
+                group.appendChild(text);
+                this.graph.svg.appendChild(group);
+
+                const updateTransform = () => {
+                    group.setAttribute('transform', `translate(${this.graph.toSvgX(this.step2.p.x)}, ${this.graph.toSvgY(this.step2.p.y)})`);
+                    text.textContent = `P(${this.step2.p.x.toFixed(1)}, ${this.step2.p.y.toFixed(1)})`;
+                };
+                updateTransform();
+                
+                // 要素に直接インスタンスを紐づけてドラッグ処理内で参照
+                this.step2.updateTransform = updateTransform;
+
+                const startDrag = (e) => { e.preventDefault(); this.step2.isDragging = true; };
+                dot.addEventListener('mousedown', startDrag);
+                dot.addEventListener('touchstart', startDrag, {passive: false});
+            },
+
+            handleDragMove(e) {
+                if (!this.step2.isDragging || this.currentStep !== 2) return;
+                e.preventDefault(); // スクロール防止
+                
+                const coords = this.getMathCoords(e);
+                let nx = Math.round(coords.x * 10) / 10;
+                let ny = Math.round(coords.y * 10) / 10;
+                
+                if (nx < -8) nx = -8; if (nx > 8) nx = 8;
+                if (ny < -8) ny = -8; if (ny > 8) ny = 8;
+                
+                this.step2.p.x = nx;
+                this.step2.p.y = ny;
+                
+                this.step2.updateTransform();
+                this.updateStep2UI();
+            },
+
+            handleDragEnd() {
+                this.step2.isDragging = false;
+            },
+
+            updateStep2UI() {
+                const val = this.step2.p.x * this.step2.p.x + this.step2.p.y * this.step2.p.y;
+                document.getElementById('s2-p-coord').textContent = `(${this.step2.p.x.toFixed(1)}, ${this.step2.p.y.toFixed(1)})`;
+                document.getElementById('s2-p-val').textContent = val.toFixed(1);
+                
+                const compEl = document.getElementById('s2-p-comp');
+                // 誤差許容
+                if (Math.abs(val - 25) < 0.2) {
+                    compEl.textContent = "= (円周上)";
+                    compEl.className = "font-bold text-green-600";
+                    document.getElementById('s2-p-val').className = "font-mono font-bold text-green-600";
+                } else if (val < 25) {
+                    compEl.textContent = "< (円の内側)";
+                    compEl.className = "font-bold text-blue-600";
+                    document.getElementById('s2-p-val').className = "font-mono font-bold text-blue-600";
+                } else {
+                    compEl.textContent = "> (円の外側)";
+                    compEl.className = "font-bold text-red-600";
+                    document.getElementById('s2-p-val').className = "font-mono font-bold text-red-600";
+                }
+            },
+
+            initStep3() {
+                this.graph.setWindow(-8, 8, -8, 8);
+                this.graph.clear();
+                this.graph.drawAxes();
+                
+                this.graph.svg.appendChild(this.graph.createCircle(0, 0, 5, '#2563eb', 'none', 2));
+                
+                const k = this.step3.k;
+                document.getElementById('s3-k-val').textContent = k.toFixed(1);
+                
+                // y = x + k
+                this.graph.svg.appendChild(this.graph.createLine(-10, -10+k, 10, 10+k, '#ef4444', 2));
+                
+                // 交点計算: x^2 + (x+k)^2 = 25 -> 2x^2 + 2kx + (k^2-25) = 0
+                // 判別式 D/4 = k^2 - 2(k^2-25) = 50 - k^2
+                const d4 = 50 - k*k;
+                let sign = "", count = 0;
+                let colorClass = "";
+                
+                if (d4 > 0.01) {
+                    sign = "D > 0"; count = 2; colorClass = "text-blue-600";
+                    const x1 = (-k + Math.sqrt(d4)) / 2;
+                    const y1 = x1 + k;
+                    const x2 = (-k - Math.sqrt(d4)) / 2;
+                    const y2 = x2 + k;
+                    this.graph.svg.appendChild(this.graph.createPoint(x1, y1, '#f97316', 'P', 6));
+                    this.graph.svg.appendChild(this.graph.createPoint(x2, y2, '#f97316', 'Q', 6));
+                } else if (Math.abs(d4) <= 0.01) {
+                    sign = "D = 0"; count = 1; colorClass = "text-green-600";
+                    const x1 = -k / 2;
+                    const y1 = x1 + k;
+                    this.graph.svg.appendChild(this.graph.createPoint(x1, y1, '#f97316', '接点', 6));
+                } else {
+                    sign = "D < 0"; count = 0; colorClass = "text-red-600";
+                }
+                
+                const signEl = document.getElementById('s3-d-sign');
+                signEl.textContent = sign;
+                signEl.className = `font-bold text-xl mr-2 ${colorClass}`;
+                document.getElementById('s3-intersect-count').textContent = count;
+                document.getElementById('s3-intersect-count').parentElement.className = `text-sm font-bold px-3 py-1 rounded-full text-white ${count===2?'bg-blue-500':count===1?'bg-green-500':'bg-red-500'}`;
+            },
+
+            initStep4() {
+                this.graph.setWindow(-8, 8, -8, 8);
+                this.graph.clear();
+                this.graph.drawAxes(false);
+                
+                this.graph.svg.appendChild(this.graph.createCircle(0, 0, 5, '#2563eb', 'rgba(37,99,235,0.05)', 2));
+                
+                const rad = this.step4.angle * Math.PI / 180;
+                const tx = 5 * Math.cos(rad);
+                const ty = 5 * Math.sin(rad);
+                
+                // 半径
+                this.graph.svg.appendChild(this.graph.createLine(0, 0, tx, ty, '#f97316', 3));
+                this.graph.svg.appendChild(this.graph.createPoint(0, 0, '#333', 'O', 4));
+                
+                // 接線 (方向ベクトル: -sin, cos)
+                const dx = -Math.sin(rad);
+                const dy = Math.cos(rad);
+                const len = 12;
+                this.graph.svg.appendChild(this.graph.createLine(tx - dx*len, ty - dy*len, tx + dx*len, ty + dy*len, '#ef4444', 2));
+                
+                this.graph.svg.appendChild(this.graph.createPoint(tx, ty, '#ef4444', 'T', 6));
+                
+                // 直角マーク
+                this.drawRightAngleMark(tx, ty, rad);
+            },
+
+            drawRightAngleMark(tx, ty, rad) {
+                const size = 0.8;
+                // 接点Tを原点とした時の方向ベクトル
+                // 半径逆方向: (-cos, -sin)
+                // 接線方向: (-sin, cos) または (sin, -cos). 図が見やすい方を選ぶ（外積で判定などが良いが、ここでは単純に片側）
+                
+                const p1x = tx - size * Math.cos(rad);
+                const p1y = ty - size * Math.sin(rad);
+                const p2x = p1x - size * Math.sin(rad);
+                const p2y = p1y + size * Math.cos(rad);
+                const p3x = tx - size * Math.sin(rad);
+                const p3y = ty + size * Math.cos(rad);
+                
+                const path = document.createElementNS(SVG_NS, 'path');
+                path.setAttribute('d', `M ${this.graph.toSvgX(p1x)} ${this.graph.toSvgY(p1y)} L ${this.graph.toSvgX(p2x)} ${this.graph.toSvgY(p2y)} L ${this.graph.toSvgX(p3x)} ${this.graph.toSvgY(p3y)}`);
+                path.setAttribute('stroke', '#f97316');
+                path.setAttribute('fill', 'none');
+                path.setAttribute('stroke-width', '2');
+                this.graph.svg.appendChild(path);
+            },
+
+            initStep5() {
+                this.graph.setWindow(-8, 8, -8, 8);
+                this.graph.clear();
+                
+                const group = document.createElementNS(SVG_NS, 'g');
+                group.classList.add('animate-spin-slow');
+                
+                // 中心円
+                group.appendChild(this.graph.createCircle(0, 0, 5, '#2563eb', 'rgba(37,99,235,0.1)', 3));
+                
+                // 幾何学模様
+                for(let i=0; i<6; i++) {
+                    const ang = (i * 60) * Math.PI / 180;
+                    const x = 5 * Math.cos(ang);
+                    const y = 5 * Math.sin(ang);
+                    group.appendChild(this.graph.createLine(0, 0, x, y, '#f97316', 1, "4,4"));
+                    
+                    const dx = -Math.sin(ang);
+                    const dy = Math.cos(ang);
+                    group.appendChild(this.graph.createLine(x - dx*8, y - dy*8, x + dx*8, y + dy*8, '#3b82f6', 2));
+                    group.appendChild(this.graph.createPoint(x, y, '#ef4444', '', 5));
+                }
+                
+                // Transform Origin adjustment for SVG Group (Center)
+                group.setAttribute('transform-origin', `${this.graph.toSvgX(0)} ${this.graph.toSvgY(0)}`);
+                this.graph.svg.appendChild(group);
+
+                // 中央のテキスト
+                const text = document.createElementNS(SVG_NS, 'text');
+                text.setAttribute('x', this.graph.toSvgX(0));
+                text.setAttribute('y', this.graph.toSvgY(0));
+                text.setAttribute('text-anchor', 'middle');
+                text.setAttribute('dominant-baseline', 'middle');
+                text.setAttribute('font-size', '24px');
+                text.setAttribute('font-weight', 'bold');
+                text.setAttribute('fill', '#1e293b');
+                text.textContent = 'Congratulations!';
+                this.graph.svg.appendChild(text);
+            },
+
+            checkInput(id, expected) {
+                const el = document.getElementById(id);
+                const val = el.value.trim().toLowerCase();
+                const exp = expected.toLowerCase();
+                if (val === exp) {
+                    el.classList.remove('incorrect');
+                    el.classList.add('correct');
+                    return true;
+                } else {
+                    el.classList.remove('correct');
+                    if (val !== "") el.classList.add('incorrect');
+                    return false;
+                }
+            },
+
+            checkStep(step) {
+                let ok = true;
+                if (step === 1) {
+                    if (!this.step1.isCompleted) {
+                        alert("まずは左のグラフで、距離5の点を3つ探してタップしよう！");
+                        return;
+                    }
+                    ok &= this.checkInput('s1-q1', '2');
+                    ok &= this.checkInput('s1-q2', '3');
+                    ok &= this.checkInput('s1-q3', '25');
+                }
+                else if (step === 2) {
+                    ok &= this.checkInput('s2-q1-x', '4');
+                    ok &= this.checkInput('s2-q1-y', '-1');
+                    ok &= this.checkInput('s2-q1-r', '3');
+                    ok &= this.checkInput('s2-q2-x', '-2');
+                    ok &= this.checkInput('s2-q2-y', '5');
+                    ok &= this.checkInput('s2-q2-r', '4');
+                    ok &= this.checkInput('s2-q3-val', '25');
+                    ok &= this.checkInput('s2-q3-comp', '=');
+                    ok &= this.checkInput('s2-q3-pos', 'on');
+                    ok &= this.checkInput('s2-q4-val', '5');
+                    ok &= this.checkInput('s2-q4-comp', '<');
+                    ok &= this.checkInput('s2-q4-pos', 'in');
+                    ok &= this.checkInput('s2-q5-val', '36');
+                    ok &= this.checkInput('s2-q5-comp', '>');
+                    ok &= this.checkInput('s2-q5-pos', 'out');
+                }
+                else if (step === 3) {
+                    ok &= this.checkInput('s3-q1', 'x+1');
+                    ok &= this.checkInput('s3-q2', '4');
+                    ok &= this.checkInput('s3-q3', '3');
+                    ok &= this.checkInput('s3-q4-x', '-4');
+                    ok &= this.checkInput('s3-q4-y', '-3');
+                    ok &= this.checkInput('s3-q5-x', '3');
+                    ok &= this.checkInput('s3-q5-y', '4');
+                    ok &= this.checkInput('s3-d-gt', '2');
+                    ok &= this.checkInput('s3-d-eq', '1');
+                    ok &= this.checkInput('s3-d-lt', '0');
+                }
+                else if (step === 4) {
+                    ok &= this.checkInput('s4-q1', '垂直');
+                    ok &= this.checkInput('s4-q2', '90');
+                }
+                else if (step === 5) {
+                    ok &= this.checkInput('s5-q1-x', '1');
+                    ok &= this.checkInput('s5-q1-y', '2'); // (y+2)^2 なので入力は2を想定
+                    ok &= this.checkInput('s5-q1-r', '9');
+                    ok &= this.checkInput('s5-q2', 'on');
+                    ok &= this.checkInput('s5-q3-1', '座標');
+                    ok &= this.checkInput('s5-q3-2', '関係式');
+                    ok &= this.checkInput('s5-q3-3', '距離');
+                    ok &= this.checkInput('s5-q3-4', '方程式');
+                }
+
+                const fb = document.getElementById(`step${step}-feedback`);
+                if (ok) {
+                    fb.innerHTML = `<span class="text-green-600 font-bold bg-green-100 px-4 py-1 rounded-full">✨ 全問正解！素晴らしい！ ✨</span>`;
+                    // 次のステップがある場合は少し待ってから遷移を促すなどのエフェクトも可能
+                } else {
+                    fb.innerHTML = `<span class="text-red-500 font-bold bg-red-100 px-4 py-1 rounded-full">❌ 赤くなっているところを見直してみよう</span>`;
+                }
+            }
+        };
+
+        // 初期化
+        window.addEventListener('DOMContentLoaded', () => {
+            App.init();
+        });
+    </script>
+</body>
+</html>

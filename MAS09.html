@@ -1,0 +1,1121 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>角の二等分線 ひらめき大発見！〜ワークシート攻略ラボ〜</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: 読みやすく親しみやすい丸ゴシック -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <!-- Canvas Confetti -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <style>
+    body {
+      font-family: 'M PLUS Rounded 1c', sans-serif;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    .bounce-active:active {
+      transform: scale(0.97);
+    }
+    .pulse-glow {
+      animation: pulseGlow 2s infinite ease-in-out;
+    }
+    @keyframes pulseGlow {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(236, 72, 153, 0.4); }
+      50% { box-shadow: 0 0 0 10px rgba(236, 72, 153, 0); }
+    }
+    /* ドラッグハンドルのアニメーション */
+    .drag-dot {
+      cursor: grab;
+      transition: r 0.15s ease, filter 0.15s ease;
+    }
+    .drag-dot:hover {
+      r: 12;
+      filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.9));
+    }
+    .drag-dot:active {
+      cursor: grabbing;
+      r: 14;
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col antialiased">
+
+  <!-- ヘッダー -->
+  <header class="bg-white border-b border-indigo-100 shadow-sm sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 py-2.5 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 bg-gradient-to-tr from-pink-500 to-indigo-600 rounded-2xl flex items-center justify-center text-white text-xl shadow-md">
+          📐
+        </div>
+        <div>
+          <h1 class="text-lg md:text-xl font-black bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-700 bg-clip-text text-transparent">
+            角の二等分線 ひらめき大発見！
+          </h1>
+          <p class="text-[11px] text-slate-500 font-bold hidden sm:block">ワークシートがみるみる解ける！ビジュアル体験ラボ</p>
+        </div>
+      </div>
+
+      <!-- スコア＆サウンド -->
+      <div class="flex items-center space-x-3">
+        <div class="bg-amber-50 border border-amber-200 px-3 py-1 rounded-full flex items-center space-x-1.5 shadow-sm">
+          <span class="text-base">⭐</span>
+          <span id="star-count" class="font-black text-amber-700 text-sm">0</span>
+          <span class="text-[10px] text-amber-600 font-bold">XP</span>
+        </div>
+        <button id="sound-toggle-btn" class="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-base transition-colors" title="効果音切り替え">
+          🔊
+        </button>
+      </div>
+    </div>
+
+    <!-- ステップナビゲーションバー -->
+    <div class="bg-slate-50 border-t border-slate-200/80 px-4 py-1.5 overflow-x-auto">
+      <div class="max-w-7xl mx-auto flex items-center space-x-1 md:space-x-2 text-xs font-bold min-w-[620px]">
+        <button onclick="goToStep(0)" id="step-nav-0" class="step-nav-btn px-3 py-1.5 rounded-lg bg-pink-600 text-white font-extrabold shadow-sm flex items-center space-x-1">
+          <span>0️⃣</span><span>まず予想</span>
+        </button>
+        <span class="text-slate-300">➔</span>
+        <button onclick="goToStep(1)" id="step-nav-1" class="step-nav-btn px-3 py-1.5 rounded-lg bg-white hover:bg-pink-50 text-slate-600 flex items-center space-x-1 border border-slate-200">
+          <span>1️⃣</span><span>2つの小三角形</span>
+        </button>
+        <span class="text-slate-300">➔</span>
+        <button onclick="goToStep(2)" id="step-nav-2" class="step-nav-btn px-3 py-1.5 rounded-lg bg-white hover:bg-pink-50 text-slate-600 flex items-center space-x-1 border border-slate-200">
+          <span>2️⃣</span><span>面積の2つの見方</span>
+        </button>
+        <span class="text-slate-300">➔</span>
+        <button onclick="goToStep(3)" id="step-nav-3" class="step-nav-btn px-3 py-1.5 rounded-lg bg-white hover:bg-pink-50 text-slate-600 flex items-center space-x-1 border border-slate-200">
+          <span>3️⃣</span><span>類題1に挑戦</span>
+        </button>
+        <span class="text-slate-300">➔</span>
+        <button onclick="goToStep(4)" id="step-nav-4" class="step-nav-btn px-3 py-1.5 rounded-lg bg-white hover:bg-pink-50 text-slate-600 flex items-center space-x-1 border border-slate-200">
+          <span>4️⃣</span><span>外角の大冒険</span>
+        </button>
+        <span class="text-slate-300">➔</span>
+        <button onclick="goToStep(6)" id="step-nav-6" class="step-nav-btn px-3 py-1.5 rounded-lg bg-white hover:bg-pink-50 text-slate-600 flex items-center space-x-1 border border-slate-200">
+          <span>🏆</span><span>Step 6 実践</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="flex-grow max-w-7xl w-full mx-auto p-3 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-5">
+    
+    <!-- 左側：大型インタラクティブ図形キャンバス (7カラム) -->
+    <section class="lg:col-span-7 flex flex-col space-y-3">
+      
+      <!-- キャンバストップバー -->
+      <div class="bg-white rounded-2xl p-3 border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-2">
+        <!-- 内角 / 外角スイッチ -->
+        <div class="flex bg-slate-100 p-1 rounded-xl">
+          <button onclick="setBisectorMode('inner')" id="btn-mode-inner" class="px-3 py-1.5 rounded-lg text-xs font-black bg-pink-600 text-white shadow-sm transition-all">
+            内角の二等分線 (点P)
+          </button>
+          <button onclick="setBisectorMode('outer')" id="btn-mode-outer" class="px-3 py-1.5 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 transition-all">
+            外角の二等分線 (点Q)
+          </button>
+        </div>
+
+        <!-- プリセットボタン -->
+        <div class="flex items-center space-x-1 text-xs">
+          <span class="text-slate-400 font-bold hidden sm:inline">問題呼出:</span>
+          <button onclick="loadPreset('worksheet1')" class="px-2.5 py-1 bg-pink-50 hover:bg-pink-100 text-pink-700 font-black rounded-lg border border-pink-200">
+            類題1 (15:10)
+          </button>
+          <button onclick="loadPreset('outer')" class="px-2.5 py-1 bg-purple-50 hover:bg-purple-100 text-purple-700 font-black rounded-lg border border-purple-200">
+            外角 (9:6)
+          </button>
+          <button onclick="loadPreset('step6')" class="px-2.5 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-black rounded-lg border border-indigo-200">
+            Step 6 (8:12)
+          </button>
+        </div>
+      </div>
+
+      <!-- メイン図形ビュー (ダーク背景でレーザー光線と色分けを際立たせる) -->
+      <div class="relative bg-slate-900 rounded-3xl p-3 md:p-4 border-2 border-slate-700 shadow-xl overflow-hidden flex flex-col justify-between" style="min-height: 420px;">
+        
+        <!-- 操作ガイドチップ -->
+        <div class="absolute top-3 left-4 z-10 flex items-center space-x-2 pointer-events-none">
+          <span class="bg-indigo-950/80 border border-indigo-500/40 text-indigo-300 text-[11px] font-black px-2.5 py-1 rounded-full backdrop-blur-sm shadow">
+            🖐️ 頂点 A をドラッグして自由に動かせるよ！
+          </span>
+        </div>
+
+        <!-- リアルタイム比率ゲージ（一番の納得ポイント！） -->
+        <div class="absolute top-3 right-4 z-10 bg-slate-800/90 border border-slate-700 p-2.5 rounded-2xl shadow-lg backdrop-blur-sm text-center min-w-[150px]">
+          <div class="text-[10px] font-black text-slate-300 tracking-wider">リアルタイム比の一致</div>
+          <div class="flex items-center justify-center space-x-2 text-sm font-black mt-1">
+            <span id="gauge-left-ratio" class="text-pink-400">15 : 10</span>
+            <span class="text-white">＝</span>
+            <span id="gauge-right-ratio" class="text-amber-300">12 : 8</span>
+          </div>
+          <div id="gauge-status-badge" class="mt-1 text-[10px] bg-emerald-500/20 text-emerald-400 font-bold px-2 py-0.5 rounded-full border border-emerald-500/40">
+            ✨ 常にピッタリ同じ比率！
+          </div>
+        </div>
+
+        <!-- SVG 描画領域 -->
+        <svg id="geom-canvas" class="w-full h-[360px] md:h-[400px] select-none touch-none" viewBox="0 0 800 480" preserveAspectRatio="xMidYMid meet">
+          <!-- JSで動的に構築 -->
+        </svg>
+
+        <!-- 図形下の透視トグルボタン（高さや角の可視化） -->
+        <div class="mt-2 flex flex-wrap items-center justify-between gap-2 bg-slate-800/80 border border-slate-700 p-2 rounded-2xl">
+          <div class="flex items-center space-x-2">
+            <span class="text-xs font-black text-slate-300">透視レンズ:</span>
+            <button onclick="toggleVisualAid('height')" id="btn-aid-height" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-700 text-slate-300 hover:bg-slate-600 transition-all border border-slate-600">
+              📏 見方A: 共通の高さ (h)
+            </button>
+            <button onclick="toggleVisualAid('armDist')" id="btn-aid-arm" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-700 text-slate-300 hover:bg-slate-600 transition-all border border-slate-600">
+              📐 見方B: 共通の角・等しい距離
+            </button>
+          </div>
+          <button onclick="resetTrianglePosition()" class="text-xs text-indigo-400 hover:text-indigo-300 font-bold px-2 py-1">
+            ↺ 位置をリセット
+          </button>
+        </div>
+
+      </div>
+
+      <!-- スライダーで数値を自由に変更できるゾーン -->
+      <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm">
+        <div class="text-xs font-black text-slate-700 mb-2 flex items-center justify-between">
+          <span>🎛️ 辺の長さをスライダーで変えてみよう：</span>
+          <span class="text-[11px] text-slate-400">リアルタイムに図形が変形します</span>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <!-- 辺AB -->
+          <div class="bg-pink-50 p-2.5 rounded-xl border border-pink-200">
+            <div class="flex justify-between text-xs font-black text-pink-700 mb-1">
+              <span>左の辺 AB</span>
+              <span id="slider-ab-val" class="text-sm">15</span>
+            </div>
+            <input type="range" id="slider-ab" min="6" max="25" step="1" value="15" oninput="onSliderChange()" class="w-full h-2 bg-pink-200 rounded-lg appearance-none cursor-pointer accent-pink-600">
+          </div>
+          <!-- 辺AC -->
+          <div class="bg-blue-50 p-2.5 rounded-xl border border-blue-200">
+            <div class="flex justify-between text-xs font-black text-blue-700 mb-1">
+              <span>右の辺 AC</span>
+              <span id="slider-ac-val" class="text-sm">10</span>
+            </div>
+            <input type="range" id="slider-ac" min="6" max="25" step="1" value="10" oninput="onSliderChange()" class="w-full h-2 bg-blue-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
+          </div>
+          <!-- 底辺BC -->
+          <div class="bg-slate-100 p-2.5 rounded-xl border border-slate-300">
+            <div class="flex justify-between text-xs font-black text-slate-700 mb-1">
+              <span>向かいの底辺 BC</span>
+              <span id="slider-bc-val" class="text-sm">20</span>
+            </div>
+            <input type="range" id="slider-bc" min="10" max="30" step="1" value="20" oninput="onSliderChange()" class="w-full h-2 bg-slate-300 rounded-lg appearance-none cursor-pointer accent-slate-700">
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- 右側：ワークシート同期ラーニングカード (5カラム) -->
+    <section class="lg:col-span-5 flex flex-col space-y-4">
+      
+      <!-- ふくろう先生のひらめきメッセージ -->
+      <div class="bg-gradient-to-r from-indigo-900 to-purple-900 text-white rounded-3xl p-4 shadow-md flex items-start space-x-3 border border-indigo-700/50">
+        <div class="w-12 h-12 bg-white/10 rounded-2xl flex-shrink-0 flex items-center justify-center text-3xl border border-white/20">
+          🦉
+        </div>
+        <div>
+          <div class="flex items-center space-x-2">
+            <span class="font-extrabold text-sm text-pink-300">ふくろう先生のガイド</span>
+            <span id="guide-step-tag" class="text-[10px] bg-pink-500/30 text-pink-200 px-2 py-0.5 rounded-full font-bold border border-pink-400/40">Step 0</span>
+          </div>
+          <p id="guide-step-msg" class="text-xs text-slate-200 mt-1 font-medium leading-relaxed">
+            まずは予想してみよう！角を半分にするレーザーを撃つと、底辺の点Pは真ん中に来るかな？
+          </p>
+        </div>
+      </div>
+
+      <!-- 動的ステップコンテンツカード -->
+      <div class="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm flex-grow flex flex-col justify-between space-y-4">
+        
+        <!-- STEP 0: 予想する -->
+        <div id="panel-step-0" class="step-card space-y-4">
+          <div class="border-b border-slate-100 pb-3">
+            <span class="text-xs font-black text-pink-600 bg-pink-50 px-2.5 py-1 rounded-full">Step 0：まず予想する</span>
+            <h2 class="text-base md:text-lg font-black text-slate-800 mt-2">
+              APが∠Aを真っ二つに分けるとき、PはBCの真ん中に来る？
+            </h2>
+          </div>
+
+          <p class="text-xs text-slate-600 font-bold leading-relaxed">
+            左の辺（AB=15）と右の辺（AC=10）で長さが違います。点Pはどこに来ると思いますか？
+          </p>
+
+          <div class="grid grid-cols-1 gap-2">
+            <button onclick="answerStep0('center')" class="p-3 bg-slate-50 hover:bg-pink-50 border border-slate-200 hover:border-pink-300 rounded-2xl text-left font-extrabold text-xs transition-all bounce-active flex items-center justify-between">
+              <span>🔵 ちょうど真ん中に来る</span>
+              <span class="text-slate-400">➔</span>
+            </button>
+            <button onclick="answerStep0('not_center')" class="p-3 bg-slate-50 hover:bg-emerald-50 border border-slate-200 hover:border-emerald-300 rounded-2xl text-left font-extrabold text-xs transition-all bounce-active flex items-center justify-between">
+              <span>✨ 真ん中には来ない（偏る）</span>
+              <span class="text-emerald-500 font-black">オススメ！</span>
+            </button>
+            <button onclick="answerStep0('unknown')" class="p-3 bg-slate-50 hover:bg-indigo-50 border border-slate-200 hover:border-indigo-300 rounded-2xl text-left font-extrabold text-xs transition-all bounce-active flex items-center justify-between">
+              <span>❓ まだ分からない</span>
+              <span class="text-slate-400">➔</span>
+            </button>
+          </div>
+
+          <!-- Step0のフィードバック -->
+          <div id="step0-fb" class="hidden p-3.5 bg-indigo-50 border border-indigo-200 rounded-2xl text-xs font-bold text-indigo-900 leading-relaxed">
+            <!-- JSで挿入 -->
+          </div>
+        </div>
+
+        <!-- STEP 1: 2つの小三角形を見つける -->
+        <div id="panel-step-1" class="step-card hidden space-y-4">
+          <div class="border-b border-slate-100 pb-3">
+            <span class="text-xs font-black text-pink-600 bg-pink-50 px-2.5 py-1 rounded-full">Step 1：二つの小三角形を見つける</span>
+            <h2 class="text-base md:text-lg font-black text-slate-800 mt-2">
+              赤の小三角形と、青の小三角形を見比べよう！
+            </h2>
+          </div>
+
+          <p class="text-xs text-slate-600 font-bold leading-relaxed">
+            角の二等分線APによって、大きな△ABCは2つの部屋に分かれました。
+          </p>
+
+          <div class="space-y-2 text-xs font-bold">
+            <div class="flex items-center space-x-2 bg-pink-50 p-2.5 rounded-xl border border-pink-200 text-pink-900">
+              <span class="w-4 h-4 rounded bg-pink-500 flex-shrink-0"></span>
+              <span>左の小三角形：<strong>△ABP</strong>（左の辺ABと底辺BP）</span>
+            </div>
+            <div class="flex items-center space-x-2 bg-blue-50 p-2.5 rounded-xl border border-blue-200 text-blue-900">
+              <span class="w-4 h-4 rounded bg-blue-500 flex-shrink-0"></span>
+              <span>右の小三角形：<strong>△ACP</strong>（右の辺ACと底辺PC）</span>
+            </div>
+            <div class="flex items-center space-x-2 bg-amber-50 p-2.5 rounded-xl border border-amber-200 text-amber-900">
+              <span class="text-base">🤝</span>
+              <span>二つに共通する線：<strong>線分 AP</strong></span>
+            </div>
+          </div>
+
+          <div class="p-3 bg-slate-50 rounded-2xl border border-slate-200 text-center">
+            <button onclick="goToStep(2)" class="w-full py-2.5 bg-gradient-to-r from-pink-600 to-indigo-600 hover:from-pink-700 hover:to-indigo-700 text-white font-black rounded-xl text-xs shadow-md bounce-active">
+              Step 2：面積を2通りに見てみよう！ ➔
+            </button>
+          </div>
+        </div>
+
+        <!-- STEP 2: 面積を二通りに見る（最も重要な核心部分！） -->
+        <div id="panel-step-2" class="step-card hidden space-y-4">
+          <div class="border-b border-slate-100 pb-3">
+            <span class="text-xs font-black text-pink-600 bg-pink-50 px-2.5 py-1 rounded-full">Step 2：公式のヒミツ！面積を二通りに見る</span>
+            <h2 class="text-base md:text-lg font-black text-slate-800 mt-2">
+              なぜ「AB : AC ＝ BP : PC」になるの？
+            </h2>
+          </div>
+
+          <!-- 見方A -->
+          <div class="bg-emerald-50/70 border border-emerald-200 p-3 rounded-2xl space-y-1">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-black text-emerald-900">🔍 見方A：BCを底辺とする</span>
+              <button onclick="toggleVisualAid('height')" class="text-[10px] bg-emerald-600 text-white px-2 py-0.5 rounded-lg font-black">
+                高さを図で見る
+              </button>
+            </div>
+            <p class="text-[11px] text-emerald-800 font-bold leading-relaxed">
+              頂点Aから下ろした<strong>高さはどちらも同じ！</strong><br>
+              だから面積の比は、そのまま底辺の比 <span class="bg-white px-1 rounded text-emerald-900 font-black border border-emerald-300">BP : PC</span> になる！
+            </p>
+          </div>
+
+          <!-- 見方B -->
+          <div class="bg-indigo-50/70 border border-indigo-200 p-3 rounded-2xl space-y-1">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-black text-indigo-900">🔍 見方B：APを底辺とする</span>
+              <button onclick="toggleVisualAid('armDist')" class="text-[10px] bg-indigo-600 text-white px-2 py-0.5 rounded-lg font-black">
+                等しい距離を図で見る
+              </button>
+            </div>
+            <p class="text-[11px] text-indigo-800 font-bold leading-relaxed">
+              角の二等分線上の点Pから左右の腕への<strong>距離は同じ！</strong><br>
+              だから面積の比は、左右の辺の比 <span class="bg-white px-1 rounded text-indigo-900 font-black border border-indigo-300">AB : AC</span> になる！
+            </p>
+          </div>
+
+          <!-- まとめ式 -->
+          <div class="bg-slate-900 text-white p-3.5 rounded-2xl text-center space-y-1">
+            <span class="text-[10px] text-amber-300 font-bold">2つの見方をつなげると…</span>
+            <div class="text-lg md:text-xl font-black text-amber-300 tracking-wider">
+              AB : AC ＝ BP : PC
+            </div>
+            <p class="text-[11px] text-slate-300 font-bold">
+              「左の辺 : 右の辺 ＝ 左の部分 : 右の部分」がいつも成り立つ！
+            </p>
+          </div>
+
+          <button onclick="goToStep(3)" class="w-full py-2.5 bg-pink-600 hover:bg-pink-700 text-white font-black rounded-xl text-xs shadow-md bounce-active">
+            類題1を解いてみよう！ ➔
+          </button>
+        </div>
+
+        <!-- STEP 3: 類題1を解く -->
+        <div id="panel-step-3" class="step-card hidden space-y-4">
+          <div class="border-b border-slate-100 pb-3">
+            <span class="text-xs font-black text-pink-600 bg-pink-50 px-2.5 py-1 rounded-full">Step 3：類題1を解く</span>
+            <h2 class="text-base md:text-lg font-black text-slate-800 mt-2">
+              AB=15, AC=10, BC=20 のとき、BPとPCは？
+            </h2>
+          </div>
+
+          <div class="space-y-3 bg-slate-50 p-3.5 rounded-2xl border border-slate-200 text-xs font-bold">
+            <div>
+              <span class="text-slate-500">① 比を簡単にする：</span>
+              <div class="text-sm font-black text-slate-800 mt-0.5">
+                BP : PC ＝ 15 : 10 ＝ <span class="text-pink-600">3</span> : <span class="text-blue-600">2</span>
+              </div>
+            </div>
+            <div>
+              <span class="text-slate-500">② 全体の比の合計：</span>
+              <div class="text-sm font-black text-slate-800 mt-0.5">
+                3 ＋ 2 ＝ <span class="text-indigo-600">5 等分</span>
+              </div>
+            </div>
+            <div>
+              <span class="text-slate-500">③ 比の1個分の長さ：</span>
+              <div class="text-sm font-black text-slate-800 mt-0.5">
+                20 ÷ 5 ＝ <span class="text-emerald-600">4</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 解答入力 -->
+          <div class="grid grid-cols-2 gap-3">
+            <div class="bg-pink-50 p-2.5 rounded-xl border border-pink-200">
+              <label class="block text-[11px] font-black text-pink-700 mb-1">BP (3個分):</label>
+              <input type="number" id="input-step3-bp" placeholder="例: 12" class="w-full text-center py-1.5 border-2 border-pink-300 rounded-lg font-black text-sm focus:outline-none focus:border-pink-600">
+            </div>
+            <div class="bg-blue-50 p-2.5 rounded-xl border border-blue-200">
+              <label class="block text-[11px] font-black text-blue-700 mb-1">PC (2個分):</label>
+              <input type="number" id="input-step3-pc" placeholder="例: 8" class="w-full text-center py-1.5 border-2 border-blue-300 rounded-lg font-black text-sm focus:outline-none focus:border-blue-600">
+            </div>
+          </div>
+
+          <button onclick="checkStep3Answer()" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-xl text-xs shadow-md bounce-active">
+            答え合わせをする！
+          </button>
+
+          <div id="step3-fb" class="hidden p-3 rounded-xl text-xs font-bold"></div>
+        </div>
+
+        <!-- STEP 4: 外角の二等分線 -->
+        <div id="panel-step-4" class="step-card hidden space-y-4">
+          <div class="border-b border-slate-100 pb-3">
+            <span class="text-xs font-black text-purple-600 bg-purple-50 px-2.5 py-1 rounded-full">Step 4：外角の二等分線</span>
+            <h2 class="text-base md:text-lg font-black text-slate-800 mt-2">
+              点Qが外に飛び出す！何が起きてる？
+            </h2>
+          </div>
+
+          <div class="bg-purple-50 border border-purple-200 p-3 rounded-2xl text-xs font-bold space-y-2 text-purple-900">
+            <div class="flex items-center gap-1 font-black">
+              <span>💡</span><span>ここが超重要ポイント！</span>
+            </div>
+            <p class="leading-relaxed">
+              外角でも「<strong>二つの小三角形を比べる</strong>」考え方は全く同じ！<br>
+              比は <span class="bg-white px-1.5 py-0.5 rounded border border-purple-300 text-purple-800 font-black">BQ : CQ ＝ AB : AC ＝ 9 : 6 ＝ 3 : 2</span> です。
+            </p>
+            <div class="bg-white p-2.5 rounded-xl border border-purple-200 text-slate-800">
+              <span class="text-purple-700 font-black">内角との違いは？</span><br>
+              ・内角：BP <strong>＋</strong> PC ＝ BC（和）<br>
+              ・外角：BQ <strong>ー</strong> CQ ＝ BC（差！）
+            </div>
+          </div>
+
+          <!-- クイズ -->
+          <div class="bg-slate-50 p-3 rounded-2xl border border-slate-200 space-y-2">
+            <span class="text-xs font-black text-slate-700">BC＝5 のとき、CQの長さは？</span>
+            <p class="text-[11px] text-slate-500 font-bold">比の差（3 - 2 = 1個分）が、もとの辺BC（5）に相当するよ！</p>
+            <div class="flex items-center space-x-2">
+              <input type="number" id="input-step4-cq" placeholder="数値を入力" class="w-32 text-center py-1.5 border-2 border-purple-300 rounded-lg font-black text-sm focus:outline-none focus:border-purple-600">
+              <button onclick="checkStep4Answer()" class="flex-1 py-2 bg-purple-600 hover:bg-purple-700 text-white font-black rounded-lg text-xs shadow-md bounce-active">
+                判定する
+              </button>
+            </div>
+          </div>
+
+          <div id="step4-fb" class="hidden p-3 rounded-xl text-xs font-bold"></div>
+        </div>
+
+        <!-- STEP 6: 一人で使ってみる -->
+        <div id="panel-step-6" class="step-card hidden space-y-4">
+          <div class="border-b border-slate-100 pb-3">
+            <span class="text-xs font-black text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-full">Step 6：一人で使ってみる</span>
+            <h2 class="text-base md:text-lg font-black text-slate-800 mt-2">
+              AB=8, BC=12, AC=15。BDが∠Bの二等分線！
+            </h2>
+          </div>
+
+          <div class="bg-amber-50 border border-amber-200 p-3 rounded-2xl text-xs font-bold text-amber-900 space-y-1">
+            <div class="flex items-center gap-1 font-black">
+              <span>⚠️</span><span>どの角が二等分されている？</span>
+            </div>
+            <p class="leading-relaxed">
+              今回は「<strong>∠B</strong>」が半分に割られています！<br>
+              角の両側の辺は <span class="underline">BA（8）</span> と <span class="underline">BC（12）</span> です。<br>
+              向かいの辺AC（15）が AD と DC に分かれます。
+            </p>
+          </div>
+
+          <div class="bg-slate-50 p-3 rounded-2xl border border-slate-200 text-xs font-bold space-y-1">
+            <div>対応する比：AD : DC ＝ 8 : 12 ＝ <strong>2 : 3</strong></div>
+            <div>全体の長さ：AD ＋ DC ＝ <strong>15</strong></div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div class="bg-pink-50 p-2.5 rounded-xl border border-pink-200">
+              <label class="block text-[11px] font-black text-pink-700 mb-1">AD の長さ:</label>
+              <input type="number" id="input-step6-ad" placeholder="例: 6" class="w-full text-center py-1.5 border-2 border-pink-300 rounded-lg font-black text-sm focus:outline-none">
+            </div>
+            <div class="bg-blue-50 p-2.5 rounded-xl border border-blue-200">
+              <label class="block text-[11px] font-black text-blue-700 mb-1">DC の長さ:</label>
+              <input type="number" id="input-step6-dc" placeholder="例: 9" class="w-full text-center py-1.5 border-2 border-blue-300 rounded-lg font-black text-sm focus:outline-none">
+            </div>
+          </div>
+
+          <button onclick="checkStep6Answer()" class="w-full py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-black rounded-xl text-xs shadow-md bounce-active">
+            答え合わせをする！
+          </button>
+
+          <div id="step6-fb" class="hidden p-3 rounded-xl text-xs font-bold"></div>
+        </div>
+
+        <!-- ワークシートの確認チェックリスト -->
+        <div class="bg-slate-50 p-3 rounded-2xl border border-slate-200 text-xs font-bold text-slate-600">
+          <div class="flex items-center justify-between text-slate-800 mb-1.5">
+            <span class="font-black text-[11px]">📝 ワークシート攻略の極意</span>
+            <span class="text-[10px] text-pink-600">5つの手順</span>
+          </div>
+          <ol class="list-decimal list-inside space-y-0.5 text-[10px] text-slate-500">
+            <li>二等分されている角を見つける</li>
+            <li>両側の辺と、向かい側の2つの部分を同じ色で結ぶ</li>
+            <li>「左 : 右 ＝ 左 : 右」の比を立てる</li>
+            <li>内側なら和（＋）、外側なら差（ー）</li>
+            <li>図と答えの大小を見比べる！</li>
+          </ol>
+        </div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- フッター -->
+  <footer class="bg-white border-t border-slate-200 py-3 text-center text-xs text-slate-400 font-bold">
+    角の二等分線 ひらめき大発見！ ・ 数学A ワークシート完全連動学習ラボ
+  </footer>
+
+  <script>
+    // --- 1. オーディオエンジン (Web Audio API) ---
+    let audioCtx = null;
+    let soundEnabled = true;
+
+    function initAudio() {
+      if (!audioCtx) {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        audioCtx = new AudioContext();
+      }
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+    }
+
+    function playTone(freq = 440, type = 'sine', duration = 0.15, gainVal = 0.1) {
+      if (!soundEnabled) return;
+      try {
+        initAudio();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(gainVal, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      } catch(e) {}
+    }
+
+    function playSuccess() {
+      if (!soundEnabled) return;
+      [523.25, 659.25, 783.99, 1046.50].forEach((f, i) => {
+        setTimeout(() => playTone(f, 'triangle', 0.2, 0.12), i * 90);
+      });
+    }
+
+    document.getElementById('sound-toggle-btn').addEventListener('click', () => {
+      soundEnabled = !soundEnabled;
+      document.getElementById('sound-toggle-btn').textContent = soundEnabled ? '🔊' : '🔇';
+    });
+
+    let totalScore = 0;
+    function addScore(pts = 10) {
+      totalScore += pts;
+      document.getElementById('star-count').textContent = totalScore;
+      if (typeof confetti === 'function') {
+        confetti({ particleCount: 35, spread: 55, origin: { y: 0.6 } });
+      }
+    }
+
+    // --- 2. 幾何学モデルの状態管理 ---
+    // ワークシート標準: AB=15, AC=10, BC=20
+    const state = {
+      ab: 15,
+      ac: 10,
+      bc: 20,
+      mode: 'inner', // 'inner' or 'outer'
+      showHeight: false,
+      showArmDist: false,
+      // ドラッグによるA頂点のオフセット（比率計算ではなく形状を自由にいじって体感）
+      dragA: null, // {x, y}
+      currentStep: 0
+    };
+
+    // 最大公約数（比を簡単にする）
+    function gcd(a, b) {
+      a = Math.round(a * 100);
+      b = Math.round(b * 100);
+      const _gcd = (x, y) => (!y ? x : _gcd(y, x % y));
+      return _gcd(a, b) / 100;
+    }
+
+    function simplifyRatio(n1, n2) {
+      const g = gcd(n1, n2);
+      if (g === 0) return `${n1} : ${n2}`;
+      const r1 = Math.round(n1 / g);
+      const r2 = Math.round(n2 / g);
+      return `${r1} : ${r2}`;
+    }
+
+    // --- 3. ステップナビゲーション ---
+    function goToStep(stepNum) {
+      playTone(550, 'sine', 0.08);
+      state.currentStep = stepNum;
+
+      // すべてのパネルを隠す
+      document.querySelectorAll('.step-card').forEach(p => p.classList.add('hidden'));
+      document.querySelectorAll('.step-nav-btn').forEach(btn => {
+        btn.classList.remove('bg-pink-600', 'text-white', 'font-extrabold');
+        btn.classList.add('bg-white', 'text-slate-600');
+      });
+
+      // 対象パネルを表示
+      const targetPanel = document.getElementById(`panel-step-${stepNum}`);
+      if (targetPanel) targetPanel.classList.remove('hidden');
+
+      const targetBtn = document.getElementById(`step-nav-${stepNum}`);
+      if (targetBtn) {
+        targetBtn.classList.remove('bg-white', 'text-slate-600');
+        targetBtn.classList.add('bg-pink-600', 'text-white', 'font-extrabold');
+      }
+
+      // ふくろう先生のセリフ更新
+      updateOwlMessage(stepNum);
+
+      // ステップに応じた推奨プリセット
+      if (stepNum === 3) loadPreset('worksheet1');
+      if (stepNum === 4) loadPreset('outer');
+      if (stepNum === 6) loadPreset('step6');
+      
+      renderCanvas();
+    }
+
+    function updateOwlMessage(step) {
+      const tag = document.getElementById('guide-step-tag');
+      const msg = document.getElementById('guide-step-msg');
+      tag.textContent = `Step ${step}`;
+
+      if (step === 0) {
+        msg.textContent = "まずは予想してみよう！角を半分にするレーザーを撃つと、底辺の点Pは真ん中に来るかな？";
+      } else if (step === 1) {
+        msg.textContent = "図を見てごらん！APの線で『赤の部屋』と『青の部屋』の2つに分かれたね。共通の壁はAPだよ！";
+      } else if (step === 2) {
+        msg.textContent = "ここが最大の核心！底辺から見ても、腕から見ても、高さがそれぞれ等しいから比が一致するんだ！";
+      } else if (step === 3) {
+        msg.textContent = "ワークシートの類題1に挑戦！15:10を簡単な比にして、全体の20を分け合ってみよう！";
+      } else if (step === 4) {
+        msg.textContent = "外角の二等分線は点が外側に飛び出すよ！内角との違いは『和』か『差』かだけなんだ！";
+      } else if (step === 6) {
+        msg.textContent = "一人で挑戦！今回は∠Bが二等分されているから、角を挟む辺はBAとBCだよ。惑わされないで！";
+      }
+    }
+
+    function answerStep0(type) {
+      const fb = document.getElementById('step0-fb');
+      fb.classList.remove('hidden');
+      if (type === 'not_center') {
+        playSuccess();
+        addScore(10);
+        fb.className = "p-3.5 bg-emerald-50 border border-emerald-300 rounded-2xl text-xs font-bold text-emerald-900 leading-relaxed";
+        fb.innerHTML = `
+          🎉 <strong>大正解！すばらしい直感です！</strong><br>
+          左の辺（15）の方が右の辺（10）より長いので、点Pは右側（Cのほう）に引っ張られて真ん中からズレます。<br>
+          <button onclick="goToStep(1)" class="mt-2 text-pink-600 underline font-black">次のStep 1へ進もう ➔</button>
+        `;
+      } else {
+        playTone(330, 'sawtooth', 0.2);
+        fb.className = "p-3.5 bg-amber-50 border border-amber-300 rounded-2xl text-xs font-bold text-amber-900 leading-relaxed";
+        fb.innerHTML = `
+          💡 <strong>図をよーく観察してみよう！</strong><br>
+          もしABとACが同じ長さ（二等辺三角形）なら真ん中に来ますが、今は左辺(15)の方が右辺(10)より長いですね。<br>
+          キャンバスの図形を見ても、Pは真ん中から少しズレています！<br>
+          <button onclick="goToStep(1)" class="mt-2 text-pink-600 underline font-black">Step 1で確かめてみよう ➔</button>
+        `;
+      }
+    }
+
+    function checkStep3Answer() {
+      const bp = parseFloat(document.getElementById('input-step3-bp').value);
+      const pc = parseFloat(document.getElementById('input-step3-pc').value);
+      const fb = document.getElementById('step3-fb');
+      fb.classList.remove('hidden');
+
+      if (bp === 12 && pc === 8) {
+        playSuccess();
+        addScore(20);
+        fb.className = "p-3 bg-emerald-50 text-emerald-800 border border-emerald-300 rounded-xl";
+        fb.innerHTML = "🎉 <strong>パーフェクト！BP = 12, PC = 8 です！</strong><br>AB(15) > AC(10) だから、答えも BP(12) > PC(8) になっていますね！";
+      } else {
+        playTone(300, 'sawtooth', 0.2);
+        fb.className = "p-3 bg-rose-50 text-rose-800 border border-rose-300 rounded-xl";
+        fb.innerHTML = "🤔 <strong>おしい！</strong><br>全体の20を 3 : 2（合計5等分）に分けるよ。1個分は 20 ÷ 5 ＝ 4 だね！";
+      }
+    }
+
+    function checkStep4Answer() {
+      const cq = parseFloat(document.getElementById('input-step4-cq').value);
+      const fb = document.getElementById('step4-fb');
+      fb.classList.remove('hidden');
+
+      if (cq === 10) {
+        playSuccess();
+        addScore(20);
+        fb.className = "p-3 bg-emerald-50 text-emerald-800 border border-emerald-300 rounded-xl";
+        fb.innerHTML = "🎉 <strong>大正解！CQ = 10 です！</strong><br>比の差 3 - 2 = 1個分 が 5 なので、CQ(比2個分)は 5 × 2 = 10 になります！";
+      } else {
+        playTone(300, 'sawtooth', 0.2);
+        fb.className = "p-3 bg-rose-50 text-rose-800 border border-rose-300 rounded-xl";
+        fb.innerHTML = "🤔 <strong>もう一度！</strong><br>BQ : CQ ＝ 3 : 2 なので、BQ ー CQ ＝ 1個分。この1個分がBC(5)と同じ長さだよ！";
+      }
+    }
+
+    function checkStep6Answer() {
+      const ad = parseFloat(document.getElementById('input-step6-ad').value);
+      const dc = parseFloat(document.getElementById('input-step6-dc').value);
+      const fb = document.getElementById('step6-fb');
+      fb.classList.remove('hidden');
+
+      if (ad === 6 && dc === 9) {
+        playSuccess();
+        addScore(30);
+        fb.className = "p-3 bg-emerald-50 text-emerald-800 border border-emerald-300 rounded-xl";
+        fb.innerHTML = "🎉 <strong>見事クリア！AD = 6, DC = 9 です！</strong><br>角の二等分線の向きが変わっても、完璧に対応する辺を見抜けましたね！";
+      } else {
+        playTone(300, 'sawtooth', 0.2);
+        fb.className = "p-3 bg-rose-50 text-rose-800 border border-rose-300 rounded-xl";
+        fb.innerHTML = "🤔 <strong>おしい！</strong><br>AD : DC ＝ BA : BC ＝ 8 : 12 ＝ 2 : 3 です。全体15を5等分すると1個分は3だよ！";
+      }
+    }
+
+    function loadPreset(type) {
+      playTone(600, 'triangle', 0.1);
+      state.dragA = null; // リセット
+      if (type === 'worksheet1') {
+        state.ab = 15; state.ac = 10; state.bc = 20;
+        setBisectorMode('inner');
+      } else if (type === 'outer') {
+        state.ab = 9; state.ac = 6; state.bc = 5;
+        setBisectorMode('outer');
+      } else if (type === 'step6') {
+        state.ab = 8; state.ac = 12; state.bc = 15;
+        setBisectorMode('inner');
+      }
+      syncSlidersFromState();
+      renderCanvas();
+    }
+
+    function setBisectorMode(m) {
+      state.mode = m;
+      const bInner = document.getElementById('btn-mode-inner');
+      const bOuter = document.getElementById('btn-mode-outer');
+      if (m === 'inner') {
+        bInner.className = "px-3 py-1.5 rounded-lg text-xs font-black bg-pink-600 text-white shadow-sm transition-all";
+        bOuter.className = "px-3 py-1.5 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 transition-all";
+      } else {
+        bOuter.className = "px-3 py-1.5 rounded-lg text-xs font-black bg-purple-600 text-white shadow-sm transition-all";
+        bInner.className = "px-3 py-1.5 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 transition-all";
+      }
+      renderCanvas();
+    }
+
+    function toggleVisualAid(aid) {
+      playTone(450, 'sine', 0.08);
+      if (aid === 'height') {
+        state.showHeight = !state.showHeight;
+        const b = document.getElementById('btn-aid-height');
+        b.className = state.showHeight 
+          ? "px-2.5 py-1 rounded-lg text-xs font-black bg-emerald-500 text-white shadow" 
+          : "px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-700 text-slate-300 hover:bg-slate-600 border border-slate-600";
+      } else if (aid === 'armDist') {
+        state.showArmDist = !state.showArmDist;
+        const b = document.getElementById('btn-aid-arm');
+        b.className = state.showArmDist 
+          ? "px-2.5 py-1 rounded-lg text-xs font-black bg-indigo-500 text-white shadow" 
+          : "px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-700 text-slate-300 hover:bg-slate-600 border border-slate-600";
+      }
+      renderCanvas();
+    }
+
+    function onSliderChange() {
+      state.ab = parseFloat(document.getElementById('slider-ab').value);
+      state.ac = parseFloat(document.getElementById('slider-ac').value);
+      state.bc = parseFloat(document.getElementById('slider-bc').value);
+      state.dragA = null; // スライダー変更時は幾何計算に基づく座標に戻す
+      syncSlidersFromState();
+      renderCanvas();
+    }
+
+    function syncSlidersFromState() {
+      document.getElementById('slider-ab').value = state.ab;
+      document.getElementById('slider-ac').value = state.ac;
+      document.getElementById('slider-bc').value = state.bc;
+      document.getElementById('slider-ab-val').textContent = state.ab;
+      document.getElementById('slider-ac-val').textContent = state.ac;
+      document.getElementById('slider-bc-val').textContent = state.bc;
+    }
+
+    function resetTrianglePosition() {
+      state.dragA = null;
+      renderCanvas();
+      playTone(400, 'sine', 0.1);
+    }
+
+    // --- 4. 幾何学スケーリング＆SVG描画コア ---
+    function renderCanvas() {
+      const svg = document.getElementById('geom-canvas');
+      const c = state.ab;
+      const b = state.ac;
+      const a = state.bc;
+
+      // 三角形が作れるかのチェック (2辺の和 > 他の1辺)
+      if (a + b <= c || a + c <= b || b + c <= a) {
+        svg.innerHTML = `
+          <text x="400" y="240" fill="#f87171" font-size="20" font-weight="900" text-anchor="middle">
+            ⚠️ 三角形が作れません！（2辺の合計は残りの1辺より長くしてね）
+          </text>
+        `;
+        return;
+      }
+
+      // 1. 幾何計算 (ベース座標)
+      // B を原点(0, 0), C を (a, 0)
+      let Ax, Ay;
+      if (state.dragA) {
+        Ax = state.dragA.x;
+        Ay = state.dragA.y;
+      } else {
+        const cosB = (a * a + c * c - b * b) / (2 * a * c);
+        const sinB = Math.sqrt(Math.max(0, 1 - cosB * cosB));
+        Ax = c * cosB;
+        Ay = c * sinB;
+      }
+
+      const B = { x: 0, y: 0 };
+      const C = { x: a, y: 0 };
+      const A = { x: Ax, y: Ay };
+
+      // 点P（またはQ）の計算
+      let P = { x: 0, y: 0 };
+      let bpLen = 0, pcLen = 0;
+      const pointLetter = state.mode === 'inner' ? 'P' : 'Q';
+
+      if (state.mode === 'inner') {
+        const r = c / (c + b); // 内分
+        P.x = B.x + r * (C.x - B.x);
+        P.y = 0;
+        bpLen = r * a;
+        pcLen = (1 - r) * a;
+      } else {
+        if (c === b) {
+          svg.innerHTML = `
+            <text x="400" y="240" fill="#fbbf24" font-size="18" font-weight="900" text-anchor="middle">
+              ⚠️ 左右の辺が同じ長さ(二等辺)の場合、外角の二等分線は底辺と平行になります！
+            </text>
+          `;
+          return;
+        }
+        const r = c / (c - b); // 外分
+        P.x = B.x + r * (C.x - B.x);
+        P.y = 0;
+        bpLen = Math.abs(P.x - B.x);
+        pcLen = Math.abs(P.x - C.x);
+      }
+
+      // 2. スケーリング計算（画面幅 800 x 480 に美しくフィットさせる）
+      const points = [A, B, C, P];
+      let minX = Math.min(...points.map(p => p.x));
+      let maxX = Math.max(...points.map(p => p.x));
+      let minY = Math.min(...points.map(p => p.y));
+      let maxY = Math.max(...points.map(p => p.y));
+
+      // 余白
+      const padX = 70;
+      const padY = 65;
+      const worldW = (maxX - minX) || 1;
+      const worldH = (maxY - minY) || 1;
+
+      const viewW = 800;
+      const viewH = 480;
+
+      const scale = Math.min((viewW - padX * 2) / worldW, (viewH - padY * 2) / worldH);
+
+      // ワールド座標からスクリーン座標への変換関数
+      const toScreen = (pt) => ({
+        x: padX + (pt.x - minX) * scale + (viewW - padX * 2 - worldW * scale) / 2,
+        y: viewH - padY - (pt.y - minY) * scale - (viewH - padY * 2 - worldH * scale) / 2
+      });
+
+      const sA = toScreen(A);
+      const sB = toScreen(B);
+      const sC = toScreen(C);
+      const sP = toScreen(P);
+
+      // リアルタイム比率ゲージの表示更新
+      const r1 = Math.round(c * 10) / 10;
+      const r2 = Math.round(b * 10) / 10;
+      const r3 = Math.round(bpLen * 10) / 10;
+      const r4 = Math.round(pcLen * 10) / 10;
+      document.getElementById('gauge-left-ratio').textContent = `${r1} : ${r2}`;
+      document.getElementById('gauge-right-ratio').textContent = `${r3} : ${r4}`;
+
+      // --- SVG要素の構築 ---
+      let svgHtml = '';
+
+      // 背景グリッド（薄い方眼）
+      svgHtml += `
+        <defs>
+          <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+          </pattern>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#grid)" />
+      `;
+
+      // 2つの小三角形（塗りつぶし）
+      // 赤の小三角形: ABP
+      svgHtml += `
+        <polygon points="${sA.x},${sA.y} ${sB.x},${sB.y} ${sP.x},${sP.y}" 
+                 fill="rgba(236, 72, 153, 0.28)" stroke="none" />
+      `;
+      // 青の小三角形: ACP
+      svgHtml += `
+        <polygon points="${sA.x},${sA.y} ${sC.x},${sC.y} ${sP.x},${sP.y}" 
+                 fill="rgba(59, 130, 246, 0.28)" stroke="none" />
+      `;
+
+      // 底辺の延長点線（外角モード時）
+      if (state.mode === 'outer') {
+        svgHtml += `
+          <line x1="${sC.x}" y1="${sC.y}" x2="${sP.x}" y2="${sP.y}" 
+                stroke="#94a3b8" stroke-width="3" stroke-dasharray="6,6" />
+        `;
+        // 角Aの外角の延長線
+        const extDir = { x: (A.x - B.x) * 0.4, y: (A.y - B.y) * 0.4 };
+        const extPt = toScreen({ x: A.x + extDir.x, y: A.y + extDir.y });
+        svgHtml += `
+          <line x1="${sA.x}" y1="${sA.y}" x2="${extPt.x}" y2="${extPt.y}" 
+                stroke="#94a3b8" stroke-width="2" stroke-dasharray="4,4" />
+        `;
+      }
+
+      // 基本の三角形の枠線
+      svgHtml += `
+        <line x1="${sB.x}" y1="${sB.y}" x2="${sC.x}" y2="${sC.y}" stroke="#ffffff" stroke-width="4" stroke-linecap="round" />
+      `;
+
+      // 色分けされた両側の辺（AB: ピンク太線, AC: 青太線）
+      svgHtml += `
+        <line x1="${sA.x}" y1="${sA.y}" x2="${sB.x}" y2="${sB.y}" stroke="#ec4899" stroke-width="6" stroke-linecap="round" />
+        <line x1="${sA.x}" y1="${sA.y}" x2="${sC.x}" y2="${sC.y}" stroke="#3b82f6" stroke-width="6" stroke-linecap="round" />
+      `;
+
+      // 底辺の分割部分（BP: ピンク線, PC: 青線）
+      if (state.mode === 'inner') {
+        svgHtml += `
+          <line x1="${sB.x}" y1="${sB.y}" x2="${sP.x}" y2="${sP.y}" stroke="#f472b6" stroke-width="6" stroke-linecap="round" />
+          <line x1="${sP.x}" y1="${sP.y}" x2="${sC.x}" y2="${sC.y}" stroke="#60a5fa" stroke-width="6" stroke-linecap="round" />
+        `;
+      }
+
+      // 二等分線レーザー（黄色）
+      svgHtml += `
+        <line x1="${sA.x}" y1="${sA.y}" x2="${sP.x}" y2="${sP.y}" 
+              stroke="#fbbf24" stroke-width="4" stroke-linecap="round" filter="drop-shadow(0 0 6px rgba(251,191,36,0.8))" />
+      `;
+
+      // 角の印（同じ大きさの角）
+      svgHtml += `
+        <circle cx="${sA.x}" cy="${sA.y}" r="26" fill="none" stroke="#fbbf24" stroke-width="2" stroke-dasharray="2,4" />
+      `;
+
+      // 透視レンズA：共通の高さ (h)
+      if (state.showHeight) {
+        const sH = toScreen({ x: A.x, y: 0 });
+        svgHtml += `
+          <!-- 垂線 -->
+          <line x1="${sA.x}" y1="${sA.y}" x2="${sH.x}" y2="${sH.y}" stroke="#10b981" stroke-width="3" stroke-dasharray="4,4" />
+          <!-- 直角マーク -->
+          <path d="M ${sH.x - 10} ${sH.y} L ${sH.x - 10} ${sH.y - 10} L ${sH.x} ${sH.y - 10}" fill="none" stroke="#10b981" stroke-width="2" />
+          <text x="${sH.x + 12}" y="${(sA.y + sH.y) / 2}" fill="#10b981" font-size="14" font-weight="900">高さ h (共通)</text>
+        `;
+      }
+
+      // 透視レンズB：点Pから左右の腕への等しい距離
+      if (state.showArmDist) {
+        // PからAB, ACへの距離（角の二等分線上の点は2辺から等距離）
+        svgHtml += `
+          <circle cx="${sP.x}" cy="${sP.y}" r="4" fill="#fbbf24" />
+          <text x="${sP.x}" y="${sP.y - 20}" fill="#fbbf24" font-size="12" font-weight="900" text-anchor="middle">
+            2つの腕への距離は等しい！
+          </text>
+        `;
+      }
+
+      // 頂点マーカー＆ラベル
+      const fontOpt = 'fill="white" font-size="18" font-weight="900" text-anchor="middle"';
+      
+      // 頂点B
+      svgHtml += `
+        <circle cx="${sB.x}" cy="${sB.y}" r="7" fill="#ec4899" />
+        <text x="${sB.x - 18}" y="${sB.y + 24}" ${fontOpt}>B</text>
+      `;
+      // 頂点C
+      svgHtml += `
+        <circle cx="${sC.x}" cy="${sC.y}" r="7" fill="#3b82f6" />
+        <text x="${sC.x + 18}" y="${sC.y + 24}" ${fontOpt}>C</text>
+      `;
+      // 分割点 P (または Q)
+      svgHtml += `
+        <circle cx="${sP.x}" cy="${sP.y}" r="8" fill="#fbbf24" stroke="#ffffff" stroke-width="2" />
+        <text x="${sP.x}" y="${sP.y + 28}" fill="#fbbf24" font-size="20" font-weight="900" text-anchor="middle">${pointLetter}</text>
+      `;
+
+      // 頂点A (ドラッグ可能ハンドル)
+      svgHtml += `
+        <circle id="drag-vertex-a" class="drag-dot" cx="${sA.x}" cy="${sA.y}" r="10" fill="#ffffff" stroke="#ec4899" stroke-width="4" />
+        <text x="${sA.x}" y="${sA.y - 18}" ${fontOpt}>A</text>
+      `;
+
+      // 辺の長さラベル
+      const midAB = { x: (sA.x + sB.x) / 2 - 18, y: (sA.y + sB.y) / 2 };
+      const midAC = { x: (sA.x + sC.x) / 2 + 18, y: (sA.y + sC.y) / 2 };
+      svgHtml += `
+        <text x="${midAB.x}" y="${midAB.y}" fill="#f472b6" font-size="15" font-weight="900">${Math.round(c)}</text>
+        <text x="${midAC.x}" y="${midAC.y}" fill="#60a5fa" font-size="15" font-weight="900">${Math.round(b)}</text>
+      `;
+
+      // 底辺部分の長さラベル
+      if (state.mode === 'inner') {
+        svgHtml += `
+          <text x="${(sB.x + sP.x) / 2}" y="${sB.y + 18}" fill="#f472b6" font-size="13" font-weight="900" text-anchor="middle">
+            B${pointLetter} (${r3})
+          </text>
+          <text x="${(sP.x + sC.x) / 2}" y="${sC.y + 18}" fill="#60a5fa" font-size="13" font-weight="900" text-anchor="middle">
+            ${pointLetter}C (${r4})
+          </text>
+        `;
+      } else {
+        svgHtml += `
+          <text x="${(sB.x + sC.x) / 2}" y="${sB.y + 18}" fill="#94a3b8" font-size="13" font-weight="900" text-anchor="middle">
+            BC = ${Math.round(a)}
+          </text>
+          <text x="${(sC.x + sP.x) / 2}" y="${sC.y - 10}" fill="#fbbf24" font-size="13" font-weight="900" text-anchor="middle">
+            C${pointLetter} (${r4})
+          </text>
+        `;
+      }
+
+      svg.innerHTML = svgHtml;
+
+      // ドラッグイベントのバインド
+      bindDragHandler(scale, minX, minY, padX, padY, viewW, viewH, worldW, worldH);
+    }
+
+    // --- 5. 頂点Aの直感ドラッグ処理 ---
+    let isDragging = false;
+
+    function bindDragHandler(scale, minX, minY, padX, padY, viewW, viewH, worldW, worldH) {
+      const handle = document.getElementById('drag-vertex-a');
+      const svg = document.getElementById('geom-canvas');
+      if (!handle || !svg) return;
+
+      const startDrag = (e) => {
+        isDragging = true;
+        initAudio();
+        e.preventDefault();
+      };
+
+      const doDrag = (e) => {
+        if (!isDragging) return;
+        const rect = svg.getBoundingClientRect();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+        // SVG座標系 (800x480) への逆変換
+        const svgX = ((clientX - rect.left) / rect.width) * 800;
+        const svgY = ((clientY - rect.top) / rect.height) * 480;
+
+        // ワールド座標への逆変換
+        const worldX = minX + (svgX - padX - (viewW - padX * 2 - worldW * scale) / 2) / scale;
+        const worldY = minY + (viewH - padY - (viewH - padY * 2 - worldH * scale) / 2 - svgY) / scale;
+
+        // Aの高さを制限（底辺より上に保つ）
+        if (worldY > 1) {
+          state.dragA = { x: worldX, y: worldY };
+          // ドラッグに合わせて辺の長さも再計算
+          state.ab = Math.round(Math.sqrt(worldX * worldX + worldY * worldY) * 10) / 10;
+          const dxC = worldX - state.bc;
+          state.ac = Math.round(Math.sqrt(dxC * dxC + worldY * worldY) * 10) / 10;
+          syncSlidersFromState();
+          renderCanvas();
+        }
+      };
+
+      const endDrag = () => {
+        if (isDragging) {
+          isDragging = false;
+          playTone(520, 'sine', 0.05);
+        }
+      };
+
+      handle.addEventListener('mousedown', startDrag);
+      handle.addEventListener('touchstart', startDrag, { passive: false });
+
+      window.addEventListener('mousemove', doDrag);
+      window.addEventListener('touchmove', doDrag, { passive: false });
+
+      window.addEventListener('mouseup', endDrag);
+      window.addEventListener('touchend', endDrag);
+    }
+
+    // 初期起動
+    window.addEventListener('DOMContentLoaded', () => {
+      goToStep(0);
+      syncSlidersFromState();
+      renderCanvas();
+    });
+  </script>
+</body>
+</html>

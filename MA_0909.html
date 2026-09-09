@@ -17,7 +17,6 @@
       --red: #dc2626;
       --white: #64748b;
       --node-bg: #ffffff;
-      --badge-bg: #e2e8f0;
     }
 
     @media (prefers-color-scheme: dark) {
@@ -33,7 +32,6 @@
         --red: #ef4444;
         --white: #94a3b8;
         --node-bg: #1e293b;
-        --badge-bg: #334155;
       }
     }
 
@@ -56,21 +54,32 @@
       background: var(--box); padding: 6px 16px; border-radius: 20px; border: 1px solid var(--border);
     }
 
-    /* 樹形図ラッパー：センタリング＋横スクロール */
+    .frac {
+      display: inline-flex;
+      flex-direction: column;
+      vertical-align: middle;
+      text-align: center;
+      padding: 0 4px;
+      font-family: "Times New Roman", Times, serif;
+      font-style: italic;
+    }
+    .frac-num { border-bottom: 1.5px solid currentColor; padding-bottom: 1px; font-size: 0.95em; }
+    .frac-den { padding-top: 1px; font-size: 0.95em; }
+    .math-row { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin: 4px 0; font-size: 1.05rem; }
+
     .tree-scroll-container {
       width: 100%;
       overflow-x: auto;
       background: var(--box);
       border-radius: 8px;
       border: 1px solid var(--border);
-      padding: 20px 10px;
+      padding: 24px 10px;
       display: flex;
-      justify-content: center; /* センタリング */
+      justify-content: center;
     }
 
     canvas { display: block; margin: 0 auto; }
 
-    /* 解説エリア */
     .explain-card {
       background: var(--accent-soft);
       border-left: 4px solid var(--accent);
@@ -78,10 +87,10 @@
       border-radius: 6px;
       display: flex;
       flex-direction: column;
-      gap: 6px;
-      font-size: 0.9rem;
+      gap: 8px;
+      font-size: 0.95rem;
     }
-    .explain-title { font-weight: bold; color: var(--accent); font-size: 1rem; }
+    .explain-title { font-weight: bold; color: var(--accent); font-size: 1.05rem; }
   </style>
 </head>
 <body>
@@ -95,13 +104,11 @@
     </div>
   </div>
 
-  <!-- 数式と本質の解説ブロック -->
   <div class="explain-card" id="explainArea">
     <div class="explain-title" id="explainTitle">解説</div>
     <div id="explainBody">読み込み中...</div>
   </div>
 
-  <!-- センタリングされた樹形図キャンバス -->
   <div class="card">
     <div class="tree-scroll-container" id="scrollBox">
       <canvas id="treeCanvas"></canvas>
@@ -110,7 +117,7 @@
 </div>
 
 <script>
-  let currentDepth = 2; // 2回目まで表示からスタート
+  let currentDepth = 2;
 
   function getCSSColor(prop) {
     return getComputedStyle(document.documentElement).getPropertyValue(prop).trim();
@@ -118,9 +125,12 @@
 
   const canvas = document.getElementById('treeCanvas');
   const ctx = canvas.getContext('2d');
-  const scrollBox = document.getElementById('scrollBox');
 
   function gcd(a, b) { return b === 0 ? a : gcd(b, a % b); }
+
+  function makeFracHTML(num, den) {
+    return `<span class="frac"><span class="frac-num">${num}</span><span class="frac-den">${den}</span></span>`;
+  }
 
   function drawBall(x, y, r, isRed) {
     ctx.beginPath();
@@ -132,54 +142,115 @@
     ctx.stroke();
   }
 
-  // ノード（袋）を描画：重なり防止のためサイズと行間を再設計
-  function drawNode(x, y, rCount, wCount, mainLabel, subLabel) {
-    const nodeW = 124;
-    const nodeH = 64;
+  // キャンバス上に縦並び分数を描画
+  function drawCanvasFraction(x, y, num, den, color, fontSize = 11) {
+    ctx.font = `bold ${fontSize}px "Times New Roman", Times, serif`;
+    ctx.fillStyle = color;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    const numStr = String(num);
+    const denStr = String(den);
+    const maxTextW = Math.max(ctx.measureText(numStr).width, ctx.measureText(denStr).width);
+    const barW = maxTextW + 4;
+
+    ctx.fillText(numStr, x, y - 6);
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(x - barW / 2, y);
+    ctx.lineTo(x + barW / 2, y);
+    ctx.stroke();
+    ctx.fillText(denStr, x, y + 7);
+  }
+
+  // ノード（袋）の描画：重なり解消のためサイズ・余白・Y軸を完全分離
+  function drawNode(x, y, rCount, wCount, mainLabel, cumNum, cumDen) {
+    const nodeW = 144;
+    const nodeH = 88;
 
     ctx.fillStyle = getCSSColor('--node-bg');
     ctx.strokeStyle = getCSSColor('--border');
     ctx.lineWidth = 1.5;
     ctx.beginPath();
-    ctx.roundRect(x - nodeW / 2, y - nodeH / 2, nodeW, nodeH, 6);
+    ctx.roundRect(x - nodeW / 2, y - nodeH / 2, nodeW, nodeH, 8);
     ctx.fill();
     ctx.stroke();
 
-    // 球を描画（最大12個まで）
+    // 1段目：球の描画（y - 25 付近）
     const total = rCount + wCount;
-    const gap = 11;
+    const gap = 12;
     const cols = Math.min(total, 6);
     const startX = x - ((cols - 1) * gap) / 2;
     let placed = 0;
 
     for (let i = 0; i < rCount && placed < 12; i++) {
-      drawBall(startX + (placed % 6) * gap, y - 14 + Math.floor(placed / 6) * 12, 4, true);
+      drawBall(startX + (placed % 6) * gap, y - 26 + Math.floor(placed / 6) * 12, 4.5, true);
       placed++;
     }
     for (let i = 0; i < wCount && placed < 12; i++) {
-      drawBall(startX + (placed % 6) * gap, y - 14 + Math.floor(placed / 6) * 12, 4, false);
+      drawBall(startX + (placed % 6) * gap, y - 26 + Math.floor(placed / 6) * 12, 4.5, false);
       placed++;
     }
 
-    // ラベル文字（上下の被りを防止）
+    // 2段目：袋の中の個数ラベル（y + 4 付近）
     ctx.fillStyle = getCSSColor('--text');
-    ctx.font = 'bold 11px sans-serif';
+    ctx.font = 'bold 12px sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText(mainLabel, x, y + 14);
+    ctx.textBaseline = 'middle';
+    ctx.fillText(mainLabel, x, y + 5);
 
-    ctx.fillStyle = getCSSColor('--sub');
-    ctx.font = '10px sans-serif';
-    ctx.fillText(subLabel, x, y + 26);
+    // 3段目：ルート確率（y + 27 付近：テキストと分数を横並びで中央揃え）
+    if (cumNum !== null && cumDen !== null) {
+      const g = gcd(cumNum, cumDen);
+      const reducedNum = cumNum / g;
+      const reducedDen = cumDen / g;
+
+      ctx.font = '11px sans-serif';
+      ctx.fillStyle = getCSSColor('--sub');
+
+      const labelText = "ルート確率: ";
+      const labelW = ctx.measureText(labelText).width;
+      const fracW = 16;
+      const totalContentW = labelW + fracW;
+
+      const textStartX = x - totalContentW / 2;
+      ctx.textAlign = 'left';
+      ctx.fillText(labelText, textStartX, y + 27);
+
+      const fracCenterX = textStartX + labelW + (fracW / 2);
+      drawCanvasFraction(fracCenterX, y + 27, reducedNum, reducedDen, getCSSColor('--text'), 11);
+    } else {
+      ctx.font = '11px sans-serif';
+      ctx.fillStyle = getCSSColor('--sub');
+      ctx.textAlign = 'center';
+      ctx.fillText('赤2個 / 白3個', x, y + 27);
+    }
+  }
+
+  // 枝の上の確率ラベル（バッジ）
+  function drawBranchFractionBadge(x, y, num, den, color) {
+    const badgeW = 30;
+    const badgeH = 26;
+
+    ctx.fillStyle = getCSSColor('--bg');
+    ctx.beginPath();
+    ctx.roundRect(x - badgeW / 2, y - badgeH / 2, badgeW, badgeH, 4);
+    ctx.fill();
+    ctx.strokeStyle = getCSSColor('--border');
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    drawCanvasFraction(x, y, num, den, color, 10.5);
   }
 
   function renderTree() {
     const dpr = window.devicePixelRatio || 1;
 
-    // 分岐数に応じた横幅の動的計算（最下段のノード同士が重ならない余白）
     const leafCount = Math.pow(2, currentDepth - 1);
-    const nodeSpacing = currentDepth <= 2 ? 260 : (currentDepth === 3 ? 150 : 130);
-    const width = Math.max(760, leafCount * nodeSpacing);
-    const height = currentDepth * 140 + 40;
+    const nodeSpacing = currentDepth <= 2 ? 280 : (currentDepth === 3 ? 170 : 150);
+    const width = Math.max(800, leafCount * nodeSpacing);
+    const height = currentDepth * 160 + 20;
 
     canvas.width = width * dpr;
     canvas.height = height * dpr;
@@ -192,25 +263,21 @@
 
     const redColor = getCSSColor('--red');
     const whiteColor = getCSSColor('--white');
-    const textSub = getCSSColor('--sub');
 
-    // 階層データ：レベル0（開始時）
     let currentLevel = [
-      { x: width / 2, y: 45, r: 2, w: 3, num: 1, den: 1 }
+      { x: width / 2, y: 55, r: 2, w: 3, num: 1, den: 1 }
     ];
 
-    drawNode(currentLevel[0].x, currentLevel[0].y, 2, 3, '開始時 (5個)', '赤2個 / 白3個');
+    drawNode(currentLevel[0].x, currentLevel[0].y, 2, 3, '開始時（5個）', null, null);
 
-    // レベル1以降を描画
     for (let d = 1; d < currentDepth; d++) {
       const nextLevel = [];
-      const yNext = 45 + d * 135;
+      const yNext = 55 + d * 155;
       const offset = (width / Math.pow(2, d)) / 2;
 
       currentLevel.forEach(node => {
         const total = node.r + node.w;
 
-        // 左：赤を引いた枝
         const leftX = node.x - offset;
         const leftNum = node.num * node.r;
         const leftDen = node.den * total;
@@ -221,7 +288,6 @@
           color: '赤'
         });
 
-        // 右：白を引いた枝
         const rightX = node.x + offset;
         const rightNum = node.num * node.w;
         const rightDen = node.den * total;
@@ -232,54 +298,37 @@
           color: '白'
         });
 
-        // 枝線（赤と白）
+        // 枝線：ボックスの端に合わせて始点・終点を調整
         ctx.lineWidth = 2;
         ctx.strokeStyle = redColor;
         ctx.beginPath();
-        ctx.moveTo(node.x - 25, node.y + 32);
-        ctx.lineTo(leftX + 15, yNext - 32);
+        ctx.moveTo(node.x - 30, node.y + 44);
+        ctx.lineTo(leftX + 20, yNext - 44);
         ctx.stroke();
 
         ctx.strokeStyle = whiteColor;
         ctx.beginPath();
-        ctx.moveTo(node.x + 25, node.y + 32);
-        ctx.lineTo(rightX - 15, yNext - 32);
+        ctx.moveTo(node.x + 30, node.y + 44);
+        ctx.lineTo(rightX - 20, yNext - 44);
         ctx.stroke();
 
-        // 枝ラベルの重なり防止：背景付きバッジとして描画
-        drawBranchLabel((node.x + leftX) / 2 - 12, (node.y + yNext) / 2, `${node.r}/${total}`, redColor);
-        drawBranchLabel((node.x + rightX) / 2 + 12, (node.y + yNext) / 2, `${node.w}/${total}`, whiteColor);
+        drawBranchFractionBadge((node.x + leftX) / 2 - 10, (node.y + yNext) / 2, node.r, total, redColor);
+        drawBranchFractionBadge((node.x + rightX) / 2 + 10, (node.y + yNext) / 2, node.w, total, whiteColor);
       });
 
-      // ノード（袋）を描画
       nextLevel.forEach(node => {
-        const g = gcd(node.num, node.den);
         const totalBalls = node.r + node.w;
         drawNode(
           node.x, node.y, node.r, node.w,
           `袋の中：${totalBalls}個`,
-          `ルート確率: ${node.num / g}/${node.den / g}`
+          node.num, node.den
         );
       });
 
       currentLevel = nextLevel;
     }
 
-    // 解説パネルの更新
     updateExplanation(currentDepth, currentLevel);
-  }
-
-  // 枝の上の確率ラベル（文字重なり防止背景つき）
-  function drawBranchLabel(x, y, text, color) {
-    ctx.font = 'bold 11px sans-serif';
-    const textW = ctx.measureText(text).width;
-    ctx.fillStyle = getCSSColor('--bg');
-    ctx.fillRect(x - textW / 2 - 3, y - 7, textW + 6, 14);
-
-    ctx.fillStyle = color;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(text, x, y);
   }
 
   function updateExplanation(depth, leaves) {
@@ -287,25 +336,55 @@
     const titleEl = document.getElementById('explainTitle');
     const bodyEl = document.getElementById('explainBody');
 
+    const f25 = makeFracHTML(2, 5);
+    const f36 = makeFracHTML(3, 6);
+    const f630 = makeFracHTML(6, 30);
+    const f35 = makeFracHTML(3, 5);
+    const f26 = makeFracHTML(2, 6);
+    const f1230 = makeFracHTML(12, 30);
+
     if (depth === 2) {
       titleEl.innerHTML = `2回目に赤が出る確率の計算`;
       bodyEl.innerHTML = `
-        <strong>ルートA（1回目が赤）：</strong> (2/5) × (3/6) ＝ <strong>6/30</strong><br>
-        <strong>ルートB（1回目が白）：</strong> (3/5) × (2/6) ＝ <strong>6/30</strong><br>
-        2つの世界を合わせると、<strong>6/30 ＋ 6/30 ＝ 12/30 ＝ 2/5 (40%)</strong> となり、1回目と全く同じ確率に戻ります！
+        <div class="math-row">
+          <span>・ルートA（1回目が赤）：</span>
+          ${f25} × ${f36} ＝ <strong>${f630}</strong>
+        </div>
+        <div class="math-row">
+          <span>・ルートB（1回目が白）：</span>
+          ${f35} × ${f26} ＝ <strong>${f630}</strong>
+        </div>
+        <div class="math-row" style="margin-top: 6px; padding-top: 6px; border-top: 1px dashed var(--border);">
+          <span>★ 2つの世界線を合わせると：</span>
+          ${f630} ＋ ${f630} ＝ ${f1230} ＝ <strong style="color:var(--accent); font-size:1.2rem;">${f25}</strong>（40%）
+        </div>
+        <div style="font-size:0.85rem; color:var(--sub); margin-top:4px;">
+          赤が増えて有利になった分と、白が増えて不利になった分が足し算で綺麗に相殺され、1回目と同じ ${f25} に戻ります。
+        </div>
       `;
     } else if (depth === 3) {
       titleEl.innerHTML = `3回目に赤が出る確率の計算`;
       bodyEl.innerHTML = `
-        1回目・2回目の結果によって袋は4パターンに分かれますが、それぞれから3回目に赤を引く確率をすべて足すと：<br>
-        <strong>合計 ＝ 2/5 (40%)</strong> になります。<br>
-        「赤が出やすくなった有利な袋」と「白が出やすくなった不利な袋」が掛け算の重みによって完全に相殺されます。
+        1回目・2回目の結果によって袋は4通りの世界線に分かれますが、それぞれから3回目に赤を引く確率をすべて足すと：
+        <div class="math-row" style="margin-top: 6px;">
+          <span>★ 4ルートの合計 ＝</span>
+          <strong style="color:var(--accent); font-size:1.2rem;">${f25}</strong>（40%）
+        </div>
+        <div style="font-size:0.85rem; color:var(--sub); margin-top:4px;">
+          袋の中身は7個に増えていますが、どのルートも掛け算の重みによって完全に釣り合います。
+        </div>
       `;
     } else {
       titleEl.innerHTML = `${depth}回目に赤が出る確率の計算`;
       bodyEl.innerHTML = `
-        分岐が ${leaves.length} パターンに増え、袋の球数も <strong>${depth + 3}個</strong> に増えました。<br>
-        数学的帰納法が示す通り、枝の掛け算をすべて合計すると分母の文字が約分で消え、<strong>常に 2/5</strong> が維持されます。
+        袋の中身は <strong>${depth + 3}個</strong> に増え、ルートは ${leaves.length} 通りに分かれました。
+        <div class="math-row" style="margin-top: 6px;">
+          <span>★ すべてのルートの合計 ＝</span>
+          <strong style="color:var(--accent); font-size:1.2rem;">${f25}</strong>（40%）
+        </div>
+        <div style="font-size:0.85rem; color:var(--sub); margin-top:4px;">
+          数学的帰納法により、何回目であっても分母の文字が約分で打ち消し合い、常に ${f25} が保たれます。
+        </div>
       `;
     }
   }

@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>樹形図一覧：何回目でも赤が出る確率は変わらない</title>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --border: #cbd5e1;
+      --box: #f1f5f9;
+      --text: #0f172a;
+      --sub: #64748b;
+      --accent: #0284c7;
+      --accent-soft: rgba(2, 132, 199, 0.08);
+      --red: #dc2626;
+      --white: #64748b;
+      --node-bg: #ffffff;
+      --badge-bg: #e2e8f0;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0f172a;
+        --card: #1e293b;
+        --border: #334155;
+        --box: #0b1120;
+        --text: #f1f5f9;
+        --sub: #94a3b8;
+        --accent: #38bdf8;
+        --accent-soft: rgba(56, 189, 248, 0.12);
+        --red: #ef4444;
+        --white: #94a3b8;
+        --node-bg: #1e293b;
+        --badge-bg: #334155;
+      }
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background: var(--bg); color: var(--text); padding: 16px; display: flex; flex-direction: column; align-items: center; }
+    .container { width: 100%; max-width: 1000px; display: flex; flex-direction: column; gap: 14px; }
+
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+
+    .controls { display: flex; gap: 10px; align-items: center; justify-content: center; flex-wrap: wrap; }
+    button {
+      padding: 9px 18px; font-size: 0.95rem; font-weight: bold; border: none; border-radius: 6px;
+      cursor: pointer; background: var(--accent); color: #fff;
+    }
+    button:hover { opacity: 0.9; }
+    button.sub { background: var(--box); color: var(--text); border: 1px solid var(--border); }
+
+    .turn-badge {
+      font-size: 1.15rem; font-weight: bold; color: var(--accent);
+      background: var(--box); padding: 6px 16px; border-radius: 20px; border: 1px solid var(--border);
+    }
+
+    /* 樹形図ラッパー：センタリング＋横スクロール */
+    .tree-scroll-container {
+      width: 100%;
+      overflow-x: auto;
+      background: var(--box);
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      padding: 20px 10px;
+      display: flex;
+      justify-content: center; /* センタリング */
+    }
+
+    canvas { display: block; margin: 0 auto; }
+
+    /* 解説エリア */
+    .explain-card {
+      background: var(--accent-soft);
+      border-left: 4px solid var(--accent);
+      padding: 14px 16px;
+      border-radius: 6px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-size: 0.9rem;
+    }
+    .explain-title { font-weight: bold; color: var(--accent); font-size: 1rem; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="card" style="text-align: center;">
+    <div class="controls">
+      <span class="turn-badge" id="turnText">1回目〜2回目を表示中</span>
+      <button id="addStepBtn">次の回へ分岐を広げる ➔</button>
+      <button id="resetBtn" class="sub">1回目からやり直す</button>
+    </div>
+  </div>
+
+  <!-- 数式と本質の解説ブロック -->
+  <div class="explain-card" id="explainArea">
+    <div class="explain-title" id="explainTitle">解説</div>
+    <div id="explainBody">読み込み中...</div>
+  </div>
+
+  <!-- センタリングされた樹形図キャンバス -->
+  <div class="card">
+    <div class="tree-scroll-container" id="scrollBox">
+      <canvas id="treeCanvas"></canvas>
+    </div>
+  </div>
+</div>
+
+<script>
+  let currentDepth = 2; // 2回目まで表示からスタート
+
+  function getCSSColor(prop) {
+    return getComputedStyle(document.documentElement).getPropertyValue(prop).trim();
+  }
+
+  const canvas = document.getElementById('treeCanvas');
+  const ctx = canvas.getContext('2d');
+  const scrollBox = document.getElementById('scrollBox');
+
+  function gcd(a, b) { return b === 0 ? a : gcd(b, a % b); }
+
+  function drawBall(x, y, r, isRed) {
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fillStyle = isRed ? getCSSColor('--red') : getCSSColor('--white');
+    ctx.fill();
+    ctx.strokeStyle = isRed ? '#b91c1c' : '#475569';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  }
+
+  // ノード（袋）を描画：重なり防止のためサイズと行間を再設計
+  function drawNode(x, y, rCount, wCount, mainLabel, subLabel) {
+    const nodeW = 124;
+    const nodeH = 64;
+
+    ctx.fillStyle = getCSSColor('--node-bg');
+    ctx.strokeStyle = getCSSColor('--border');
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.roundRect(x - nodeW / 2, y - nodeH / 2, nodeW, nodeH, 6);
+    ctx.fill();
+    ctx.stroke();
+
+    // 球を描画（最大12個まで）
+    const total = rCount + wCount;
+    const gap = 11;
+    const cols = Math.min(total, 6);
+    const startX = x - ((cols - 1) * gap) / 2;
+    let placed = 0;
+
+    for (let i = 0; i < rCount && placed < 12; i++) {
+      drawBall(startX + (placed % 6) * gap, y - 14 + Math.floor(placed / 6) * 12, 4, true);
+      placed++;
+    }
+    for (let i = 0; i < wCount && placed < 12; i++) {
+      drawBall(startX + (placed % 6) * gap, y - 14 + Math.floor(placed / 6) * 12, 4, false);
+      placed++;
+    }
+
+    // ラベル文字（上下の被りを防止）
+    ctx.fillStyle = getCSSColor('--text');
+    ctx.font = 'bold 11px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(mainLabel, x, y + 14);
+
+    ctx.fillStyle = getCSSColor('--sub');
+    ctx.font = '10px sans-serif';
+    ctx.fillText(subLabel, x, y + 26);
+  }
+
+  function renderTree() {
+    const dpr = window.devicePixelRatio || 1;
+
+    // 分岐数に応じた横幅の動的計算（最下段のノード同士が重ならない余白）
+    const leafCount = Math.pow(2, currentDepth - 1);
+    const nodeSpacing = currentDepth <= 2 ? 260 : (currentDepth === 3 ? 150 : 130);
+    const width = Math.max(760, leafCount * nodeSpacing);
+    const height = currentDepth * 140 + 40;
+
+    canvas.width = width * dpr;
+    canvas.height = height * dpr;
+    canvas.style.width = width + 'px';
+    canvas.style.height = height + 'px';
+
+    ctx.resetTransform();
+    ctx.scale(dpr, dpr);
+    ctx.clearRect(0, 0, width, height);
+
+    const redColor = getCSSColor('--red');
+    const whiteColor = getCSSColor('--white');
+    const textSub = getCSSColor('--sub');
+
+    // 階層データ：レベル0（開始時）
+    let currentLevel = [
+      { x: width / 2, y: 45, r: 2, w: 3, num: 1, den: 1 }
+    ];
+
+    drawNode(currentLevel[0].x, currentLevel[0].y, 2, 3, '開始時 (5個)', '赤2個 / 白3個');
+
+    // レベル1以降を描画
+    for (let d = 1; d < currentDepth; d++) {
+      const nextLevel = [];
+      const yNext = 45 + d * 135;
+      const offset = (width / Math.pow(2, d)) / 2;
+
+      currentLevel.forEach(node => {
+        const total = node.r + node.w;
+
+        // 左：赤を引いた枝
+        const leftX = node.x - offset;
+        const leftNum = node.num * node.r;
+        const leftDen = node.den * total;
+        nextLevel.push({
+          x: leftX, y: yNext, r: node.r + 1, w: node.w,
+          num: leftNum, den: leftDen,
+          probNum: node.r, probDen: total,
+          color: '赤'
+        });
+
+        // 右：白を引いた枝
+        const rightX = node.x + offset;
+        const rightNum = node.num * node.w;
+        const rightDen = node.den * total;
+        nextLevel.push({
+          x: rightX, y: yNext, r: node.r, w: node.w + 1,
+          num: rightNum, den: rightDen,
+          probNum: node.w, probDen: total,
+          color: '白'
+        });
+
+        // 枝線（赤と白）
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = redColor;
+        ctx.beginPath();
+        ctx.moveTo(node.x - 25, node.y + 32);
+        ctx.lineTo(leftX + 15, yNext - 32);
+        ctx.stroke();
+
+        ctx.strokeStyle = whiteColor;
+        ctx.beginPath();
+        ctx.moveTo(node.x + 25, node.y + 32);
+        ctx.lineTo(rightX - 15, yNext - 32);
+        ctx.stroke();
+
+        // 枝ラベルの重なり防止：背景付きバッジとして描画
+        drawBranchLabel((node.x + leftX) / 2 - 12, (node.y + yNext) / 2, `${node.r}/${total}`, redColor);
+        drawBranchLabel((node.x + rightX) / 2 + 12, (node.y + yNext) / 2, `${node.w}/${total}`, whiteColor);
+      });
+
+      // ノード（袋）を描画
+      nextLevel.forEach(node => {
+        const g = gcd(node.num, node.den);
+        const totalBalls = node.r + node.w;
+        drawNode(
+          node.x, node.y, node.r, node.w,
+          `袋の中：${totalBalls}個`,
+          `ルート確率: ${node.num / g}/${node.den / g}`
+        );
+      });
+
+      currentLevel = nextLevel;
+    }
+
+    // 解説パネルの更新
+    updateExplanation(currentDepth, currentLevel);
+  }
+
+  // 枝の上の確率ラベル（文字重なり防止背景つき）
+  function drawBranchLabel(x, y, text, color) {
+    ctx.font = 'bold 11px sans-serif';
+    const textW = ctx.measureText(text).width;
+    ctx.fillStyle = getCSSColor('--bg');
+    ctx.fillRect(x - textW / 2 - 3, y - 7, textW + 6, 14);
+
+    ctx.fillStyle = color;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(text, x, y);
+  }
+
+  function updateExplanation(depth, leaves) {
+    document.getElementById('turnText').textContent = `1回目 〜 ${depth}回目を表示中`;
+    const titleEl = document.getElementById('explainTitle');
+    const bodyEl = document.getElementById('explainBody');
+
+    if (depth === 2) {
+      titleEl.innerHTML = `2回目に赤が出る確率の計算`;
+      bodyEl.innerHTML = `
+        <strong>ルートA（1回目が赤）：</strong> (2/5) × (3/6) ＝ <strong>6/30</strong><br>
+        <strong>ルートB（1回目が白）：</strong> (3/5) × (2/6) ＝ <strong>6/30</strong><br>
+        2つの世界を合わせると、<strong>6/30 ＋ 6/30 ＝ 12/30 ＝ 2/5 (40%)</strong> となり、1回目と全く同じ確率に戻ります！
+      `;
+    } else if (depth === 3) {
+      titleEl.innerHTML = `3回目に赤が出る確率の計算`;
+      bodyEl.innerHTML = `
+        1回目・2回目の結果によって袋は4パターンに分かれますが、それぞれから3回目に赤を引く確率をすべて足すと：<br>
+        <strong>合計 ＝ 2/5 (40%)</strong> になります。<br>
+        「赤が出やすくなった有利な袋」と「白が出やすくなった不利な袋」が掛け算の重みによって完全に相殺されます。
+      `;
+    } else {
+      titleEl.innerHTML = `${depth}回目に赤が出る確率の計算`;
+      bodyEl.innerHTML = `
+        分岐が ${leaves.length} パターンに増え、袋の球数も <strong>${depth + 3}個</strong> に増えました。<br>
+        数学的帰納法が示す通り、枝の掛け算をすべて合計すると分母の文字が約分で消え、<strong>常に 2/5</strong> が維持されます。
+      `;
+    }
+  }
+
+  document.getElementById('addStepBtn').onclick = () => {
+    if (currentDepth < 4) {
+      currentDepth++;
+      renderTree();
+    } else {
+      currentDepth = 2;
+      renderTree();
+    }
+  };
+
+  document.getElementById('resetBtn').onclick = () => {
+    currentDepth = 2;
+    renderTree();
+  };
+
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', renderTree);
+
+  renderTree();
+</script>
+
+</body>
+</html>

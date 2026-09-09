@@ -188,6 +188,22 @@
           <!-- Canvas Graph Container -->
           <div class="relative w-full aspect-square bg-slate-900 rounded-xl overflow-hidden border border-slate-800 shadow-inner">
             <canvas id="graphCanvas" class="w-full h-full block cursor-crosshair"></canvas>
+
+            <!-- Locked Overlay: prevents spoilers until solved or revealed -->
+            <div id="graphLockedOverlay" class="absolute inset-0 bg-slate-950/90 backdrop-blur-[2px] flex flex-col items-center justify-center p-6 text-center z-20 transition-all duration-300">
+              <div class="w-12 h-12 rounded-2xl bg-slate-800/80 text-indigo-400 flex items-center justify-center mb-3 shadow-inner border border-slate-700">
+                <i data-lucide="lock" class="w-6 h-6"></i>
+              </div>
+              <p class="text-sm font-bold text-slate-200 mb-1">グラフはロックされています</p>
+              <p class="text-xs text-slate-400 mb-4 max-w-[240px] leading-relaxed">
+                答え合わせをするか「解説を見る」を押すと、放物線グラフと詳細が表示されます。
+              </p>
+              <button id="btnUnlockGraphDirect" type="button" class="px-3.5 py-1.5 bg-indigo-600/80 hover:bg-indigo-600 text-white rounded-lg text-xs font-semibold flex items-center space-x-1.5 transition">
+                <i data-lucide="eye" class="w-3.5 h-3.5"></i>
+                <span>今すぐグラフを表示する</span>
+              </button>
+            </div>
+
             <div id="graphTooltip" class="absolute hidden bg-black/80 backdrop-blur-sm text-white text-[11px] px-2 py-1 rounded shadow-lg pointer-events-none border border-slate-700 z-10"></div>
           </div>
 
@@ -195,15 +211,15 @@
           <div class="mt-4 grid grid-cols-3 gap-2 text-center text-xs">
             <div class="bg-slate-50 p-2 rounded-lg border border-slate-200">
               <span class="text-slate-400 block text-[10px] uppercase font-bold">頂点 $(p, q)$</span>
-              <span id="graphVertexText" class="font-bold text-rose-600">-</span>
+              <span id="graphVertexText" class="font-bold text-rose-600">???</span>
             </div>
             <div class="bg-slate-50 p-2 rounded-lg border border-slate-200">
               <span class="text-slate-400 block text-[10px] uppercase font-bold">軸の方程式</span>
-              <span id="graphAxisText" class="font-bold text-indigo-600">-</span>
+              <span id="graphAxisText" class="font-bold text-indigo-600">???</span>
             </div>
             <div class="bg-slate-50 p-2 rounded-lg border border-slate-200">
               <span class="text-slate-400 block text-[10px] uppercase font-bold">y切片 $(0, c)$</span>
-              <span id="graphInterceptText" class="font-bold text-emerald-600">-</span>
+              <span id="graphInterceptText" class="font-bold text-emerald-600">???</span>
             </div>
           </div>
 
@@ -685,6 +701,37 @@
 
   <script>
     let visualizer;
+    let isGraphRevealed = false;
+
+    function hideGraph() {
+      isGraphRevealed = false;
+      const overlay = document.getElementById('graphLockedOverlay');
+      if (overlay) overlay.classList.remove('hidden');
+
+      // Hide analytical text values to avoid spoilers
+      document.getElementById('graphVertexText').textContent = '???';
+      document.getElementById('graphAxisText').textContent = '???';
+      document.getElementById('graphInterceptText').textContent = '???';
+
+      if (visualizer) {
+        visualizer.ctx.clearRect(0, 0, visualizer.width, visualizer.height);
+      }
+    }
+
+    function revealGraph() {
+      isGraphRevealed = true;
+      const overlay = document.getElementById('graphLockedOverlay');
+      if (overlay) overlay.classList.add('hidden');
+
+      const prob = PROBLEMS[currentIndex];
+      document.getElementById('graphVertexText').textContent = `(${prob.p_frac || prob.p}, ${prob.q_frac || prob.q})`;
+      document.getElementById('graphAxisText').textContent = `x = ${prob.p_frac || prob.p}`;
+      document.getElementById('graphInterceptText').textContent = `(0, ${prob.c})`;
+
+      if (visualizer) {
+        visualizer.setProblem(prob);
+      }
+    }
 
     document.addEventListener('DOMContentLoaded', () => {
       // Initialize Lucide icons
@@ -694,9 +741,23 @@
       visualizer = new GraphVisualizer('graphCanvas');
 
       // Bind UI Buttons
-      document.getElementById('btnZoomIn').addEventListener('click', () => visualizer.zoom(6));
-      document.getElementById('btnZoomOut').addEventListener('click', () => visualizer.zoom(-6));
-      document.getElementById('btnResetView').addEventListener('click', () => visualizer.resetView());
+      document.getElementById('btnZoomIn').addEventListener('click', () => {
+        if (!isGraphRevealed) revealGraph();
+        visualizer.zoom(6);
+      });
+      document.getElementById('btnZoomOut').addEventListener('click', () => {
+        if (!isGraphRevealed) revealGraph();
+        visualizer.zoom(-6);
+      });
+      document.getElementById('btnResetView').addEventListener('click', () => {
+        if (!isGraphRevealed) revealGraph();
+        visualizer.resetView();
+      });
+
+      // Unlock button inside the overlay
+      document.getElementById('btnUnlockGraphDirect').addEventListener('click', () => {
+        revealGraph();
+      });
 
       // Drawer navigation
       const drawer = document.getElementById('drawer');
@@ -775,6 +836,7 @@
 
       // Reveal answer button
       document.getElementById('btnRevealAnswer').addEventListener('click', () => {
+        revealGraph();
         showExplanation(true);
       });
 
@@ -825,6 +887,9 @@
       document.getElementById('feedbackAlert').classList.add('hidden');
       document.getElementById('explanationSection').classList.add('hidden');
 
+      // Hide graph by default to avoid spoiling the answer
+      hideGraph();
+
       // Update question status badge
       const statusBadge = document.getElementById('drillStatusBadge');
       if (userProgress[index]) {
@@ -839,14 +904,6 @@
         statusBadge.className = "text-xs font-medium px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600";
         statusBadge.textContent = "未解答";
       }
-
-      // Update analytical values on graph card
-      document.getElementById('graphVertexText').textContent = `(${prob.p_frac || prob.p}, ${prob.q_frac || prob.q})`;
-      document.getElementById('graphAxisText').textContent = `x = ${prob.p_frac || prob.p}`;
-      document.getElementById('graphInterceptText').textContent = `(0, ${prob.c})`;
-
-      // Render Graph
-      visualizer.setProblem(prob);
     }
 
     // Check user answer
@@ -868,6 +925,9 @@
         lucide.createIcons();
         return;
       }
+
+      // Reveal graph and analytics after submitting answer
+      revealGraph();
 
       // Tolerance for floating point checks
       const eps = 0.01;

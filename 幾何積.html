@@ -71,6 +71,16 @@
     <div class="lg:col-span-7 flex flex-col gap-4">
       <div class="bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-md dark:shadow-xl flex flex-col gap-4 relative overflow-hidden transition-colors">
         
+        <!-- Mode Switcher Tabs -->
+        <div class="flex items-center p-1 bg-slate-100 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 text-xs font-semibold gap-1">
+          <button id="modeRotateBtn" class="flex-1 py-2 px-3 rounded-lg bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-300 shadow-sm transition-all flex items-center justify-center gap-1.5 font-bold">
+            <span>🔄</span> モード1: ベクトルの回転 & I² = -1
+          </button>
+          <button id="modeDivisionBtn" class="flex-1 py-2 px-3 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 transition-all flex items-center justify-center gap-1.5 font-bold">
+            <span>🔬</span> モード2: 実験！なぜ内積は割れないのか？
+          </button>
+        </div>
+
         <!-- Top Toolbar -->
         <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 dark:border-slate-800 pb-3">
           <div class="flex items-center gap-3 text-sm">
@@ -81,7 +91,7 @@
           </div>
           <div class="flex items-center gap-2">
             <button id="resetVectorBtn" class="px-2.5 py-1 text-xs rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors border border-slate-200 dark:border-slate-700 font-medium">
-              ベクトル初期化
+              リセット
             </button>
           </div>
         </div>
@@ -90,8 +100,8 @@
         <div class="relative w-full aspect-square md:aspect-[4/3] rounded-xl overflow-hidden bg-slate-100/70 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 select-none transition-colors">
           <canvas id="vectorCanvas" class="w-full h-full cursor-crosshair"></canvas>
           
-          <!-- On-canvas Legend / Hint -->
-          <div class="absolute bottom-3 left-3 bg-white/90 dark:bg-slate-950/85 backdrop-blur border border-slate-200 dark:border-slate-800 px-3 py-2 rounded-xl text-xs flex flex-col gap-1 pointer-events-none shadow-md">
+          <!-- On-canvas Legend / Hint for Mode 1 -->
+          <div id="legendMode1" class="absolute bottom-3 left-3 bg-white/90 dark:bg-slate-950/85 backdrop-blur border border-slate-200 dark:border-slate-800 px-3 py-2 rounded-xl text-xs flex flex-col gap-1 pointer-events-none shadow-md">
             <div class="flex items-center gap-2">
               <span class="w-3 h-0.5 bg-rose-500 rounded"></span>
               <span class="text-rose-600 dark:text-rose-400 font-bold">e₁</span> (横・東向き)
@@ -106,55 +116,128 @@
             </div>
           </div>
 
-          <div class="absolute top-3 right-3 bg-indigo-50/90 dark:bg-indigo-950/80 border border-indigo-200 dark:border-indigo-500/30 px-3 py-1.5 rounded-lg text-xs text-indigo-800 dark:text-indigo-200 pointer-events-none shadow-sm">
+          <!-- On-canvas Legend / Hint for Mode 2 -->
+          <div id="legendMode2" class="hidden absolute bottom-3 left-3 bg-white/90 dark:bg-slate-950/85 backdrop-blur border border-slate-200 dark:border-slate-800 px-3 py-2 rounded-xl text-xs flex flex-col gap-1.5 pointer-events-none shadow-md">
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-0.5 bg-indigo-600 rounded"></span>
+              <span class="text-indigo-600 dark:text-indigo-400 font-bold">a = (1, 0)</span> (基準ベクトル)
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-1 bg-amber-500 rounded"></span>
+              <span class="text-amber-600 dark:text-amber-400 font-bold">内積 = 2.0</span> (常に一定の影)
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-2 bg-emerald-500/40 border border-emerald-500 rounded-sm"></span>
+              <span class="text-emerald-600 dark:text-emerald-400 font-bold">外積 = y I</span> (垂直の高さ・面積)
+            </div>
+          </div>
+
+          <div id="canvasTipText" class="absolute top-3 right-3 bg-indigo-50/90 dark:bg-indigo-950/80 border border-indigo-200 dark:border-indigo-500/30 px-3 py-1.5 rounded-lg text-xs text-indigo-800 dark:text-indigo-200 pointer-events-none shadow-sm">
             💡 点の先端をドラッグして動かせます
           </div>
         </div>
 
-        <!-- Interactive Action Buttons -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-          <button id="multRightBtn" class="group flex flex-col items-center justify-center p-3.5 rounded-xl bg-gradient-to-br from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 text-white font-medium shadow-md hover:shadow-lg shadow-indigo-600/20 transition-all active:scale-95 border border-indigo-400/20">
-            <div class="flex items-center gap-2 text-base font-bold">
-              <span>右から I を掛ける</span>
-              <span class="math-font text-indigo-100">(v × I)</span>
+        <!-- Mode 1 Control Panel: Rotation Buttons -->
+        <div id="mode1Controls" class="flex flex-col gap-3">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+            <button id="multRightBtn" class="group flex flex-col items-center justify-center p-3.5 rounded-xl bg-gradient-to-br from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 text-white font-medium shadow-md hover:shadow-lg shadow-indigo-600/20 transition-all active:scale-95 border border-indigo-400/20">
+              <div class="flex items-center gap-2 text-base font-bold">
+                <span>右から I を掛ける</span>
+                <span class="math-font text-indigo-100">(v × I)</span>
+              </div>
+              <span class="text-xs text-indigo-100 mt-1 flex items-center gap-1">
+                ↺ <span class="font-bold text-amber-300">反時計回り +90°</span> 回転
+              </span>
+            </button>
+
+            <button id="multLeftBtn" class="group flex flex-col items-center justify-center p-3.5 rounded-xl bg-gradient-to-br from-purple-700 to-purple-800 hover:from-purple-600 hover:to-purple-700 text-white font-medium shadow-md hover:shadow-lg shadow-purple-900/20 transition-all active:scale-95 border border-purple-400/20">
+              <div class="flex items-center gap-2 text-base font-bold">
+                <span>左から I を掛ける</span>
+                <span class="math-font text-purple-100">(I × v)</span>
+              </div>
+              <span class="text-xs text-purple-100 mt-1 flex items-center gap-1">
+                ↻ <span class="font-bold text-amber-300">時計回り -90°</span> 回転
+              </span>
+            </button>
+          </div>
+
+          <!-- Double application shortcut -->
+          <div class="flex flex-wrap items-center justify-between gap-2 p-3 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 transition-colors">
+            <div class="text-xs text-slate-700 dark:text-slate-300">
+              <strong class="text-amber-600 dark:text-amber-400 font-bold">2回続けて右から掛けると？</strong>
+              <span class="math-font text-indigo-700 dark:text-indigo-300 ml-1 font-semibold">v × I² = v × (-1) = -v</span> （真逆に向く！）
             </div>
-            <span class="text-xs text-indigo-100 mt-1 flex items-center gap-1">
-              ↺ <span class="font-bold text-amber-300">反時計回り +90°</span> 回転
-            </span>
-          </button>
+            <button id="multDoubleBtn" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-amber-50 hover:bg-amber-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-amber-700 dark:text-amber-300 border border-amber-300 dark:border-amber-500/30 transition-all active:scale-95">
+              2回連続で掛ける (180°反転)
+            </button>
+          </div>
 
-          <button id="multLeftBtn" class="group flex flex-col items-center justify-center p-3.5 rounded-xl bg-gradient-to-br from-purple-700 to-purple-800 hover:from-purple-600 hover:to-purple-700 text-white font-medium shadow-md hover:shadow-lg shadow-purple-900/20 transition-all active:scale-95 border border-purple-400/20">
-            <div class="flex items-center gap-2 text-base font-bold">
-              <span>左から I を掛ける</span>
-              <span class="math-font text-purple-100">(I × v)</span>
+          <!-- Real-time Formula Calculation for Current Vector -->
+          <div class="p-3 bg-slate-50 dark:bg-slate-900/90 rounded-xl border border-indigo-100 dark:border-indigo-950/60 flex flex-col gap-1.5 transition-colors">
+            <div class="text-xs font-bold text-slate-600 dark:text-slate-400 flex items-center justify-between">
+              <span>現在のベクトルに対する右掛け展開式:</span>
+              <span class="text-[10px] text-indigo-600 dark:text-indigo-400 font-mono font-semibold">vI = -y e₁ + x e₂</span>
             </div>
-            <span class="text-xs text-purple-100 mt-1 flex items-center gap-1">
-              ↻ <span class="font-bold text-amber-300">時計回り -90°</span> 回転
-            </span>
-          </button>
+            <div id="realtimeFormula" class="math-font text-xs md:text-sm text-indigo-950 dark:text-indigo-200 bg-white dark:bg-slate-950 px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-800 overflow-x-auto shadow-inner transition-colors">
+              <!-- Rendered dynamically -->
+            </div>
+          </div>
         </div>
 
-        <!-- Double application shortcut -->
-        <div class="flex flex-wrap items-center justify-between gap-2 p-3 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 transition-colors">
-          <div class="text-xs text-slate-700 dark:text-slate-300">
-            <strong class="text-amber-600 dark:text-amber-400 font-bold">2回続けて右から掛けると？</strong>
-            <span class="math-font text-indigo-700 dark:text-indigo-300 ml-1 font-semibold">v × I² = v × (-1) = -v</span> （真逆に向く！）
+        <!-- Mode 2 Control Panel: Information Loss & Recovery Experiment -->
+        <div id="mode2Controls" class="hidden flex-col gap-3">
+          <!-- Live Comparison Cards -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <!-- Dot Product (Loss) -->
+            <div class="p-3 rounded-xl bg-rose-50/70 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/50 flex flex-col gap-1.5">
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-xs text-rose-800 dark:text-rose-300 flex items-center gap-1">
+                  <span>❌</span> 高校の内積（情報の消失）
+                </span>
+                <span class="text-[10px] px-1.5 py-0.5 rounded bg-rose-100 dark:bg-rose-900/60 text-rose-700 dark:text-rose-300 font-mono font-bold">影の長さ</span>
+              </div>
+              <div class="math-font text-sm font-bold text-rose-900 dark:text-rose-200 bg-white dark:bg-slate-950 px-2.5 py-1.5 rounded border border-rose-200 dark:border-rose-900/50">
+                a · x = 1 · 2.0 + 0 · y = <span class="text-rose-600 dark:text-rose-400">2.0</span>
+              </div>
+              <p class="text-[11px] text-rose-700 dark:text-rose-300 leading-tight">
+                ⚠️ <strong class="font-semibold">y をいくら変えても内積は 2.0 のまま！</strong> 縦方向の情報が消滅しているため、2.0 から元のベクトルを逆算（割り算）できません。
+              </p>
+            </div>
+
+            <!-- Geometric Product (Preserved) -->
+            <div class="p-3 rounded-xl bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900/50 flex flex-col gap-1.5">
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-xs text-emerald-800 dark:text-emerald-300 flex items-center gap-1">
+                  <span>✅</span> 幾何代数の積（完全保存）
+                </span>
+                <span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 font-mono font-bold">影 ＋ 面積 I</span>
+              </div>
+              <div id="geometricProductDisplay" class="math-font text-sm font-bold text-emerald-900 dark:text-emerald-200 bg-white dark:bg-slate-950 px-2.5 py-1.5 rounded border border-emerald-200 dark:border-emerald-900/50">
+                ax = 2.0 + 1.0 I
+              </div>
+              <p class="text-[11px] text-emerald-700 dark:text-emerald-300 leading-tight">
+                ✨ <strong class="font-semibold">面 I に y の値がそのまま残っている！</strong> 影だけでなく面積も保存されているため、$x = a^{-1}(ax)$ で確実に元のベクトルへ逆算（割り算）可能です！
+              </p>
+            </div>
           </div>
-          <button id="multDoubleBtn" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-amber-50 hover:bg-amber-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-amber-700 dark:text-amber-300 border border-amber-300 dark:border-amber-500/30 transition-all active:scale-95">
-            2回連続で掛ける (180°反転)
-          </button>
+
+          <!-- Y Slider Control & Quick Presets -->
+          <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex flex-col gap-2.5">
+            <div class="flex items-center justify-between text-xs">
+              <span class="font-bold text-slate-700 dark:text-slate-300">縦成分 (y) をスライドして変化させてみよう：</span>
+              <span id="sliderYVal" class="math-font font-bold text-indigo-600 dark:text-indigo-400 bg-white dark:bg-slate-800 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700">y = 1.0</span>
+            </div>
+            <input id="sliderY" type="range" min="-3.5" max="3.5" step="0.1" value="1.0" class="w-full accent-indigo-600 cursor-pointer">
+            <div class="flex flex-wrap items-center gap-2 pt-1 text-xs">
+              <span class="text-slate-500 dark:text-slate-400 text-[11px]">候補の例：</span>
+              <button class="presetYBtn px-2 py-1 rounded bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-[11px] font-mono text-slate-700 dark:text-slate-300" data-y="0.0">(2, 0)</button>
+              <button class="presetYBtn px-2 py-1 rounded bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-[11px] font-mono text-slate-700 dark:text-slate-300" data-y="2.5">(2, 2.5)</button>
+              <button class="presetYBtn px-2 py-1 rounded bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-[11px] font-mono text-slate-700 dark:text-slate-300" data-y="-2.0">(2, -2.0)</button>
+              <span class="text-[11px] text-amber-600 dark:text-amber-400 font-semibold ml-auto">※どの点でも内積は 2.0 のまま！</span>
+            </div>
+          </div>
         </div>
 
-        <!-- Real-time Formula Calculation for Current Vector -->
-        <div class="p-3 bg-slate-50 dark:bg-slate-900/90 rounded-xl border border-indigo-100 dark:border-indigo-950/60 flex flex-col gap-1.5 transition-colors">
-          <div class="text-xs font-bold text-slate-600 dark:text-slate-400 flex items-center justify-between">
-            <span>現在のベクトルに対する右掛け展開式:</span>
-            <span class="text-[10px] text-indigo-600 dark:text-indigo-400 font-mono font-semibold">vI = -y e₁ + x e₂</span>
-          </div>
-          <div id="realtimeFormula" class="math-font text-xs md:text-sm text-indigo-950 dark:text-indigo-200 bg-white dark:bg-slate-950 px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-800 overflow-x-auto shadow-inner transition-colors">
-            <!-- Rendered dynamically -->
-          </div>
-        </div>
       </div>
     </div>
 
@@ -328,15 +411,15 @@
             <span class="p-2 rounded-xl bg-indigo-100 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 text-lg font-bold">📖</span>
             <div>
               <h2 class="font-bold text-base text-slate-900 dark:text-white">なぜ「I」という存在が必要だったのか？</h2>
-              <p class="text-xs text-slate-500 dark:text-slate-400">高校ベクトルの“ある致命的な弱点”から生まれた大革命</p>
-            </div>
-          </div>
-
-          <!-- Section 1: The puzzle of vector division -->
-          <div class="space-y-3 text-xs leading-relaxed text-slate-600 dark:text-slate-300">
+            <!-- Section 1: The puzzle of vector division -->
             <div class="p-3.5 rounded-xl bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200/70 dark:border-amber-900/40 space-y-2">
-              <div class="font-bold text-amber-800 dark:text-amber-300 flex items-center gap-1.5">
-                <span>⚠️</span> 疑問1：なぜ高校の内積は「割り算」ができないのか？（情報の消失）
+              <div class="font-bold text-amber-800 dark:text-amber-300 flex items-center justify-between">
+                <span class="flex items-center gap-1.5">
+                  <span>⚠️</span> 疑問1：なぜ高校の内積は「割り算」ができないのか？（情報の消失）
+                </span>
+                <button id="jumpToMode2Btn" class="px-2 py-0.5 rounded bg-amber-200 dark:bg-amber-900/80 hover:bg-amber-300 dark:hover:bg-amber-800 text-amber-900 dark:text-amber-100 text-[10px] font-bold transition-all shadow-xs">
+                  ▶ 実験モードを動かす
+                </button>
               </div>
               <p>
                 普通の数なら $3 \times x = 12$ のとき、$x = 12 \div 3 = 4$ と逆算（特定）できます。掛けて $12$ になる数が「$4$」ただ1つだからです。
@@ -481,8 +564,12 @@
 
     // State management
     const state = {
-      // Vector v = x*e1 + y*e2
+      // Current Mode: 'rotate' | 'division'
+      mode: 'rotate',
+      // Vector v = x*e1 + y*e2 (Mode 1)
       v: { x: 2.0, y: 1.0 },
+      // Vector x = (2.0, y) for Mode 2 (fixed x=2.0, variable y)
+      vDiv: { x: 2.0, y: 1.0 },
       // Target for smooth animation
       animating: false,
       fromAngle: 0,
@@ -508,6 +595,77 @@
     const multLeftBtn = document.getElementById('multLeftBtn');
     const multDoubleBtn = document.getElementById('multDoubleBtn');
     const realtimeFormula = document.getElementById('realtimeFormula');
+
+    // Mode Switcher Elements
+    const modeRotateBtn = document.getElementById('modeRotateBtn');
+    const modeDivisionBtn = document.getElementById('modeDivisionBtn');
+    const mode1Controls = document.getElementById('mode1Controls');
+    const mode2Controls = document.getElementById('mode2Controls');
+    const legendMode1 = document.getElementById('legendMode1');
+    const legendMode2 = document.getElementById('legendMode2');
+    const canvasTipText = document.getElementById('canvasTipText');
+    const sliderY = document.getElementById('sliderY');
+    const sliderYVal = document.getElementById('sliderYVal');
+    const geometricProductDisplay = document.getElementById('geometricProductDisplay');
+    const jumpToMode2Btn = document.getElementById('jumpToMode2Btn');
+
+    function switchMode(newMode) {
+      state.mode = newMode;
+      const activeBtnClass = 'bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-300 shadow-sm font-bold';
+      const inactiveBtnClass = 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 font-bold';
+
+      if (newMode === 'rotate') {
+        modeRotateBtn.className = `flex-1 py-2 px-3 rounded-lg ${activeBtnClass} flex items-center justify-center gap-1.5 transition-all`;
+        modeDivisionBtn.className = `flex-1 py-2 px-3 rounded-lg ${inactiveBtnClass} flex items-center justify-center gap-1.5 transition-all`;
+        mode1Controls.classList.remove('hidden');
+        mode1Controls.classList.add('flex');
+        mode2Controls.classList.add('hidden');
+        mode2Controls.classList.remove('flex');
+        legendMode1.classList.remove('hidden');
+        legendMode2.classList.add('hidden');
+        canvasTipText.textContent = '💡 点の先端をドラッグして動かせます';
+      } else {
+        modeDivisionBtn.className = `flex-1 py-2 px-3 rounded-lg ${activeBtnClass} flex items-center justify-center gap-1.5 transition-all`;
+        modeRotateBtn.className = `flex-1 py-2 px-3 rounded-lg ${inactiveBtnClass} flex items-center justify-center gap-1.5 transition-all`;
+        mode2Controls.classList.remove('hidden');
+        mode2Controls.classList.add('flex');
+        mode1Controls.classList.add('hidden');
+        mode1Controls.classList.remove('flex');
+        legendMode2.classList.remove('hidden');
+        legendMode1.classList.add('hidden');
+        canvasTipText.textContent = '💡 縦線上の先端を上下にドラッグ（または下部のスライダーで変化）';
+      }
+      updateCoordDisplay();
+      draw();
+    }
+
+    modeRotateBtn.addEventListener('click', () => switchMode('rotate'));
+    modeDivisionBtn.addEventListener('click', () => switchMode('division'));
+
+    if (jumpToMode2Btn) {
+      jumpToMode2Btn.addEventListener('click', () => {
+        switchMode('division');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+    }
+
+    if (sliderY) {
+      sliderY.addEventListener('input', (e) => {
+        state.vDiv.y = parseFloat(e.target.value);
+        updateCoordDisplay();
+        draw();
+      });
+    }
+
+    document.querySelectorAll('.presetYBtn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const val = parseFloat(e.currentTarget.dataset.y);
+        state.vDiv.y = val;
+        if (sliderY) sliderY.value = val;
+        updateCoordDisplay();
+        draw();
+      });
+    });
 
     const prevStepBtn = document.getElementById('prevStepBtn');
     const nextStepBtn = document.getElementById('nextStepBtn');
@@ -580,14 +738,28 @@
     }
 
     function updateCoordDisplay() {
-      const x = state.v.x.toFixed(1);
-      const y = state.v.y.toFixed(1);
-      const negY = (-state.v.y).toFixed(1);
-      
-      coordDisplay.innerHTML = `v = <span class="text-rose-600 dark:text-rose-400 font-bold">${x}</span> e₁ + <span class="text-sky-600 dark:text-sky-400 font-bold">${y}</span> e₂`;
+      if (state.mode === 'rotate') {
+        const x = state.v.x.toFixed(1);
+        const y = state.v.y.toFixed(1);
+        const negY = (-state.v.y).toFixed(1);
+        
+        coordDisplay.innerHTML = `v = <span class="text-rose-600 dark:text-rose-400 font-bold">${x}</span> e₁ + <span class="text-sky-600 dark:text-sky-400 font-bold">${y}</span> e₂`;
 
-      if (realtimeFormula) {
-        realtimeFormula.innerHTML = `(${x}e₁ + ${y}e₂) I = ${x}(e₁I) + ${y}(e₂I) = ${x}(e₂) + ${y}(-e₁) = <span class="text-amber-700 dark:text-amber-300 font-bold">${negY}e₁ + ${x}e₂</span>`;
+        if (realtimeFormula) {
+          realtimeFormula.innerHTML = `(${x}e₁ + ${y}e₂) I = ${x}(e₁I) + ${y}(e₂I) = ${x}(e₂) + ${y}(-e₁) = <span class="text-amber-700 dark:text-amber-300 font-bold">${negY}e₁ + ${x}e₂</span>`;
+        }
+      } else {
+        const yVal = state.vDiv.y.toFixed(1);
+        coordDisplay.innerHTML = `x = <span class="text-indigo-600 dark:text-indigo-400 font-bold">2.0</span> e₁ + <span class="text-emerald-600 dark:text-emerald-400 font-bold">${yVal}</span> e₂`;
+        if (sliderYVal) sliderYVal.textContent = `y = ${yVal}`;
+        if (sliderY && Math.abs(parseFloat(sliderY.value) - state.vDiv.y) > 0.05) {
+          sliderY.value = state.vDiv.y;
+        }
+        if (geometricProductDisplay) {
+          const sign = state.vDiv.y >= 0 ? '+' : '-';
+          const absY = Math.abs(state.vDiv.y).toFixed(1);
+          geometricProductDisplay.innerHTML = `ax = <span class="text-amber-600 dark:text-amber-400">2.0</span> ${sign} <span class="text-emerald-600 dark:text-emerald-400">${absY} I</span>`;
+        }
       }
     }
 
@@ -739,83 +911,194 @@
     function draw() {
       drawGrid();
       const dark = isDarkMode();
-
-      // 1. Draw unit bivector tile (I = e1 ^ e2 area)
       const x0 = toScreenX(0);
       const y0 = toScreenY(0);
-      const x1 = toScreenX(1);
-      const y1 = toScreenY(1);
 
-      ctx.fillStyle = dark ? 'rgba(99, 102, 241, 0.15)' : 'rgba(99, 102, 241, 0.18)';
-      ctx.strokeStyle = dark ? 'rgba(99, 102, 241, 0.5)' : 'rgba(99, 102, 241, 0.6)';
-      ctx.lineWidth = 1.5;
-      ctx.setLineDash([4, 4]);
-      ctx.beginPath();
-      ctx.rect(x0, y1, x1 - x0, y0 - y1);
-      ctx.fill();
-      ctx.stroke();
-      ctx.setLineDash([]);
+      if (state.mode === 'rotate') {
+        // --- MODE 1: Rotation & I^2 = -1 ---
+        const x1 = toScreenX(1);
+        const y1 = toScreenY(1);
 
-      // Label for I
-      ctx.fillStyle = dark ? 'rgba(165, 180, 252, 0.85)' : '#4338ca';
-      ctx.font = 'bold 11px JetBrains Mono';
-      ctx.fillText('I = e₁e₂ (面積1)', x0 + 8, y1 + 18);
-
-      // 2. Draw basis vectors e1 and e2
-      drawArrow(x0, y0, toScreenX(1), toScreenY(0), '#f43f5e', 2.5, 9);
-      ctx.fillStyle = '#f43f5e';
-      ctx.font = 'bold 12px JetBrains Mono';
-      ctx.fillText('e₁', toScreenX(1) + 4, toScreenY(0) + 16);
-
-      drawArrow(x0, y0, toScreenX(0), toScreenY(1), '#0284c7', 2.5, 9);
-      ctx.fillStyle = '#0284c7';
-      ctx.fillText('e₂', toScreenX(0) - 18, toScreenY(1) - 4);
-
-      // 3. Draw vector v
-      const vx = toScreenX(state.v.x);
-      const vy = toScreenY(state.v.y);
-
-      // Dashed projection lines to axes
-      ctx.save();
-      ctx.strokeStyle = dark ? 'rgba(148, 163, 184, 0.3)' : 'rgba(100, 116, 139, 0.3)';
-      ctx.setLineDash([3, 3]);
-      ctx.beginPath();
-      ctx.moveTo(vx, vy);
-      ctx.lineTo(vx, y0);
-      ctx.lineTo(x0, y0);
-      ctx.moveTo(vx, vy);
-      ctx.lineTo(x0, vy);
-      ctx.stroke();
-      ctx.restore();
-
-      // Main Vector Arrow
-      const vectorColor = dark ? '#818cf8' : '#4f46e5';
-      drawArrow(x0, y0, vx, vy, vectorColor, 4, 12);
-
-      // Tip handle (draggable circle)
-      ctx.save();
-      ctx.fillStyle = '#6366f1';
-      ctx.strokeStyle = '#ffffff';
-      ctx.lineWidth = 2.5;
-      ctx.beginPath();
-      ctx.arc(vx, vy, 7, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.stroke();
-
-      // Glowing outer ring if hovered/dragging
-      if (state.isDragging) {
-        ctx.strokeStyle = dark ? 'rgba(129, 140, 248, 0.5)' : 'rgba(99, 102, 241, 0.4)';
-        ctx.lineWidth = 6;
+        // 1. Draw unit bivector tile (I = e1 ^ e2 area)
+        ctx.fillStyle = dark ? 'rgba(99, 102, 241, 0.15)' : 'rgba(99, 102, 241, 0.18)';
+        ctx.strokeStyle = dark ? 'rgba(99, 102, 241, 0.5)' : 'rgba(99, 102, 241, 0.6)';
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([4, 4]);
         ctx.beginPath();
-        ctx.arc(vx, vy, 12, 0, Math.PI * 2);
+        ctx.rect(x0, y1, x1 - x0, y0 - y1);
+        ctx.fill();
         ctx.stroke();
-      }
-      ctx.restore();
+        ctx.setLineDash([]);
 
-      // Label vector v
-      ctx.fillStyle = dark ? '#c7d2fe' : '#312e81';
-      ctx.font = 'bold 13px JetBrains Mono';
-      ctx.fillText('v', vx + 10, vy - 10);
+        // Label for I
+        ctx.fillStyle = dark ? 'rgba(165, 180, 252, 0.85)' : '#4338ca';
+        ctx.font = 'bold 11px JetBrains Mono';
+        ctx.fillText('I = e₁e₂ (面積1)', x0 + 8, y1 + 18);
+
+        // 2. Draw basis vectors e1 and e2
+        drawArrow(x0, y0, toScreenX(1), toScreenY(0), '#f43f5e', 2.5, 9);
+        ctx.fillStyle = '#f43f5e';
+        ctx.font = 'bold 12px JetBrains Mono';
+        ctx.fillText('e₁', toScreenX(1) + 4, toScreenY(0) + 16);
+
+        drawArrow(x0, y0, toScreenX(0), toScreenY(1), '#0284c7', 2.5, 9);
+        ctx.fillStyle = '#0284c7';
+        ctx.fillText('e₂', toScreenX(0) - 18, toScreenY(1) - 4);
+
+        // 3. Draw vector v
+        const vx = toScreenX(state.v.x);
+        const vy = toScreenY(state.v.y);
+
+        // Dashed projection lines to axes
+        ctx.save();
+        ctx.strokeStyle = dark ? 'rgba(148, 163, 184, 0.3)' : 'rgba(100, 116, 139, 0.3)';
+        ctx.setLineDash([3, 3]);
+        ctx.beginPath();
+        ctx.moveTo(vx, vy);
+        ctx.lineTo(vx, y0);
+        ctx.lineTo(x0, y0);
+        ctx.moveTo(vx, vy);
+        ctx.lineTo(x0, vy);
+        ctx.stroke();
+        ctx.restore();
+
+        // Main Vector Arrow
+        const vectorColor = dark ? '#818cf8' : '#4f46e5';
+        drawArrow(x0, y0, vx, vy, vectorColor, 4, 12);
+
+        // Tip handle (draggable circle)
+        ctx.save();
+        ctx.fillStyle = '#6366f1';
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.arc(vx, vy, 7, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        // Glowing outer ring if hovered/dragging
+        if (state.isDragging) {
+          ctx.strokeStyle = dark ? 'rgba(129, 140, 248, 0.5)' : 'rgba(99, 102, 241, 0.4)';
+          ctx.lineWidth = 6;
+          ctx.beginPath();
+          ctx.arc(vx, vy, 12, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+        ctx.restore();
+
+        // Label vector v
+        ctx.fillStyle = dark ? '#c7d2fe' : '#312e81';
+        ctx.font = 'bold 13px JetBrains Mono';
+        ctx.fillText('v', vx + 10, vy - 10);
+
+      } else {
+        // --- MODE 2: Information Loss & Recovery Experiment ---
+        const targetX = 2.0;
+        const currentY = state.vDiv.y;
+        const rect = canvas.getBoundingClientRect();
+        const lineX = toScreenX(targetX);
+
+        // 1. Draw infinite candidate line x = 2.0 (Dashed vertical line)
+        ctx.save();
+        ctx.strokeStyle = dark ? 'rgba(244, 63, 94, 0.5)' : 'rgba(225, 29, 72, 0.45)';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([6, 5]);
+        ctx.beginPath();
+        ctx.moveTo(lineX, 0);
+        ctx.lineTo(lineX, rect.height);
+        ctx.stroke();
+        ctx.restore();
+
+        // Line annotation
+        ctx.fillStyle = dark ? '#fda4af' : '#be123c';
+        ctx.font = '10px JetBrains Mono';
+        ctx.fillText('内積が2.0になる直線上（無限の候補）', lineX + 6, 24);
+
+        // 2. Draw outer product area tile (Bivector a ^ x = y I)
+        const areaWidth = toScreenX(1) - x0;
+        const areaHeight = currentY * state.scale;
+        ctx.save();
+        if (Math.abs(currentY) > 0.05) {
+          ctx.fillStyle = currentY >= 0
+            ? (dark ? 'rgba(16, 185, 129, 0.22)' : 'rgba(16, 185, 129, 0.2)')
+            : (dark ? 'rgba(244, 63, 94, 0.22)' : 'rgba(244, 63, 94, 0.2)');
+          ctx.strokeStyle = currentY >= 0 ? '#10b981' : '#f43f5e';
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          // Rectangle formed by a=(1,0) and vertical height y
+          ctx.rect(x0, y0, areaWidth, -areaHeight);
+          ctx.fill();
+          ctx.stroke();
+
+          // Area label inside
+          ctx.fillStyle = currentY >= 0 ? (dark ? '#6ee7b7' : '#047857') : (dark ? '#fda4af' : '#b91c1c');
+          ctx.font = 'bold 11px JetBrains Mono';
+          const areaLabel = `外積 = ${currentY.toFixed(1)} I`;
+          ctx.fillText(areaLabel, x0 + 6, toScreenY(currentY / 2) + 4);
+        }
+        ctx.restore();
+
+        // 3. Draw projection shadow on x-axis (Dot product = 2.0, CONSTANT)
+        ctx.save();
+        ctx.strokeStyle = '#f59e0b';
+        ctx.lineWidth = 6;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(x0, y0);
+        ctx.lineTo(toScreenX(targetX), y0);
+        ctx.stroke();
+
+        // Dot product shadow label
+        ctx.fillStyle = dark ? '#fbbf24' : '#b45309';
+        ctx.font = 'bold 11px JetBrains Mono';
+        ctx.fillText('内積 = 2.0 (影は一切変わらない！)', x0 + 12, y0 + 18);
+        ctx.restore();
+
+        // 4. Draw projection dashed line from tip to x-axis
+        const tipX = toScreenX(targetX);
+        const tipY = toScreenY(currentY);
+        ctx.save();
+        ctx.strokeStyle = dark ? 'rgba(245, 158, 11, 0.6)' : 'rgba(217, 119, 6, 0.5)';
+        ctx.setLineDash([3, 3]);
+        ctx.beginPath();
+        ctx.moveTo(tipX, tipY);
+        ctx.lineTo(tipX, y0);
+        ctx.stroke();
+        ctx.restore();
+
+        // 5. Draw reference vector a = (1, 0)
+        drawArrow(x0, y0, toScreenX(1), y0, '#4f46e5', 3, 9);
+        ctx.fillStyle = dark ? '#a5b4fc' : '#3730a3';
+        ctx.font = 'bold 11px JetBrains Mono';
+        ctx.fillText('a = (1,0)', toScreenX(1) - 10, y0 - 10);
+
+        // 6. Draw candidate vector x = (2, y)
+        drawArrow(x0, y0, tipX, tipY, dark ? '#34d399' : '#059669', 4, 12);
+
+        // Draggable tip handle on candidate line
+        ctx.save();
+        ctx.fillStyle = '#10b981';
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.arc(tipX, tipY, 7, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        if (state.isDragging) {
+          ctx.strokeStyle = dark ? 'rgba(52, 211, 153, 0.5)' : 'rgba(16, 185, 129, 0.4)';
+          ctx.lineWidth = 6;
+          ctx.beginPath();
+          ctx.arc(tipX, tipY, 12, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+        ctx.restore();
+
+        // Label for candidate vector
+        ctx.fillStyle = dark ? '#6ee7b7' : '#065f46';
+        ctx.font = 'bold 12px JetBrains Mono';
+        ctx.fillText(`x = (2, ${currentY.toFixed(1)})`, tipX + 10, tipY - 8);
+      }
     }
 
     function getPointerPos(e) {
@@ -829,10 +1112,11 @@
     }
 
     function checkHandleHit(px, py) {
-      const vx = toScreenX(state.v.x);
-      const vy = toScreenY(state.v.y);
+      const currentVector = state.mode === 'rotate' ? state.v : state.vDiv;
+      const vx = toScreenX(currentVector.x);
+      const vy = toScreenY(currentVector.y);
       const dist = Math.hypot(px - vx, py - vy);
-      return dist <= 24; // Generous touch target
+      return dist <= 28; // Generous touch target
     }
 
     function onPointerDown(e) {
@@ -848,15 +1132,23 @@
       if (!state.isDragging) return;
       e.preventDefault();
       const { px, py } = getPointerPos(e);
-      let nx = toMathX(px);
-      let ny = toMathY(py);
 
-      // Snap to nearest 0.25 if close
-      if (Math.abs(nx - Math.round(nx)) < 0.12) nx = Math.round(nx);
-      if (Math.abs(ny - Math.round(ny)) < 0.12) ny = Math.round(ny);
+      if (state.mode === 'rotate') {
+        let nx = toMathX(px);
+        let ny = toMathY(py);
 
-      state.v.x = Math.max(-4.5, Math.min(4.5, nx));
-      state.v.y = Math.max(-4.5, Math.min(4.5, ny));
+        // Snap to nearest 0.25 if close
+        if (Math.abs(nx - Math.round(nx)) < 0.12) nx = Math.round(nx);
+        if (Math.abs(ny - Math.round(ny)) < 0.12) ny = Math.round(ny);
+
+        state.v.x = Math.max(-4.5, Math.min(4.5, nx));
+        state.v.y = Math.max(-4.5, Math.min(4.5, ny));
+      } else {
+        // Mode 2: constrain x to 2.0, drag vertical y
+        let ny = toMathY(py);
+        if (Math.abs(ny - Math.round(ny)) < 0.1) ny = Math.round(ny);
+        state.vDiv.y = Math.max(-3.5, Math.min(3.5, ny));
+      }
 
       updateCoordDisplay();
       draw();
@@ -895,10 +1187,14 @@
       startRotateAnimation(Math.PI);
     });
 
-    // Reset Vector to (2, 1)
+    // Reset Vector
     resetVectorBtn.addEventListener('click', () => {
-      state.v.x = 2.0;
-      state.v.y = 1.0;
+      if (state.mode === 'rotate') {
+        state.v.x = 2.0;
+        state.v.y = 1.0;
+      } else {
+        state.vDiv.y = 1.0;
+      }
       updateCoordDisplay();
       draw();
     });

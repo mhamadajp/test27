@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>幾何代数シミュレータ - Iの2乗が-1になる理由</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+    };
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+  <!-- KaTeX for math rendering -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/contrib/auto-render.min.js"></script>
+  <style>
+    body {
+      font-family: 'Noto Sans JP', 'Inter', sans-serif;
+    }
+    .math-font {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .step-highlight {
+      transition: all 0.3s ease;
+    }
+    .step-active {
+      border-color: #6366f1;
+      background-color: #e0e7ff;
+      transform: scale(1.02);
+    }
+  </style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 min-h-screen flex flex-col antialiased transition-colors duration-200">
+  <header class="border-b border-slate-200 dark:border-slate-800 bg-white/85 dark:bg-slate-950/80 backdrop-blur px-6 py-4 sticky top-0 z-30 flex flex-wrap items-center justify-between gap-3 shadow-sm">
+    <div class="flex items-center gap-3">
+      <div class="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center font-bold text-lg text-white shadow-lg shadow-indigo-500/30">
+        I²
+      </div>
+      <div>
+        <h1 class="text-lg font-bold text-slate-900 dark:text-white tracking-wide">幾何代数 直感シミュレータ</h1>
+        <p class="text-xs text-slate-500 dark:text-slate-400">高校数学の知識でわかる「I² = -1」と「90°回転の正体」</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-3">
+      <!-- Theme Switcher Toggle -->
+      <div class="flex items-center bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-medium">
+        <button id="themeAutoBtn" class="px-2.5 py-1 rounded-lg text-slate-600 dark:text-slate-300 transition-all flex items-center gap-1" title="システムの配色設定に自動追従">
+          <span>💻</span> 自動
+        </button>
+        <button id="themeLightBtn" class="px-2.5 py-1 rounded-lg text-slate-600 dark:text-slate-300 transition-all flex items-center gap-1" title="ライトモード">
+          <span>☀️</span> 明
+        </button>
+        <button id="themeDarkBtn" class="px-2.5 py-1 rounded-lg text-slate-600 dark:text-slate-300 transition-all flex items-center gap-1" title="ダークモード">
+          <span>🌙</span> 暗
+        </button>
+      </div>
+      <span class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+        インタラクティブ学習
+      </span>
+    </div>
+  </header>
+
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+    
+    <!-- Left column: Interactive Canvas -->
+    <div class="lg:col-span-7 flex flex-col gap-4">
+      <div class="bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-md dark:shadow-xl flex flex-col gap-4 relative overflow-hidden transition-colors">
+        
+        <!-- Top Toolbar -->
+        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 dark:border-slate-800 pb-3">
+          <div class="flex items-center gap-3 text-sm">
+            <span class="text-slate-600 dark:text-slate-300 font-medium">現在値:</span>
+            <span id="coordDisplay" class="math-font bg-slate-100 dark:bg-slate-800/80 px-2.5 py-1 rounded-lg text-indigo-700 dark:text-indigo-300 font-semibold border border-slate-200 dark:border-slate-700">
+              v = 2.0 e₁ + 1.0 e₂
+            </span>
+          </div>
+          <div class="flex items-center gap-2">
+            <button id="resetVectorBtn" class="px-2.5 py-1 text-xs rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors border border-slate-200 dark:border-slate-700 font-medium">
+              ベクトル初期化
+            </button>
+          </div>
+        </div>
+
+        <!-- Canvas Container -->
+        <div class="relative w-full aspect-square md:aspect-[4/3] rounded-xl overflow-hidden bg-slate-100/70 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 select-none transition-colors">
+          <canvas id="vectorCanvas" class="w-full h-full cursor-crosshair"></canvas>
+          
+          <!-- On-canvas Legend / Hint -->
+          <div class="absolute bottom-3 left-3 bg-white/90 dark:bg-slate-950/85 backdrop-blur border border-slate-200 dark:border-slate-800 px-3 py-2 rounded-xl text-xs flex flex-col gap-1 pointer-events-none shadow-md">
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-0.5 bg-rose-500 rounded"></span>
+              <span class="text-rose-600 dark:text-rose-400 font-bold">e₁</span> (横・東向き)
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-0.5 bg-sky-500 rounded"></span>
+              <span class="text-sky-600 dark:text-sky-400 font-bold">e₂</span> (縦・北向き)
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-0.5 bg-indigo-500 rounded"></span>
+              <span class="text-indigo-600 dark:text-indigo-300 font-bold">v</span> (ドラッグして変更可)
+            </div>
+          </div>
+
+          <div class="absolute top-3 right-3 bg-indigo-50/90 dark:bg-indigo-950/80 border border-indigo-200 dark:border-indigo-500/30 px-3 py-1.5 rounded-lg text-xs text-indigo-800 dark:text-indigo-200 pointer-events-none shadow-sm">
+            💡 点の先端をドラッグして動かせます
+          </div>
+        </div>
+
+        <!-- Interactive Action Buttons -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+          <button id="multRightBtn" class="group flex flex-col items-center justify-center p-3.5 rounded-xl bg-gradient-to-br from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 text-white font-medium shadow-md hover:shadow-lg shadow-indigo-600/20 transition-all active:scale-95 border border-indigo-400/20">
+            <div class="flex items-center gap-2 text-base font-bold">
+              <span>右から I を掛ける</span>
+              <span class="math-font text-indigo-100">(v × I)</span>
+            </div>
+            <span class="text-xs text-indigo-100 mt-1 flex items-center gap-1">
+              ↺ <span class="font-bold text-amber-300">反時計回り +90°</span> 回転
+            </span>
+          </button>
+
+          <button id="multLeftBtn" class="group flex flex-col items-center justify-center p-3.5 rounded-xl bg-gradient-to-br from-purple-700 to-purple-800 hover:from-purple-600 hover:to-purple-700 text-white font-medium shadow-md hover:shadow-lg shadow-purple-900/20 transition-all active:scale-95 border border-purple-400/20">
+            <div class="flex items-center gap-2 text-base font-bold">
+              <span>左から I を掛ける</span>
+              <span class="math-font text-purple-100">(I × v)</span>
+            </div>
+            <span class="text-xs text-purple-100 mt-1 flex items-center gap-1">
+              ↻ <span class="font-bold text-amber-300">時計回り -90°</span> 回転
+            </span>
+          </button>
+        </div>
+
+        <!-- Double application shortcut -->
+        <div class="flex flex-wrap items-center justify-between gap-2 p-3 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 transition-colors">
+          <div class="text-xs text-slate-700 dark:text-slate-300">
+            <strong class="text-amber-600 dark:text-amber-400 font-bold">2回続けて右から掛けると？</strong>
+            <span class="math-font text-indigo-700 dark:text-indigo-300 ml-1 font-semibold">v × I² = v × (-1) = -v</span> （真逆に向く！）
+          </div>
+          <button id="multDoubleBtn" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-amber-50 hover:bg-amber-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-amber-700 dark:text-amber-300 border border-amber-300 dark:border-amber-500/30 transition-all active:scale-95">
+            2回連続で掛ける (180°反転)
+          </button>
+        </div>
+
+        <!-- Real-time Formula Calculation for Current Vector -->
+        <div class="p-3 bg-slate-50 dark:bg-slate-900/90 rounded-xl border border-indigo-100 dark:border-indigo-950/60 flex flex-col gap-1.5 transition-colors">
+          <div class="text-xs font-bold text-slate-600 dark:text-slate-400 flex items-center justify-between">
+            <span>現在のベクトルに対する右掛け展開式:</span>
+            <span class="text-[10px] text-indigo-600 dark:text-indigo-400 font-mono font-semibold">vI = -y e₁ + x e₂</span>
+          </div>
+          <div id="realtimeFormula" class="math-font text-xs md:text-sm text-indigo-950 dark:text-indigo-200 bg-white dark:bg-slate-950 px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-800 overflow-x-auto shadow-inner transition-colors">
+            <!-- Rendered dynamically -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right column: Interactive Breakdown & Step-by-Step Proof -->
+    <div class="lg:col-span-5 flex flex-col gap-4">
+      
+      <!-- Card 1: Step-by-Step Proof of I^2 = -1 -->
+      <div class="bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-md dark:shadow-xl flex flex-col gap-4 transition-colors">
+        <div class="flex items-center justify-between">
+          <h2 class="font-bold text-base text-slate-900 dark:text-white flex items-center gap-2">
+            <span class="flex h-2.5 w-2.5 rounded-full bg-indigo-500"></span>
+            なぜ I² = -1 になるのか？（数式の解剖）
+          </h2>
+          <span class="text-xs text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded border border-slate-200 dark:border-transparent">ステップ再生</span>
+        </div>
+
+        <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+          平面の単位面積要素 <span class="math-font text-amber-600 dark:text-amber-300 font-bold">I = e₁ e₂</span> を2回掛け合わせると、真ん中の並べ替えだけでマイナスが生まれます。
+        </p>
+
+        <!-- Stepper Visualizer -->
+        <div class="flex flex-col gap-2.5" id="proofStepsContainer">
+          
+          <div id="step-0" class="step-card p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/80 text-xs transition-all cursor-pointer">
+            <div class="flex items-center justify-between font-bold text-slate-800 dark:text-slate-300 mb-1">
+              <span>① 定義通りに2回並べる</span>
+              <span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400">Step 1</span>
+            </div>
+            <div class="math-font text-sm text-indigo-700 dark:text-indigo-300 py-1 font-semibold">
+              I² = (e₁ e₂)(e₁ e₂)
+            </div>
+            <div class="text-[11px] text-slate-500 dark:text-slate-400">
+              I を基底ベクトル <span class="text-rose-600 dark:text-rose-400 font-semibold">e₁</span>, <span class="text-sky-600 dark:text-sky-400 font-semibold">e₂</span> の積に戻します。
+            </div>
+          </div>
+
+          <div id="step-1" class="step-card p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/80 text-xs transition-all cursor-pointer">
+            <div class="flex items-center justify-between font-bold text-slate-800 dark:text-slate-300 mb-1">
+              <span>② 結合法則で真ん中に注目</span>
+              <span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400">Step 2</span>
+            </div>
+            <div class="math-font text-sm text-indigo-700 dark:text-indigo-300 py-1 font-semibold">
+              = e₁ <span class="px-1 py-0.5 bg-amber-500/20 text-amber-700 dark:text-amber-300 rounded border border-amber-500/40 font-bold">(e₂ e₁)</span> e₂
+            </div>
+            <div class="text-[11px] text-slate-500 dark:text-slate-400">
+              掛ける順番を崩さず、真ん中の積 <span class="text-amber-700 dark:text-amber-300 font-bold">e₂ e₁</span> をくくります。
+            </div>
+          </div>
+
+          <div id="step-2" class="step-card p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/80 text-xs transition-all cursor-pointer">
+            <div class="flex items-center justify-between font-bold text-slate-800 dark:text-slate-300 mb-1">
+              <span class="text-amber-700 dark:text-amber-300">③ 順序を反転（マイナスが出現！）</span>
+              <span class="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-700 dark:text-amber-300 font-bold">重要</span>
+            </div>
+            <div class="math-font text-sm text-indigo-700 dark:text-indigo-300 py-1 font-semibold">
+              = e₁ <span class="px-1 py-0.5 bg-rose-500/20 text-rose-700 dark:text-rose-300 rounded border border-rose-500/40 font-bold">(- e₁ e₂)</span> e₂
+            </div>
+            <div class="text-[11px] text-slate-600 dark:text-slate-300">
+              <strong class="text-amber-700 dark:text-amber-400">反交換性：</strong>直交する基底を入れ替えると符号が反転します（<span class="math-font text-rose-600 dark:text-rose-300 font-bold">e₂ e₁ = -e₁ e₂</span>）。
+            </div>
+          </div>
+
+          <div id="step-3" class="step-card p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/80 text-xs transition-all cursor-pointer">
+            <div class="flex items-center justify-between font-bold text-slate-800 dark:text-slate-300 mb-1">
+              <span>④ 同じ基底同士をペアにする</span>
+              <span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400">Step 4</span>
+            </div>
+            <div class="math-font text-sm text-indigo-700 dark:text-indigo-300 py-1 font-semibold">
+              = - <span class="text-rose-600 dark:text-rose-300 font-semibold">(e₁ e₁)</span> <span class="text-sky-600 dark:text-sky-300 font-semibold">(e₂ e₂)</span>
+            </div>
+            <div class="text-[11px] text-slate-500 dark:text-slate-400">
+              マイナスを一番前に出して、同じ向きの成分同士を掛け合わせます。
+            </div>
+          </div>
+
+          <div id="step-4" class="step-card p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/80 text-xs transition-all cursor-pointer">
+            <div class="flex items-center justify-between font-bold text-slate-800 dark:text-slate-300 mb-1">
+              <span class="text-emerald-700 dark:text-emerald-400">⑤ 自身の2乗は 1（大きさの二乗）</span>
+              <span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 font-bold">結論</span>
+            </div>
+            <div class="math-font text-sm text-emerald-700 dark:text-emerald-300 py-1 font-bold">
+              = - (1) · (1) = -1
+            </div>
+            <div class="text-[11px] text-slate-600 dark:text-slate-300">
+              <span class="math-font font-semibold">e₁² = 1, e₂² = 1</span> なので、最終的に <strong class="text-emerald-700 dark:text-emerald-400 font-bold">-1</strong> だけが残ります！
+            </div>
+          </div>
+
+        </div>
+
+        <div class="flex items-center justify-between pt-1">
+          <button id="prevStepBtn" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-transparent disabled:opacity-30 disabled:cursor-not-allowed transition-colors">
+            ◀ 前へ
+          </button>
+          <span id="stepCounter" class="text-xs text-slate-500 dark:text-slate-400 font-medium">1 / 5</span>
+          <button id="nextStepBtn" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white disabled:opacity-30 disabled:cursor-not-allowed shadow transition-colors">
+            次へ ▶
+          </button>
+        </div>
+      </div>
+
+      <!-- Card 2: Knowledge Bridge to High School Math -->
+      <div class="bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-md dark:shadow-xl flex flex-col gap-3 transition-colors">
+        <h3 class="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
+          <span>🎓</span> 高校数学（複素数・行列）との明確な対応
+        </h3>
+        
+        <div class="text-xs text-slate-600 dark:text-slate-300 space-y-3 leading-relaxed">
+          <!-- Point 1: Complex numbers comparison -->
+          <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-900/90 border border-indigo-100 dark:border-indigo-900/40 flex flex-col gap-1.5 transition-colors">
+            <div class="font-bold text-indigo-700 dark:text-indigo-300 flex items-center gap-1.5 text-xs">
+              <span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
+              複素数平面との完全一致と決定的な違い
+            </div>
+            <p class="text-slate-600 dark:text-slate-300">
+              複素数 <span class="katex-inline">z = x + yi</span> に虚数単位 <span class="katex-inline">i</span> を掛けると：
+            </p>
+            <div class="math-font text-[11px] bg-white dark:bg-slate-950 px-2.5 py-1.5 rounded border border-slate-200 dark:border-slate-800 text-indigo-800 dark:text-indigo-200 shadow-sm">
+              (x + yi) \cdot i = -y + xi \quad \text{（反時計回りに 90° 回転）}
+            </div>
+            <p class="text-slate-500 dark:text-slate-400 text-[11px]">
+              幾何代数の <span class="text-amber-600 dark:text-amber-300 font-semibold font-mono">vI</span> の計算結果 <span class="font-mono text-emerald-600 dark:text-emerald-300 font-semibold">-y e₁ + x e₂</span> と<strong>完全に同じ</strong>です！<br>
+              ただし複素数では <span class="katex-inline">z \cdot i = i \cdot z</span> と左右を問いませんが、幾何代数では<strong>右掛けで反時計回り（+90°）</strong>、<strong>左掛けで時計回り（-90°）</strong>になります。
+            </p>
+          </div>
+
+          <!-- Point 2: Rotation Matrix comparison -->
+          <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-900/90 border border-amber-100 dark:border-amber-900/40 flex flex-col gap-1.5 transition-colors">
+            <div class="font-bold text-amber-700 dark:text-amber-300 flex items-center gap-1.5 text-xs">
+              <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+              数学Cの「90°回転行列」との関係
+            </div>
+            <p class="text-slate-600 dark:text-slate-300">
+              高校数学Cで学ぶ原点中心 90° 回転行列：
+            </p>
+            <div class="math-font text-[11px] bg-white dark:bg-slate-950 px-2.5 py-1.5 rounded border border-slate-200 dark:border-slate-800 text-amber-800 dark:text-amber-200 shadow-sm">
+              \begin{pmatrix} 0 & -1 \\ 1 & 0 \end{pmatrix} \begin{pmatrix} x \\ y \end{pmatrix} = \begin{pmatrix} -y \\ x \end{pmatrix}
+            </div>
+            <p class="text-slate-500 dark:text-slate-400 text-[11px]">
+              行列を使わずに、ベクトルの積 <span class="font-mono text-amber-600 dark:text-amber-300 font-semibold">v × I</span> だけで同じ回転が実現できていることが分かります。
+            </p>
+          </div>
+
+          <!-- Point 3: What is I physically -->
+          <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-900/90 border border-emerald-100 dark:border-emerald-900/40 flex flex-col gap-1.5 transition-colors">
+            <div class="font-bold text-emerald-700 dark:text-emerald-300 flex items-center gap-1.5 text-xs">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+              幾何代数における I の幾何学的実体
+            </div>
+            <p class="text-slate-500 dark:text-slate-400 text-[11px] leading-normal">
+              虚数 <span class="katex-inline">i</span> は「2乗して -1 になる想像上の数」として導入されますが、幾何代数の <span class="font-mono text-emerald-600 dark:text-emerald-300 font-semibold">I = e₁e₂</span> は<strong>「向きを持った単位面積（バイベクトル）」</strong>という明確な図形の実体を持っています。
+            </p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <script>
+    // Theme Management: 'auto' | 'light' | 'dark'
+    let currentThemeMode = 'auto';
+    const mediaQueryDark = window.matchMedia('(prefers-color-scheme: dark)');
+
+    function isDarkMode() {
+      if (currentThemeMode === 'dark') return true;
+      if (currentThemeMode === 'light') return false;
+      return mediaQueryDark.matches;
+    }
+
+    function applyTheme() {
+      const dark = isDarkMode();
+      if (dark) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+
+      // Update switcher buttons UI
+      const autoBtn = document.getElementById('themeAutoBtn');
+      const lightBtn = document.getElementById('themeLightBtn');
+      const darkBtn = document.getElementById('themeDarkBtn');
+
+      const activeClass = 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-300 shadow-sm font-bold';
+      const inactiveClass = 'text-slate-600 dark:text-slate-300';
+
+      [autoBtn, lightBtn, darkBtn].forEach(b => {
+        b.className = b.className.replace(activeClass, '').trim() + ' ' + inactiveClass;
+      });
+
+      if (currentThemeMode === 'auto') {
+        autoBtn.className = autoBtn.className.replace(inactiveClass, '') + ' ' + activeClass;
+      } else if (currentThemeMode === 'light') {
+        lightBtn.className = lightBtn.className.replace(inactiveClass, '') + ' ' + activeClass;
+      } else {
+        darkBtn.className = darkBtn.className.replace(inactiveClass, '') + ' ' + activeClass;
+      }
+
+      // Refresh proof card styles & canvas
+      if (typeof renderProofStep === 'function') {
+        renderProofStep(state.currentProofStep);
+      }
+      if (typeof draw === 'function') {
+        draw();
+      }
+    }
+
+    document.getElementById('themeAutoBtn').addEventListener('click', () => {
+      currentThemeMode = 'auto';
+      applyTheme();
+    });
+    document.getElementById('themeLightBtn').addEventListener('click', () => {
+      currentThemeMode = 'light';
+      applyTheme();
+    });
+    document.getElementById('themeDarkBtn').addEventListener('click', () => {
+      currentThemeMode = 'dark';
+      applyTheme();
+    });
+
+    // Listen for OS system theme changes
+    mediaQueryDark.addEventListener('change', () => {
+      if (currentThemeMode === 'auto') {
+        applyTheme();
+      }
+    });
+
+    // State management
+    const state = {
+      // Vector v = x*e1 + y*e2
+      v: { x: 2.0, y: 1.0 },
+      // Target for smooth animation
+      animating: false,
+      fromAngle: 0,
+      toAngle: 0,
+      fromR: 0,
+      toR: 0,
+      animProgress: 1,
+      // Current active proof step index (0 to 4)
+      currentProofStep: 0,
+      // Dragging state
+      isDragging: false,
+      // Canvas scale (pixels per unit)
+      scale: 50,
+      origin: { x: 0, y: 0 }
+    };
+
+    // DOM Elements
+    const canvas = document.getElementById('vectorCanvas');
+    const ctx = canvas.getContext('2d');
+    const coordDisplay = document.getElementById('coordDisplay');
+    const resetVectorBtn = document.getElementById('resetVectorBtn');
+    const multRightBtn = document.getElementById('multRightBtn');
+    const multLeftBtn = document.getElementById('multLeftBtn');
+    const multDoubleBtn = document.getElementById('multDoubleBtn');
+    const realtimeFormula = document.getElementById('realtimeFormula');
+
+    const prevStepBtn = document.getElementById('prevStepBtn');
+    const nextStepBtn = document.getElementById('nextStepBtn');
+    const stepCounter = document.getElementById('stepCounter');
+
+    function resizeCanvas() {
+      const rect = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.scale(dpr, dpr);
+
+      state.origin = {
+        x: rect.width / 2,
+        y: rect.height / 2
+      };
+      // Keep ~5 units visible from center to edge
+      state.scale = Math.min(rect.width, rect.height) / 7.5;
+      draw();
+    }
+
+    window.addEventListener('resize', resizeCanvas);
+
+    function toScreenX(x) {
+      return state.origin.x + x * state.scale;
+    }
+
+    function toScreenY(y) {
+      // Math +y is Up, Canvas +y is Down
+      return state.origin.y - y * state.scale;
+    }
+
+    function toMathX(px) {
+      return (px - state.origin.x) / state.scale;
+    }
+
+    function toMathY(py) {
+      return (state.origin.y - py) / state.scale;
+    }
+
+    function updateCoordDisplay() {
+      const x = state.v.x.toFixed(1);
+      const y = state.v.y.toFixed(1);
+      const negY = (-state.v.y).toFixed(1);
+      
+      coordDisplay.innerHTML = `v = <span class="text-rose-600 dark:text-rose-400 font-bold">${x}</span> e₁ + <span class="text-sky-600 dark:text-sky-400 font-bold">${y}</span> e₂`;
+
+      if (realtimeFormula) {
+        realtimeFormula.innerHTML = `(${x}e₁ + ${y}e₂) I = ${x}(e₁I) + ${y}(e₂I) = ${x}(e₂) + ${y}(-e₁) = <span class="text-amber-700 dark:text-amber-300 font-bold">${negY}e₁ + ${x}e₂</span>`;
+      }
+    }
+
+    // Animation runner using polar coordinates
+    function startRotateAnimation(deltaAngleRad) {
+      const currentR = Math.hypot(state.v.x, state.v.y);
+      const currentAngle = Math.atan2(state.v.y, state.v.x);
+
+      state.fromAngle = currentAngle;
+      state.toAngle = currentAngle + deltaAngleRad;
+      state.fromR = currentR;
+      state.toR = currentR;
+      state.animProgress = 0;
+      state.animating = true;
+
+      const startTime = performance.now();
+      const duration = 450; // ms
+
+      function animate(now) {
+        const elapsed = now - startTime;
+        let t = Math.min(1, elapsed / duration);
+        // Ease out cubic
+        const ease = 1 - Math.pow(1 - t, 3);
+
+        const curAng = state.fromAngle + (state.toAngle - state.fromAngle) * ease;
+        const curR = state.fromR + (state.toR - state.fromR) * ease;
+
+        state.v.x = Math.cos(curAng) * curR;
+        state.v.y = Math.sin(curAng) * curR;
+
+        // Clean up close to zero or integer values at end
+        if (t >= 1) {
+          state.v.x = Math.round(state.v.x * 100) / 100;
+          state.v.y = Math.round(state.v.y * 100) / 100;
+          state.animating = false;
+          updateCoordDisplay();
+          draw();
+          return;
+        }
+
+        updateCoordDisplay();
+        draw();
+        requestAnimationFrame(animate);
+      }
+
+      requestAnimationFrame(animate);
+    }
+
+    function drawGrid() {
+      const rect = canvas.getBoundingClientRect();
+      const w = rect.width;
+      const h = rect.height;
+      const dark = isDarkMode();
+
+      ctx.clearRect(0, 0, w, h);
+
+      // Background fill matching current theme
+      ctx.fillStyle = dark ? '#0f172a' : '#f8fafc';
+      ctx.fillRect(0, 0, w, h);
+
+      // Grid lines
+      ctx.strokeStyle = dark ? '#1e293b' : '#e2e8f0';
+      ctx.lineWidth = 1;
+
+      const minX = Math.floor(-state.origin.x / state.scale);
+      const maxX = Math.ceil((w - state.origin.x) / state.scale);
+      const minY = Math.floor(-(h - state.origin.y) / state.scale);
+      const maxY = Math.ceil(state.origin.y / state.scale);
+
+      for (let x = minX; x <= maxX; x++) {
+        ctx.beginPath();
+        ctx.moveTo(toScreenX(x), 0);
+        ctx.lineTo(toScreenX(x), h);
+        ctx.stroke();
+      }
+
+      for (let y = minY; y <= maxY; y++) {
+        ctx.beginPath();
+        ctx.moveTo(0, toScreenY(y));
+        ctx.lineTo(w, toScreenY(y));
+        ctx.stroke();
+      }
+
+      // Main Axes
+      ctx.strokeStyle = dark ? '#334155' : '#94a3b8';
+      ctx.lineWidth = 2;
+      // X axis
+      ctx.beginPath();
+      ctx.moveTo(0, state.origin.y);
+      ctx.lineTo(w, state.origin.y);
+      ctx.stroke();
+      // Y axis
+      ctx.beginPath();
+      ctx.moveTo(state.origin.x, 0);
+      ctx.lineTo(state.origin.x, h);
+      ctx.stroke();
+
+      // Axis ticks / numbers
+      ctx.fillStyle = dark ? '#64748b' : '#94a3b8';
+      ctx.font = '10px JetBrains Mono';
+      for (let x = minX; x <= maxX; x++) {
+        if (x !== 0) {
+          ctx.fillText(x.toString(), toScreenX(x) - 4, state.origin.y + 14);
+        }
+      }
+      for (let y = minY; y <= maxY; y++) {
+        if (y !== 0) {
+          ctx.fillText(y.toString(), state.origin.x + 6, toScreenY(y) + 4);
+        }
+      }
+    }
+
+    function drawArrow(fromX, fromY, toX, toY, color, width = 3, headSize = 10) {
+      const dx = toX - fromX;
+      const dy = toY - fromY;
+      const angle = Math.atan2(dy, dx);
+      const len = Math.hypot(dx, dy);
+
+      ctx.save();
+      ctx.strokeStyle = color;
+      ctx.fillStyle = color;
+      ctx.lineWidth = width;
+      ctx.lineCap = 'round';
+
+      // Line
+      ctx.beginPath();
+      ctx.moveTo(fromX, fromY);
+      ctx.lineTo(toX, toY);
+      ctx.stroke();
+
+      // Head
+      if (len > 5) {
+        ctx.beginPath();
+        ctx.moveTo(toX, toY);
+        ctx.lineTo(
+          toX - headSize * Math.cos(angle - Math.PI / 6),
+          toY - headSize * Math.sin(angle - Math.PI / 6)
+        );
+        ctx.lineTo(
+          toX - headSize * Math.cos(angle + Math.PI / 6),
+          toY - headSize * Math.sin(angle + Math.PI / 6)
+        );
+        ctx.closePath();
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+
+    function draw() {
+      drawGrid();
+      const dark = isDarkMode();
+
+      // 1. Draw unit bivector tile (I = e1 ^ e2 area)
+      const x0 = toScreenX(0);
+      const y0 = toScreenY(0);
+      const x1 = toScreenX(1);
+      const y1 = toScreenY(1);
+
+      ctx.fillStyle = dark ? 'rgba(99, 102, 241, 0.15)' : 'rgba(99, 102, 241, 0.18)';
+      ctx.strokeStyle = dark ? 'rgba(99, 102, 241, 0.5)' : 'rgba(99, 102, 241, 0.6)';
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([4, 4]);
+      ctx.beginPath();
+      ctx.rect(x0, y1, x1 - x0, y0 - y1);
+      ctx.fill();
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Label for I
+      ctx.fillStyle = dark ? 'rgba(165, 180, 252, 0.85)' : '#4338ca';
+      ctx.font = 'bold 11px JetBrains Mono';
+      ctx.fillText('I = e₁e₂ (面積1)', x0 + 8, y1 + 18);
+
+      // 2. Draw basis vectors e1 and e2
+      drawArrow(x0, y0, toScreenX(1), toScreenY(0), '#f43f5e', 2.5, 9);
+      ctx.fillStyle = '#f43f5e';
+      ctx.font = 'bold 12px JetBrains Mono';
+      ctx.fillText('e₁', toScreenX(1) + 4, toScreenY(0) + 16);
+
+      drawArrow(x0, y0, toScreenX(0), toScreenY(1), '#0284c7', 2.5, 9);
+      ctx.fillStyle = '#0284c7';
+      ctx.fillText('e₂', toScreenX(0) - 18, toScreenY(1) - 4);
+
+      // 3. Draw vector v
+      const vx = toScreenX(state.v.x);
+      const vy = toScreenY(state.v.y);
+
+      // Dashed projection lines to axes
+      ctx.save();
+      ctx.strokeStyle = dark ? 'rgba(148, 163, 184, 0.3)' : 'rgba(100, 116, 139, 0.3)';
+      ctx.setLineDash([3, 3]);
+      ctx.beginPath();
+      ctx.moveTo(vx, vy);
+      ctx.lineTo(vx, y0);
+      ctx.lineTo(x0, y0);
+      ctx.moveTo(vx, vy);
+      ctx.lineTo(x0, vy);
+      ctx.stroke();
+      ctx.restore();
+
+      // Main Vector Arrow
+      const vectorColor = dark ? '#818cf8' : '#4f46e5';
+      drawArrow(x0, y0, vx, vy, vectorColor, 4, 12);
+
+      // Tip handle (draggable circle)
+      ctx.save();
+      ctx.fillStyle = '#6366f1';
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.arc(vx, vy, 7, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+
+      // Glowing outer ring if hovered/dragging
+      if (state.isDragging) {
+        ctx.strokeStyle = dark ? 'rgba(129, 140, 248, 0.5)' : 'rgba(99, 102, 241, 0.4)';
+        ctx.lineWidth = 6;
+        ctx.beginPath();
+        ctx.arc(vx, vy, 12, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+      ctx.restore();
+
+      // Label vector v
+      ctx.fillStyle = dark ? '#c7d2fe' : '#312e81';
+      ctx.font = 'bold 13px JetBrains Mono';
+      ctx.fillText('v', vx + 10, vy - 10);
+    }
+
+    function getPointerPos(e) {
+      const rect = canvas.getBoundingClientRect();
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      return {
+        px: clientX - rect.left,
+        py: clientY - rect.top
+      };
+    }
+
+    function checkHandleHit(px, py) {
+      const vx = toScreenX(state.v.x);
+      const vy = toScreenY(state.v.y);
+      const dist = Math.hypot(px - vx, py - vy);
+      return dist <= 24; // Generous touch target
+    }
+
+    function onPointerDown(e) {
+      if (state.animating) return;
+      const { px, py } = getPointerPos(e);
+      if (checkHandleHit(px, py)) {
+        state.isDragging = true;
+        draw();
+      }
+    }
+
+    function onPointerMove(e) {
+      if (!state.isDragging) return;
+      e.preventDefault();
+      const { px, py } = getPointerPos(e);
+      let nx = toMathX(px);
+      let ny = toMathY(py);
+
+      // Snap to nearest 0.25 if close
+      if (Math.abs(nx - Math.round(nx)) < 0.12) nx = Math.round(nx);
+      if (Math.abs(ny - Math.round(ny)) < 0.12) ny = Math.round(ny);
+
+      state.v.x = Math.max(-4.5, Math.min(4.5, nx));
+      state.v.y = Math.max(-4.5, Math.min(4.5, ny));
+
+      updateCoordDisplay();
+      draw();
+    }
+
+    function onPointerUp() {
+      if (state.isDragging) {
+        state.isDragging = false;
+        draw();
+      }
+    }
+
+    canvas.addEventListener('mousedown', onPointerDown);
+    window.addEventListener('mousemove', onPointerMove);
+    window.addEventListener('mouseup', onPointerUp);
+
+    canvas.addEventListener('touchstart', onPointerDown, { passive: false });
+    window.addEventListener('touchmove', onPointerMove, { passive: false });
+    window.addEventListener('touchend', onPointerUp);
+
+    // Multiply by I on right: v * I = 90 deg counter-clockwise (+PI/2)
+    multRightBtn.addEventListener('click', () => {
+      if (state.animating) return;
+      startRotateAnimation(Math.PI / 2);
+    });
+
+    // Multiply by I on left: I * v = 90 deg clockwise (-PI/2)
+    multLeftBtn.addEventListener('click', () => {
+      if (state.animating) return;
+      startRotateAnimation(-Math.PI / 2);
+    });
+
+    // Double right multiplication: v * I^2 = 180 deg (+PI)
+    multDoubleBtn.addEventListener('click', () => {
+      if (state.animating) return;
+      startRotateAnimation(Math.PI);
+    });
+
+    // Reset Vector to (2, 1)
+    resetVectorBtn.addEventListener('click', () => {
+      state.v.x = 2.0;
+      state.v.y = 1.0;
+      updateCoordDisplay();
+      draw();
+    });
+
+    const totalSteps = 5;
+
+    function renderProofStep(stepIdx) {
+      state.currentProofStep = Math.max(0, Math.min(totalSteps - 1, stepIdx));
+      const dark = isDarkMode();
+
+      for (let i = 0; i < totalSteps; i++) {
+        const el = document.getElementById(`step-${i}`);
+        if (!el) continue;
+
+        if (i === state.currentProofStep) {
+          el.className = dark
+            ? 'step-card p-3 rounded-xl border-2 border-indigo-500 bg-indigo-950/40 text-xs transition-all shadow-md shadow-indigo-950/50 scale-[1.02]'
+            : 'step-card p-3 rounded-xl border-2 border-indigo-500 bg-indigo-50/80 text-xs transition-all shadow-md shadow-indigo-100 scale-[1.02]';
+        } else if (i < state.currentProofStep) {
+          el.className = dark
+            ? 'step-card p-3 rounded-xl border border-slate-800 bg-slate-900/40 text-xs opacity-60 transition-all hover:opacity-100 cursor-pointer'
+            : 'step-card p-3 rounded-xl border border-slate-200 bg-slate-100/60 text-xs opacity-70 transition-all hover:opacity-100 cursor-pointer';
+        } else {
+          el.className = dark
+            ? 'step-card p-3 rounded-xl border border-slate-800/60 bg-slate-950/30 text-xs opacity-40 transition-all hover:opacity-80 cursor-pointer'
+            : 'step-card p-3 rounded-xl border border-slate-200 bg-white text-xs opacity-50 transition-all hover:opacity-80 cursor-pointer';
+        }
+      }
+
+      stepCounter.textContent = `${state.currentProofStep + 1} / ${totalSteps}`;
+      prevStepBtn.disabled = (state.currentProofStep === 0);
+      nextStepBtn.disabled = (state.currentProofStep === totalSteps - 1);
+    }
+
+    prevStepBtn.addEventListener('click', () => {
+      renderProofStep(state.currentProofStep - 1);
+    });
+
+    nextStepBtn.addEventListener('click', () => {
+      renderProofStep(state.currentProofStep + 1);
+    });
+
+    // Clicking individual step cards jumps to it
+    for (let i = 0; i < totalSteps; i++) {
+      const card = document.getElementById(`step-${i}`);
+      if (card) {
+        card.addEventListener('click', () => renderProofStep(i));
+      }
+    }
+
+    function triggerKaTeX() {
+      if (window.renderMathInElement) {
+        renderMathInElement(document.body, {
+          delimiters: [
+            { left: '$$', right: '$$', display: true },
+            { left: '\\(', right: '\\)', display: false },
+            { left: '$', right: '$', display: false }
+          ],
+          throwOnError: false
+        });
+      }
+    }
+
+    window.addEventListener('load', () => {
+      applyTheme();
+      resizeCanvas();
+      updateCoordDisplay();
+      renderProofStep(0);
+      
+      // Delay slightly to ensure KaTeX script is ready
+      setTimeout(() => {
+        triggerKaTeX();
+      }, 100);
+    });
+  </script>
+</body>
+</html>

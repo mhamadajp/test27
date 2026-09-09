@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>平方完成 特訓ドリル50問</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- KaTeX for math rendering -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap');
+    body {
+      font-family: 'Noto Sans JP', 'Inter', sans-serif;
+    }
+    .katex-display {
+      margin: 0.5em 0;
+      overflow-x: auto;
+      overflow-y: hidden;
+      padding-bottom: 2px;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+
+  <header class="bg-indigo-700 text-white shadow-md sticky top-0 z-30">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="bg-white/10 p-2 rounded-lg">
+          <i data-lucide="function-square" class="w-6 h-6 text-indigo-200"></i>
+        </div>
+        <div>
+          <h1 class="text-lg sm:text-xl font-bold tracking-tight">平方完成 特訓ドリル 50</h1>
+          <p class="text-xs text-indigo-200 hidden sm:block">高校数学Ⅰ：2次関数の頂点・軸とグラフの完全理解</p>
+        </div>
+      </div>
+      <div class="flex items-center space-x-2 sm:space-x-4">
+        <div class="text-right">
+          <span class="text-xs text-indigo-200 block">習得進捗</span>
+          <span class="text-sm font-semibold" id="headerProgress">0 / 50 問完了</span>
+        </div>
+        <button id="btnOpenDrawer" class="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded-lg text-sm font-medium flex items-center space-x-1.5 transition">
+          <i data-lucide="grid" class="w-4 h-4"></i>
+          <span>問題一覧</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col gap-6">
+    
+    <!-- Top Filter & Status Banner -->
+    <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 flex flex-wrap items-center justify-between gap-4">
+      <div class="flex flex-wrap items-center gap-2" id="categoryFilterContainer">
+        <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider mr-1">難易度:</span>
+        <button data-filter="all" class="filter-btn px-3 py-1 text-xs font-semibold rounded-full bg-indigo-600 text-white">すべて (50)</button>
+        <button data-filter="basic" class="filter-btn px-3 py-1 text-xs font-semibold rounded-full bg-slate-100 text-slate-700 hover:bg-slate-200">基礎 (15)</button>
+        <button data-filter="standard" class="filter-btn px-3 py-1 text-xs font-semibold rounded-full bg-slate-100 text-slate-700 hover:bg-slate-200">標準:奇数係数 (10)</button>
+        <button data-filter="advanced" class="filter-btn px-3 py-1 text-xs font-semibold rounded-full bg-slate-100 text-slate-700 hover:bg-slate-200">係数 $a \neq 1$ (15)</button>
+        <button data-filter="master" class="filter-btn px-3 py-1 text-xs font-semibold rounded-full bg-slate-100 text-slate-700 hover:bg-slate-200">発展:分数係数 (10)</button>
+      </div>
+      <div class="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
+        <button id="btnRandom" class="flex items-center space-x-1.5 text-xs text-slate-600 hover:text-indigo-600 font-medium px-3 py-1.5 rounded-lg border border-slate-200 hover:border-indigo-300 transition">
+          <i data-lucide="shuffle" class="w-3.5 h-3.5"></i>
+          <span>ランダム出題</span>
+        </button>
+        <button id="btnResetAll" class="text-xs text-rose-500 hover:text-rose-700 font-medium transition">進捗リセット</button>
+      </div>
+    </div>
+
+    <!-- Main Drill Grid (2 Columns on Large Screens) -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      
+      <!-- Left Column: Drill Card & Explanation -->
+      <section class="lg:col-span-7 flex flex-col gap-6">
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sm:p-7 relative overflow-hidden">
+          <div class="flex items-center justify-between mb-4 border-b border-slate-100 pb-3">
+            <div class="flex items-center space-x-2">
+              <span id="badgeCategory" class="px-2.5 py-0.5 rounded-md text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">基礎</span>
+              <span class="text-sm font-semibold text-slate-500" id="drillIndexDisplay">第 1 問 / 50 問</span>
+            </div>
+            <span id="drillStatusBadge" class="text-xs font-medium px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600">未解答</span>
+          </div>
+
+          <!-- Problem Expression Display -->
+          <div class="my-5 text-center bg-slate-50 py-5 px-4 rounded-xl border border-slate-100">
+            <p class="text-xs text-slate-500 mb-1 font-medium">次の2次関数を平方完成し、頂点と軸を求めよ。</p>
+            <div id="problemMathExpr" class="text-xl sm:text-2xl text-slate-800 font-medium">
+              <!-- Rendered by KaTeX -->
+            </div>
+          </div>
+
+          <!-- Answer Input Form -->
+          <form id="answerForm" class="bg-indigo-50/50 p-4 sm:p-5 rounded-xl border border-indigo-100 space-y-4">
+            <h2 class="text-xs font-bold uppercase tracking-wider text-indigo-900 flex items-center gap-1.5">
+              <i data-lucide="edit-3" class="w-4 h-4 text-indigo-600"></i>
+              解答の入力： $y = a(x - p)^2 + q$
+            </h2>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">係数 $a$</label>
+                <input type="text" id="inputA" placeholder="例: 1, -2, 1/2" class="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none bg-white">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">頂点 $x$ 座標 ($p$)</label>
+                <input type="text" id="inputP" placeholder="例: 2, -3, 3/2" class="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none bg-white">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">頂点 $y$ 座標 ($q$)</label>
+                <input type="text" id="inputQ" placeholder="例: -4, 5, -1/4" class="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none bg-white">
+              </div>
+            </div>
+
+            <p class="text-[11px] text-slate-500">※ 分数は <code>3/2</code> や <code>-5/4</code> のようにスラッシュで入力できます。</p>
+
+            <div class="flex flex-wrap items-center gap-3 pt-2">
+              <button type="submit" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold py-2.5 px-4 rounded-xl shadow-sm transition flex items-center justify-center space-x-2">
+                <i data-lucide="check-circle" class="w-4 h-4"></i>
+                <span>答え合わせ</span>
+              </button>
+              <button type="button" id="btnRevealAnswer" class="bg-white hover:bg-slate-100 text-slate-700 text-sm font-semibold py-2.5 px-4 rounded-xl border border-slate-300 transition flex items-center justify-center space-x-1">
+                <i data-lucide="eye" class="w-4 h-4 text-slate-500"></i>
+                <span>解説・正解を見る</span>
+              </button>
+            </div>
+          </form>
+
+          <!-- Result Feedback Alert -->
+          <div id="feedbackAlert" class="hidden mt-4 p-4 rounded-xl text-sm font-medium border flex items-start space-x-3">
+            <div id="feedbackIcon" class="mt-0.5"></div>
+            <div id="feedbackText" class="flex-1"></div>
+          </div>
+
+          <!-- Step-by-Step Explanation Section -->
+          <div id="explanationSection" class="hidden mt-6 pt-5 border-t border-slate-200">
+            <div class="flex items-center space-x-2 mb-3">
+              <span class="bg-amber-100 text-amber-800 text-xs font-bold px-2 py-1 rounded">解説</span>
+              <h3 class="text-sm font-bold text-slate-800">平方完成の詳しい変形手順</h3>
+            </div>
+            
+            <div id="explanationContent" class="space-y-3 bg-slate-50 p-4 rounded-xl text-sm border border-slate-200 text-slate-700 leading-relaxed">
+              <!-- Rendered dynamically -->
+            </div>
+
+            <!-- Conclusion Properties Box -->
+            <div id="propertiesContent" class="mt-4 p-4 bg-emerald-50 rounded-xl border border-emerald-200 text-xs sm:text-sm text-emerald-900 grid grid-cols-1 sm:grid-cols-3 gap-2">
+              <!-- Rendered dynamically -->
+            </div>
+          </div>
+
+          <!-- Bottom Navigation Controls -->
+          <div class="flex items-center justify-between mt-6 pt-4 border-t border-slate-100">
+            <button id="btnPrev" class="px-4 py-2 text-xs sm:text-sm font-medium rounded-lg text-slate-700 hover:bg-slate-100 flex items-center space-x-1.5 transition">
+              <i data-lucide="chevron-left" class="w-4 h-4"></i>
+              <span>前の問題</span>
+            </button>
+            <div class="text-xs text-slate-400">
+              問題 <span id="currentNumberText">1</span> / 50
+            </div>
+            <button id="btnNext" class="px-4 py-2 text-xs sm:text-sm font-medium rounded-lg bg-indigo-50 text-indigo-700 hover:bg-indigo-100 flex items-center space-x-1.5 transition">
+              <span>次の問題</span>
+              <i data-lucide="chevron-right" class="w-4 h-4"></i>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Right Column: Interactive Graph & Analytical Visualizer -->
+      <section class="lg:col-span-5 flex flex-col gap-6 sticky top-20">
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+          <div class="flex items-center justify-between mb-3">
+            <h2 class="text-sm font-bold text-slate-800 flex items-center gap-1.5">
+              <i data-lucide="line-chart" class="w-4 h-4 text-indigo-600"></i>
+              放物線グラフ・可視化
+            </h2>
+            <div class="flex items-center space-x-1.5">
+              <button id="btnZoomIn" title="拡大" class="p-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-600 transition"><i data-lucide="zoom-in" class="w-3.5 h-3.5"></i></button>
+              <button id="btnZoomOut" title="縮小" class="p-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-600 transition"><i data-lucide="zoom-out" class="w-3.5 h-3.5"></i></button>
+              <button id="btnResetView" title="表示リセット" class="p-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-600 transition"><i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i></button>
+            </div>
+          </div>
+
+          <!-- Canvas Graph Container -->
+          <div class="relative w-full aspect-square bg-slate-900 rounded-xl overflow-hidden border border-slate-800 shadow-inner">
+            <canvas id="graphCanvas" class="w-full h-full block cursor-crosshair"></canvas>
+            <div id="graphTooltip" class="absolute hidden bg-black/80 backdrop-blur-sm text-white text-[11px] px-2 py-1 rounded shadow-lg pointer-events-none border border-slate-700 z-10"></div>
+          </div>
+
+          <!-- Graph Legend & Information Badges -->
+          <div class="mt-4 grid grid-cols-3 gap-2 text-center text-xs">
+            <div class="bg-slate-50 p-2 rounded-lg border border-slate-200">
+              <span class="text-slate-400 block text-[10px] uppercase font-bold">頂点 $(p, q)$</span>
+              <span id="graphVertexText" class="font-bold text-rose-600">-</span>
+            </div>
+            <div class="bg-slate-50 p-2 rounded-lg border border-slate-200">
+              <span class="text-slate-400 block text-[10px] uppercase font-bold">軸の方程式</span>
+              <span id="graphAxisText" class="font-bold text-indigo-600">-</span>
+            </div>
+            <div class="bg-slate-50 p-2 rounded-lg border border-slate-200">
+              <span class="text-slate-400 block text-[10px] uppercase font-bold">y切片 $(0, c)$</span>
+              <span id="graphInterceptText" class="font-bold text-emerald-600">-</span>
+            </div>
+          </div>
+
+          <div class="mt-3 text-[11px] text-slate-500 bg-amber-50 p-2.5 rounded-lg border border-amber-200 flex items-start gap-2">
+            <i data-lucide="info" class="w-4 h-4 text-amber-600 shrink-0 mt-0.5"></i>
+            <span>赤点は頂点、青破線は対称軸、緑点はy切片を示しています。キャンバス上でマウスをホバーすると座標を確認できます。</span>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <div id="drawerOverlay" class="fixed inset-0 bg-black/40 backdrop-blur-xs z-40 hidden transition-opacity opacity-0"></div>
+  <aside id="drawer" class="fixed top-0 right-0 h-full w-full max-w-md bg-white shadow-2xl z-50 transform translate-x-full transition-transform duration-300 flex flex-col">
+    <div class="p-4 border-b border-slate-200 flex items-center justify-between">
+      <div class="flex items-center space-x-2">
+        <i data-lucide="list-checks" class="w-5 h-5 text-indigo-600"></i>
+        <h3 class="font-bold text-slate-800">問題一覧（全50問）</h3>
+      </div>
+      <button id="btnCloseDrawer" class="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+    </div>
+
+    <div class="p-3 bg-slate-50 border-b border-slate-200 flex items-center justify-between text-xs">
+      <span id="drawerStats">正解: 0 / 解答済: 0 / 全 50 問</span>
+      <span class="text-slate-400">クリックして移動</span>
+    </div>
+
+    <div class="flex-1 overflow-y-auto p-4">
+      <div class="grid grid-cols-5 gap-2" id="questionGridButtons">
+        <!-- 50 question shortcut buttons rendered by JS -->
+      </div>
+    </div>
+  </aside>
+
+  <script>
+    /* 50 Complete High School Math Quadratic Problems for Completing the Square */
+    const PROBLEMS = [
+      // 1-15: Level 1 - Basic (a=1, even b)
+      { id: 1, category: "basic", catName: "基礎", a: 1, b: 2, c: 0, p: -1, q: -1 },
+      { id: 2, category: "basic", catName: "基礎", a: 1, b: 4, c: 0, p: -2, q: -4 },
+      { id: 3, category: "basic", catName: "基礎", a: 1, b: -6, c: 0, p: 3, q: -9 },
+      { id: 4, category: "basic", catName: "基礎", a: 1, b: 8, c: 0, p: -4, q: -16 },
+      { id: 5, category: "basic", catName: "基礎", a: 1, b: -10, c: 0, p: 5, q: -25 },
+      { id: 6, category: "basic", catName: "基礎", a: 1, b: 2, c: 3, p: -1, q: 2 },
+      { id: 7, category: "basic", catName: "基礎", a: 1, b: 4, c: 1, p: -2, q: -3 },
+      { id: 8, category: "basic", catName: "基礎", a: 1, b: -6, c: 5, p: 3, q: -4 },
+      { id: 9, category: "basic", catName: "基礎", a: 1, b: -8, c: 12, p: 4, q: -4 },
+      { id: 10, category: "basic", catName: "基礎", a: 1, b: 10, c: 20, p: -5, q: -5 },
+      { id: 11, category: "basic", catName: "基礎", a: 1, b: -4, c: -5, p: 2, q: -9 },
+      { id: 12, category: "basic", catName: "基礎", a: 1, b: 6, c: -7, p: -3, q: -16 },
+      { id: 13, category: "basic", catName: "基礎", a: 1, b: -2, c: -8, p: 1, q: -9 },
+      { id: 14, category: "basic", catName: "基礎", a: 1, b: 12, c: 30, p: -6, q: -6 },
+      { id: 15, category: "basic", catName: "基礎", a: 1, b: -14, c: 45, p: 7, q: -4 },
+
+      // 16-25: Level 2 - Standard: odd b (fractions appear)
+      { id: 16, category: "standard", catName: "標準(奇数係数)", a: 1, b: 1, c: 0, p: -0.5, q: -0.25, p_frac: "-1/2", q_frac: "-1/4" },
+      { id: 17, category: "standard", catName: "標準(奇数係数)", a: 1, b: 3, c: 0, p: -1.5, q: -2.25, p_frac: "-3/2", q_frac: "-9/4" },
+      { id: 18, category: "standard", catName: "標準(奇数係数)", a: 1, b: -5, c: 2, p: 2.5, q: -4.25, p_frac: "5/2", q_frac: "-17/4" },
+      { id: 19, category: "standard", catName: "標準(奇数係数)", a: 1, b: 1, c: 1, p: -0.5, q: 0.75, p_frac: "-1/2", q_frac: "3/4" },
+      { id: 20, category: "standard", catName: "標準(奇数係数)", a: 1, b: -3, c: -1, p: 1.5, q: -3.25, p_frac: "3/2", q_frac: "-13/4" },
+      { id: 21, category: "standard", catName: "標準(奇数係数)", a: 1, b: 5, c: 6, p: -2.5, q: -0.25, p_frac: "-5/2", q_frac: "-1/4" },
+      { id: 22, category: "standard", catName: "標準(奇数係数)", a: 1, b: -7, c: 10, p: 3.5, q: -2.25, p_frac: "7/2", q_frac: "-9/4" },
+      { id: 23, category: "standard", catName: "標準(奇数係数)", a: 1, b: 3, c: -4, p: -1.5, q: -6.25, p_frac: "-3/2", q_frac: "-25/4" },
+      { id: 24, category: "standard", catName: "標準(奇数係数)", a: 1, b: -1, c: -2, p: 0.5, q: -2.25, p_frac: "1/2", q_frac: "-9/4" },
+      { id: 25, category: "standard", catName: "標準(奇数係数)", a: 1, b: 7, c: 12, p: -3.5, q: -0.25, p_frac: "-7/2", q_frac: "-1/4" },
+
+      // 26-40: Level 3 - Advanced (a ≠ 1, negative / integer)
+      { id: 26, category: "advanced", catName: "応用(a≠1)", a: -1, b: 2, c: 3, p: 1, q: 4 },
+      { id: 27, category: "advanced", catName: "応用(a≠1)", a: -1, b: -4, c: 1, p: -2, q: 5 },
+      { id: 28, category: "advanced", catName: "応用(a≠1)", a: -1, b: 6, c: -5, p: 3, q: 4 },
+      { id: 29, category: "advanced", catName: "応用(a≠1)", a: -1, b: -8, c: -10, p: -4, q: 6 },
+      { id: 30, category: "advanced", catName: "応用(a≠1)", a: 2, b: 4, c: 5, p: -1, q: 3 },
+      { id: 31, category: "advanced", catName: "応用(a≠1)", a: 2, b: -8, c: 3, p: 2, q: -5 },
+      { id: 32, category: "advanced", catName: "応用(a≠1)", a: 2, b: 12, c: 10, p: -3, q: -8 },
+      { id: 33, category: "advanced", catName: "応用(a≠1)", a: 3, b: 6, c: -2, p: -1, q: -5 },
+      { id: 34, category: "advanced", catName: "応用(a≠1)", a: 3, b: -12, c: 7, p: 2, q: -5 },
+      { id: 35, category: "advanced", catName: "応用(a≠1)", a: -2, b: 4, c: 1, p: 1, q: 3 },
+      { id: 36, category: "advanced", catName: "応用(a≠1)", a: -2, b: -8, c: -3, p: -2, q: 5 },
+      { id: 37, category: "advanced", catName: "応用(a≠1)", a: -3, b: 6, c: 4, p: 1, q: 7 },
+      { id: 38, category: "advanced", catName: "応用(a≠1)", a: 4, b: 8, c: 1, p: -1, q: -3 },
+      { id: 39, category: "advanced", catName: "応用(a≠1)", a: -1, b: 3, c: 2, p: 1.5, q: 4.25, p_frac: "3/2", q_frac: "17/4" },
+      { id: 40, category: "advanced", catName: "応用(a≠1)", a: -1, b: -5, c: -4, p: -2.5, q: 2.25, p_frac: "-5/2", q_frac: "9/4" },
+
+      // 41-50: Level 4 - Master (fractional / challenging)
+      { id: 41, category: "master", catName: "発展(分数)", a: 2, b: 3, c: 1, p: -0.75, q: -0.125, p_frac: "-3/4", q_frac: "-1/8" },
+      { id: 42, category: "master", catName: "発展(分数)", a: 2, b: -5, c: 2, p: 1.25, q: -1.125, p_frac: "5/4", q_frac: "-9/8" },
+      { id: 43, category: "master", catName: "発展(分数)", a: 3, b: 2, c: -1, p: -1/3, q: -4/3, p_frac: "-1/3", q_frac: "-4/3" },
+      { id: 44, category: "master", catName: "発展(分数)", a: 3, b: -4, c: 1, p: 2/3, q: -1/3, p_frac: "2/3", q_frac: "-1/3" },
+      { id: 45, category: "master", catName: "発展(分数)", a: -2, b: 3, c: 5, p: 0.75, q: 6.125, p_frac: "3/4", q_frac: "49/8" },
+      { id: 46, category: "master", catName: "発展(分数)", a: 0.5, a_display: "\\frac{1}{2}", b: 2, c: 1, p: -2, q: -1 },
+      { id: 47, category: "master", catName: "発展(分数)", a: 0.5, a_display: "\\frac{1}{2}", b: -3, c: 4, p: 3, q: -0.5, q_frac: "-1/2" },
+      { id: 48, category: "master", catName: "発展(分数)", a: -0.5, a_display: "-\\frac{1}{2}", b: 2, c: -1, p: 2, q: 1 },
+      { id: 49, category: "master", catName: "発展(分数)", a: 1/3, a_display: "\\frac{1}{3}", b: -2, c: 5, p: 3, q: 2 },
+      { id: 50, category: "master", catName: "発展(分数)", a: 4, b: -12, c: 9, p: 1.5, q: 0, p_frac: "3/2", q_frac: "0" }
+    ];
+  </script>
+
+  <script>
+    // Format polynomial ax^2 + bx + c to LaTeX
+    function formatStandardLatex(prob) {
+      let res = "y = ";
+      // a term
+      if (prob.a_display) {
+        res += prob.a_display + "x^2";
+      } else if (prob.a === 1) {
+        res += "x^2";
+      } else if (prob.a === -1) {
+        res += "-x^2";
+      } else {
+        res += prob.a + "x^2";
+      }
+
+      // b term
+      if (prob.b !== 0) {
+        if (prob.b === 1) res += " + x";
+        else if (prob.b === -1) res += " - x";
+        else if (prob.b > 0) res += " + " + prob.b + "x";
+        else res += " - " + Math.abs(prob.b) + "x";
+      }
+
+      // c term
+      if (prob.c !== 0) {
+        if (prob.c > 0) res += " + " + prob.c;
+        else res += " - " + Math.abs(prob.c);
+      }
+      return res;
+    }
+
+    // Helper to format fraction LaTeX
+    function formatFractionLatex(val, explicitFrac) {
+      if (explicitFrac) {
+        const parts = explicitFrac.split('/');
+        if (parts.length === 2) {
+          const sign = parts[0].startsWith('-') ? '-' : '';
+          const num = Math.abs(parseInt(parts[0], 10));
+          const den = parts[1];
+          return `${sign}\\frac{${num}}{${den}}`;
+        }
+        return explicitFrac;
+      }
+      if (Number.isInteger(val)) return val.toString();
+      return val.toFixed(2);
+    }
+
+    // Generate step-by-step mathematical explanation
+    function generateExplanationSteps(prob) {
+      const steps = [];
+      const a = prob.a;
+      const b = prob.b;
+      const c = prob.c;
+      const aDisp = prob.a_display || (a === 1 ? "" : (a === -1 ? "-" : `${a}`));
+      const pDisp = prob.p_frac ? formatFractionLatex(prob.p, prob.p_frac) : `${prob.p}`;
+      const qDisp = prob.q_frac ? formatFractionLatex(prob.q, prob.q_frac) : `${prob.q}`;
+
+      // (x - p) formatting
+      let insideP = "";
+      if (prob.p > 0) insideP = `- ${pDisp}`;
+      else if (prob.p < 0) insideP = `+ ${pDisp.replace('-', '')}`;
+      else insideP = "";
+
+      const vertexForm = `y = ${aDisp}\\left(x ${insideP}\\right)^2 ${prob.q > 0 ? '+ ' + qDisp : (prob.q < 0 ? '- ' + qDisp.replace('-', '') : '')}`.trim();
+
+      if (a === 1) {
+        // Case: a = 1
+        const bHalfDisp = prob.p !== 0 ? (prob.p < 0 ? `+ ${formatFractionLatex(-prob.p, prob.p_frac ? prob.p_frac.replace('-', '') : null)}` : `- ${pDisp}`) : "";
+        const cStr = c !== 0 ? (c > 0 ? ` + ${c}` : ` - ${Math.abs(c)}`) : "";
+
+        steps.push({
+          title: "1. 1次の係数の半分を求め、二乗の形を作る",
+          math: `y = \\left(x ${insideP}\\right)^2 - \\left(${pDisp.replace('-', '')}\\right)^2 ${cStr}`
+        });
+
+        steps.push({
+          title: "2. 定数項をまとめて標準形を導出する",
+          math: vertexForm
+        });
+      } else {
+        // Case: a != 1
+        const factorPrefix = prob.a_display || (a === -1 ? "-" : `${a}`);
+        const innerB = b / a;
+        let innerBStr = "";
+        if (innerB === 1) innerBStr = "+ x";
+        else if (innerB === -1) innerBStr = "- x";
+        else if (innerB > 0) {
+          innerBStr = Number.isInteger(innerB) ? `+ ${innerB}x` : `+ \\frac{${Math.abs(b)}}{${Math.abs(a)}}x`;
+        } else {
+          innerBStr = Number.isInteger(innerB) ? `- ${Math.abs(innerB)}x` : `- \\frac{${Math.abs(b)}}{${Math.abs(a)}}x`;
+        }
+        const cStr = c !== 0 ? (c > 0 ? ` + ${c}` : ` - ${Math.abs(c)}`) : "";
+
+        steps.push({
+          title: "1. $x^2$ の係数で $x$ の項をくくる",
+          math: `y = ${factorPrefix}\\left(x^2 ${innerBStr}\\right)${cStr}`
+        });
+
+        const pSquaredVal = formatFractionLatex(prob.p * prob.p);
+        steps.push({
+          title: "2. かっこの中で二乗を作り、余分な定数項を引く",
+          math: `y = ${factorPrefix}\\left\\{ \\left(x ${insideP}\\right)^2 - \\left(${pDisp.replace('-', '')}\\right)^2 \\right\\}${cStr}`
+        });
+
+        steps.push({
+          title: "3. かっこを展開し、定数項を整理する",
+          math: vertexForm
+        });
+      }
+
+      return { steps, vertexForm, pDisplay: pDisp, qDisplay: qDisp };
+    }
+
+    function renderPageMath(element = document.body) {
+      if (window.renderMathInElement) {
+        renderMathInElement(element, {
+          delimiters: [
+            { left: '$$', right: '$$', display: true },
+            { left: '$', right: '$', display: false }
+          ],
+          throwOnError: false
+        });
+      }
+    }
+
+    // Number parser allowing fractions like "3/2", "-5/4"
+    function parseNumericAnswer(val) {
+      if (!val) return NaN;
+      val = val.trim().replace(/\s+/g, '');
+      if (val.includes('/')) {
+        const parts = val.split('/');
+        if (parts.length === 2) {
+          const num = parseFloat(parts[0]);
+          const den = parseFloat(parts[1]);
+          if (!isNaN(num) && !isNaN(den) && den !== 0) {
+            return num / den;
+          }
+        }
+      }
+      return parseFloat(val);
+    }
+  </script>
+
+  <script>
+    let currentIndex = 0;
+    let filteredIndices = PROBLEMS.map((_, i) => i);
+    let activeFilter = 'all';
+
+    // User progress state loaded from localStorage
+    const STORAGE_KEY = 'drill_completing_square_v1';
+    let userProgress = {};
+    try {
+      userProgress = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
+    } catch (e) {
+      userProgress = {};
+    }
+
+    function saveProgress() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(userProgress));
+      } catch (e) {}
+      updateProgressStats();
+    }
+
+    function updateProgressStats() {
+      const total = PROBLEMS.length;
+      let correct = 0;
+      let answered = 0;
+      for (let i = 0; i < total; i++) {
+        if (userProgress[i]) {
+          answered++;
+          if (userProgress[i].status === 'correct') correct++;
+        }
+      }
+      document.getElementById('headerProgress').textContent = `${correct} / ${total} 問正解`;
+      document.getElementById('drawerStats').textContent = `正解: ${correct} / 解答済: ${answered} / 全 ${total} 問`;
+    }
+  </script>
+
+  <script>
+    class GraphVisualizer {
+      constructor(canvasId) {
+        this.canvas = document.getElementById(canvasId);
+        this.ctx = this.canvas.getContext('2d');
+        this.tooltip = document.getElementById('graphTooltip');
+        this.scale = 28; // pixels per unit
+        this.originX = 0;
+        this.originY = 0;
+        this.currentProb = null;
+
+        this.initCanvasSize();
+        this.bindEvents();
+      }
+
+      initCanvasSize() {
+        const rect = this.canvas.parentElement.getBoundingClientRect();
+        const dpr = window.devicePixelRatio || 1;
+        this.width = rect.width;
+        this.height = rect.height;
+        this.canvas.width = this.width * dpr;
+        this.canvas.height = this.height * dpr;
+        this.ctx.resetTransform();
+        this.ctx.scale(dpr, dpr);
+      }
+
+      setProblem(prob) {
+        this.currentProb = prob;
+        // Center the graph nicely based on the vertex
+        this.scale = 26;
+        this.originX = this.width / 2 - prob.p * this.scale;
+        this.originY = this.height / 2 + prob.q * this.scale;
+        this.render();
+      }
+
+      zoom(delta) {
+        this.scale = Math.max(12, Math.min(80, this.scale + delta));
+        if (this.currentProb) {
+          this.originX = this.width / 2 - this.currentProb.p * this.scale;
+          this.originY = this.height / 2 + this.currentProb.q * this.scale;
+        }
+        this.render();
+      }
+
+      resetView() {
+        if (this.currentProb) this.setProblem(this.currentProb);
+      }
+
+      toCanvasX(mathX) {
+        return this.originX + mathX * this.scale;
+      }
+      toCanvasY(mathY) {
+        return this.originY - mathY * this.scale;
+      }
+      toMathX(canvasX) {
+        return (canvasX - this.originX) / this.scale;
+      }
+      toMathY(canvasY) {
+        return (this.originY - canvasY) / this.scale;
+      }
+
+      bindEvents() {
+        window.addEventListener('resize', () => {
+          this.initCanvasSize();
+          this.render();
+        });
+
+        // Mouse hover coordinates
+        this.canvas.addEventListener('mousemove', (e) => {
+          if (!this.currentProb) return;
+          const rect = this.canvas.getBoundingClientRect();
+          const mx = e.clientX - rect.left;
+          const my = e.clientY - rect.top;
+          const mathX = this.toMathX(mx);
+          const mathY = this.currentProb.a * mathX * mathX + this.currentProb.b * mathX + this.currentProb.c;
+          
+          this.tooltip.style.left = `${mx + 12}px`;
+          this.tooltip.style.top = `${my + 12}px`;
+          this.tooltip.classList.remove('hidden');
+          this.tooltip.innerHTML = `x: <b>${mathX.toFixed(2)}</b><br>y: <b>${mathY.toFixed(2)}</b>`;
+        });
+
+        this.canvas.addEventListener('mouseleave', () => {
+          this.tooltip.classList.add('hidden');
+        });
+      }
+
+      render() {
+        const ctx = this.ctx;
+        ctx.clearRect(0, 0, this.width, this.height);
+
+        // 1. Draw Grid
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = '#1e293b'; // slate-800
+        const step = this.scale;
+
+        const startX = this.originX % step;
+        for (let x = startX; x < this.width; x += step) {
+          ctx.beginPath();
+          ctx.moveTo(x, 0);
+          ctx.lineTo(x, this.height);
+          ctx.stroke();
+        }
+        const startY = this.originY % step;
+        for (let y = startY; y < this.height; y += step) {
+          ctx.beginPath();
+          ctx.moveTo(0, y);
+          ctx.lineTo(this.width, y);
+          ctx.stroke();
+        }
+
+        // 2. Axes
+        ctx.lineWidth = 1.5;
+        ctx.strokeStyle = '#475569'; // slate-600
+        // X-axis
+        ctx.beginPath();
+        ctx.moveTo(0, this.originY);
+        ctx.lineTo(this.width, this.originY);
+        ctx.stroke();
+        // Y-axis
+        ctx.beginPath();
+        ctx.moveTo(this.originX, 0);
+        ctx.lineTo(this.originX, this.height);
+        ctx.stroke();
+
+        // Axis labels
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '10px Inter, sans-serif';
+        ctx.fillText('O', this.originX - 12, this.originY + 12);
+        ctx.fillText('x', this.width - 12, this.originY - 6);
+        ctx.fillText('y', this.originX + 6, 12);
+
+        if (!this.currentProb) return;
+        const prob = this.currentProb;
+
+        // 3. Axis of Symmetry (Line x = p)
+        const axisX = this.toCanvasX(prob.p);
+        ctx.save();
+        ctx.setLineDash([4, 4]);
+        ctx.strokeStyle = '#818cf8'; // indigo-400
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(axisX, 0);
+        ctx.lineTo(axisX, this.height);
+        ctx.stroke();
+        ctx.restore();
+
+        // 4. Parabola Curve
+        ctx.lineWidth = 2.5;
+        ctx.strokeStyle = '#38bdf8'; // sky-400
+        ctx.beginPath();
+        let started = false;
+        for (let cx = 0; cx <= this.width; cx += 2) {
+          const mx = this.toMathX(cx);
+          const my = prob.a * mx * mx + prob.b * mx + prob.c;
+          const cy = this.toCanvasY(my);
+
+          if (!started) {
+            ctx.moveTo(cx, cy);
+            started = true;
+          } else {
+            ctx.lineTo(cx, cy);
+          }
+        }
+        ctx.stroke();
+
+        // 5. Intercept point (0, c)
+        const icY = this.toCanvasY(prob.c);
+        ctx.fillStyle = '#10b981'; // emerald-500
+        ctx.beginPath();
+        ctx.arc(this.originX, icY, 4.5, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 6. Vertex point (p, q)
+        const vx = this.toCanvasX(prob.p);
+        const vy = this.toCanvasY(prob.q);
+        ctx.fillStyle = '#f43f5e'; // rose-500
+        ctx.beginPath();
+        ctx.arc(vx, vy, 5.5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = '#ffffff';
+        ctx.stroke();
+
+        // Vertex coordinate badge on canvas
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 11px Inter, sans-serif';
+        const pStr = prob.p_frac || prob.p;
+        const qStr = prob.q_frac || prob.q;
+        const labelText = `頂点 (${pStr}, ${qStr})`;
+        const textWidth = ctx.measureText(labelText).width;
+        
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
+        ctx.fillRect(vx + 8, vy - 20, textWidth + 8, 18);
+        ctx.fillStyle = '#f43f5e';
+        ctx.fillText(labelText, vx + 12, vy - 7);
+      }
+    }
+  </script>
+
+  <script>
+    let visualizer;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // Initialize Lucide icons
+      lucide.createIcons();
+
+      // Initialize Graph Visualizer
+      visualizer = new GraphVisualizer('graphCanvas');
+
+      // Bind UI Buttons
+      document.getElementById('btnZoomIn').addEventListener('click', () => visualizer.zoom(6));
+      document.getElementById('btnZoomOut').addEventListener('click', () => visualizer.zoom(-6));
+      document.getElementById('btnResetView').addEventListener('click', () => visualizer.resetView());
+
+      // Drawer navigation
+      const drawer = document.getElementById('drawer');
+      const overlay = document.getElementById('drawerOverlay');
+      const openDrawer = () => {
+        renderDrawerButtons();
+        overlay.classList.remove('hidden');
+        setTimeout(() => overlay.classList.add('opacity-100'), 10);
+        drawer.classList.remove('translate-x-full');
+      };
+      const closeDrawer = () => {
+        overlay.classList.remove('opacity-100');
+        drawer.classList.add('translate-x-full');
+        setTimeout(() => overlay.classList.add('hidden'), 300);
+      };
+
+      document.getElementById('btnOpenDrawer').addEventListener('click', openDrawer);
+      document.getElementById('btnCloseDrawer').addEventListener('click', closeDrawer);
+      overlay.addEventListener('click', closeDrawer);
+
+      // Category filters
+      const filterBtns = document.querySelectorAll('#categoryFilterContainer .filter-btn');
+      filterBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const filter = btn.getAttribute('data-filter');
+          activeFilter = filter;
+          filterBtns.forEach(b => {
+            b.classList.remove('bg-indigo-600', 'text-white');
+            b.classList.add('bg-slate-100', 'text-slate-700');
+          });
+          btn.classList.add('bg-indigo-600', 'text-white');
+          btn.classList.remove('bg-slate-100', 'text-slate-700');
+
+          applyFilter();
+        });
+      });
+
+      // Navigation buttons
+      document.getElementById('btnPrev').addEventListener('click', () => {
+        const curPos = filteredIndices.indexOf(currentIndex);
+        if (curPos > 0) {
+          loadProblem(filteredIndices[curPos - 1]);
+        } else {
+          loadProblem(filteredIndices[filteredIndices.length - 1]);
+        }
+      });
+
+      document.getElementById('btnNext').addEventListener('click', () => {
+        const curPos = filteredIndices.indexOf(currentIndex);
+        if (curPos < filteredIndices.length - 1) {
+          loadProblem(filteredIndices[curPos + 1]);
+        } else {
+          loadProblem(filteredIndices[0]);
+        }
+      });
+
+      document.getElementById('btnRandom').addEventListener('click', () => {
+        const randIdx = filteredIndices[Math.floor(Math.random() * filteredIndices.length)];
+        loadProblem(randIdx);
+      });
+
+      // Reset all progress
+      document.getElementById('btnResetAll').addEventListener('click', () => {
+        if (window.confirm("これまでの解答進捗をリセットしますか？")) {
+          userProgress = {};
+          saveProgress();
+          loadProblem(currentIndex);
+        }
+      });
+
+      // Answer submission
+      document.getElementById('answerForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        checkAnswer();
+      });
+
+      // Reveal answer button
+      document.getElementById('btnRevealAnswer').addEventListener('click', () => {
+        showExplanation(true);
+      });
+
+      // Load initial problem
+      applyFilter();
+      updateProgressStats();
+
+      // Initial Math rendering for all static UI elements
+      renderPageMath(document.body);
+    });
+
+    function applyFilter() {
+      if (activeFilter === 'all') {
+        filteredIndices = PROBLEMS.map((_, i) => i);
+      } else {
+        filteredIndices = [];
+        PROBLEMS.forEach((p, idx) => {
+          if (p.category === activeFilter) filteredIndices.push(idx);
+        });
+      }
+      // If current problem is not in filter, jump to first
+      if (!filteredIndices.includes(currentIndex)) {
+        currentIndex = filteredIndices[0] || 0;
+      }
+      loadProblem(currentIndex);
+    }
+
+    // Load problem by index
+    function loadProblem(index) {
+      currentIndex = index;
+      const prob = PROBLEMS[index];
+
+      // Update badge and headers
+      document.getElementById('badgeCategory').textContent = prob.catName;
+      document.getElementById('drillIndexDisplay').textContent = `第 ${prob.id} 問 / 50 問`;
+      document.getElementById('currentNumberText').textContent = prob.id;
+
+      // Render problem equation using KaTeX
+      const latexStr = formatStandardLatex(prob);
+      katex.render(latexStr, document.getElementById('problemMathExpr'), { displayMode: true, throwOnError: false });
+
+      // Clear input fields
+      document.getElementById('inputA').value = '';
+      document.getElementById('inputP').value = '';
+      document.getElementById('inputQ').value = '';
+
+      // Reset alerts & explanation
+      document.getElementById('feedbackAlert').classList.add('hidden');
+      document.getElementById('explanationSection').classList.add('hidden');
+
+      // Update question status badge
+      const statusBadge = document.getElementById('drillStatusBadge');
+      if (userProgress[index]) {
+        if (userProgress[index].status === 'correct') {
+          statusBadge.className = "text-xs font-semibold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800";
+          statusBadge.textContent = "正解済";
+        } else {
+          statusBadge.className = "text-xs font-semibold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800";
+          statusBadge.textContent = "復習要";
+        }
+      } else {
+        statusBadge.className = "text-xs font-medium px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600";
+        statusBadge.textContent = "未解答";
+      }
+
+      // Update analytical values on graph card
+      document.getElementById('graphVertexText').textContent = `(${prob.p_frac || prob.p}, ${prob.q_frac || prob.q})`;
+      document.getElementById('graphAxisText').textContent = `x = ${prob.p_frac || prob.p}`;
+      document.getElementById('graphInterceptText').textContent = `(0, ${prob.c})`;
+
+      // Render Graph
+      visualizer.setProblem(prob);
+    }
+
+    // Check user answer
+    function checkAnswer() {
+      const prob = PROBLEMS[currentIndex];
+      const valA = parseNumericAnswer(document.getElementById('inputA').value);
+      const valP = parseNumericAnswer(document.getElementById('inputP').value);
+      const valQ = parseNumericAnswer(document.getElementById('inputQ').value);
+
+      const alertBox = document.getElementById('feedbackAlert');
+      const iconBox = document.getElementById('feedbackIcon');
+      const textBox = document.getElementById('feedbackText');
+
+      if (isNaN(valA) || isNaN(valP) || isNaN(valQ)) {
+        alertBox.className = "mt-4 p-4 rounded-xl text-sm font-medium border bg-rose-50 border-rose-200 text-rose-800 flex items-start space-x-3";
+        iconBox.innerHTML = '<i data-lucide="alert-triangle" class="w-5 h-5 text-rose-600"></i>';
+        textBox.innerHTML = "係数 $a$、頂点 $p$、$q$ の3箇所をすべて正しい数値で入力してください。";
+        alertBox.classList.remove('hidden');
+        lucide.createIcons();
+        return;
+      }
+
+      // Tolerance for floating point checks
+      const eps = 0.01;
+      const matchA = Math.abs(valA - prob.a) < eps;
+      const matchP = Math.abs(valP - prob.p) < eps;
+      const matchQ = Math.abs(valQ - prob.q) < eps;
+
+      if (matchA && matchP && matchQ) {
+        // Correct
+        userProgress[currentIndex] = { status: 'correct' };
+        saveProgress();
+
+        alertBox.className = "mt-4 p-4 rounded-xl text-sm font-medium border bg-emerald-50 border-emerald-200 text-emerald-800 flex items-start space-x-3";
+        iconBox.innerHTML = '<i data-lucide="check-circle-2" class="w-5 h-5 text-emerald-600"></i>';
+        textBox.innerHTML = `<strong>正解です！素晴らしい！</strong><br>頂点 $(${prob.p_frac || prob.p}, ${prob.q_frac || prob.q})$、軸 $x = ${prob.p_frac || prob.p}$ を正しく導出できました。`;
+        alertBox.classList.remove('hidden');
+      } else {
+        // Incorrect
+        userProgress[currentIndex] = { status: 'incorrect' };
+        saveProgress();
+
+        let errorDetails = [];
+        if (!matchA) errorDetails.push("係数 $a$");
+        if (!matchP) errorDetails.push("頂点 $p$");
+        if (!matchQ) errorDetails.push("頂点 $q$");
+
+        alertBox.className = "mt-4 p-4 rounded-xl text-sm font-medium border bg-amber-50 border-amber-200 text-amber-800 flex items-start space-x-3";
+        iconBox.innerHTML = '<i data-lucide="x-circle" class="w-5 h-5 text-amber-600"></i>';
+        textBox.innerHTML = `<strong>惜しい！見直してみましょう。</strong><br>【${errorDetails.join("、")}】の値が異なります。下の解説を開いて変形手順を確認しましょう。`;
+        alertBox.classList.remove('hidden');
+      }
+
+      lucide.createIcons();
+      renderPageMath(alertBox);
+      showExplanation(false);
+      updateProgressStats();
+    }
+
+    // Show detailed explanation & KaTeX formatted math
+    function showExplanation(autoOpen) {
+      const prob = PROBLEMS[currentIndex];
+      const explSection = document.getElementById('explanationSection');
+      const explContainer = document.getElementById('explanationContent');
+      const propContainer = document.getElementById('propertiesContent');
+
+      explContainer.innerHTML = '';
+      propContainer.innerHTML = '';
+
+      const { steps, vertexForm, pDisplay, qDisplay } = generateExplanationSteps(prob);
+
+      steps.forEach((s) => {
+        const stepDiv = document.createElement('div');
+        stepDiv.className = "border-b border-slate-200/80 pb-2.5 last:border-0 last:pb-0";
+
+        const titleP = document.createElement('div');
+        titleP.className = "font-semibold text-slate-800 text-xs sm:text-sm mb-1";
+        titleP.textContent = s.title;
+
+        const mathP = document.createElement('div');
+        mathP.className = "bg-white p-2.5 rounded-lg border border-slate-200 text-center text-sm font-medium";
+        katex.render(s.math, mathP, { displayMode: true, throwOnError: false });
+
+        stepDiv.appendChild(titleP);
+        stepDiv.appendChild(mathP);
+        explContainer.appendChild(stepDiv);
+      });
+
+      // Properties summary
+      propContainer.innerHTML = `
+        <div class="bg-white/70 p-2.5 rounded-lg">
+          <span class="text-xs text-slate-500 block">頂点の座標</span>
+          <span class="font-bold text-slate-800 text-sm">$$(${prob.p_frac || prob.p}, ${prob.q_frac || prob.q})$$</span>
+        </div>
+        <div class="bg-white/70 p-2.5 rounded-lg">
+          <span class="text-xs text-slate-500 block">放物線の軸</span>
+          <span class="font-bold text-slate-800 text-sm">$$x = ${prob.p_frac || prob.p}$$</span>
+        </div>
+        <div class="bg-white/70 p-2.5 rounded-lg">
+          <span class="text-xs text-slate-500 block">凸の向き</span>
+          <span class="font-bold text-slate-800 text-sm">${prob.a > 0 ? '下に凸 (最小値あり)' : '上に凸 (最大値あり)'}</span>
+        </div>
+      `;
+
+      explSection.classList.remove('hidden');
+      renderPageMath(explSection);
+    }
+
+    // Render drawer 50-buttons grid
+    function renderDrawerButtons() {
+      const container = document.getElementById('questionGridButtons');
+      container.innerHTML = '';
+
+      PROBLEMS.forEach((prob, idx) => {
+        const btn = document.createElement('button');
+        btn.textContent = prob.id;
+
+        let statusClass = "bg-slate-100 text-slate-700 hover:bg-slate-200";
+        if (userProgress[idx]) {
+          if (userProgress[idx].status === 'correct') {
+            statusClass = "bg-emerald-600 text-white font-bold";
+          } else {
+            statusClass = "bg-amber-500 text-white font-bold";
+          }
+        }
+        if (idx === currentIndex) {
+          btn.classList.add("ring-2", "ring-indigo-500", "ring-offset-2");
+        }
+
+        btn.className = `h-10 text-xs rounded-lg transition flex items-center justify-center font-medium ${statusClass}`;
+        btn.addEventListener('click', () => {
+          loadProblem(idx);
+          document.getElementById('drawerOverlay').click();
+        });
+
+        container.appendChild(btn);
+      });
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,1209 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>2次関数 放物線の開き具合シミュレータ</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Inter and Noto Sans JP -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&family=Fira+Code:wght@500&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Noto Sans JP', 'Inter', sans-serif;
+    }
+    .font-mono-math {
+      font-family: 'Fira Code', monospace;
+    }
+    /* Custom Slider Accent Styling */
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      height: 20px;
+      width: 20px;
+      border-radius: 50%;
+      background: #3b82f6;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+      transition: transform 0.1s, background-color 0.1s;
+    }
+    input[type=range]::-webkit-slider-thumb:hover {
+      transform: scale(1.2);
+      background: #2563eb;
+    }
+    input[type=range]::-moz-range-thumb {
+      height: 20px;
+      width: 20px;
+      border-radius: 50%;
+      background: #3b82f6;
+      cursor: pointer;
+      border: none;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+      transition: transform 0.1s, background-color 0.1s;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen lg:h-screen flex flex-col antialiased lg:overflow-hidden">
+  <!-- Header -->
+  <header class="bg-white border-b border-slate-200 shrink-0 z-30 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center space-x-3">
+        <div class="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center text-white font-bold shadow-md shadow-blue-200">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M4 4v16m0 0h16M4 20c4-12 8-12 12 0"></path>
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-base sm:text-lg font-bold text-slate-900 leading-tight">2次関数 放物線の開き具合シミュレータ</h1>
+          <p class="text-xs text-slate-500 hidden sm:block">標準形 <span class="font-mono-math font-semibold text-blue-600">y = a(x - p)² + q</span> の係数とグラフの形状・頂点の関係</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <button id="resetAllBtn" class="px-3 py-1.5 text-xs font-medium rounded-lg text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors">
+          初期状態に戻す
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Workspace (Adapts height to viewport) -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-3 lg:py-4 grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 min-h-0 lg:overflow-hidden">
+    
+    <!-- Left Column: Graph Canvas Area (Fills available vertical space) -->
+    <section class="lg:col-span-7 flex flex-col h-[52vh] sm:h-[58vh] lg:h-full min-h-[360px] lg:min-h-0">
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-3 sm:p-4 flex flex-col h-full relative overflow-hidden">
+        
+        <!-- Canvas Toolbar -->
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-2 shrink-0">
+          <!-- Active Formula Badge -->
+          <div class="flex flex-wrap items-center gap-2">
+            <div class="px-2.5 py-1 rounded-lg bg-blue-50 border border-blue-200 text-blue-900 font-mono-math font-bold text-xs sm:text-sm flex items-center gap-1.5 shadow-xs">
+              <span class="inline-block w-2 h-2 rounded-full bg-blue-600"></span>
+              <span id="formulaText" class="text-blue-800">y = 1(x - 0)² + 0</span>
+            </div>
+
+            <!-- Vertex & Axis Badge -->
+            <div class="px-2 py-0.5 rounded-lg bg-indigo-50 border border-indigo-200 text-indigo-800 font-mono-math text-xs flex items-center gap-1.5">
+              <span>頂点: <strong id="vertexBadge">(0, 0)</strong></span>
+              <span class="text-indigo-300">|</span>
+              <span>軸: <strong id="axisBadge">x = 0</strong></span>
+            </div>
+            
+            <!-- Reference Formula Badge (if active) -->
+            <div id="refBadge" class="hidden items-center gap-1.5 px-2 py-0.5 rounded-lg bg-slate-100 border border-slate-300 text-slate-700 font-mono-math text-xs">
+              <span class="inline-block w-2.5 h-0.5 border-t-2 border-dashed border-amber-500"></span>
+              <span>基準: <span id="refFormulaText" class="font-semibold">y = x²</span></span>
+            </div>
+          </div>
+
+          <!-- View Controls (Zoom, Reset View, Fullscreen) -->
+          <div class="flex items-center gap-1 bg-slate-100 p-1 rounded-xl shrink-0">
+            <button id="zoomInBtn" title="拡大" class="w-7 h-7 rounded-lg bg-white shadow-xs hover:bg-slate-50 flex items-center justify-center text-slate-700 font-bold text-sm transition">＋</button>
+            <button id="zoomOutBtn" title="縮小" class="w-7 h-7 rounded-lg bg-white shadow-xs hover:bg-slate-50 flex items-center justify-center text-slate-700 font-bold text-sm transition">－</button>
+            <button id="resetViewBtn" title="原点を中央に戻す" class="px-2 h-7 rounded-lg bg-white shadow-xs hover:bg-slate-50 text-xs font-semibold text-slate-700 flex items-center transition">中央へ</button>
+            <button id="fitViewBtn" title="画面サイズに最適化" class="px-2 h-7 rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 text-xs font-semibold flex items-center transition">全体表示</button>
+          </div>
+        </div>
+
+        <!-- Canvas Container: Flexible 100% height fitting -->
+        <div id="canvasWrapper" class="relative w-full flex-1 min-h-0 bg-slate-900 rounded-xl overflow-hidden cursor-crosshair select-none border border-slate-800">
+          <canvas id="mathCanvas" class="w-full h-full block"></canvas>
+          
+          <!-- Coordinates Tooltip on Hover -->
+          <div id="hoverTooltip" class="absolute pointer-events-none hidden bg-slate-800/90 backdrop-blur-sm text-white px-2.5 py-1 rounded text-xs font-mono-math shadow-lg border border-slate-700 transform -translate-x-1/2 -translate-y-full mb-2 z-10">
+            x: 0, y: 0
+          </div>
+
+          <!-- Canvas Overlay Legend & Controls -->
+          <div class="absolute bottom-3 left-3 bg-slate-900/85 backdrop-blur-md px-3 py-2 rounded-lg border border-slate-700/80 text-xs text-slate-300 flex flex-col gap-1.5 shadow-md">
+            <div class="flex items-center gap-2">
+              <div class="w-4 h-1 bg-blue-500 rounded"></div>
+              <span>操作中の放物線</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <div class="w-4 h-0 border-t-2 border-dashed border-amber-400"></div>
+              <span>比較用の基準線 (点線)</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <div class="w-2 h-2 rounded-full bg-rose-400"></div>
+              <span>頂点 (p, q) / 破線: 軸 x = p</span>
+            </div>
+            <div class="text-[11px] text-slate-400 pt-0.5 border-t border-slate-800">
+              ドラッグで視点移動 / ホイールでズーム
+            </div>
+          </div>
+        </div>
+
+        <!-- Display Toggles -->
+        <div class="flex flex-wrap items-center justify-between gap-3 mt-3 pt-3 border-t border-slate-100 text-xs text-slate-600">
+          <div class="flex flex-wrap items-center gap-4">
+            <label class="flex items-center gap-1.5 cursor-pointer">
+              <input type="checkbox" id="toggleGrid" checked class="rounded text-blue-600 focus:ring-blue-500 w-4 h-4">
+              <span>目盛・グリッド線</span>
+            </label>
+            <label class="flex items-center gap-1.5 cursor-pointer">
+              <input type="checkbox" id="toggleAxisLine" checked class="rounded text-blue-600 focus:ring-blue-500 w-4 h-4">
+              <span>対称軸 (x = p)</span>
+            </label>
+            <label class="flex items-center gap-1.5 cursor-pointer">
+              <input type="checkbox" id="toggleKeyPoints" checked class="rounded text-blue-600 focus:ring-blue-500 w-4 h-4">
+              <span>頂点・代表点</span>
+            </label>
+            <label class="flex items-center gap-1.5 cursor-pointer">
+              <input type="checkbox" id="toggleComparisonGuide" checked class="rounded text-blue-600 focus:ring-blue-500 w-4 h-4">
+              <span>開き具合ガイド</span>
+            </label>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Right Column: Interactive Controls & Educational Insights (Independently scrollable on desktop) -->
+    <section class="lg:col-span-5 flex flex-col gap-4 lg:overflow-y-auto lg:h-full lg:pr-1 pb-6 lg:pb-0">
+      
+      <!-- Panel 1: Standard Form Parameters (a, p, q) -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-5 space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div>
+            <h2 class="font-bold text-slate-900 flex items-center gap-2 text-base">
+              <span class="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
+              標準形のパラメータ設定
+            </h2>
+            <p class="text-xs text-slate-500 mt-0.5 font-mono-math">y = a(x - p)² + q</p>
+          </div>
+          <button id="resetPQBtn" class="text-xs px-2.5 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-600 font-medium transition">
+            原点 (0, 0) に戻す
+          </button>
+        </div>
+
+        <!-- Param a: Opening width & Direction -->
+        <div class="p-3 bg-blue-50/50 rounded-xl border border-blue-100 space-y-2">
+          <div class="flex items-center justify-between">
+            <label for="coeffSlider" class="text-xs font-bold text-blue-900 flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+              係数 a（開き具合・上下の向き）:
+            </label>
+            <div class="flex items-center gap-1.5">
+              <button id="stepDownBtn" class="w-6 h-6 rounded bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold flex items-center justify-center text-xs transition">－</button>
+              <input type="number" id="coeffInput" step="0.1" min="-10" max="10" value="1" 
+                class="w-16 px-1.5 py-0.5 text-center font-mono-math text-xs font-bold rounded border border-slate-300 focus:ring-1 focus:ring-blue-500 outline-none bg-white">
+              <button id="stepUpBtn" class="w-6 h-6 rounded bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold flex items-center justify-center text-xs transition">＋</button>
+            </div>
+          </div>
+          <input type="range" id="coeffSlider" min="-5" max="5" step="0.05" value="1" 
+            class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer">
+          <div class="flex justify-between text-[10px] text-slate-400 font-mono-math">
+            <span>-5 (下向き/狭い)</span>
+            <span class="text-slate-600 font-semibold">0 (直線)</span>
+            <span>+5 (上向き/狭い)</span>
+          </div>
+        </div>
+
+        <!-- Param p: Horizontal shift & Axis -->
+        <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+          <div class="flex items-center justify-between">
+            <label for="pSlider" class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-indigo-500"></span>
+              頂点の x 座標 p（左右移動・軸 x = p）:
+            </label>
+            <div class="flex items-center gap-1.5">
+              <button id="pStepDownBtn" class="w-6 h-6 rounded bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold flex items-center justify-center text-xs transition">－</button>
+              <input type="number" id="pInput" step="0.5" min="-10" max="10" value="0" 
+                class="w-16 px-1.5 py-0.5 text-center font-mono-math text-xs font-bold rounded border border-slate-300 focus:ring-1 focus:ring-blue-500 outline-none bg-white">
+              <button id="pStepUpBtn" class="w-6 h-6 rounded bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold flex items-center justify-center text-xs transition">＋</button>
+            </div>
+          </div>
+          <input type="range" id="pSlider" min="-6" max="6" step="0.1" value="0" 
+            class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer">
+          <div class="flex justify-between text-[10px] text-slate-400 font-mono-math">
+            <span>← 左へ移動 (-6)</span>
+            <span class="text-slate-600 font-semibold">0 (y軸上)</span>
+            <span>右へ移動 (+6) →</span>
+          </div>
+        </div>
+
+        <!-- Param q: Vertical shift -->
+        <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+          <div class="flex items-center justify-between">
+            <label for="qSlider" class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+              頂点の y 座標 q（上下移動）:
+            </label>
+            <div class="flex items-center gap-1.5">
+              <button id="qStepDownBtn" class="w-6 h-6 rounded bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold flex items-center justify-center text-xs transition">－</button>
+              <input type="number" id="qInput" step="0.5" min="-10" max="10" value="0" 
+                class="w-16 px-1.5 py-0.5 text-center font-mono-math text-xs font-bold rounded border border-slate-300 focus:ring-1 focus:ring-blue-500 outline-none bg-white">
+              <button id="qStepUpBtn" class="w-6 h-6 rounded bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold flex items-center justify-center text-xs transition">＋</button>
+            </div>
+          </div>
+          <input type="range" id="qSlider" min="-6" max="6" step="0.1" value="0" 
+            class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer">
+          <div class="flex justify-between text-[10px] text-slate-400 font-mono-math">
+            <span>↓ 下へ移動 (-6)</span>
+            <span class="text-slate-600 font-semibold">0 (x軸上)</span>
+            <span>上へ移動 (+6) ↑</span>
+          </div>
+        </div>
+
+        <!-- Quick Presets -->
+        <div>
+          <div class="text-xs font-semibold text-slate-500 mb-2">係数 a の代表値クイック選択:</div>
+          <div class="grid grid-cols-7 gap-1">
+            <button class="preset-btn px-2 py-1 text-xs font-mono-math rounded bg-slate-100 hover:bg-blue-100 text-slate-700 border border-slate-200 transition" data-val="3">3</button>
+            <button class="preset-btn px-2 py-1 text-xs font-mono-math rounded bg-slate-100 hover:bg-blue-100 text-slate-700 border border-slate-200 transition" data-val="2">2</button>
+            <button class="preset-btn px-2 py-1 text-xs font-mono-math rounded bg-blue-100 text-blue-700 border border-blue-300 transition" data-val="1">1</button>
+            <button class="preset-btn px-2 py-1 text-xs font-mono-math rounded bg-slate-100 hover:bg-blue-100 text-slate-700 border border-slate-200 transition" data-val="0.5">0.5</button>
+            <button class="preset-btn px-2 py-1 text-xs font-mono-math rounded bg-slate-100 hover:bg-blue-100 text-slate-700 border border-slate-200 transition" data-val="0.2">0.2</button>
+            <button class="preset-btn px-2 py-1 text-xs font-mono-math rounded bg-slate-100 hover:bg-blue-100 text-slate-700 border border-slate-200 transition" data-val="-1">-1</button>
+            <button class="preset-btn px-2 py-1 text-xs font-mono-math rounded bg-slate-100 hover:bg-blue-100 text-slate-700 border border-slate-200 transition" data-val="-2">-2</button>
+          </div>
+        </div>
+
+        <!-- Animation Playback -->
+        <div class="pt-2 border-t border-slate-100 flex items-center justify-between">
+          <span class="text-xs text-slate-600 font-medium">係数 a の連続変化アニメーション:</span>
+          <button id="animPlayBtn" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-xs transition">
+            <svg id="playIcon" class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+            <span id="animBtnText">自動で動かす</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Panel 2: Comparison & Benchmark Settings -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+        <div class="flex items-center justify-between mb-3">
+          <h2 class="font-bold text-slate-900 flex items-center gap-2 text-base">
+            <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+            比較用の基準放物線（点線）
+          </h2>
+          <span class="text-xs text-amber-600 bg-amber-50 px-2 py-0.5 rounded font-medium">点線でキープ</span>
+        </div>
+
+        <p class="text-xs text-slate-600 mb-4 leading-relaxed">
+          基準となる放物線を点線で残しておくことで、開き具合の比較や、平行移動（頂点の変化）の様子が一目で分かります。
+        </p>
+
+        <div class="flex flex-col gap-2.5">
+          <div class="grid grid-cols-2 gap-2">
+            <button id="setStandardRefBtn" class="px-3 py-2 text-xs font-medium rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 transition flex items-center justify-center gap-1 border border-slate-200">
+              <span>標準 y = x² に設定</span>
+            </button>
+            <button id="setCurAsRefBtn" class="px-3 py-2 text-xs font-medium rounded-xl bg-amber-500 hover:bg-amber-600 text-white transition flex items-center justify-center gap-1 shadow-xs">
+              <span>現在の形を基準に固定</span>
+            </button>
+          </div>
+
+          <div class="flex items-center justify-between text-xs pt-2">
+            <label class="flex items-center gap-2 cursor-pointer select-none">
+              <input type="checkbox" id="toggleRefCurve" checked class="rounded text-amber-500 focus:ring-amber-400 w-4 h-4">
+              <span class="font-semibold text-slate-700">基準線 (点線) を表示する</span>
+            </label>
+            <button id="clearRefBtn" class="text-slate-400 hover:text-rose-600 transition">
+              基準線を非表示
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel 3: Dynamic Mathematical Insights & Table -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+        <h2 class="font-bold text-slate-900 text-base mb-3 flex items-center justify-between">
+          <span>発見・まとめノート</span>
+          <span id="badgeOpening" class="text-xs px-2 py-0.5 rounded-full font-bold bg-blue-100 text-blue-700">標準</span>
+        </h2>
+
+        <!-- Key Insights Box -->
+        <div id="insightSummary" class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs sm:text-sm text-slate-700 space-y-2">
+          <div class="flex items-start gap-2">
+            <span class="text-blue-600 font-bold mt-0.5">●</span>
+            <div>
+              <strong>標準形の特徴:</strong> 
+              <span id="insightVertexText" class="text-slate-800">頂点は <strong class="font-mono-math text-indigo-700">(0, 0)</strong>、対称軸は直線 <strong class="font-mono-math text-indigo-700">x = 0</strong> です。</span>
+            </div>
+          </div>
+          <div class="flex items-start gap-2">
+            <span class="text-blue-600 font-bold mt-0.5">●</span>
+            <div>
+              <strong>開き具合のルール:</strong> 
+              <span id="insightOpenText" class="text-slate-800">絶対値 <span class="font-mono-math font-semibold">|a|</span> が大きくなると開きは狭く急になり、小さくなると緩やか（広く）になります。</span>
+            </div>
+          </div>
+          <div class="flex items-start gap-2">
+            <span class="text-blue-600 font-bold mt-0.5">●</span>
+            <div>
+              <strong>向きのルール:</strong> 
+              <span id="insightDirText" class="text-slate-800"><span class="font-mono-math font-semibold">a > 0</span> のため「上に開く（下に凸）」形です。</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Coordinates Quick Comparison Table -->
+        <div class="mt-4">
+          <div class="text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wider">頂点からのずれ (x - p) と y の対応表</div>
+          <div class="overflow-x-auto rounded-lg border border-slate-200">
+            <table class="w-full text-xs text-center font-mono-math">
+              <thead class="bg-slate-100 text-slate-600">
+                <tr>
+                  <th class="py-1 px-2 border-b border-r border-slate-200 font-semibold">x</th>
+                  <th class="py-1 px-2 border-b border-r border-slate-200 font-semibold">x - p</th>
+                  <th class="py-1 px-2 border-b border-slate-200 text-blue-600 font-bold">現在の y</th>
+                  <th class="py-1 px-2 border-b border-slate-200 text-amber-600 font-medium">基準 y</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100 bg-white" id="valTableBody">
+                <!-- Dynamically populated rows -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </section>
+  </main>
+
+  <!-- Notification Toast Container -->
+  <div id="toast" class="fixed bottom-5 right-5 bg-slate-800 text-white px-4 py-2.5 rounded-xl shadow-xl text-xs font-medium transform translate-y-16 opacity-0 transition-all duration-300 pointer-events-none z-50 flex items-center gap-2">
+    <span id="toastMsg">通知メッセージ</span>
+  </div>
+
+  <!-- JavaScript Logic -->
+  <script>
+    // State management
+    const state = {
+      // Current function coefficients: y = a(x - p)^2 + q
+      a: 1.0,
+      p: 0.0,
+      q: 0.0,
+
+      // Reference function coefficients (dotted)
+      refA: 1.0,
+      refP: 0.0,
+      refQ: 0.0,
+
+      showRef: true,     // Whether reference curve is visible
+      showGrid: true,    // Show coordinate grid
+      showAxisLine: true,// Show line of symmetry x = p
+      showPoints: true,  // Show highlighted vertex and sample points
+      showGuide: true,   // Show opening width arrows
+      
+      // Canvas view state (Pan & Zoom)
+      zoom: 42,          // Pixels per math unit
+      offsetX: 0,        // Pan offset X from center in pixels
+      offsetY: 80,       // Pan offset Y from center in pixels
+      isDragging: false,
+      dragStartX: 0,
+      dragStartY: 0,
+      
+      // Animation state (animates 'a')
+      isAnimating: false,
+      animDirection: 1,
+      animReqId: null,
+
+      // Mouse hover tracking
+      hoverMathX: null,
+      hoverMathY: null
+    };
+
+    // DOM Elements
+    const canvas = document.getElementById('mathCanvas');
+    const ctx = canvas.getContext('2d');
+    const canvasWrapper = document.getElementById('canvasWrapper');
+    const hoverTooltip = document.getElementById('hoverTooltip');
+
+    // Controls for a
+    const coeffSlider = document.getElementById('coeffSlider');
+    const coeffInput = document.getElementById('coeffInput');
+    const stepUpBtn = document.getElementById('stepUpBtn');
+    const stepDownBtn = document.getElementById('stepDownBtn');
+
+    // Controls for p and q
+    const pSlider = document.getElementById('pSlider');
+    const pInput = document.getElementById('pInput');
+    const pStepUpBtn = document.getElementById('pStepUpBtn');
+    const pStepDownBtn = document.getElementById('pStepDownBtn');
+
+    const qSlider = document.getElementById('qSlider');
+    const qInput = document.getElementById('qInput');
+    const qStepUpBtn = document.getElementById('qStepUpBtn');
+    const qStepDownBtn = document.getElementById('qStepDownBtn');
+
+    const resetPQBtn = document.getElementById('resetPQBtn');
+    const presetBtns = document.querySelectorAll('.preset-btn');
+
+    // Formula & Badges
+    const formulaText = document.getElementById('formulaText');
+    const vertexBadge = document.getElementById('vertexBadge');
+    const axisBadge = document.getElementById('axisBadge');
+
+    // Reference Controls
+    const setCurAsRefBtn = document.getElementById('setCurAsRefBtn');
+    const setStandardRefBtn = document.getElementById('setStandardRefBtn');
+    const clearRefBtn = document.getElementById('clearRefBtn');
+    const toggleRefCurve = document.getElementById('toggleRefCurve');
+    const refBadge = document.getElementById('refBadge');
+    const refFormulaText = document.getElementById('refFormulaText');
+
+    // View Toggles
+    const toggleGrid = document.getElementById('toggleGrid');
+    const toggleAxisLine = document.getElementById('toggleAxisLine');
+    const toggleKeyPoints = document.getElementById('toggleKeyPoints');
+    const toggleComparisonGuide = document.getElementById('toggleComparisonGuide');
+
+    const zoomInBtn = document.getElementById('zoomInBtn');
+    const zoomOutBtn = document.getElementById('zoomOutBtn');
+    const resetViewBtn = document.getElementById('resetViewBtn');
+    const fitViewBtn = document.getElementById('fitViewBtn');
+    const resetAllBtn = document.getElementById('resetAllBtn');
+
+    const animPlayBtn = document.getElementById('animPlayBtn');
+    const animBtnText = document.getElementById('animBtnText');
+    const playIcon = document.getElementById('playIcon');
+
+    // Insights & Table
+    const badgeOpening = document.getElementById('badgeOpening');
+    const insightVertexText = document.getElementById('insightVertexText');
+    const insightOpenText = document.getElementById('insightOpenText');
+    const insightDirText = document.getElementById('insightDirText');
+    const valTableBody = document.getElementById('valTableBody');
+    const toast = document.getElementById('toast');
+    const toastMsg = document.getElementById('toastMsg');
+
+    // Helper to show small non-blocking toast
+    function showToast(msg) {
+      toastMsg.textContent = msg;
+      toast.classList.remove('translate-y-16', 'opacity-0');
+      toast.classList.add('translate-y-0', 'opacity-100');
+      clearTimeout(toast._timeout);
+      toast._timeout = setTimeout(() => {
+        toast.classList.remove('translate-y-0', 'opacity-100');
+        toast.classList.add('translate-y-16', 'opacity-0');
+      }, 2200);
+    }
+
+    function formatNumber(num) {
+      const rounded = Math.round(num * 100) / 100;
+      return Number(rounded.toFixed(2)).toString();
+    }
+
+    // Format standard form equation y = a(x - p)^2 + q elegantly
+    function formatStandardEquation(a, p, q) {
+      if (a === 0) {
+        return `y = ${formatNumber(q)} (直線)`;
+      }
+
+      let res = 'y = ';
+      // Coefficient a
+      if (a === 1) {
+        // omit 1 unless (x-p) is 0
+      } else if (a === -1) {
+        res += '-';
+      } else {
+        res += `${formatNumber(a)}`;
+      }
+
+      // (x - p)^2 part
+      if (p === 0) {
+        res += 'x²';
+      } else if (p > 0) {
+        res += `(x - ${formatNumber(p)})²`;
+      } else {
+        res += `(x + ${formatNumber(Math.abs(p))})²`;
+      }
+
+      // q part
+      if (q > 0) {
+        res += ` + ${formatNumber(q)}`;
+      } else if (q < 0) {
+        res += ` - ${formatNumber(Math.abs(q))}`;
+      }
+
+      return res;
+    }
+
+    // Get logical canvas dimensions
+    function getCanvasLogicalSize() {
+      const rect = canvasWrapper.getBoundingClientRect();
+      return {
+        w: Math.max(rect.width, 100),
+        h: Math.max(rect.height, 100)
+      };
+    }
+
+    // Coordinate transformations
+    function mathToScreen(x, y) {
+      const { w, h } = getCanvasLogicalSize();
+      const originX = w / 2 + state.offsetX;
+      const originY = h / 2 + state.offsetY;
+      return {
+        px: originX + x * state.zoom,
+        py: originY - y * state.zoom
+      };
+    }
+
+    function screenToMath(px, py) {
+      const { w, h } = getCanvasLogicalSize();
+      const originX = w / 2 + state.offsetX;
+      const originY = h / 2 + state.offsetY;
+      return {
+        x: (px - originX) / state.zoom,
+        y: -(py - originY) / state.zoom
+      };
+    }
+
+    function resizeCanvas() {
+      const rect = canvasWrapper.getBoundingClientRect();
+      const width = rect.width;
+      const height = rect.height;
+      if (width <= 0 || height <= 0) return;
+
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = Math.round(width * dpr);
+      canvas.height = Math.round(height * dpr);
+      ctx.resetTransform?.();
+      ctx.scale(dpr, dpr);
+      render();
+    }
+
+    // Fit graph view according to container dimensions
+    function fitViewToCanvas() {
+      const { w, h } = getCanvasLogicalSize();
+      // Adjust zoom level dynamically based on height and width
+      const optimalZoom = Math.max(22, Math.min(65, Math.floor(Math.min(w / 14, h / 10))));
+      state.zoom = optimalZoom;
+      state.offsetX = 0;
+      // Position origin slightly below center for parabola upward view
+      state.offsetY = Math.min(Math.floor(h * 0.22), 90);
+      render();
+    }
+
+    function render() {
+      const { w, h } = getCanvasLogicalSize();
+      const originX = w / 2 + state.offsetX;
+      const originY = h / 2 + state.offsetY;
+
+      // Clear Canvas
+      ctx.clearRect(0, 0, w, h);
+
+      // Background
+      ctx.fillStyle = '#0f172a'; // slate-900
+      ctx.fillRect(0, 0, w, h);
+
+      // Adaptive grid steps
+      let step = 1;
+      if (state.zoom < 25) step = 2;
+      if (state.zoom < 12) step = 5;
+      if (state.zoom > 90) step = 0.5;
+
+      if (state.showGrid) {
+        ctx.lineWidth = 1;
+        const leftMath = screenToMath(0, 0).x;
+        const rightMath = screenToMath(w, 0).x;
+        const topMath = screenToMath(0, 0).y;
+        const bottomMath = screenToMath(0, h).y;
+
+        // Vertical grid lines
+        const startX = Math.floor(leftMath / step) * step;
+        for (let x = startX; x <= rightMath; x += step) {
+          const px = originX + x * state.zoom;
+          ctx.beginPath();
+          ctx.strokeStyle = Math.abs(x) < 1e-6 ? '#64748b' : '#1e293b';
+          ctx.moveTo(px, 0);
+          ctx.lineTo(px, h);
+          ctx.stroke();
+
+          // Axis labels on X
+          if (Math.abs(x) > 1e-6 && px > 15 && px < w - 15) {
+            ctx.fillStyle = '#64748b';
+            ctx.font = '10px "Fira Code", monospace';
+            ctx.textAlign = 'center';
+            const labelY = Math.min(Math.max(originY + 14, 15), h - 5);
+            ctx.fillText(formatNumber(x), px, labelY);
+          }
+        }
+
+        // Horizontal grid lines
+        const startY = Math.floor(bottomMath / step) * step;
+        for (let y = startY; y <= topMath; y += step) {
+          const py = originY - y * state.zoom;
+          ctx.beginPath();
+          ctx.strokeStyle = Math.abs(y) < 1e-6 ? '#64748b' : '#1e293b';
+          ctx.moveTo(0, py);
+          ctx.lineTo(w, py);
+          ctx.stroke();
+
+          // Axis labels on Y
+          if (Math.abs(y) > 1e-6 && py > 15 && py < h - 15) {
+            ctx.fillStyle = '#64748b';
+            ctx.font = '10px "Fira Code", monospace';
+            ctx.textAlign = 'right';
+            const labelX = Math.min(Math.max(originX - 6, 25), w - 5);
+            ctx.fillText(formatNumber(y), labelX, py + 3);
+          }
+        }
+      }
+
+      // Main Axes
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = '#94a3b8';
+      
+      // X-Axis
+      ctx.beginPath();
+      ctx.moveTo(0, originY);
+      ctx.lineTo(w, originY);
+      ctx.stroke();
+
+      // Y-Axis
+      ctx.beginPath();
+      ctx.moveTo(originX, 0);
+      ctx.lineTo(originX, h);
+      ctx.stroke();
+
+      // Origin O
+      ctx.fillStyle = '#cbd5e1';
+      ctx.font = 'bold 12px "Noto Sans JP", sans-serif';
+      ctx.textAlign = 'right';
+      ctx.fillText('O', originX - 6, originY + 16);
+
+      // Axis labels
+      ctx.fillStyle = '#e2e8f0';
+      ctx.font = 'bold 12px "Noto Sans JP", sans-serif';
+      ctx.textAlign = 'left';
+      ctx.fillText('x', w - 16, originY - 8);
+      ctx.fillText('y', originX + 8, 16);
+
+      // Draw Axis of Symmetry x = p
+      if (state.showAxisLine) {
+        const axisScreen = mathToScreen(state.p, 0);
+        ctx.save();
+        ctx.strokeStyle = 'rgba(244, 63, 94, 0.55)'; // rose-500
+        ctx.setLineDash([4, 4]);
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(axisScreen.px, 0);
+        ctx.lineTo(axisScreen.px, h);
+        ctx.stroke();
+
+        ctx.fillStyle = '#fda4af';
+        ctx.font = '11px "Noto Sans JP", sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText(`軸 x = ${formatNumber(state.p)}`, axisScreen.px + 5, 24);
+        ctx.restore();
+      }
+
+      // Draw Reference Parabola (Dotted)
+      if (state.showRef) {
+        ctx.save();
+        ctx.setLineDash([6, 6]);
+        ctx.strokeStyle = '#f59e0b'; // amber-500
+        ctx.lineWidth = 2.5;
+        drawStandardParabola(state.refA, state.refP, state.refQ, w, h);
+        ctx.restore();
+      }
+
+      // Draw Active Parabola
+      ctx.save();
+      ctx.setLineDash([]);
+      ctx.strokeStyle = '#3b82f6'; // blue-500
+      ctx.lineWidth = 3;
+      drawStandardParabola(state.a, state.p, state.q, w, h);
+      ctx.restore();
+
+      // Draw Key Points (Vertex & Representative points)
+      if (state.showPoints) {
+        drawStandardKeyPoints();
+      }
+
+      // Draw Opening Guide
+      if (state.showGuide && Math.abs(state.a) > 0.05) {
+        drawOpeningIndicator();
+      }
+    }
+
+    // Parabola computation: y = a(x - p)^2 + q
+    function drawStandardParabola(a, p, q, width, height) {
+      ctx.beginPath();
+      let started = false;
+
+      for (let px = 0; px <= width; px += 2) {
+        const mathX = screenToMath(px, 0).x;
+        const mathY = a * Math.pow(mathX - p, 2) + q;
+        const { py } = mathToScreen(mathX, mathY);
+
+        if (Number.isFinite(py) && py >= -1500 && py <= height + 1500) {
+          if (!started) {
+            ctx.moveTo(px, py);
+            started = true;
+          } else {
+            ctx.lineTo(px, py);
+          }
+        } else {
+          started = false;
+        }
+      }
+      ctx.stroke();
+    }
+
+    function drawStandardKeyPoints() {
+      // 1. Draw Active Vertex (p, q)
+      const vertexScreen = mathToScreen(state.p, state.q);
+      ctx.beginPath();
+      ctx.fillStyle = '#f43f5e'; // rose-500
+      ctx.arc(vertexScreen.px, vertexScreen.py, 6, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // Vertex text label
+      ctx.fillStyle = '#ffe4e6';
+      ctx.font = 'bold 11px "Noto Sans JP", sans-serif';
+      ctx.textAlign = 'center';
+      const vTextY = state.a >= 0 ? vertexScreen.py + 16 : vertexScreen.py - 10;
+      ctx.fillText(`頂点 (${formatNumber(state.p)}, ${formatNumber(state.q)})`, vertexScreen.px, vTextY);
+
+      // 2. Draw Key offset points from vertex: x = p ± 1, p ± 2
+      const offsets = [-2, -1, 1, 2];
+      offsets.forEach(dx => {
+        const curX = state.p + dx;
+        const curY = state.a * (dx * dx) + state.q;
+        const ptCur = mathToScreen(curX, curY);
+
+        // Dashed lines connecting to vertex level
+        const basePt = mathToScreen(curX, state.q);
+        ctx.save();
+        ctx.strokeStyle = 'rgba(59, 130, 246, 0.35)';
+        ctx.setLineDash([3, 3]);
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(basePt.px, basePt.py);
+        ctx.lineTo(ptCur.px, ptCur.py);
+        ctx.stroke();
+        ctx.restore();
+
+        // Dot
+        ctx.beginPath();
+        ctx.fillStyle = '#60a5fa';
+        ctx.arc(ptCur.px, ptCur.py, 4, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 1.2;
+        ctx.stroke();
+      });
+
+      // 3. Draw Reference Vertex if reference is visible
+      if (state.showRef) {
+        const refVertexScreen = mathToScreen(state.refP, state.refQ);
+        ctx.beginPath();
+        ctx.fillStyle = '#f59e0b';
+        ctx.arc(refVertexScreen.px, refVertexScreen.py, 4.5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 1.2;
+        ctx.stroke();
+      }
+    }
+
+    function drawOpeningIndicator() {
+      const sign = state.a >= 0 ? 1 : -1;
+      const testDeltaY = sign * (state.zoom > 50 ? 2 : 4);
+      const testY = state.q + testDeltaY;
+      
+      const ratio = testDeltaY / state.a;
+      if (ratio > 0) {
+        const xSpan = Math.sqrt(ratio);
+        const leftPt = mathToScreen(state.p - xSpan, testY);
+        const rightPt = mathToScreen(state.p + xSpan, testY);
+
+        ctx.save();
+        ctx.strokeStyle = 'rgba(147, 197, 253, 0.75)';
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([2, 2]);
+
+        ctx.beginPath();
+        ctx.moveTo(leftPt.px, leftPt.py);
+        ctx.lineTo(rightPt.px, rightPt.py);
+        ctx.stroke();
+
+        ctx.setLineDash([]);
+        ctx.fillStyle = '#93c5fd';
+        ctx.font = '11px "Noto Sans JP", sans-serif';
+        ctx.textAlign = 'center';
+        const labelY = sign > 0 ? leftPt.py - 6 : leftPt.py + 14;
+        ctx.fillText(`開き幅 (${formatNumber(xSpan * 2)})`, (leftPt.px + rightPt.px) / 2, labelY);
+
+        ctx.restore();
+      }
+    }
+
+    function updateParams({ a = state.a, p = state.p, q = state.q } = {}) {
+      state.a = Math.max(-10, Math.min(10, Math.round(a * 100) / 100));
+      state.p = Math.max(-10, Math.min(10, Math.round(p * 100) / 100));
+      state.q = Math.max(-10, Math.min(10, Math.round(q * 100) / 100));
+
+      // Sync Inputs & Sliders
+      coeffSlider.value = state.a;
+      coeffInput.value = state.a;
+      pSlider.value = state.p;
+      pInput.value = state.p;
+      qSlider.value = state.q;
+      qInput.value = state.q;
+
+      // Update Formula Text in Header
+      formulaText.textContent = formatStandardEquation(state.a, state.p, state.q);
+      vertexBadge.textContent = `(${formatNumber(state.p)}, ${formatNumber(state.q)})`;
+      axisBadge.textContent = `x = ${formatNumber(state.p)}`;
+
+      updateInsightsAndTable();
+      render();
+    }
+
+    function updateInsightsAndTable() {
+      const absA = Math.abs(state.a);
+      const absRef = Math.abs(state.refA);
+
+      // Vertex description
+      insightVertexText.innerHTML = `頂点は <strong class="font-mono-math text-indigo-700">(${formatNumber(state.p)}, ${formatNumber(state.q)})</strong>、対称軸は直線 <strong class="font-mono-math text-indigo-700">x = ${formatNumber(state.p)}</strong> です。`;
+
+      // Direction text
+      if (state.a > 0) {
+        insightDirText.innerHTML = `<strong>a > 0</strong> のため、放物線は<strong>「上に開く（下に凸）」</strong>形になります。`;
+      } else if (state.a < 0) {
+        insightDirText.innerHTML = `<strong>a < 0</strong> のため、放物線は<strong>「下に開く（上に凸）」</strong>形になります。`;
+      } else {
+        insightDirText.innerHTML = `<strong>a = 0</strong> のため、2次関数ではなくなり<strong>「直線 y = ${formatNumber(state.q)}」</strong>になります。`;
+      }
+
+      // Opening comparison badge
+      if (state.a === 0) {
+        badgeOpening.textContent = '直線 (a=0)';
+        badgeOpening.className = 'text-xs px-2 py-0.5 rounded-full font-bold bg-slate-200 text-slate-700';
+        insightOpenText.textContent = '2乗の項が0になり、開きはなく平らな直線になります。';
+      } else if (absA > absRef) {
+        badgeOpening.textContent = '基準より狭い（急）';
+        badgeOpening.className = 'text-xs px-2 py-0.5 rounded-full font-bold bg-indigo-100 text-indigo-700';
+        insightOpenText.innerHTML = `|a| = ${absA} は 基準(|a| = ${absRef}) より<strong>大きい</strong>ため、開き具合は<strong>狭く（縦に急に）</strong>なります。`;
+      } else if (absA < absRef) {
+        badgeOpening.textContent = '基準より広い（緩やか）';
+        badgeOpening.className = 'text-xs px-2 py-0.5 rounded-full font-bold bg-emerald-100 text-emerald-700';
+        insightOpenText.innerHTML = `|a| = ${absA} は 基準(|a| = ${absRef}) より<strong>小さい</strong>ため、開き具合は<strong>広く（緩やかに）</strong>なります。`;
+      } else {
+        badgeOpening.textContent = '基準と同じ開き';
+        badgeOpening.className = 'text-xs px-2 py-0.5 rounded-full font-bold bg-blue-100 text-blue-700';
+        insightOpenText.innerHTML = `|a| = ${absA} は 基準と等しいため、<strong>開き具合（幅）はまったく同じ</strong>です。`;
+      }
+
+      // Update comparison table based on vertex offset dx = [-2, -1, 0, 1, 2]
+      const offsets = [-2, -1, 0, 1, 2];
+      valTableBody.innerHTML = '';
+      offsets.forEach(dx => {
+        const curX = state.p + dx;
+        const curY = state.a * (dx * dx) + state.q;
+        const refY = state.refA * Math.pow(curX - state.refP, 2) + state.refQ;
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-slate-50 transition';
+        tr.innerHTML = `
+          <td class="py-1 px-2 border-r border-slate-200 font-semibold text-slate-700">${formatNumber(curX)}</td>
+          <td class="py-1 px-2 border-r border-slate-200 text-slate-500">${dx > 0 ? '+' + dx : dx}</td>
+          <td class="py-1 px-2 text-blue-700 font-bold">${formatNumber(curY)}</td>
+          <td class="py-1 px-2 text-amber-600">${formatNumber(refY)}</td>
+        `;
+        valTableBody.appendChild(tr);
+      });
+    }
+
+    // a controls
+    coeffSlider.addEventListener('input', (e) => updateParams({ a: parseFloat(e.target.value) }));
+    coeffInput.addEventListener('change', (e) => updateParams({ a: parseFloat(e.target.value) }));
+    stepUpBtn.addEventListener('click', () => updateParams({ a: state.a + 0.1 }));
+    stepDownBtn.addEventListener('click', () => updateParams({ a: state.a - 0.1 }));
+
+    // p controls
+    pSlider.addEventListener('input', (e) => updateParams({ p: parseFloat(e.target.value) }));
+    pInput.addEventListener('change', (e) => updateParams({ p: parseFloat(e.target.value) }));
+    pStepUpBtn.addEventListener('click', () => updateParams({ p: state.p + 0.5 }));
+    pStepDownBtn.addEventListener('click', () => updateParams({ p: state.p - 0.5 }));
+
+    // q controls
+    qSlider.addEventListener('input', (e) => updateParams({ q: parseFloat(e.target.value) }));
+    qInput.addEventListener('change', (e) => updateParams({ q: parseFloat(e.target.value) }));
+    qStepUpBtn.addEventListener('click', () => updateParams({ q: state.q + 0.5 }));
+    qStepDownBtn.addEventListener('click', () => updateParams({ q: state.q - 0.5 }));
+
+    // Reset vertex to (0,0)
+    resetPQBtn.addEventListener('click', () => {
+      updateParams({ p: 0, q: 0 });
+      showToast('頂点を原点 (0, 0) に戻しました');
+    });
+
+    // Presets for a
+    presetBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const val = parseFloat(btn.getAttribute('data-val'));
+        updateParams({ a: val });
+        presetBtns.forEach(b => b.classList.remove('bg-blue-100', 'text-blue-700', 'border-blue-300'));
+        btn.classList.add('bg-blue-100', 'text-blue-700', 'border-blue-300');
+        showToast(`a = ${val} に設定しました`);
+      });
+    });
+
+    // Reference curve controls
+    setCurAsRefBtn.addEventListener('click', () => {
+      state.refA = state.a;
+      state.refP = state.p;
+      state.refQ = state.q;
+      state.showRef = true;
+      toggleRefCurve.checked = true;
+      refFormulaText.textContent = formatStandardEquation(state.refA, state.refP, state.refQ);
+      refBadge.classList.remove('hidden');
+      refBadge.classList.add('flex');
+      updateInsightsAndTable();
+      render();
+      showToast('現在の形を基準点線に固定しました');
+    });
+
+    setStandardRefBtn.addEventListener('click', () => {
+      state.refA = 1.0;
+      state.refP = 0.0;
+      state.refQ = 0.0;
+      state.showRef = true;
+      toggleRefCurve.checked = true;
+      refFormulaText.textContent = 'y = x²';
+      refBadge.classList.remove('hidden');
+      refBadge.classList.add('flex');
+      updateInsightsAndTable();
+      render();
+      showToast('基準を y = x² にリセットしました');
+    });
+
+    clearRefBtn.addEventListener('click', () => {
+      state.showRef = false;
+      toggleRefCurve.checked = false;
+      refBadge.classList.add('hidden');
+      refBadge.classList.remove('flex');
+      render();
+      showToast('基準線を非表示にしました');
+    });
+
+    toggleRefCurve.addEventListener('change', (e) => {
+      state.showRef = e.target.checked;
+      if (state.showRef) {
+        refBadge.classList.remove('hidden');
+        refBadge.classList.add('flex');
+      } else {
+        refBadge.classList.add('hidden');
+        refBadge.classList.remove('flex');
+      }
+      render();
+    });
+
+    // Visibility toggles
+    toggleGrid.addEventListener('change', (e) => {
+      state.showGrid = e.target.checked;
+      render();
+    });
+
+    toggleAxisLine.addEventListener('change', (e) => {
+      state.showAxisLine = e.target.checked;
+      render();
+    });
+
+    toggleKeyPoints.addEventListener('change', (e) => {
+      state.showPoints = e.target.checked;
+      render();
+    });
+
+    toggleComparisonGuide.addEventListener('change', (e) => {
+      state.showGuide = e.target.checked;
+      render();
+    });
+
+    // Animation Play/Pause
+    function toggleAnimation() {
+      if (state.isAnimating) {
+        cancelAnimationFrame(state.animReqId);
+        state.isAnimating = false;
+        animBtnText.textContent = '自動で動かす';
+        playIcon.innerHTML = '<path d="M8 5v14l11-7z"/>';
+        animPlayBtn.classList.remove('bg-rose-600', 'hover:bg-rose-700');
+        animPlayBtn.classList.add('bg-blue-600', 'hover:bg-blue-700');
+      } else {
+        state.isAnimating = true;
+        animBtnText.textContent = '一時停止';
+        playIcon.innerHTML = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
+        animPlayBtn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+        animPlayBtn.classList.add('bg-rose-600', 'hover:bg-rose-700');
+        runAnimationStep();
+      }
+    }
+
+    function runAnimationStep() {
+      if (!state.isAnimating) return;
+
+      let nextA = state.a + (0.025 * state.animDirection);
+      if (nextA > 4.0) {
+        nextA = 4.0;
+        state.animDirection = -1;
+      } else if (nextA < -4.0) {
+        nextA = -4.0;
+        state.animDirection = 1;
+      }
+
+      updateParams({ a: nextA });
+      state.animReqId = requestAnimationFrame(runAnimationStep);
+    }
+
+    animPlayBtn.addEventListener('click', toggleAnimation);
+
+    // Pan & Dragging handlers
+    canvas.addEventListener('mousedown', (e) => {
+      state.isDragging = true;
+      state.dragStartX = e.clientX - state.offsetX;
+      state.dragStartY = e.clientY - state.offsetY;
+      canvas.style.cursor = 'grabbing';
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const clientX = e.clientX;
+      const clientY = e.clientY;
+
+      if (state.isDragging) {
+        state.offsetX = clientX - state.dragStartX;
+        state.offsetY = clientY - state.dragStartY;
+        render();
+      }
+
+      if (
+        clientX >= rect.left &&
+        clientX <= rect.right &&
+        clientY >= rect.top &&
+        clientY <= rect.bottom
+      ) {
+        const mousePx = clientX - rect.left;
+        const mousePy = clientY - rect.top;
+        const mathCoord = screenToMath(mousePx, mousePy);
+        
+        hoverTooltip.style.left = `${mousePx}px`;
+        hoverTooltip.style.top = `${mousePy}px`;
+        hoverTooltip.innerHTML = `x: ${formatNumber(mathCoord.x)} , y: ${formatNumber(mathCoord.y)}`;
+        hoverTooltip.classList.remove('hidden');
+      } else {
+        hoverTooltip.classList.add('hidden');
+      }
+    });
+
+    window.addEventListener('mouseup', () => {
+      if (state.isDragging) {
+        state.isDragging = false;
+        canvas.style.cursor = 'crosshair';
+      }
+    });
+
+    canvas.addEventListener('mouseleave', () => {
+      hoverTooltip.classList.add('hidden');
+    });
+
+    // Canvas Zooming with Mouse Wheel
+    canvas.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      const zoomFactor = e.deltaY < 0 ? 1.1 : 0.9;
+      state.zoom = Math.max(8, Math.min(220, state.zoom * zoomFactor));
+      render();
+    }, { passive: false });
+
+    // Touch Support
+    let touchStartDist = 0;
+    canvas.addEventListener('touchstart', (e) => {
+      if (e.touches.length === 1) {
+        state.isDragging = true;
+        state.dragStartX = e.touches[0].clientX - state.offsetX;
+        state.dragStartY = e.touches[0].clientY - state.offsetY;
+      } else if (e.touches.length === 2) {
+        touchStartDist = Math.hypot(
+          e.touches[0].clientX - e.touches[1].clientX,
+          e.touches[0].clientY - e.touches[1].clientY
+        );
+      }
+    }, { passive: true });
+
+    canvas.addEventListener('touchmove', (e) => {
+      if (e.touches.length === 1 && state.isDragging) {
+        state.offsetX = e.touches[0].clientX - state.dragStartX;
+        state.offsetY = e.touches[0].clientY - state.dragStartY;
+        render();
+      } else if (e.touches.length === 2) {
+        const currentDist = Math.hypot(
+          e.touches[0].clientX - e.touches[1].clientX,
+          e.touches[0].clientY - e.touches[1].clientY
+        );
+        const factor = currentDist / (touchStartDist || currentDist);
+        state.zoom = Math.max(8, Math.min(220, state.zoom * factor));
+        touchStartDist = currentDist;
+        render();
+      }
+    }, { passive: true });
+
+    canvas.addEventListener('touchend', () => {
+      state.isDragging = false;
+    });
+
+    // Zoom Buttons
+    zoomInBtn.addEventListener('click', () => {
+      state.zoom = Math.min(220, state.zoom * 1.25);
+      render();
+    });
+
+    zoomOutBtn.addEventListener('click', () => {
+      state.zoom = Math.max(8, state.zoom * 0.8);
+      render();
+    });
+
+    resetViewBtn.addEventListener('click', () => {
+      state.offsetX = 0;
+      state.offsetY = 80;
+      state.zoom = 42;
+      render();
+      showToast('視点を原点中央に合わせました');
+    });
+
+    fitViewBtn.addEventListener('click', () => {
+      fitViewToCanvas();
+      showToast('画面サイズに合わせた全体表示に調整しました');
+    });
+
+    // Full Reset
+    resetAllBtn.addEventListener('click', () => {
+      if (state.isAnimating) toggleAnimation();
+      state.refA = 1.0;
+      state.refP = 0.0;
+      state.refQ = 0.0;
+      state.showRef = true;
+      toggleRefCurve.checked = true;
+      refFormulaText.textContent = 'y = x²';
+      refBadge.classList.remove('hidden');
+      refBadge.classList.add('flex');
+      updateParams({ a: 1.0, p: 0.0, q: 0.0 });
+      fitViewToCanvas();
+      showToast('すべて初期状態に戻しました');
+    });
+
+    // ResizeObserver watches the wrapper element for any size changes (window resizing, layout reflow, orientation changes)
+    if (window.ResizeObserver) {
+      const resizeObserver = new ResizeObserver(() => {
+        resizeCanvas();
+      });
+      resizeObserver.observe(canvasWrapper);
+    } else {
+      window.addEventListener('resize', resizeCanvas);
+    }
+
+    window.onload = function() {
+      resizeCanvas();
+      fitViewToCanvas();
+      updateParams({ a: 1.0, p: 0.0, q: 0.0 });
+    };
+  </script>
+</body>
+</html>

@@ -1098,12 +1098,29 @@
                 this.showStep(this.currentStep);
             },
 
-            // 画面サイズに応じた正確な数学座標への変換
+            // 画面サイズ・比率変化に完全連動する高精度な数学座標変換
             getMathCoords(e) {
-                const rect = this.graph.svg.getBoundingClientRect();
-                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                const svg = this.graph.svg;
+                const clientX = (e.touches && e.touches.length > 0) ? e.touches[0].clientX : e.clientX;
+                const clientY = (e.touches && e.touches.length > 0) ? e.touches[0].clientY : e.clientY;
                 
+                // SVGの変換行列 (CTM: Current Transformation Matrix) を利用した標準逆変換
+                const ctm = svg.getScreenCTM();
+                if (ctm) {
+                    const pt = svg.createSVGPoint();
+                    pt.x = clientX;
+                    pt.y = clientY;
+                    const svgP = pt.matrixTransform(ctm.inverse());
+                    return {
+                        x: this.graph.fromSvgX(svgP.x),
+                        y: this.graph.fromSvgY(svgP.y),
+                        cx: clientX,
+                        cy: clientY
+                    };
+                }
+
+                // フォールバック計算
+                const rect = svg.getBoundingClientRect();
                 const ratioX = CANVAS_SIZE / rect.width;
                 const ratioY = CANVAS_SIZE / rect.height;
                 const svgX = (clientX - rect.left) * ratioX;
@@ -1280,11 +1297,19 @@
                 group.setAttribute('cursor', 'grab');
                 group.id = "draggable-p-group";
                 
+                // 操作しやすいように透明なタッチ判定エリアを拡大
+                const hitArea = document.createElementNS(SVG_NS, 'circle');
+                hitArea.setAttribute('r', 28);
+                hitArea.setAttribute('fill', 'transparent');
+                hitArea.setAttribute('cursor', 'grab');
+                group.appendChild(hitArea);
+
                 // 光彩オーラ
                 const aura = document.createElementNS(SVG_NS, 'circle');
                 aura.setAttribute('r', 18);
                 aura.setAttribute('fill', 'rgba(239, 68, 68, 0.25)');
                 aura.setAttribute('class', 'animate-pulse');
+                aura.setAttribute('pointer-events', 'none');
                 
                 // 中心ドット
                 const dot = document.createElementNS(SVG_NS, 'circle');
@@ -1292,6 +1317,7 @@
                 dot.setAttribute('fill', '#ef4444');
                 dot.setAttribute('stroke', '#ffffff');
                 dot.setAttribute('stroke-width', '2.5');
+                dot.setAttribute('pointer-events', 'none');
                 
                 // ラベル
                 const text = document.createElementNS(SVG_NS, 'text');
@@ -1303,6 +1329,7 @@
                 text.setAttribute('paint-order', 'stroke');
                 text.setAttribute('stroke', '#0f172a');
                 text.setAttribute('stroke-width', '3px');
+                text.setAttribute('pointer-events', 'none');
                 
                 group.appendChild(aura);
                 group.appendChild(dot);
@@ -1323,6 +1350,7 @@
                     Sound.ensureContext();
                     this.step2.isDragging = true;
                     group.setAttribute('cursor', 'grabbing');
+                    hitArea.setAttribute('cursor', 'grabbing');
                 };
                 group.addEventListener('mousedown', startDrag);
                 group.addEventListener('touchstart', startDrag, { passive: false });
@@ -1374,7 +1402,70 @@
             },
 
             initStep3() {
-                this.graph.setWindow(-8, 8, -8, 8);
+                // 円 (半径5) と 直線 (切片 -10〜10) の交点 P, Q が画面端で切れないよう表示範囲を調整
+                this.graph.setWindow(-9, 9, -9, 9);
+                this.graph.clear();
+                this.graph.drawGridAndAxes();
+                
+                // 円
+                this.graph.svg.appendChild(this.graph.createCircle(0, 0, 5, '#38bdf8', 'rgba(56, 189, 248, 0.05)', 2.5));
+                
+                const k = this.step3.k;
+                document.getElementById('s3-k-val').textContent = k.toFixed(1);
+                
+                // 直線 y = x + k
+                const lineLaser = this.graph.createLine(-14, -14 + k, 14, 14 + k, '#f43f5e', 3, '');
+                lineLaser.setAttribute('filter', 'url(#glow-orange)');
+                this.graph.svg.appendChild(lineLaser);
+                
+                // 交点計算: x^2 + (x+k)^2 = 25 -> 2x^2 + 2kx + (k^2 - 25) = 0
+                // 判別式 D/4 = k^2 - 2*(k^2 - 25) = 50 - k^2
+                const d4 = 50 - k * k;
+                let signText = "";
+                let count = 0;
+                let colorCls = "";
+                let badgeCls = "";
+                
+                if (d4 > 0.1) {
+                    signText = "D ＞ 0";
+                    count = 2;
+                    colorCls = "text-cyan-400";
+                    badgeCls = "bg-cyan-500/20 text-cyan-300 border-cyan-500/40";
+                    
+                    const x1 = (-k - Math.sqrt(d4)) / 2;
+                    const y1 = x1 + k;
+                    const x2 = (-k + Math.sqrt(d4)) / 2;
+                    const y2 = x2 + k;
+                    
+                    this.graph.svg.appendChild(this.graph.createPoint(x1, y1, '#fb923c', 'P', 6));
+                    this.graph.svg.appendChild(this.graph.createPoint(x2, y2, '#fb923c', 'Q', 6));
+                } else if (Math.abs(d4) <= 0.1) {
+                    signText = "D ＝ 0";
+                    count = 1;
+                    colorCls = "text-emerald-400";
+                    badgeCls = "bg-emerald-500/20 text-emerald-300 border-emerald-500/40";
+                    
+                    const x = -k / 2;
+                    const y = x + k;
+                    this.graph.svg.appendChild(this.graph.createPoint(x, y, '#10b981', '接点', 7));
+                } else {
+                    signText = "D ＜ 0";
+                    count = 0;
+                    colorCls = "text-rose-400";
+                    badgeCls = "bg-rose-500/20 text-rose-300 border-rose-500/40";
+                }
+                
+                const signEl = document.getElementById('s3-d-sign');
+                signEl.textContent = signText;
+                signEl.className = `font-code font-black text-xs sm:text-sm ${colorCls}`;
+                
+                const badgeEl = document.getElementById('s3-badge-count');
+                badgeEl.className = `text-[10px] sm:text-xs font-bold border px-2 py-0.5 rounded-full ${badgeCls}`;
+                document.getElementById('s3-intersect-count').textContent = count;
+            },
+
+            initStep4() {
+                this.graph.setWindow(-9, 9, -9, 9);
                 this.graph.clear();
                 this.graph.drawGridAndAxes();
                 

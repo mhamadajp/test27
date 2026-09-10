@@ -1,0 +1,1097 @@
+<!DOCTYPE html>
+<html lang="ja" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>楕円の変形・平行移動インタラクティブシミュレーター</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class'
+    }
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+JP:wght@400;500;700&family=KaTeX_Main:wght@400;700&display=swap');
+    
+    body {
+      font-family: 'Noto Sans JP', 'Inter', sans-serif;
+    }
+    .font-mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Beautiful fraction styling without slashes */
+    .math-frac {
+      display: inline-flex;
+      flex-direction: column;
+      vertical-align: middle;
+      text-align: center;
+      padding: 0 0.15em;
+      line-height: 1.1;
+    }
+    .math-num {
+      border-bottom: 1.5px solid currentColor;
+      padding-bottom: 0.1em;
+      display: block;
+    }
+    .math-den {
+      padding-top: 0.1em;
+      display: block;
+    }
+
+    /* Complex fraction (fraction inside fraction denominator) */
+    .math-frac-nested .math-num {
+      border-bottom: 2px solid currentColor;
+      padding-bottom: 0.2em;
+    }
+
+    /* Square root styling */
+    .math-sqrt {
+      display: inline-flex;
+      align-items: center;
+      vertical-align: middle;
+    }
+    .math-radical {
+      font-size: 1.2em;
+      line-height: 1;
+      margin-right: 1px;
+    }
+    .math-radicand {
+      border-top: 1.5px solid currentColor;
+      padding-top: 1px;
+      display: inline-flex;
+      align-items: center;
+    }
+
+    /* Slider thumb styling */
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      height: 18px;
+      width: 18px;
+      border-radius: 50%;
+      background: #3b82f6;
+      cursor: pointer;
+      box-shadow: 0 0 8px rgba(59, 130, 246, 0.5);
+      border: 2px solid #ffffff;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 min-h-screen flex flex-col antialiased select-none transition-colors duration-200">
+
+  <header class="border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur px-4 md:px-6 py-3.5 sticky top-0 z-20 transition-colors">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+      <div>
+        <div class="flex items-center gap-2.5 flex-wrap">
+          <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-blue-600/10 text-blue-600 dark:bg-blue-600/20 dark:text-blue-400 font-bold border border-blue-500/20 dark:border-blue-500/30">
+            ⬭
+          </span>
+          <h1 class="text-lg md:text-xl font-bold tracking-tight text-slate-900 dark:text-white">
+            楕円シミュレーター：なぜ「潰れる」のか？
+          </h1>
+          <span class="text-xs bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300 border border-blue-200 dark:border-blue-800 px-2 py-0.5 rounded-full font-medium">
+            分数・根号表示対応
+          </span>
+        </div>
+        <p class="text-xs text-slate-600 dark:text-slate-400 mt-1">
+          中心 <span class="text-emerald-600 dark:text-emerald-400 font-mono font-semibold">(p, q)</span> への平行移動と、係数 <span class="text-amber-600 dark:text-amber-400 font-mono font-semibold">a, b</span> による各軸方向の伸縮メカニズム
+        </p>
+      </div>
+
+      <!-- Controls: Theme Toggle & Presets -->
+      <div class="flex flex-wrap items-center gap-2 text-xs">
+        <!-- Theme Mode Switcher -->
+        <div class="inline-flex items-center bg-slate-200/80 dark:bg-slate-800 p-0.5 rounded-lg border border-slate-300 dark:border-slate-700">
+          <button onclick="setThemeMode('system')" id="btnThemeSystem" class="px-2 py-1 rounded-md transition font-medium text-slate-700 dark:text-slate-300">
+            💻 システム
+          </button>
+          <button onclick="setThemeMode('light')" id="btnThemeLight" class="px-2 py-1 rounded-md transition font-medium text-slate-700 dark:text-slate-300">
+            ☀️ ライト
+          </button>
+          <button onclick="setThemeMode('dark')" id="btnThemeDark" class="px-2 py-1 rounded-md transition font-medium text-slate-700 dark:text-slate-300">
+            🌙 ダーク
+          </button>
+        </div>
+
+        <div class="h-4 w-px bg-slate-300 dark:bg-slate-700 hidden sm:block"></div>
+
+        <!-- Preset Buttons -->
+        <div class="flex flex-wrap items-center gap-1">
+          <button onclick="setPreset('circle')" class="px-2.5 py-1 rounded-md bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-700 shadow-sm transition">
+            ① 真円 (a=b)
+          </button>
+          <button onclick="setPreset('squish_x')" class="px-2.5 py-1 rounded-md bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-700 shadow-sm transition">
+            ② 横に圧縮 (a&gt;b)
+          </button>
+          <button onclick="setPreset('squish_y')" class="px-2.5 py-1 rounded-md bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-700 shadow-sm transition">
+            ③ 縦に圧縮 (a&lt;b)
+          </button>
+          <button onclick="setPreset('shift')" class="px-2.5 py-1 rounded-md bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-700 shadow-sm transition">
+            ④ 平行移動
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+    
+    <!-- Left Column: Canvas Viewport (7 cols on lg) -->
+    <div class="lg:col-span-7 flex flex-col gap-4">
+      <div class="relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-xl flex-1 min-h-[460px] flex flex-col transition-colors">
+        
+        <!-- Canvas Toolbar Overlay -->
+        <div class="absolute top-3 left-3 right-3 z-10 flex flex-wrap items-center justify-between pointer-events-none gap-2">
+          <div class="pointer-events-auto bg-white/90 dark:bg-slate-950/85 backdrop-blur-md px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700/80 text-xs flex items-center gap-3 shadow-sm">
+            <span class="inline-flex items-center gap-1.5 text-slate-700 dark:text-slate-300">
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+              中心 <span class="font-mono text-emerald-600 dark:text-emerald-300 font-bold inline-flex items-center" id="centerTag"></span>
+            </span>
+            <span class="text-slate-300 dark:text-slate-600">|</span>
+            <span class="text-slate-500 dark:text-slate-400">中心点をドラッグで移動可能</span>
+          </div>
+
+          <!-- Zoom & Reset Controls -->
+          <div class="pointer-events-auto flex items-center gap-1 bg-white/90 dark:bg-slate-950/85 backdrop-blur-md p-1 rounded-lg border border-slate-200 dark:border-slate-700/80 text-xs shadow-sm">
+            <button onclick="adjustZoom(1.2)" class="w-7 h-7 flex items-center justify-center rounded hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 font-bold" title="ズームイン">＋</button>
+            <button onclick="adjustZoom(0.833)" class="w-7 h-7 flex items-center justify-center rounded hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 font-bold" title="ズームアウト">－</button>
+            <button onclick="resetView()" class="px-2 h-7 flex items-center justify-center rounded hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs" title="原点に戻す">リセット</button>
+          </div>
+        </div>
+
+        <!-- Interactive Canvas -->
+        <canvas id="mathCanvas" class="w-full h-full flex-1 cursor-crosshair block touch-none"></canvas>
+
+        <!-- Canvas Legend & Toggle Options -->
+        <div class="border-t border-slate-200 dark:border-slate-800/80 bg-slate-50/90 dark:bg-slate-950/90 px-4 py-2.5 flex flex-wrap items-center justify-between text-xs gap-3 transition-colors">
+          <div class="flex items-center gap-4 text-slate-700 dark:text-slate-300">
+            <label class="flex items-center gap-1.5 cursor-pointer hover:text-blue-600 dark:hover:text-white">
+              <input type="checkbox" id="chkRefCircle" checked class="rounded bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-600 text-blue-600 focus:ring-0">
+              <span>基準真円 (比較用)</span>
+            </label>
+            <label class="flex items-center gap-1.5 cursor-pointer hover:text-blue-600 dark:hover:text-white">
+              <input type="checkbox" id="chkSquishArrows" checked class="rounded bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-600 text-blue-600 focus:ring-0">
+              <span>圧縮・伸縮矢印</span>
+            </label>
+            <label class="flex items-center gap-1.5 cursor-pointer hover:text-blue-600 dark:hover:text-white">
+              <input type="checkbox" id="chkBoundingBox" checked class="rounded bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-600 text-blue-600 focus:ring-0">
+              <span>外接矩形・軸半径</span>
+            </label>
+            <label class="flex items-center gap-1.5 cursor-pointer hover:text-blue-600 dark:hover:text-white">
+              <input type="checkbox" id="chkFoci" class="rounded bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-600 text-blue-600 focus:ring-0">
+              <span>焦点 (F₁, F₂)</span>
+            </label>
+          </div>
+          <div class="text-[11px] text-slate-500 dark:text-slate-400 font-mono">
+            グリッド刻み: <span id="scaleDisplay">1</span> 目盛り
+          </div>
+        </div>
+      </div>
+
+      <!-- Realtime Formula Card without any slashes -->
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-sm transition-colors">
+        <div class="text-xs uppercase font-semibold text-slate-500 dark:text-slate-400 tracking-wider mb-2 flex items-center justify-between">
+          <span>数式の厳密表示（分数・平方根）</span>
+          <span class="text-[11px] text-slate-400 font-normal">※ スラッシュ記号なし・縦型分数表記</span>
+        </div>
+        <div class="flex flex-col md:flex-row items-center justify-around gap-4 text-sm sm:text-base bg-slate-50 dark:bg-slate-950/70 p-4 rounded-xl border border-slate-200 dark:border-slate-800 transition-colors">
+          <!-- General Form -->
+          <div class="text-center w-full md:w-auto">
+            <span class="text-xs text-slate-500 dark:text-slate-400 block mb-1">与式 a(x-p)² + b(y-q)² = C</span>
+            <div id="equationGeneral" class="font-medium text-slate-800 dark:text-slate-200 min-h-[36px] flex items-center justify-center">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+          <span class="text-slate-400 dark:text-slate-600 hidden md:block text-2xl font-serif">⟹</span>
+          <!-- Standard Form (Vertical Fractions) -->
+          <div class="text-center w-full md:w-auto">
+            <span class="text-xs text-slate-500 dark:text-slate-400 block mb-1">両辺を C で割った標準形（右辺 = 1）</span>
+            <div id="equationStandard" class="font-medium text-blue-600 dark:text-blue-400 min-h-[52px] flex items-center justify-center">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Control Sliders & Explanations (5 cols on lg) -->
+    <div class="lg:col-span-5 flex flex-col gap-4">
+      
+      <!-- Parameter Sliders Box -->
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm transition-colors flex flex-col gap-4">
+        <div class="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
+          <h2 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-blue-500"></span> パラメータ設定
+          </h2>
+          <span class="text-xs text-slate-500 dark:text-slate-400">スライダーで数式と連動</span>
+        </div>
+
+        <!-- Coefficients a & b -->
+        <div class="space-y-4">
+          <!-- Parameter a -->
+          <div>
+            <div class="flex justify-between items-center text-xs mb-1.5">
+              <label for="inputA" class="font-medium text-amber-700 dark:text-amber-300 flex items-center gap-1.5">
+                <span class="px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-500/10 border border-amber-300 dark:border-amber-500/30">xの係数 a</span>
+                <span class="text-slate-500 dark:text-slate-400 font-normal">→ x軸方向の圧縮度</span>
+              </label>
+              <span class="font-mono font-bold text-amber-600 dark:text-amber-400 text-sm" id="valA">4</span>
+            </div>
+            <input type="range" id="inputA" min="1" max="9" step="1" value="4" class="w-full accent-amber-500 bg-slate-200 dark:bg-slate-800 h-2 rounded-lg cursor-pointer">
+            <div class="flex justify-between text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 font-mono">
+              <span>1 (等倍)</span>
+              <span>4</span>
+              <span>9 (横に強く潰れる)</span>
+            </div>
+          </div>
+
+          <!-- Parameter b -->
+          <div>
+            <div class="flex justify-between items-center text-xs mb-1.5">
+              <label for="inputB" class="font-medium text-indigo-700 dark:text-indigo-300 flex items-center gap-1.5">
+                <span class="px-1.5 py-0.5 rounded bg-indigo-100 dark:bg-indigo-500/10 border border-indigo-300 dark:border-indigo-500/30">yの係数 b</span>
+                <span class="text-slate-500 dark:text-slate-400 font-normal">→ y軸方向の圧縮度</span>
+              </label>
+              <span class="font-mono font-bold text-indigo-600 dark:text-indigo-400 text-sm" id="valB">1</span>
+            </div>
+            <input type="range" id="inputB" min="1" max="9" step="1" value="1" class="w-full accent-indigo-500 bg-slate-200 dark:bg-slate-800 h-2 rounded-lg cursor-pointer">
+            <div class="flex justify-between text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 font-mono">
+              <span>1 (等倍)</span>
+              <span>4</span>
+              <span>9 (縦に強く潰れる)</span>
+            </div>
+          </div>
+
+          <!-- Constant C -->
+          <div>
+            <div class="flex justify-between items-center text-xs mb-1.5">
+              <label for="inputC" class="font-medium text-purple-700 dark:text-purple-300 flex items-center gap-1.5">
+                <span class="px-1.5 py-0.5 rounded bg-purple-100 dark:bg-purple-500/10 border border-purple-300 dark:border-purple-500/30">定数 C (右辺)</span>
+                <span class="text-slate-500 dark:text-slate-400 font-normal">→ 図形の全体規模</span>
+              </label>
+              <span class="font-mono font-bold text-purple-600 dark:text-purple-400 text-sm" id="valC">16</span>
+            </div>
+            <input type="range" id="inputC" min="1" max="36" step="1" value="16" class="w-full accent-purple-500 bg-slate-200 dark:bg-slate-800 h-2 rounded-lg cursor-pointer">
+          </div>
+
+          <div class="h-px bg-slate-200 dark:bg-slate-800 my-2"></div>
+
+          <!-- Center Coordinates p & q -->
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <div class="flex justify-between items-center text-xs mb-1">
+                <label for="inputP" class="font-medium text-emerald-700 dark:text-emerald-300">中心 x座標 p</label>
+                <span class="font-mono font-bold text-emerald-600 dark:text-emerald-400 inline-flex items-center" id="valP">0</span>
+              </div>
+              <input type="range" id="inputP" min="-4" max="4" step="0.5" value="0" class="w-full accent-emerald-500 bg-slate-200 dark:bg-slate-800 h-2 rounded-lg cursor-pointer">
+            </div>
+            <div>
+              <div class="flex justify-between items-center text-xs mb-1">
+                <label for="inputQ" class="font-medium text-emerald-700 dark:text-emerald-300">中心 y座標 q</label>
+                <span class="font-mono font-bold text-emerald-600 dark:text-emerald-400 inline-flex items-center" id="valQ">0</span>
+              </div>
+              <input type="range" id="inputQ" min="-4" max="4" step="0.5" value="0" class="w-full accent-emerald-500 bg-slate-200 dark:bg-slate-800 h-2 rounded-lg cursor-pointer">
+            </div>
+          </div>
+        </div>
+
+        <!-- Calculated Values Breakdown (Fractions & Radicals) -->
+        <div class="grid grid-cols-2 gap-2.5 pt-2 text-xs">
+          <div class="bg-slate-100 dark:bg-slate-950/60 p-3 rounded-xl border border-slate-200 dark:border-slate-800">
+            <span class="text-slate-600 dark:text-slate-400 block text-[11px] mb-1">横半径 A</span>
+            <div class="text-base font-bold font-mono text-amber-600 dark:text-amber-400 flex items-center min-h-[38px]" id="radiusA">
+              <!-- Rendered via JS -->
+            </div>
+            <span class="text-[11px] text-slate-500 dark:text-slate-400 block mt-1 flex items-center gap-1">
+              A² = <span id="radiusASq" class="font-mono font-semibold text-slate-700 dark:text-slate-300 inline-flex items-center"></span>
+            </span>
+          </div>
+          <div class="bg-slate-100 dark:bg-slate-950/60 p-3 rounded-xl border border-slate-200 dark:border-slate-800">
+            <span class="text-slate-600 dark:text-slate-400 block text-[11px] mb-1">縦半径 B</span>
+            <div class="text-base font-bold font-mono text-indigo-600 dark:text-indigo-400 flex items-center min-h-[38px]" id="radiusB">
+              <!-- Rendered via JS -->
+            </div>
+            <span class="text-[11px] text-slate-500 dark:text-slate-400 block mt-1 flex items-center gap-1">
+              B² = <span id="radiusBSq" class="font-mono font-semibold text-slate-700 dark:text-slate-300 inline-flex items-center"></span>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Intuitive "Why It Squishes" Interactive Commentary -->
+      <div class="bg-white dark:bg-gradient-to-br dark:from-slate-900 dark:via-slate-900 dark:to-blue-950/40 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm flex-1 flex flex-col justify-between transition-colors">
+        <div>
+          <h3 class="text-sm font-bold text-blue-600 dark:text-blue-300 flex items-center gap-2 mb-3">
+            <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            なぜ「潰れる（歪む）」のか？
+          </h3>
+
+          <div id="dynamicExplanation" class="text-xs text-slate-700 dark:text-slate-300 space-y-2.5 leading-relaxed">
+            <!-- Dynamic explanation injected here via JavaScript -->
+          </div>
+        </div>
+
+        <div class="mt-4 pt-3 border-t border-slate-200 dark:border-slate-800/80 text-[11px] text-slate-500 dark:text-slate-400 flex items-center justify-between">
+          <span>💡 係数が大きい側の変数は、定数枠をすぐ消費するため<strong class="text-amber-600 dark:text-amber-300 font-semibold">狭く圧縮</strong>されます</span>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <script>
+    // State of the interactive simulation
+    const state = {
+      a: 4,
+      b: 1,
+      cVal: 16,
+      p: 0.0,
+      q: 0.0,
+      scale: 36, // pixels per math unit
+      offsetX: 0,
+      offsetY: 0,
+      isDragging: false,
+      dragTarget: null, // 'center' or 'pan'
+      lastMouseX: 0,
+      lastMouseY: 0,
+      themeMode: 'system' // 'system' | 'light' | 'dark'
+    };
+
+    // Canvas elements & contexts
+    const canvas = document.getElementById('mathCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // Controls
+    const sliderA = document.getElementById('inputA');
+    const sliderB = document.getElementById('inputB');
+    const sliderC = document.getElementById('inputC');
+    const sliderP = document.getElementById('inputP');
+    const sliderQ = document.getElementById('inputQ');
+
+    const dispA = document.getElementById('valA');
+    const dispB = document.getElementById('valB');
+    const dispC = document.getElementById('valC');
+    const dispP = document.getElementById('valP');
+    const dispQ = document.getElementById('valQ');
+
+    const chkRefCircle = document.getElementById('chkRefCircle');
+    const chkSquishArrows = document.getElementById('chkSquishArrows');
+    const chkBoundingBox = document.getElementById('chkBoundingBox');
+    const chkFoci = document.getElementById('chkFoci');
+
+    // Fraction and Radical helper functions (strictly avoiding '/' symbol)
+    function gcd(x, y) {
+      x = Math.abs(Math.round(x));
+      y = Math.abs(Math.round(y));
+      while (y) {
+        const t = y;
+        y = x % y;
+        x = t;
+      }
+      return x || 1;
+    }
+
+    // Convert number or rational to vertical fraction HTML
+    function formatFractionHTML(num, den = 1, showPlus = false) {
+      if (den === 0) return '∞';
+      let isNeg = (num * den < 0);
+      let n = Math.abs(Math.round(num));
+      let d = Math.abs(Math.round(den));
+      const g = gcd(n, d);
+      n /= g;
+      d /= g;
+
+      let sign = '';
+      if (isNeg) sign = '−';
+      else if (showPlus) sign = '+';
+
+      if (d === 1) {
+        return `${sign}${n}`;
+      }
+      return `${sign}<span class="math-frac"><span class="math-num font-mono">${n}</span><span class="math-den font-mono">${d}</span></span>`;
+    }
+
+    // Convert decimal float like 1.5 to reduced fraction (e.g. 3/2)
+    function decimalToFractionHTML(val, showPlus = false) {
+      if (Number.isInteger(val)) {
+        if (showPlus && val > 0) return `+${val}`;
+        if (val < 0) return `−${Math.abs(val)}`;
+        return `${val}`;
+      }
+      // handle half-steps like 0.5, 1.5, -2.5
+      const den = 2;
+      const num = Math.round(val * 2);
+      return formatFractionHTML(num, den, showPlus);
+    }
+
+    // Simplify square root of fraction: sqrt(num / den) in vertical fraction & radical form
+    function formatRadicalFractionHTML(num, den) {
+      let n = Math.abs(Math.round(num));
+      let d = Math.abs(Math.round(den));
+      const g = gcd(n, d);
+      n /= g;
+      d /= g;
+
+      // Rationalize: sqrt(n/d) = sqrt(n*d) / d
+      const prod = n * d;
+      let outside = 1;
+      let inside = prod;
+
+      for (let i = Math.floor(Math.sqrt(prod)); i >= 2; i--) {
+        if (inside % (i * i) === 0) {
+          outside *= i;
+          inside /= (i * i);
+        }
+      }
+
+      // Reduce outside with denominator d
+      const g2 = gcd(outside, d);
+      const finalNumCoeff = outside / g2;
+      const finalDen = d / g2;
+
+      // Build numerator string
+      let numStr = '';
+      if (inside === 1) {
+        numStr = `${finalNumCoeff}`;
+      } else {
+        const coeffStr = finalNumCoeff === 1 ? '' : `${finalNumCoeff}`;
+        numStr = `<span class="math-sqrt">${coeffStr}<span class="math-radical">√</span><span class="math-radicand font-mono">${inside}</span></span>`;
+      }
+
+      if (finalDen === 1) {
+        return numStr;
+      }
+
+      return `<span class="math-frac"><span class="math-num font-mono">${numStr}</span><span class="math-den font-mono">${finalDen}</span></span>`;
+    }
+
+    function getEffectiveTheme() {
+      if (state.themeMode === 'system') {
+        return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      }
+      return state.themeMode;
+    }
+
+    function applyTheme() {
+      const eff = getEffectiveTheme();
+      if (eff === 'dark') {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+
+      // Update button styles
+      ['system', 'light', 'dark'].forEach(m => {
+        const btn = document.getElementById(`btnTheme${m.charAt(0).toUpperCase() + m.slice(1)}`);
+        if (state.themeMode === m) {
+          btn.className = 'px-2 py-1 rounded-md transition font-bold bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-sm';
+        } else {
+          btn.className = 'px-2 py-1 rounded-md transition font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200';
+        }
+      });
+
+      render();
+    }
+
+    window.setThemeMode = function(mode) {
+      state.themeMode = mode;
+      applyTheme();
+    };
+
+    // Listen for OS system theme change
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+      if (state.themeMode === 'system') {
+        applyTheme();
+      }
+    });
+
+    // Color theme dictionary
+    function getPalette() {
+      const isDark = getEffectiveTheme() === 'dark';
+      return {
+        bg: isDark ? '#020617' : '#ffffff',
+        gridLines: isDark ? '#1e293b' : '#e2e8f0',
+        axes: isDark ? '#475569' : '#64748b',
+        axisLabels: isDark ? '#94a3b8' : '#64748b',
+        centerDash: isDark ? '#10b98166' : '#05966966',
+        centerText: isDark ? '#34d399' : '#059669',
+        centerPoint: isDark ? '#10b981' : '#059669',
+        ellipseStroke: isDark ? '#3b82f6' : '#2563eb',
+        ellipseFill: isDark ? 'rgba(59, 130, 246, 0.14)' : 'rgba(37, 99, 235, 0.08)',
+        refCircleStroke: isDark ? 'rgba(56, 189, 248, 0.35)' : 'rgba(2, 132, 199, 0.35)',
+        refCircleText: isDark ? 'rgba(56, 189, 248, 0.8)' : 'rgba(2, 132, 199, 0.85)',
+        boundingBox: isDark ? '#334155' : '#cbd5e1',
+        focusPoint: isDark ? '#f43f5e' : '#e11d48'
+      };
+    }
+
+    function resizeCanvas() {
+      const rect = canvas.parentElement.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.resetTransform();
+      ctx.scale(dpr, dpr);
+      render();
+    }
+
+    window.addEventListener('resize', resizeCanvas);
+
+    function toScreenX(mathX) {
+      const originX = (canvas.width / (window.devicePixelRatio || 1)) / 2 + state.offsetX;
+      return originX + mathX * state.scale;
+    }
+
+    function toScreenY(mathY) {
+      const originY = (canvas.height / (window.devicePixelRatio || 1)) / 2 + state.offsetY;
+      return originY - mathY * state.scale;
+    }
+
+    function toMathX(screenX) {
+      const originX = (canvas.width / (window.devicePixelRatio || 1)) / 2 + state.offsetX;
+      return (screenX - originX) / state.scale;
+    }
+
+    function toMathY(screenY) {
+      const originY = (canvas.height / (window.devicePixelRatio || 1)) / 2 + state.offsetY;
+      return (originY - screenY) / state.scale;
+    }
+
+    function drawGrid() {
+      const w = canvas.width / (window.devicePixelRatio || 1);
+      const h = canvas.height / (window.devicePixelRatio || 1);
+      const originX = w / 2 + state.offsetX;
+      const originY = h / 2 + state.offsetY;
+      const pal = getPalette();
+
+      let step = 1;
+      if (state.scale < 20) step = 2;
+      if (state.scale < 12) step = 5;
+      if (state.scale > 65) step = 0.5;
+
+      document.getElementById('scaleDisplay').textContent = step;
+
+      // Background
+      ctx.fillStyle = pal.bg;
+      ctx.fillRect(0, 0, w, h);
+
+      // Grid background lines
+      ctx.strokeStyle = pal.gridLines;
+      ctx.lineWidth = 1;
+
+      const minX = toMathX(0);
+      const maxX = toMathX(w);
+      const minY = toMathY(h);
+      const maxY = toMathY(0);
+
+      const startX = Math.floor(minX / step) * step;
+      const endX = Math.ceil(maxX / step) * step;
+      const startY = Math.floor(minY / step) * step;
+      const endY = Math.ceil(maxY / step) * step;
+
+      ctx.beginPath();
+      for (let x = startX; x <= endX; x += step) {
+        const sx = toScreenX(x);
+        ctx.moveTo(sx, 0);
+        ctx.lineTo(sx, h);
+      }
+      for (let y = startY; y <= endY; y += step) {
+        const sy = toScreenY(y);
+        ctx.moveTo(0, sy);
+        ctx.lineTo(w, sy);
+      }
+      ctx.stroke();
+
+      // Main Coordinate Axes
+      ctx.strokeStyle = pal.axes;
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      // X Axis
+      ctx.moveTo(0, originY);
+      ctx.lineTo(w, originY);
+      // Y Axis
+      ctx.moveTo(originX, 0);
+      ctx.lineTo(originX, h);
+      ctx.stroke();
+
+      // Axis labels
+      ctx.fillStyle = pal.axisLabels;
+      ctx.font = '10px JetBrains Mono, monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'top';
+
+      for (let x = startX; x <= endX; x += step) {
+        if (Math.abs(x) < 0.001) continue;
+        const sx = toScreenX(x);
+        if (sx > 20 && sx < w - 20) {
+          ctx.fillText(x.toFixed(step < 1 ? 1 : 0), sx, originY + 5);
+        }
+      }
+
+      ctx.textAlign = 'right';
+      ctx.textBaseline = 'middle';
+      for (let y = startY; y <= endY; y += step) {
+        if (Math.abs(y) < 0.001) continue;
+        const sy = toScreenY(y);
+        if (sy > 20 && sy < h - 20) {
+          ctx.fillText(y.toFixed(step < 1 ? 1 : 0), originX - 6, sy);
+        }
+      }
+
+      ctx.fillText('(0,0)', originX - 6, originY + 12);
+    }
+
+    function drawEllipseGraphics() {
+      const { a, b, cVal, p, q } = state;
+      const pal = getPalette();
+
+      const numA = cVal;
+      const denA = a;
+      const numB = cVal;
+      const denB = b;
+
+      const A = Math.sqrt(numA / denA);
+      const B = Math.sqrt(numB / denB);
+
+      const screenCenterX = toScreenX(p);
+      const screenCenterY = toScreenY(q);
+      const screenRadiusX = A * state.scale;
+      const screenRadiusY = B * state.scale;
+
+      // 1. Shift Vector from Origin to (p, q)
+      if (Math.abs(p) > 0.01 || Math.abs(q) > 0.01) {
+        const origX = toScreenX(0);
+        const origY = toScreenY(0);
+        ctx.strokeStyle = pal.centerDash;
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([4, 4]);
+        ctx.beginPath();
+        ctx.moveTo(origX, origY);
+        ctx.lineTo(screenCenterX, screenCenterY);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        ctx.fillStyle = pal.centerText;
+        ctx.font = '11px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(`平行移動ベクトル`, (origX + screenCenterX) / 2, (origY + screenCenterY) / 2 - 8);
+      }
+
+      // 2. Reference Circle
+      if (chkRefCircle.checked) {
+        const refRadius = Math.max(A, B);
+        const screenRefR = refRadius * state.scale;
+
+        ctx.strokeStyle = pal.refCircleStroke;
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([5, 5]);
+        ctx.beginPath();
+        ctx.arc(screenCenterX, screenCenterY, screenRefR, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        ctx.fillStyle = pal.refCircleText;
+        ctx.font = '10px sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText(`基準真円`, screenCenterX + screenRefR + 6, screenCenterY);
+      }
+
+      // 3. Bounding Box & Axis Segments
+      if (chkBoundingBox.checked) {
+        ctx.strokeStyle = pal.boundingBox;
+        ctx.lineWidth = 1;
+        ctx.setLineDash([3, 3]);
+        ctx.strokeRect(screenCenterX - screenRadiusX, screenCenterY - screenRadiusY, screenRadiusX * 2, screenRadiusY * 2);
+        ctx.setLineDash([]);
+
+        // Horizontal radius segment A
+        ctx.strokeStyle = '#d97706';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(screenCenterX, screenCenterY);
+        ctx.lineTo(screenCenterX + screenRadiusX, screenCenterY);
+        ctx.stroke();
+
+        // Vertical radius segment B
+        ctx.strokeStyle = '#6366f1';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(screenCenterX, screenCenterY);
+        ctx.lineTo(screenCenterX, screenCenterY - screenRadiusY);
+        ctx.stroke();
+
+        // Axis radius labels
+        ctx.fillStyle = '#d97706';
+        ctx.font = 'bold 11px JetBrains Mono, monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('横半径 A', screenCenterX + screenRadiusX / 2, screenCenterY - 6);
+
+        ctx.fillStyle = '#6366f1';
+        ctx.textAlign = 'right';
+        ctx.fillText('縦半径 B', screenCenterX - 8, screenCenterY - screenRadiusY / 2);
+      }
+
+      // 4. Squish / Stretch directional compression arrows
+      if (chkSquishArrows.checked) {
+        const refR = Math.max(A, B);
+        const refRadiusPx = refR * state.scale;
+
+        if (A < B) {
+          drawCompressionArrow(screenCenterX + refRadiusPx, screenCenterY, screenCenterX + screenRadiusX, screenCenterY, '#d97706', 'x軸方向に圧縮 (a大)');
+          drawCompressionArrow(screenCenterX - refRadiusPx, screenCenterY, screenCenterX - screenRadiusX, screenCenterY, '#d97706');
+        } else if (A > B) {
+          drawCompressionArrow(screenCenterX, screenCenterY - refRadiusPx, screenCenterX, screenCenterY - screenRadiusY, '#6366f1', 'y軸方向に圧縮 (b大)');
+          drawCompressionArrow(screenCenterX, screenCenterY + refRadiusPx, screenCenterX, screenCenterY + screenRadiusY, '#6366f1');
+        }
+      }
+
+      // 5. Foci Points
+      if (chkFoci.checked && Math.abs(A - B) > 0.05) {
+        let f1x = screenCenterX, f1y = screenCenterY, f2x = screenCenterX, f2y = screenCenterY;
+        let cDist = 0;
+        if (A > B) {
+          cDist = Math.sqrt(A * A - B * B);
+          f1x = screenCenterX - cDist * state.scale;
+          f2x = screenCenterX + cDist * state.scale;
+        } else {
+          cDist = Math.sqrt(B * B - A * A);
+          f1y = screenCenterY + cDist * state.scale;
+          f2y = screenCenterY - cDist * state.scale;
+        }
+
+        ctx.fillStyle = pal.focusPoint;
+        ctx.beginPath();
+        ctx.arc(f1x, f1y, 4.5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(f2x, f2y, 4.5, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.font = 'bold 10px JetBrains Mono';
+        ctx.textAlign = 'center';
+        ctx.fillText('F₁', f1x, f1y + 14);
+        ctx.fillText('F₂', f2x, f2y + 14);
+      }
+
+      // 6. Main Ellipse Outline & Fill
+      ctx.beginPath();
+      ctx.ellipse(screenCenterX, screenCenterY, screenRadiusX, screenRadiusY, 0, 0, Math.PI * 2);
+      ctx.fillStyle = pal.ellipseFill;
+      ctx.fill();
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = pal.ellipseStroke;
+      ctx.stroke();
+
+      // 7. Center Handle Marker
+      ctx.beginPath();
+      ctx.arc(screenCenterX, screenCenterY, 6, 0, Math.PI * 2);
+      ctx.fillStyle = pal.centerPoint;
+      ctx.fill();
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = '#ffffff';
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.arc(screenCenterX, screenCenterY, 11, 0, Math.PI * 2);
+      ctx.strokeStyle = pal.centerDash;
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+    }
+
+    function drawCompressionArrow(fromX, fromY, toX, toY, color, text = '') {
+      if (Math.hypot(toX - fromX, toY - fromY) < 6) return;
+      ctx.strokeStyle = color;
+      ctx.fillStyle = color;
+      ctx.lineWidth = 2;
+
+      ctx.beginPath();
+      ctx.moveTo(fromX, fromY);
+      ctx.lineTo(toX, toY);
+      ctx.stroke();
+
+      const angle = Math.atan2(toY - fromY, toX - fromX);
+      const headLen = 7;
+      ctx.beginPath();
+      ctx.moveTo(toX, toY);
+      ctx.lineTo(toX - headLen * Math.cos(angle - Math.PI / 6), toY - headLen * Math.sin(angle - Math.PI / 6));
+      ctx.lineTo(toX - headLen * Math.cos(angle + Math.PI / 6), toY - headLen * Math.sin(angle + Math.PI / 6));
+      ctx.closePath();
+      ctx.fill();
+
+      if (text) {
+        ctx.font = '10px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(text, (fromX + toX) / 2, (fromY + toY) / 2 - 8);
+      }
+    }
+
+    function updateUIElements() {
+      const { a, b, cVal, p, q } = state;
+
+      // Slider value labels (strictly integers or reduced fractions)
+      dispA.textContent = a;
+      dispB.textContent = b;
+      dispC.textContent = cVal;
+      dispP.innerHTML = decimalToFractionHTML(p);
+      dispQ.innerHTML = decimalToFractionHTML(q);
+
+      // Center tag
+      document.getElementById('centerTag').innerHTML = `(${decimalToFractionHTML(p)}, ${decimalToFractionHTML(q)})`;
+
+      // Radius A^2 and B^2
+      document.getElementById('radiusASq').innerHTML = formatFractionHTML(cVal, a);
+      document.getElementById('radiusBSq').innerHTML = formatFractionHTML(cVal, b);
+
+      // Radical radii A and B
+      document.getElementById('radiusA').innerHTML = formatRadicalFractionHTML(cVal, a);
+      document.getElementById('radiusB').innerHTML = formatRadicalFractionHTML(cVal, b);
+
+      // Shifts term formulation: (x - p) and (y - q)
+      let xTerm = 'x';
+      if (p > 0) {
+        xTerm = `x − ${decimalToFractionHTML(p)}`;
+      } else if (p < 0) {
+        xTerm = `x + ${decimalToFractionHTML(Math.abs(p))}`;
+      }
+
+      let yTerm = 'y';
+      if (q > 0) {
+        yTerm = `y − ${decimalToFractionHTML(q)}`;
+      } else if (q < 0) {
+        yTerm = `y + ${decimalToFractionHTML(Math.abs(q))}`;
+      }
+
+      // 1. General Equation: a(x-p)² + b(y-q)² = C
+      const coeffAStr = a === 1 ? '' : `<span class="text-amber-600 dark:text-amber-400 font-bold font-mono">${a}</span>`;
+      const coeffBStr = b === 1 ? '' : `<span class="text-indigo-600 dark:text-indigo-400 font-bold font-mono">${b}</span>`;
+
+      document.getElementById('equationGeneral').innerHTML = `
+        <span class="inline-flex items-center gap-1">
+          ${coeffAStr}(${xTerm})²
+          <span>+</span>
+          ${coeffBStr}(${yTerm})²
+          <span>=</span>
+          <span class="text-purple-600 dark:text-purple-400 font-bold font-mono">${cVal}</span>
+        </span>
+      `;
+
+      // 2. Standard Equation: vertical fraction with no '/' anywhere
+      const denAHTML = formatFractionHTML(cVal, a);
+      const denBHTML = formatFractionHTML(cVal, b);
+
+      document.getElementById('equationStandard').innerHTML = `
+        <span class="inline-flex items-center gap-2">
+          <!-- Term X -->
+          <span class="math-frac math-frac-nested">
+            <span class="math-num font-mono">(${xTerm})²</span>
+            <span class="math-den text-amber-600 dark:text-amber-400 font-bold font-mono">${denAHTML}</span>
+          </span>
+          <span class="text-slate-600 dark:text-slate-300 font-bold">+</span>
+          <!-- Term Y -->
+          <span class="math-frac math-frac-nested">
+            <span class="math-num font-mono">(${yTerm})²</span>
+            <span class="math-den text-indigo-600 dark:text-indigo-400 font-bold font-mono">${denBHTML}</span>
+          </span>
+          <span class="text-slate-600 dark:text-slate-300 font-bold">=</span>
+          <span class="font-bold text-blue-600 dark:text-blue-400 font-mono text-lg">1</span>
+        </span>
+      `;
+
+      // 3. Intuitive Why-It-Squishes Commentary
+      const expDiv = document.getElementById('dynamicExplanation');
+      let shapeType = '';
+      let compareText = '';
+
+      if (a === b) {
+        shapeType = '<span class="text-emerald-600 dark:text-emerald-400 font-bold">【真円 (円)】</span>';
+        compareText = `
+          係数が <strong class="text-amber-600 dark:text-amber-400 font-mono">a = b = ${a}</strong> で全く同一です。<br>
+          分母の半径の2乗が共に <span class="font-mono font-semibold">${denAHTML}</span> となり、x軸・y軸の双方向に対等に広がるため、歪みが一切ない半径 <strong class="font-mono">${formatRadicalFractionHTML(cVal, a)}</strong> の完全な円になります。
+        `;
+      } else if (a > b) {
+        shapeType = '<span class="text-amber-600 dark:text-amber-400 font-bold">【横に圧縮された（縦長）楕円】</span>';
+        compareText = `
+          xの係数 <span class="text-amber-600 dark:text-amber-400 font-bold font-mono">a (${a})</span> が yの係数 <span class="text-indigo-600 dark:text-indigo-400 font-bold font-mono">b (${b})</span> より大きいです。<br>
+          <div class="mt-1.5 p-2.5 bg-slate-100 dark:bg-slate-950/80 rounded-lg border-l-2 border-amber-500">
+            <strong>なぜ横から潰れるのか？</strong><br>
+            標準形の分母（各軸の許容幅の2乗）を比べると、横の分母 <span class="font-mono font-semibold text-amber-600 dark:text-amber-400">${denAHTML}</span> は、縦の分母 <span class="font-mono font-semibold text-indigo-600 dark:text-indigo-400">${denBHTML}</span> より小さくなります。<br>
+            係数 <span class="font-mono text-amber-600 dark:text-amber-400">a</span> が大きいほど、x を少し動かしただけで定数枠 <span class="font-mono text-purple-600 dark:text-purple-400">${cVal}</span> を使い切るため、<strong>横方向は狭い範囲に押し込められて潰れます</strong>。
+          </div>
+        `;
+      } else {
+        shapeType = '<span class="text-indigo-600 dark:text-indigo-400 font-bold">【縦に圧縮された（横長）楕円】</span>';
+        compareText = `
+          yの係数 <span class="text-indigo-600 dark:text-indigo-400 font-bold font-mono">b (${b})</span> が xの係数 <span class="text-amber-600 dark:text-amber-400 font-bold font-mono">a (${a})</span> より大きいです。<br>
+          <div class="mt-1.5 p-2.5 bg-slate-100 dark:bg-slate-950/80 rounded-lg border-l-2 border-indigo-500">
+            <strong>なぜ縦から潰れるのか？</strong><br>
+            標準形の縦の分母 <span class="font-mono font-semibold text-indigo-600 dark:text-indigo-400">${denBHTML}</span> が、横の分母 <span class="font-mono font-semibold text-amber-600 dark:text-amber-400">${denAHTML}</span> より小さくなります。<br>
+            係数 <span class="font-mono text-indigo-600 dark:text-indigo-400">b</span> が大きいため y 座標の動きが強く制限され、<strong>上下からプレスされた横長の形</strong>になります。
+          </div>
+        `;
+      }
+
+      const pStr = decimalToFractionHTML(p);
+      const qStr = decimalToFractionHTML(q);
+      const shiftText = (p !== 0 || q !== 0)
+        ? `また、式が <span class="text-emerald-600 dark:text-emerald-400 font-mono">(${xTerm})</span> および <span class="text-emerald-600 dark:text-emerald-400 font-mono">(${yTerm})</span> となっているため、図形全体の中心が原点から <span class="text-emerald-600 dark:text-emerald-400 font-mono font-semibold">(${pStr}, ${qStr})</span> へ平行移動しています。`
+        : `現在は <span class="text-emerald-600 dark:text-emerald-400 font-mono font-semibold">p = 0, q = 0</span> のため、中心は原点 (0, 0) に位置しています。`;
+
+      expDiv.innerHTML = `
+        <div>${shapeType}</div>
+        <div class="text-slate-700 dark:text-slate-300">${compareText}</div>
+        <div class="text-slate-600 dark:text-slate-400 pt-1.5 border-t border-slate-200 dark:border-slate-800/60">${shiftText}</div>
+      `;
+    }
+
+    function render() {
+      drawGrid();
+      drawEllipseGraphics();
+      updateUIElements();
+    }
+
+    // Presets
+    window.setPreset = function(type) {
+      if (type === 'circle') {
+        state.a = 2;
+        state.b = 2;
+        state.cVal = 16;
+        state.p = 0;
+        state.q = 0;
+      } else if (type === 'squish_x') {
+        state.a = 6;
+        state.b = 1;
+        state.cVal = 18;
+        state.p = 0;
+        state.q = 0;
+      } else if (type === 'squish_y') {
+        state.a = 1;
+        state.b = 6;
+        state.cVal = 18;
+        state.p = 0;
+        state.q = 0;
+      } else if (type === 'shift') {
+        state.a = 4;
+        state.b = 2;
+        state.cVal = 16;
+        state.p = 2.5;
+        state.q = 1.5;
+      }
+      syncInputs();
+      render();
+    };
+
+    function syncInputs() {
+      sliderA.value = state.a;
+      sliderB.value = state.b;
+      sliderC.value = state.cVal;
+      sliderP.value = state.p;
+      sliderQ.value = state.q;
+    }
+
+    sliderA.addEventListener('input', (e) => { state.a = parseInt(e.target.value, 10); render(); });
+    sliderB.addEventListener('input', (e) => { state.b = parseInt(e.target.value, 10); render(); });
+    sliderC.addEventListener('input', (e) => { state.cVal = parseInt(e.target.value, 10); render(); });
+    sliderP.addEventListener('input', (e) => { state.p = parseFloat(e.target.value); render(); });
+    sliderQ.addEventListener('input', (e) => { state.q = parseFloat(e.target.value); render(); });
+
+    [chkRefCircle, chkSquishArrows, chkBoundingBox, chkFoci].forEach(cb => {
+      cb.addEventListener('change', render);
+    });
+
+    window.adjustZoom = function(factor) {
+      state.scale = Math.max(12, Math.min(110, state.scale * factor));
+      render();
+    };
+
+    window.resetView = function() {
+      state.offsetX = 0;
+      state.offsetY = 0;
+      state.scale = 36;
+      render();
+    };
+
+    function getPointerPos(e) {
+      const rect = canvas.getBoundingClientRect();
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      return {
+        x: clientX - rect.left,
+        y: clientY - rect.top
+      };
+    }
+
+    function onPointerDown(e) {
+      const pos = getPointerPos(e);
+      const screenCenterX = toScreenX(state.p);
+      const screenCenterY = toScreenY(state.q);
+      const distToCenter = Math.hypot(pos.x - screenCenterX, pos.y - screenCenterY);
+
+      state.isDragging = true;
+      state.lastMouseX = pos.x;
+      state.lastMouseY = pos.y;
+
+      if (distToCenter < 24) {
+        state.dragTarget = 'center';
+      } else {
+        state.dragTarget = 'pan';
+      }
+    }
+
+    function onPointerMove(e) {
+      const pos = getPointerPos(e);
+
+      if (!state.isDragging) {
+        const screenCenterX = toScreenX(state.p);
+        const screenCenterY = toScreenY(state.q);
+        const dist = Math.hypot(pos.x - screenCenterX, pos.y - screenCenterY);
+        canvas.style.cursor = dist < 20 ? 'grab' : 'crosshair';
+        return;
+      }
+
+      if (state.dragTarget === 'center') {
+        const newMathX = Math.round(toMathX(pos.x) * 2) / 2; // Snap to half-units for neat fractions
+        const newMathY = Math.round(toMathY(pos.y) * 2) / 2;
+        state.p = Math.max(-4, Math.min(4, newMathX));
+        state.q = Math.max(-4, Math.min(4, newMathY));
+        sliderP.value = state.p;
+        sliderQ.value = state.q;
+      } else if (state.dragTarget === 'pan') {
+        const dx = pos.x - state.lastMouseX;
+        const dy = pos.y - state.lastMouseY;
+        state.offsetX += dx;
+        state.offsetY += dy;
+        state.lastMouseX = pos.x;
+        state.lastMouseY = pos.y;
+      }
+      render();
+    }
+
+    function onPointerUp() {
+      state.isDragging = false;
+      state.dragTarget = null;
+    }
+
+    canvas.addEventListener('mousedown', onPointerDown);
+    window.addEventListener('mousemove', onPointerMove);
+    window.addEventListener('mouseup', onPointerUp);
+
+    canvas.addEventListener('touchstart', onPointerDown, { passive: true });
+    window.addEventListener('touchmove', onPointerMove, { passive: false });
+    window.addEventListener('touchend', onPointerUp);
+
+    canvas.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      const zoomFactor = e.deltaY < 0 ? 1.1 : 0.9;
+      adjustZoom(zoomFactor);
+    }, { passive: false });
+
+    // Initial setup
+    window.addEventListener('DOMContentLoaded', () => {
+      applyTheme();
+      resizeCanvas();
+      syncInputs();
+    });
+  </script>
+</body>
+</html>

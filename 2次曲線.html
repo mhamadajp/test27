@@ -1,0 +1,1495 @@
+<!DOCTYPE html>
+<html lang="ja" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>2次曲線シミュレーター：なぜ異符号だと「双曲線」になるのか？</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class'
+    };
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+JP:wght@400;500;700&display=swap');
+    
+    body {
+      font-family: 'Noto Sans JP', 'Inter', sans-serif;
+    }
+    .font-mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Vertical fraction styling without any slashes */
+    .math-frac {
+      display: inline-flex;
+      flex-direction: column;
+      vertical-align: middle;
+      text-align: center;
+      padding: 0 0.2em;
+      line-height: 1.1;
+    }
+    .math-num {
+      border-bottom: 1.5px solid currentColor;
+      padding-bottom: 0.1em;
+      display: block;
+    }
+    .math-den {
+      padding-top: 0.1em;
+      display: block;
+    }
+
+    /* Nested fraction styling for standard form denominator */
+    .math-frac-nested .math-num {
+      border-bottom: 2px solid currentColor;
+      padding-bottom: 0.25em;
+    }
+
+    /* Square root radical styling without slashes */
+    .math-sqrt {
+      display: inline-flex;
+      align-items: center;
+      vertical-align: middle;
+    }
+    .math-radical {
+      font-size: 1.25em;
+      line-height: 1;
+      margin-right: 1px;
+    }
+    .math-radicand {
+      border-top: 1.5px solid currentColor;
+      padding-top: 1px;
+      display: inline-flex;
+      align-items: center;
+    }
+
+    /* Custom range input styling */
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      height: 18px;
+      width: 18px;
+      border-radius: 50%;
+      background: #3b82f6;
+      cursor: pointer;
+      box-shadow: 0 0 6px rgba(59, 130, 246, 0.4);
+      border: 2px solid #ffffff;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 min-h-screen flex flex-col antialiased select-none transition-colors duration-200">
+
+  <header class="border-b border-slate-200 dark:border-slate-800 bg-white/90 dark:bg-slate-900/90 backdrop-blur px-4 md:px-6 py-3.5 sticky top-0 z-20 transition-colors">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+      <div>
+        <div class="flex items-center gap-2.5 flex-wrap">
+          <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-blue-600/10 text-blue-600 dark:bg-blue-600/20 dark:text-blue-400 font-bold border border-blue-500/20">
+            ≍
+          </span>
+          <h1 class="text-base md:text-lg font-bold tracking-tight text-slate-900 dark:text-white">
+            2次曲線シミュレーター：なぜ異符号だと「双曲線」になるのか？
+          </h1>
+          <span class="text-xs bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300 border border-purple-200 dark:border-purple-800 px-2 py-0.5 rounded-full font-medium">
+            楕円・双曲線 両対応
+          </span>
+        </div>
+        <p class="text-xs text-slate-600 dark:text-slate-400 mt-1">
+          係数 <span class="text-amber-600 dark:text-amber-400 font-mono font-semibold">a, b</span> の符号関係（同符号：楕円 / 異符号：双曲線）と、禁制帯・漸近線の出現メカニズム
+        </p>
+      </div>
+
+      <!-- Controls: Theme Toggle & Presets -->
+      <div class="flex flex-wrap items-center gap-2 text-xs">
+        <div class="inline-flex items-center bg-slate-200/80 dark:bg-slate-800 p-0.5 rounded-lg border border-slate-300 dark:border-slate-700">
+          <button onclick="window.setThemeMode('system')" id="btnThemeSystem" class="px-2 py-1 rounded-md transition font-medium text-slate-700 dark:text-slate-300">
+            💻 システム
+          </button>
+          <button onclick="window.setThemeMode('light')" id="btnThemeLight" class="px-2 py-1 rounded-md transition font-medium text-slate-700 dark:text-slate-300">
+            ☀️ ライト
+          </button>
+          <button onclick="window.setThemeMode('dark')" id="btnThemeDark" class="px-2 py-1 rounded-md transition font-medium text-slate-700 dark:text-slate-300">
+            🌙 ダーク
+          </button>
+        </div>
+
+        <div class="h-4 w-px bg-slate-300 dark:bg-slate-700 hidden sm:block"></div>
+
+        <!-- Quick Presets -->
+        <div class="flex flex-wrap items-center gap-1.5">
+          <button onclick="window.setPreset('circle')" class="px-2.5 py-1 rounded-md bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-700 shadow-sm transition">
+            ① 真円 (a=b&gt;0)
+          </button>
+          <button onclick="window.setPreset('ellipse')" class="px-2.5 py-1 rounded-md bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-700 shadow-sm transition">
+            ② 楕円 (同符号)
+          </button>
+          <button onclick="window.setPreset('hyperbola_x')" class="px-2.5 py-1 rounded-md bg-amber-50 dark:bg-amber-950/40 hover:bg-amber-100 dark:hover:bg-amber-900/50 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-700 shadow-sm transition font-medium">
+            ③ 左右双曲線 (a&gt;0, b&lt;0)
+          </button>
+          <button onclick="window.setPreset('hyperbola_y')" class="px-2.5 py-1 rounded-md bg-indigo-50 dark:bg-indigo-950/40 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 text-indigo-800 dark:text-indigo-300 border border-indigo-300 dark:border-indigo-700 shadow-sm transition font-medium">
+            ④ 上下双曲線 (a&lt;0, b&gt;0)
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="flex-1 max-w-7xl w-full mx-auto p-3 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-5">
+
+    <!-- LEFT / TOP: Interactive Coordinate Plane Canvas Area (7 cols) -->
+    <div class="lg:col-span-7 flex flex-col bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden min-h-[460px] lg:min-h-[620px]">
+      
+      <!-- Canvas Viewport with Overlay Controls -->
+      <div class="relative flex-1 bg-slate-100 dark:bg-slate-950 overflow-hidden" id="canvasContainer">
+        <canvas id="mathCanvas" class="w-full h-full block touch-none cursor-crosshair"></canvas>
+
+        <!-- Floating Quick View Controls (Zoom & Reset) -->
+        <div class="absolute top-3 right-3 flex items-center gap-1.5 bg-white/90 dark:bg-slate-900/90 backdrop-blur p-1 rounded-lg border border-slate-200 dark:border-slate-800 shadow-sm text-xs">
+          <button onclick="window.adjustZoom(1.2)" class="w-7 h-7 flex items-center justify-center rounded hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold" title="拡大">
+            ＋
+          </button>
+          <button onclick="window.adjustZoom(0.8)" class="w-7 h-7 flex items-center justify-center rounded hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold" title="縮小">
+            −
+          </button>
+          <button onclick="window.fitToScreen()" class="px-2 h-7 flex items-center justify-center rounded hover:bg-slate-100 dark:hover:bg-slate-800 text-blue-600 dark:text-blue-400 font-medium text-[11px]" title="画面サイズに合わせて自動フィット">
+            🎯 画面フィット
+          </button>
+          <button onclick="window.resetView()" class="px-2 h-7 flex items-center justify-center rounded hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 font-mono text-[11px]" title="視点リセット">
+            リセット
+          </button>
+        </div>
+
+        <!-- Viewport Coordinate Scope Badge -->
+        <div class="absolute top-3 left-3 bg-white/90 dark:bg-slate-900/90 backdrop-blur px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800 shadow-sm text-[11px] text-slate-700 dark:text-slate-300 pointer-events-none flex flex-col gap-0.5">
+          <div class="flex items-center gap-1.5 font-medium">
+            <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+            <span>画面の可視座標範囲</span>
+          </div>
+          <div class="font-mono text-[10px] text-slate-500 dark:text-slate-400 flex items-center gap-2">
+            <span>x: <span id="viewBoundX" class="font-bold text-slate-700 dark:text-slate-200">-</span></span>
+            <span>y: <span id="viewBoundY" class="font-bold text-slate-700 dark:text-slate-200">-</span></span>
+            <span class="text-blue-600 dark:text-blue-400 font-semibold" id="viewSpanTag">(-)</span>
+          </div>
+        </div>
+
+        <!-- Center Drag Tip -->
+        <div class="absolute bottom-3 left-3 bg-white/80 dark:bg-slate-900/80 backdrop-blur px-2.5 py-1 rounded-md border border-slate-200 dark:border-slate-800 text-[11px] text-slate-600 dark:text-slate-400 flex items-center gap-1.5 pointer-events-none">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+          <span>緑の点 (p, q) を直接ドラッグして中心を平行移動可能</span>
+        </div>
+      </div>
+
+      <div class="border-t border-slate-200 dark:border-slate-800/80 bg-slate-50/90 dark:bg-slate-950/90 px-4 py-2.5 flex flex-wrap items-center justify-between text-xs gap-3 transition-colors">
+        <div class="flex flex-wrap items-center gap-4 text-slate-700 dark:text-slate-300">
+          <label class="flex items-center gap-1.5 cursor-pointer hover:text-blue-600 dark:hover:text-blue-400">
+            <input type="checkbox" id="chkAsymptotes" checked class="rounded bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-600 text-blue-600 focus:ring-0">
+            <span>漸近線 (目標直線)</span>
+          </label>
+          <label class="flex items-center gap-1.5 cursor-pointer hover:text-blue-600 dark:hover:text-blue-400">
+            <input type="checkbox" id="chkForbiddenZone" checked class="rounded bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-600 text-blue-600 focus:ring-0">
+            <span>禁制帯 (侵入不可ゾーン)</span>
+          </label>
+          <label class="flex items-center gap-1.5 cursor-pointer hover:text-blue-600 dark:hover:text-blue-400">
+            <input type="checkbox" id="chkBoundingBox" checked class="rounded bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-600 text-blue-600 focus:ring-0">
+            <span>頂点・基本枠</span>
+          </label>
+          <label class="flex items-center gap-1.5 cursor-pointer hover:text-blue-600 dark:hover:text-blue-400">
+            <input type="checkbox" id="chkFoci" class="rounded bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-600 text-blue-600 focus:ring-0">
+            <span>焦点 (F₁, F₂)</span>
+          </label>
+        </div>
+        <div class="text-[11px] text-slate-500 dark:text-slate-400 font-mono">
+          グリッド刻み: <span id="scaleDisplay">1</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT / BOTTOM: Parameter Sliders, Equations, and Explanations (5 cols) -->
+    <div class="lg:col-span-5 flex flex-col gap-5">
+
+      <!-- Parameters & Sliders Card -->
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
+        <h2 class="text-sm font-bold text-slate-800 dark:text-slate-200 flex items-center justify-between border-b border-slate-100 dark:border-slate-800/80 pb-2">
+          <span>パラメーター調整</span>
+          <span class="text-xs font-mono font-normal text-slate-500 dark:text-slate-400">中心: <span id="centerTag" class="text-emerald-600 dark:text-emerald-400 font-bold">(0, 0)</span></span>
+        </h2>
+
+        <!-- Coefficient a -->
+        <div>
+          <div class="flex justify-between items-center text-xs mb-1.5">
+            <label for="inputA" class="font-medium text-amber-700 dark:text-amber-300 flex items-center gap-1.5">
+              <span class="px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-500/10 border border-amber-300 dark:border-amber-500/30">xの係数 a</span>
+              <span class="text-slate-500 dark:text-slate-400 font-normal">（正負で形状激変）</span>
+            </label>
+            <span class="font-mono font-bold text-amber-600 dark:text-amber-400 text-sm" id="valA">4</span>
+          </div>
+          <input type="range" id="inputA" min="-9" max="9" step="1" value="4" class="w-full accent-amber-500 bg-slate-200 dark:bg-slate-800 h-2 rounded-lg cursor-pointer">
+          <div class="flex justify-between text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 font-mono">
+            <span>−9 (双曲線側)</span>
+            <span class="text-rose-500 font-bold">0</span>
+            <span>+9 (楕円側)</span>
+          </div>
+        </div>
+
+        <!-- Coefficient b -->
+        <div>
+          <div class="flex justify-between items-center text-xs mb-1.5">
+            <label for="inputB" class="font-medium text-indigo-700 dark:text-indigo-300 flex items-center gap-1.5">
+              <span class="px-1.5 py-0.5 rounded bg-indigo-100 dark:bg-indigo-500/10 border border-indigo-300 dark:border-indigo-500/30">yの係数 b</span>
+              <span class="text-slate-500 dark:text-slate-400 font-normal">（正負で形状激変）</span>
+            </label>
+            <span class="font-mono font-bold text-indigo-600 dark:text-indigo-400 text-sm" id="valB">-4</span>
+          </div>
+          <input type="range" id="inputB" min="-9" max="9" step="1" value="-4" class="w-full accent-indigo-500 bg-slate-200 dark:bg-slate-800 h-2 rounded-lg cursor-pointer">
+          <div class="flex justify-between text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 font-mono">
+            <span>−9 (双曲線側)</span>
+            <span class="text-rose-500 font-bold">0</span>
+            <span>+9 (楕円側)</span>
+          </div>
+        </div>
+
+        <!-- Constant C -->
+        <div>
+          <div class="flex justify-between items-center text-xs mb-1.5">
+            <label for="inputC" class="font-medium text-purple-700 dark:text-purple-300 flex items-center gap-1.5">
+              <span class="px-1.5 py-0.5 rounded bg-purple-100 dark:bg-purple-500/10 border border-purple-300 dark:border-purple-500/30">定数 C (右辺)</span>
+            </label>
+            <span class="font-mono font-bold text-purple-600 dark:text-purple-400 text-sm" id="valC">16</span>
+          </div>
+          <input type="range" id="inputC" min="1" max="36" step="1" value="16" class="w-full accent-purple-500 bg-slate-200 dark:bg-slate-800 h-2 rounded-lg cursor-pointer">
+        </div>
+
+        <!-- Shift Parameters p, q -->
+        <div class="grid grid-cols-2 gap-3 pt-2 border-t border-slate-100 dark:border-slate-800">
+          <div>
+            <div class="flex justify-between items-center text-xs mb-1">
+              <label for="inputP" class="text-emerald-700 dark:text-emerald-400 font-medium">中心 x: p</label>
+              <span class="font-mono text-emerald-600 dark:text-emerald-400 font-bold text-xs" id="valP">0</span>
+            </div>
+            <input type="range" id="inputP" min="-4" max="4" step="0.5" value="0" class="w-full accent-emerald-500 bg-slate-200 dark:bg-slate-800 h-1.5 rounded-lg cursor-pointer">
+          </div>
+          <div>
+            <div class="flex justify-between items-center text-xs mb-1">
+              <label for="inputQ" class="text-emerald-700 dark:text-emerald-400 font-medium">中心 y: q</label>
+              <span class="font-mono text-emerald-600 dark:text-emerald-400 font-bold text-xs" id="valQ">0</span>
+            </div>
+            <input type="range" id="inputQ" min="-4" max="4" step="0.5" value="0" class="w-full accent-emerald-500 bg-slate-200 dark:bg-slate-800 h-1.5 rounded-lg cursor-pointer">
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
+        <h2 class="text-sm font-bold text-slate-800 dark:text-slate-200 border-b border-slate-100 dark:border-slate-800/80 pb-2">
+          方程式の標準化（スラッシュ記号無しの真の分数表示）
+        </h2>
+
+        <!-- General Form -->
+        <div class="p-3 bg-slate-50 dark:bg-slate-950/60 rounded-xl border border-slate-200 dark:border-slate-800 text-center">
+          <div class="text-[11px] text-slate-500 dark:text-slate-400 mb-1 font-medium">与式（一般形）</div>
+          <div id="equationGeneral" class="font-mono text-sm md:text-base font-semibold text-slate-800 dark:text-slate-100 min-h-[30px] flex items-center justify-center">
+            <!-- Dynamic general equation -->
+          </div>
+        </div>
+
+        <!-- Standard Form with nested vertical fractions -->
+        <div class="p-3 bg-blue-50/50 dark:bg-blue-950/20 rounded-xl border border-blue-200 dark:border-blue-900/40 text-center">
+          <div class="text-[11px] text-blue-600 dark:text-blue-400 mb-1 font-medium">高校数学の標準形（右辺 = 1）</div>
+          <div id="equationStandard" class="font-mono text-sm md:text-base font-semibold text-slate-900 dark:text-slate-100 min-h-[50px] flex items-center justify-center">
+            <!-- Dynamic standard equation -->
+          </div>
+        </div>
+
+        <!-- Radii & Scale Factors -->
+        <div class="grid grid-cols-2 gap-2 text-xs">
+          <div class="p-2.5 rounded-lg bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800">
+            <div class="text-amber-600 dark:text-amber-400 font-bold mb-1">横の基準半径 A</div>
+            <div class="font-mono flex items-center gap-1.5 flex-wrap">
+              <span>A² = <span id="radiusASq">4</span></span>
+              <span class="text-slate-400">⟹</span>
+              <span class="font-bold">A = <span id="radiusA">2</span></span>
+            </div>
+          </div>
+          <div class="p-2.5 rounded-lg bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800">
+            <div class="text-indigo-600 dark:text-indigo-400 font-bold mb-1">縦の基準半径 B</div>
+            <div class="font-mono flex items-center gap-1.5 flex-wrap">
+              <span>B² = <span id="radiusBSq">4</span></span>
+              <span class="text-slate-400">⟹</span>
+              <span class="font-bold">B = <span id="radiusB">2</span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white dark:bg-gradient-to-br dark:from-slate-900 dark:via-slate-900 dark:to-blue-950/40 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm flex-1 flex flex-col justify-between transition-colors">
+        <div>
+          <h3 class="text-sm font-bold text-blue-600 dark:text-blue-300 flex items-center gap-2 mb-3">
+            <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <span id="explanationTitle">なぜ「双曲線」になるのか？</span>
+          </h3>
+
+          <div id="dynamicExplanation" class="text-xs text-slate-700 dark:text-slate-300 space-y-2.5 leading-relaxed">
+            <!-- Dynamic commentary injected here via JavaScript -->
+          </div>
+        </div>
+
+        <div class="mt-4 pt-3 border-t border-slate-200 dark:border-slate-800/80 text-[11px] text-slate-500 dark:text-slate-400 flex items-center justify-between">
+          <span id="explanationBottomTip">💡 異符号になると「引き算」になり、どれだけ大きく動いても相殺できるため無限遠へ開きます</span>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <script>
+    // State of the interactive simulation
+    const state = {
+      a: 4,
+      b: -4,
+      cVal: 16,
+      p: 0.0,
+      q: 0.0,
+      scale: 36, // pixels per math unit
+      offsetX: 0,
+      offsetY: 0,
+      isDragging: false,
+      dragTarget: null, // 'center' | 'pan'
+      lastMouseX: 0,
+      lastMouseY: 0,
+      themeMode: 'system', // 'system' | 'light' | 'dark'
+      initialPinchDist: 0,
+      initialPinchScale: 36
+    };
+
+    // DOM Element handles
+    let canvas = null;
+    let ctx = null;
+    let sliderA, sliderB, sliderC, sliderP, sliderQ;
+    let dispA, dispB, dispC, dispP, dispQ;
+    let chkAsymptotes, chkForbiddenZone, chkBoundingBox, chkFoci;
+
+    // Greatest common divisor
+    function gcd(x, y) {
+      x = Math.abs(Math.round(x));
+      y = Math.abs(Math.round(y));
+      while (y) {
+        const t = y;
+        y = x % y;
+        x = t;
+      }
+      return x || 1;
+    }
+
+    // Convert number to vertical fraction HTML (No '/' slash character)
+    function formatFractionHTML(num, den = 1, showPlus = false) {
+      if (den === 0) return '∞';
+      let isNeg = (num * den < 0);
+      let n = Math.abs(Math.round(num));
+      let d = Math.abs(Math.round(den));
+      const g = gcd(n, d);
+      n /= g;
+      d /= g;
+
+      let sign = '';
+      if (isNeg) sign = '−';
+      else if (showPlus) sign = '+';
+
+      if (d === 1) {
+        return `${sign}${n}`;
+      }
+      return `${sign}<span class="math-frac"><span class="math-num font-mono">${n}</span><span class="math-den font-mono">${d}</span></span>`;
+    }
+
+    // Convert decimal float like 1.5 to reduced vertical fraction
+    function decimalToFractionHTML(val, showPlus = false) {
+      if (Number.isInteger(val)) {
+        if (showPlus && val > 0) return `+${val}`;
+        if (val < 0) return `−${Math.abs(val)}`;
+        return `${val}`;
+      }
+      // handle half-step snaps e.g. 0.5, 1.5
+      const den = 2;
+      const num = Math.round(val * 2);
+      return formatFractionHTML(num, den, showPlus);
+    }
+
+    // Rationalize & format square root sqrt(num / den) in vertical fraction
+    function formatRadicalFractionHTML(num, den) {
+      let n = Math.abs(Math.round(num));
+      let d = Math.abs(Math.round(den));
+      if (d === 0) return '∞';
+      const g = gcd(n, d);
+      n /= g;
+      d /= g;
+
+      // Rationalize: sqrt(n/d) = sqrt(n*d) / d
+      const prod = n * d;
+      let outside = 1;
+      let inside = prod;
+
+      for (let i = Math.floor(Math.sqrt(prod)); i >= 2; i--) {
+        if (inside % (i * i) === 0) {
+          outside *= i;
+          inside /= (i * i);
+        }
+      }
+
+      const g2 = gcd(outside, d);
+      const finalNumCoeff = outside / g2;
+      const finalDen = d / g2;
+
+      let numStr = '';
+      if (inside === 1) {
+        numStr = `${finalNumCoeff}`;
+      } else {
+        const coeffStr = finalNumCoeff === 1 ? '' : `${finalNumCoeff}`;
+        numStr = `<span class="math-sqrt">${coeffStr}<span class="math-radical">√</span><span class="math-radicand font-mono">${inside}</span></span>`;
+      }
+
+      if (finalDen === 1) {
+        return numStr;
+      }
+
+      return `<span class="math-frac"><span class="math-num font-mono">${numStr}</span><span class="math-den font-mono">${finalDen}</span></span>`;
+    }
+
+    function getEffectiveTheme() {
+      if (state.themeMode === 'system') {
+        return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      }
+      return state.themeMode;
+    }
+
+    function applyTheme() {
+      const eff = getEffectiveTheme();
+      if (eff === 'dark') {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+
+      ['system', 'light', 'dark'].forEach(m => {
+        const btn = document.getElementById(`btnTheme${m.charAt(0).toUpperCase() + m.slice(1)}`);
+        if (!btn) return;
+        if (state.themeMode === m) {
+          btn.className = 'px-2 py-1 rounded-md transition font-bold bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-sm';
+        } else {
+          btn.className = 'px-2 py-1 rounded-md transition font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200';
+        }
+      });
+
+      render();
+    }
+
+    window.setThemeMode = function(mode) {
+      state.themeMode = mode;
+      applyTheme();
+    };
+
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+      if (state.themeMode === 'system') applyTheme();
+    });
+
+    function getPalette() {
+      const isDark = getEffectiveTheme() === 'dark';
+      return {
+        bg: isDark ? '#020617' : '#ffffff',
+        gridLines: isDark ? '#1e293b' : '#e2e8f0',
+        axes: isDark ? '#475569' : '#64748b',
+        axisLabels: isDark ? '#94a3b8' : '#64748b',
+        centerDash: isDark ? '#10b98166' : '#05966966',
+        centerText: isDark ? '#34d399' : '#059669',
+        centerPoint: isDark ? '#10b981' : '#059669',
+        curveStroke: isDark ? '#38bdf8' : '#0284c7',
+        curveFill: isDark ? 'rgba(56, 189, 248, 0.12)' : 'rgba(2, 132, 199, 0.08)',
+        asymptoteStroke: isDark ? '#f43f5e' : '#e11d48',
+        forbiddenZone: isDark ? 'rgba(239, 68, 68, 0.16)' : 'rgba(239, 68, 68, 0.09)',
+        forbiddenBorder: isDark ? 'rgba(239, 68, 68, 0.55)' : 'rgba(239, 68, 68, 0.45)',
+        boundingBox: isDark ? '#334155' : '#cbd5e1',
+        focusPoint: isDark ? '#f59e0b' : '#d97706'
+      };
+    }
+
+    function toScreenX(mathX) {
+      const w = canvas.width / (window.devicePixelRatio || 1);
+      return (w / 2) + state.offsetX + mathX * state.scale;
+    }
+
+    function toScreenY(mathY) {
+      const h = canvas.height / (window.devicePixelRatio || 1);
+      return (h / 2) + state.offsetY - mathY * state.scale;
+    }
+
+    function toMathX(screenX) {
+      const w = canvas.width / (window.devicePixelRatio || 1);
+      return (screenX - (w / 2) - state.offsetX) / state.scale;
+    }
+
+    function toMathY(screenY) {
+      const h = canvas.height / (window.devicePixelRatio || 1);
+      return ((h / 2) + state.offsetY - screenY) / state.scale;
+    }
+
+    function drawGrid() {
+      if (!ctx || !canvas) return;
+      const pal = getPalette();
+      const dpr = window.devicePixelRatio || 1;
+      const w = canvas.width / dpr;
+      const h = canvas.height / dpr;
+
+      ctx.fillStyle = pal.bg;
+      ctx.fillRect(0, 0, w, h);
+
+      const minX = toMathX(0);
+      const maxX = toMathX(w);
+      const minY = toMathY(h);
+      const maxY = toMathY(0);
+
+      let step = 1;
+      if (state.scale < 20) step = 2;
+      if (state.scale < 10) step = 5;
+      if (state.scale > 65) step = 0.5;
+
+      const scaleDisp = document.getElementById('scaleDisplay');
+      if (scaleDisp) scaleDisp.textContent = step;
+
+      // Draw light grid lines
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = pal.gridLines;
+
+      const startX = Math.floor(minX / step) * step;
+      for (let x = startX; x <= maxX; x += step) {
+        const sx = toScreenX(x);
+        ctx.beginPath();
+        ctx.moveTo(sx, 0);
+        ctx.lineTo(sx, h);
+        ctx.stroke();
+      }
+
+      const startY = Math.floor(minY / step) * step;
+      for (let y = startY; y <= maxY; y += step) {
+        const sy = toScreenY(y);
+        ctx.beginPath();
+        ctx.moveTo(0, sy);
+        ctx.lineTo(w, sy);
+        ctx.stroke();
+      }
+
+      // Main Coordinate Axes
+      const origX = toScreenX(0);
+      const origY = toScreenY(0);
+
+      ctx.lineWidth = 1.5;
+      ctx.strokeStyle = pal.axes;
+
+      // X-Axis
+      ctx.beginPath();
+      ctx.moveTo(0, origY);
+      ctx.lineTo(w, origY);
+      ctx.stroke();
+
+      // Y-Axis
+      ctx.beginPath();
+      ctx.moveTo(origX, 0);
+      ctx.lineTo(origX, h);
+      ctx.stroke();
+
+      // Axis labels
+      ctx.fillStyle = pal.axisLabels;
+      ctx.font = '11px JetBrains Mono, monospace';
+      ctx.textAlign = 'right';
+      ctx.fillText('x', w - 8, Math.min(Math.max(origY - 6, 12), h - 20));
+      ctx.textAlign = 'left';
+      ctx.fillText('y', Math.min(Math.max(origX + 6, 4), w - 20), 14);
+
+      // Coordinate numbers
+      for (let x = startX; x <= maxX; x += step) {
+        if (Math.abs(x) < 1e-5) continue;
+        const sx = toScreenX(x);
+        if (sx > 10 && sx < w - 10) {
+          ctx.textAlign = 'center';
+          ctx.fillText(Number(x.toFixed(1)), sx, Math.min(Math.max(origY + 14, 14), h - 6));
+        }
+      }
+
+      for (let y = startY; y <= maxY; y += step) {
+        if (Math.abs(y) < 1e-5) continue;
+        const sy = toScreenY(y);
+        if (sy > 10 && sy < h - 10) {
+          ctx.textAlign = 'right';
+          ctx.fillText(Number(y.toFixed(1)), Math.min(Math.max(origX - 6, 26), w - 4), sy + 4);
+        }
+      }
+
+      // Origin O
+      ctx.textAlign = 'right';
+      ctx.fillText('O', origX - 4, origY + 14);
+    }
+
+    function drawScaleBar() {
+      if (!ctx || !canvas) return;
+      const dpr = window.devicePixelRatio || 1;
+      const w = canvas.width / dpr;
+      const h = canvas.height / dpr;
+      const isDark = getEffectiveTheme() === 'dark';
+
+      // Determine a comfortable pixel width for the scale bar (~70-120px)
+      const targetPx = 90;
+      const rawUnits = targetPx / state.scale;
+      
+      // Select nice round unit values: 0.5, 1, 2, 5, 10, 20
+      const candidates = [0.25, 0.5, 1, 2, 3, 4, 5, 10, 15, 20];
+      let chosenUnit = candidates[0];
+      let minDiff = Infinity;
+      for (const u of candidates) {
+        const diff = Math.abs(u - rawUnits);
+        if (diff < minDiff) {
+          minDiff = diff;
+          chosenUnit = u;
+        }
+      }
+
+      const barWidth = chosenUnit * state.scale;
+      const barX = w - barWidth - 16;
+      const barY = h - 20;
+
+      // Draw Scale Bar Box Background
+      ctx.fillStyle = isDark ? 'rgba(15, 23, 42, 0.85)' : 'rgba(255, 255, 255, 0.85)';
+      ctx.strokeStyle = isDark ? 'rgba(51, 65, 85, 0.8)' : 'rgba(203, 213, 225, 0.9)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.roundRect(barX - 10, barY - 22, barWidth + 20, 32, 6);
+      ctx.fill();
+      ctx.stroke();
+
+      // Draw Scale Bar Line with end caps
+      ctx.strokeStyle = isDark ? '#38bdf8' : '#0284c7';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.moveTo(barX, barY);
+      ctx.lineTo(barX + barWidth, barY);
+      // Left and right vertical ticks
+      ctx.moveTo(barX, barY - 4);
+      ctx.lineTo(barX, barY + 4);
+      ctx.moveTo(barX + barWidth, barY - 4);
+      ctx.lineTo(barX + barWidth, barY + 4);
+      ctx.stroke();
+
+      // Text label
+      ctx.fillStyle = isDark ? '#e2e8f0' : '#1e293b';
+      ctx.font = 'bold 10px JetBrains Mono, monospace';
+      ctx.textAlign = 'center';
+      const unitLabel = chosenUnit < 1 ? formatFractionHTML(chosenUnit * 4, 4) : `${chosenUnit}`;
+      // Clean display without slashes in canvas text
+      const cleanLabel = chosenUnit === 0.5 ? '½' : (chosenUnit === 0.25 ? '¼' : `${chosenUnit}`);
+      ctx.fillText(`${cleanLabel} 単位`, barX + barWidth / 2, barY - 7);
+    }
+
+    function updateViewportBounds() {
+      if (!canvas) return;
+      const dpr = window.devicePixelRatio || 1;
+      const w = canvas.width / dpr;
+      const h = canvas.height / dpr;
+
+      const minX = toMathX(0);
+      const maxX = toMathX(w);
+      const minY = toMathY(h);
+      const maxY = toMathY(0);
+
+      const boundX = document.getElementById('viewBoundX');
+      const boundY = document.getElementById('viewBoundY');
+      const spanTag = document.getElementById('viewSpanTag');
+
+      if (boundX) boundX.textContent = `[${minX.toFixed(1)}, ${maxX.toFixed(1)}]`;
+      if (boundY) boundY.textContent = `[${minY.toFixed(1)}, ${maxY.toFixed(1)}]`;
+      if (spanTag) {
+        const spanW = (maxX - minX).toFixed(1);
+        const spanH = (maxY - minY).toFixed(1);
+        spanTag.textContent = `(幅${spanW} × 高${spanH})`;
+      }
+    }
+
+    function drawCurveGraphics() {
+      if (!ctx || !canvas) return;
+      const { a, b, cVal, p, q } = state;
+      const pal = getPalette();
+      const dpr = window.devicePixelRatio || 1;
+      const w = canvas.width / dpr;
+      const h = canvas.height / dpr;
+
+      const screenCenterX = toScreenX(p);
+      const screenCenterY = toScreenY(q);
+
+      // Shift Vector from Origin to Center (p, q)
+      if (Math.abs(p) > 0.01 || Math.abs(q) > 0.01) {
+        const origX = toScreenX(0);
+        const origY = toScreenY(0);
+        ctx.strokeStyle = pal.centerDash;
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([4, 4]);
+        ctx.beginPath();
+        ctx.moveTo(origX, origY);
+        ctx.lineTo(screenCenterX, screenCenterY);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        ctx.fillStyle = pal.centerText;
+        ctx.font = '11px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(`中心ベクトル (p, q)`, (origX + screenCenterX) / 2, (origY + screenCenterY) / 2 - 8);
+      }
+
+      // Handle degenerate coefficient zero
+      if (a === 0 || b === 0) {
+        ctx.fillStyle = '#ef4444';
+        ctx.font = 'bold 12px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('係数が0のため2次曲線になりません（放物線または直線）', screenCenterX, screenCenterY - 30);
+        return;
+      }
+
+      const isEllipse = (a > 0 && b > 0);
+      const isHyperbolaX = (a > 0 && b < 0);
+      const isHyperbolaY = (a < 0 && b > 0);
+      const isImpossible = (a < 0 && b < 0 && cVal > 0);
+
+      if (isImpossible) {
+        ctx.fillStyle = '#ef4444';
+        ctx.font = 'bold 13px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('実数解が存在しません（負の数＋負の数＝正数は不成立）', screenCenterX, screenCenterY);
+        return;
+      }
+
+      const A = Math.sqrt(Math.abs(cVal / a));
+      const B = Math.sqrt(Math.abs(cVal / b));
+      const screenRadiusX = A * state.scale;
+      const screenRadiusY = B * state.scale;
+
+      // --- 1. ELLIPSE MODE ---
+      if (isEllipse) {
+        if (chkBoundingBox.checked) {
+          ctx.strokeStyle = pal.boundingBox;
+          ctx.lineWidth = 1;
+          ctx.setLineDash([3, 3]);
+          ctx.strokeRect(screenCenterX - screenRadiusX, screenCenterY - screenRadiusY, screenRadiusX * 2, screenRadiusY * 2);
+          ctx.setLineDash([]);
+
+          ctx.strokeStyle = '#d97706';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(screenCenterX, screenCenterY);
+          ctx.lineTo(screenCenterX + screenRadiusX, screenCenterY);
+          ctx.stroke();
+
+          ctx.strokeStyle = '#6366f1';
+          ctx.beginPath();
+          ctx.moveTo(screenCenterX, screenCenterY);
+          ctx.lineTo(screenCenterX, screenCenterY - screenRadiusY);
+          ctx.stroke();
+
+          ctx.fillStyle = '#d97706';
+          ctx.font = 'bold 11px JetBrains Mono, monospace';
+          ctx.textAlign = 'center';
+          ctx.fillText('横半径 A', screenCenterX + screenRadiusX / 2, screenCenterY - 6);
+
+          ctx.fillStyle = '#6366f1';
+          ctx.textAlign = 'right';
+          ctx.fillText('縦半径 B', screenCenterX - 8, screenCenterY - screenRadiusY / 2);
+        }
+
+        if (chkFoci.checked && Math.abs(A - B) > 0.05) {
+          const cDist = A > B ? Math.sqrt(A * A - B * B) : Math.sqrt(B * B - A * A);
+          const f1x = A > B ? screenCenterX - cDist * state.scale : screenCenterX;
+          const f1y = A > B ? screenCenterY : screenCenterY + cDist * state.scale;
+          const f2x = A > B ? screenCenterX + cDist * state.scale : screenCenterX;
+          const f2y = A > B ? screenCenterY : screenCenterY - cDist * state.scale;
+
+          ctx.fillStyle = pal.focusPoint;
+          [ [f1x, f1y, 'F₁'], [f2x, f2y, 'F₂'] ].forEach(([fx, fy, lbl]) => {
+            ctx.beginPath();
+            ctx.arc(fx, fy, 4.5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.font = 'bold 10px JetBrains Mono';
+            ctx.textAlign = 'center';
+            ctx.fillText(lbl, fx, fy + 14);
+          });
+        }
+
+        ctx.beginPath();
+        ctx.ellipse(screenCenterX, screenCenterY, screenRadiusX, screenRadiusY, 0, 0, Math.PI * 2);
+        ctx.fillStyle = pal.curveFill;
+        ctx.fill();
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = pal.curveStroke;
+        ctx.stroke();
+      }
+
+      // --- 2. HYPERBOLA MODE ---
+      if (isHyperbolaX || isHyperbolaY) {
+        // Forbidden Zone (Forbidden zone where no real coordinates can exist)
+        if (chkForbiddenZone.checked) {
+          ctx.fillStyle = pal.forbiddenZone;
+          ctx.strokeStyle = pal.forbiddenBorder;
+          ctx.lineWidth = 1.5;
+          ctx.setLineDash([4, 4]);
+
+          if (isHyperbolaX) {
+            const leftEdge = toScreenX(p - A);
+            const rightEdge = toScreenX(p + A);
+            ctx.fillRect(leftEdge, 0, rightEdge - leftEdge, h);
+            ctx.beginPath();
+            ctx.moveTo(leftEdge, 0); ctx.lineTo(leftEdge, h);
+            ctx.moveTo(rightEdge, 0); ctx.lineTo(rightEdge, h);
+            ctx.stroke();
+
+            ctx.fillStyle = pal.forbiddenBorder;
+            ctx.font = 'bold 11px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('🚫 通り抜け禁止ゾーン（禁制帯：実数解なし）', screenCenterX, screenCenterY - 38);
+          } else {
+            const topEdge = toScreenY(q + B);
+            const bottomEdge = toScreenY(q - B);
+            ctx.fillRect(0, topEdge, w, bottomEdge - topEdge);
+            ctx.beginPath();
+            ctx.moveTo(0, topEdge); ctx.lineTo(w, topEdge);
+            ctx.moveTo(0, bottomEdge); ctx.lineTo(w, bottomEdge);
+            ctx.stroke();
+
+            ctx.fillStyle = pal.forbiddenBorder;
+            ctx.font = 'bold 11px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('🚫 通り抜け禁止ゾーン（禁制帯：実数解なし）', screenCenterX, screenCenterY - 10);
+          }
+          ctx.setLineDash([]);
+        }
+
+        // Asymptotes
+        if (chkAsymptotes.checked) {
+          ctx.strokeStyle = pal.asymptoteStroke;
+          ctx.lineWidth = 1.5;
+          ctx.setLineDash([5, 5]);
+
+          const slope = B / A;
+          const minMathX = toMathX(0) - 2;
+          const maxMathX = toMathX(w) + 2;
+
+          ctx.beginPath();
+          ctx.moveTo(toScreenX(minMathX), toScreenY(q + slope * (minMathX - p)));
+          ctx.lineTo(toScreenX(maxMathX), toScreenY(q + slope * (maxMathX - p)));
+          ctx.stroke();
+
+          ctx.beginPath();
+          ctx.moveTo(toScreenX(minMathX), toScreenY(q - slope * (minMathX - p)));
+          ctx.lineTo(toScreenX(maxMathX), toScreenY(q - slope * (maxMathX - p)));
+          ctx.stroke();
+          ctx.setLineDash([]);
+
+          ctx.fillStyle = pal.asymptoteStroke;
+          ctx.font = 'bold 10px JetBrains Mono';
+          ctx.textAlign = 'left';
+          ctx.fillText('漸近線 L₁', toScreenX(p + 2.5), toScreenY(q + slope * 2.5) - 6);
+          ctx.fillText('漸近線 L₂', toScreenX(p + 2.5), toScreenY(q - slope * 2.5) + 14);
+        }
+
+        // Fundamental Bounding Box & Vertices
+        if (chkBoundingBox.checked) {
+          ctx.strokeStyle = pal.boundingBox;
+          ctx.lineWidth = 1;
+          ctx.setLineDash([2, 2]);
+          ctx.strokeRect(screenCenterX - screenRadiusX, screenCenterY - screenRadiusY, screenRadiusX * 2, screenRadiusY * 2);
+          ctx.setLineDash([]);
+
+          ctx.fillStyle = '#0284c7';
+          if (isHyperbolaX) {
+            [toScreenX(p + A), toScreenX(p - A)].forEach((vx) => {
+              ctx.beginPath();
+              ctx.arc(vx, screenCenterY, 4, 0, Math.PI * 2);
+              ctx.fill();
+            });
+            ctx.font = '10px JetBrains Mono';
+            ctx.textAlign = 'center';
+            ctx.fillText('頂点', toScreenX(p + A) + 14, screenCenterY - 8);
+            ctx.fillText('頂点', toScreenX(p - A) - 14, screenCenterY - 8);
+          } else {
+            [toScreenY(q + B), toScreenY(q - B)].forEach((vy) => {
+              ctx.beginPath();
+              ctx.arc(screenCenterX, vy, 4, 0, Math.PI * 2);
+              ctx.fill();
+            });
+            ctx.font = '10px JetBrains Mono';
+            ctx.textAlign = 'left';
+            ctx.fillText('頂点', screenCenterX + 8, toScreenY(q + B) + 4);
+            ctx.fillText('頂点', screenCenterX + 8, toScreenY(q - B) + 4);
+          }
+        }
+
+        // Foci for Hyperbola
+        if (chkFoci.checked) {
+          const cDist = Math.sqrt(A * A + B * B);
+          ctx.fillStyle = pal.focusPoint;
+
+          if (isHyperbolaX) {
+            const f1x = toScreenX(p - cDist);
+            const f2x = toScreenX(p + cDist);
+            [ [f1x, screenCenterY, 'F₁'], [f2x, screenCenterY, 'F₂'] ].forEach(([fx, fy, lbl]) => {
+              ctx.beginPath();
+              ctx.arc(fx, fy, 4.5, 0, Math.PI * 2);
+              ctx.fill();
+              ctx.font = 'bold 10px JetBrains Mono';
+              ctx.textAlign = 'center';
+              ctx.fillText(lbl, fx, fy + 14);
+            });
+          } else {
+            const f1y = toScreenY(q - cDist);
+            const f2y = toScreenY(q + cDist);
+            [ [screenCenterX, f1y, 'F₁'], [screenCenterX, f2y, 'F₂'] ].forEach(([fx, fy, lbl]) => {
+              ctx.beginPath();
+              ctx.arc(fx, fy, 4.5, 0, Math.PI * 2);
+              ctx.fill();
+              ctx.font = 'bold 10px JetBrains Mono';
+              ctx.textAlign = 'left';
+              ctx.fillText(lbl, fx + 8, fy + 4);
+            });
+          }
+        }
+
+        // Hyperbola Branches Plotting
+        ctx.strokeStyle = pal.curveStroke;
+        ctx.lineWidth = 3;
+
+        if (isHyperbolaX) {
+          const minY = toMathY(h + 30);
+          const maxY = toMathY(-30);
+          const steps = 160;
+          const dy = (maxY - minY) / steps;
+
+          // Right Branch
+          ctx.beginPath();
+          for (let i = 0; i <= steps; i++) {
+            const my = minY + i * dy;
+            const mx = p + A * Math.sqrt(1 + Math.pow((my - q) / B, 2));
+            const sx = toScreenX(mx);
+            const sy = toScreenY(my);
+            if (i === 0) ctx.moveTo(sx, sy);
+            else ctx.lineTo(sx, sy);
+          }
+          ctx.stroke();
+
+          // Left Branch
+          ctx.beginPath();
+          for (let i = 0; i <= steps; i++) {
+            const my = minY + i * dy;
+            const mx = p - A * Math.sqrt(1 + Math.pow((my - q) / B, 2));
+            const sx = toScreenX(mx);
+            const sy = toScreenY(my);
+            if (i === 0) ctx.moveTo(sx, sy);
+            else ctx.lineTo(sx, sy);
+          }
+          ctx.stroke();
+
+        } else {
+          const minX = toMathX(-30);
+          const maxX = toMathX(w + 30);
+          const steps = 160;
+          const dx = (maxX - minX) / steps;
+
+          // Top Branch
+          ctx.beginPath();
+          for (let i = 0; i <= steps; i++) {
+            const mx = minX + i * dx;
+            const my = q + B * Math.sqrt(1 + Math.pow((mx - p) / A, 2));
+            const sx = toScreenX(mx);
+            const sy = toScreenY(my);
+            if (i === 0) ctx.moveTo(sx, sy);
+            else ctx.lineTo(sx, sy);
+          }
+          ctx.stroke();
+
+          // Bottom Branch
+          ctx.beginPath();
+          for (let i = 0; i <= steps; i++) {
+            const mx = minX + i * dx;
+            const my = q - B * Math.sqrt(1 + Math.pow((mx - p) / A, 2));
+            const sx = toScreenX(mx);
+            const sy = toScreenY(my);
+            if (i === 0) ctx.moveTo(sx, sy);
+            else ctx.lineTo(sx, sy);
+          }
+          ctx.stroke();
+        }
+      }
+
+      // Draggable Center Handle Marker
+      ctx.beginPath();
+      ctx.arc(screenCenterX, screenCenterY, 6, 0, Math.PI * 2);
+      ctx.fillStyle = pal.centerPoint;
+      ctx.fill();
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = '#ffffff';
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.arc(screenCenterX, screenCenterY, 11, 0, Math.PI * 2);
+      ctx.strokeStyle = pal.centerDash;
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      // Render Dynamic Scale Bar at bottom-right
+      drawScaleBar();
+      updateViewportBounds();
+    }
+
+    function updateUIElements() {
+      const { a, b, cVal, p, q } = state;
+
+      if (!dispA) return;
+
+      dispA.textContent = a;
+      dispB.textContent = b;
+      dispC.textContent = cVal;
+      dispP.innerHTML = decimalToFractionHTML(p);
+      dispQ.innerHTML = decimalToFractionHTML(q);
+
+      const centerElem = document.getElementById('centerTag');
+      if (centerElem) {
+        centerElem.innerHTML = `(${decimalToFractionHTML(p)}, ${decimalToFractionHTML(q)})`;
+      }
+
+      const absA = Math.abs(a) || 1;
+      const absB = Math.abs(b) || 1;
+
+      // Radii squares and simplified radicals
+      document.getElementById('radiusASq').innerHTML = formatFractionHTML(cVal, absA);
+      document.getElementById('radiusBSq').innerHTML = formatFractionHTML(cVal, absB);
+
+      document.getElementById('radiusA').innerHTML = formatRadicalFractionHTML(cVal, absA);
+      document.getElementById('radiusB').innerHTML = formatRadicalFractionHTML(cVal, absB);
+
+      // Parenthesis string representation with vertical fractions
+      let xTerm = 'x';
+      if (p > 0) xTerm = `x − ${decimalToFractionHTML(p)}`;
+      else if (p < 0) xTerm = `x + ${decimalToFractionHTML(Math.abs(p))}`;
+
+      let yTerm = 'y';
+      if (q > 0) yTerm = `y − ${decimalToFractionHTML(q)}`;
+      else if (q < 0) yTerm = `y + ${decimalToFractionHTML(Math.abs(q))}`;
+
+      // 1. General Equation formatting
+      let termAStr = '';
+      if (a === 1) termAStr = `(${xTerm})²`;
+      else if (a === -1) termAStr = `−(${xTerm})²`;
+      else termAStr = `<span class="text-amber-600 dark:text-amber-400 font-bold font-mono">${a}</span>(${xTerm})²`;
+
+      let termBStr = '';
+      if (b > 0) {
+        termBStr = `+ ${b === 1 ? '' : `<span class="text-indigo-600 dark:text-indigo-400 font-bold font-mono">${b}</span>`}(${yTerm})²`;
+      } else if (b < 0) {
+        termBStr = `− <span class="text-indigo-600 dark:text-indigo-400 font-bold font-mono">${Math.abs(b) === 1 ? '' : Math.abs(b)}</span>(${yTerm})²`;
+      }
+
+      document.getElementById('equationGeneral').innerHTML = `
+        <span class="inline-flex items-center gap-1.5 flex-wrap justify-center">
+          ${termAStr}
+          ${termBStr}
+          <span>=</span>
+          <span class="text-purple-600 dark:text-purple-400 font-bold font-mono">${cVal}</span>
+        </span>
+      `;
+
+      // 2. Standard Equation formatting
+      const denAHTML = formatFractionHTML(cVal, absA);
+      const denBHTML = formatFractionHTML(cVal, absB);
+
+      let standardHTML = '';
+      if (a > 0 && b > 0) {
+        standardHTML = `
+          <span class="inline-flex items-center gap-2">
+            <span class="math-frac math-frac-nested">
+              <span class="math-num font-mono">(${xTerm})²</span>
+              <span class="math-den text-amber-600 dark:text-amber-400 font-bold font-mono">${denAHTML}</span>
+            </span>
+            <span class="text-slate-600 dark:text-slate-300 font-bold">+</span>
+            <span class="math-frac math-frac-nested">
+              <span class="math-num font-mono">(${yTerm})²</span>
+              <span class="math-den text-indigo-600 dark:text-indigo-400 font-bold font-mono">${denBHTML}</span>
+            </span>
+            <span class="text-slate-600 dark:text-slate-300 font-bold">=</span>
+            <span class="font-bold text-blue-600 dark:text-blue-400 font-mono text-lg">1</span>
+          </span>
+        `;
+      } else if (a > 0 && b < 0) {
+        standardHTML = `
+          <span class="inline-flex items-center gap-2">
+            <span class="math-frac math-frac-nested">
+              <span class="math-num font-mono">(${xTerm})²</span>
+              <span class="math-den text-amber-600 dark:text-amber-400 font-bold font-mono">${denAHTML}</span>
+            </span>
+            <span class="text-rose-500 font-bold text-lg">−</span>
+            <span class="math-frac math-frac-nested">
+              <span class="math-num font-mono">(${yTerm})²</span>
+              <span class="math-den text-indigo-600 dark:text-indigo-400 font-bold font-mono">${denBHTML}</span>
+            </span>
+            <span class="text-slate-600 dark:text-slate-300 font-bold">=</span>
+            <span class="font-bold text-blue-600 dark:text-blue-400 font-mono text-lg">1</span>
+          </span>
+        `;
+      } else if (a < 0 && b > 0) {
+        standardHTML = `
+          <span class="inline-flex items-center gap-2">
+            <span class="text-rose-500 font-bold text-lg">−</span>
+            <span class="math-frac math-frac-nested">
+              <span class="math-num font-mono">(${xTerm})²</span>
+              <span class="math-den text-amber-600 dark:text-amber-400 font-bold font-mono">${denAHTML}</span>
+            </span>
+            <span class="text-slate-600 dark:text-slate-300 font-bold">+</span>
+            <span class="math-frac math-frac-nested">
+              <span class="math-num font-mono">(${yTerm})²</span>
+              <span class="math-den text-indigo-600 dark:text-indigo-400 font-bold font-mono">${denBHTML}</span>
+            </span>
+            <span class="text-slate-600 dark:text-slate-300 font-bold">=</span>
+            <span class="font-bold text-blue-600 dark:text-blue-400 font-mono text-lg">1</span>
+          </span>
+        `;
+      } else {
+        standardHTML = `<span class="text-rose-500 font-medium">実数平面上に解が存在しません</span>`;
+      }
+      document.getElementById('equationStandard').innerHTML = standardHTML;
+
+      // 3. Dynamic Explanation Text
+      const expTitle = document.getElementById('explanationTitle');
+      const expDiv = document.getElementById('dynamicExplanation');
+      const expTip = document.getElementById('explanationBottomTip');
+
+      if (a * b > 0) {
+        expTitle.textContent = 'なぜ「閉じた楕円」になるのか？';
+        expTip.innerHTML = '💡 2つの正の数を足して定数にするため、両方の変数が上限枠で囲われて閉じます';
+        expDiv.innerHTML = `
+          <div class="font-semibold text-emerald-600 dark:text-emerald-400">
+            【同符号（a > 0, b > 0）：足し算のブレーキ】
+          </div>
+          <div>
+            式は <span class="font-mono font-semibold">(${xTerm})² ＋ (${yTerm})² ＝ 定数</span> の形をしています。<br>
+            実数の2乗は必ず <span class="font-mono font-semibold">0以上</span> なので、片方を大きくするともう片方を小さくしなければ合計値を維持できません。<br>
+            <strong>どちらの座標も一定の枠から外に出られない</strong>ため、四方を壁で囲まれた「閉じた輪（楕円）」になります。
+          </div>
+        `;
+      } else if (a * b < 0) {
+        const openDir = a > 0 ? '左右' : '上下';
+        expTitle.textContent = `なぜ「${openDir}に開く双曲線」になるのか？（3つの直感的理由）`;
+        expTip.innerHTML = '💡 差（引き算）が一定なので、どれだけ無限に大きくなっても相殺して等式が成立します';
+        
+        const leadingTerm = a > 0 ? `(${xTerm})²` : `(${yTerm})²`;
+        const trailingTerm = a > 0 ? `(${yTerm})²` : `(${xTerm})²`;
+
+        expDiv.innerHTML = `
+          <div class="font-semibold text-amber-600 dark:text-amber-400">
+            【異符号（ab < 0）：引き算が生む3つの劇的現象】
+          </div>
+
+          <div class="p-2.5 bg-slate-100 dark:bg-slate-950/80 rounded-lg border-l-2 border-amber-500 space-y-1">
+            <div>
+              <strong class="text-slate-900 dark:text-slate-100">① 足し算から「引き算」への転換（無限への脱出）</strong><br>
+              式を変形すると <span class="font-mono text-blue-600 dark:text-blue-400">${leadingTerm} ＝ 定数 ＋ ${trailingTerm}</span> となります。<br>
+              片方が 100 や 1万 とどれだけ巨大になっても、<strong>もう片方も一緒に巨大になれば打ち消し合って等式を維持できます</strong>。そのため枠に閉じ込められず、無限遠へどこまでも伸びる「開いた曲線」になります。
+            </div>
+          </div>
+
+          <div class="p-2.5 bg-slate-100 dark:bg-slate-950/80 rounded-lg border-l-2 border-rose-500 space-y-1">
+            <div>
+              <strong class="text-slate-900 dark:text-slate-100">② 「通り抜け禁止ゾーン（禁制帯）」で2つに分断</strong><br>
+              上の式で ${trailingTerm} ≧ 0 ですから、必ず <span class="font-mono text-rose-500 font-semibold">${leadingTerm} ≧ 定数</span> でなければなりません。<br>
+              つまり中心付近は<strong>「2乗しても定数枠に届かない」ため、グラフが絶対に侵入できない空白地帯</strong>になります。真ん中が通れないため、曲線は2本に真っ二つに分かれ、<strong>「双（ふたつ）」の曲線</strong>になります。
+            </div>
+          </div>
+
+          <div class="p-2.5 bg-slate-100 dark:bg-slate-950/80 rounded-lg border-l-2 border-indigo-500 space-y-1">
+            <div>
+              <strong class="text-slate-900 dark:text-slate-100">③ 遠くでは定数が微小化し「直線（漸近線）」に化ける</strong><br>
+              中心から遠く離れて数値が巨大化すると、右辺の「定数」はチリのように無視できるようになります。<br>
+              式は実質的に <span class="font-mono">A² − B² ≈ 0 ⟹ (A − B)(A + B) ≈ 0</span> となり、<strong>2本の直線（漸近線）に吸い寄せられるようにぴったり寄り添って伸びていきます</strong>。
+            </div>
+          </div>
+        `;
+      } else {
+        expTitle.textContent = '退化（係数0）';
+        expDiv.innerHTML = `<div>係数が 0 のため、2次曲線ではなく直線または放物線になります。</div>`;
+      }
+    }
+
+    function render() {
+      drawGrid();
+      drawCurveGraphics();
+      updateUIElements();
+    }
+
+    window.setPreset = function(type) {
+      if (type === 'circle') {
+        state.a = 2;
+        state.b = 2;
+        state.cVal = 16;
+        state.p = 0;
+        state.q = 0;
+      } else if (type === 'ellipse') {
+        state.a = 6;
+        state.b = 2;
+        state.cVal = 18;
+        state.p = 0;
+        state.q = 0;
+      } else if (type === 'hyperbola_x') {
+        state.a = 4;
+        state.b = -4;
+        state.cVal = 16;
+        state.p = 0;
+        state.q = 0;
+      } else if (type === 'hyperbola_y') {
+        state.a = -4;
+        state.b = 4;
+        state.cVal = 16;
+        state.p = 0;
+        state.q = 0;
+      }
+      syncInputs();
+      render();
+    };
+
+    function syncInputs() {
+      if (sliderA) sliderA.value = state.a;
+      if (sliderB) sliderB.value = state.b;
+      if (sliderC) sliderC.value = state.cVal;
+      if (sliderP) sliderP.value = state.p;
+      if (sliderQ) sliderQ.value = state.q;
+    }
+
+    window.adjustZoom = function(factor) {
+      state.scale = Math.max(12, Math.min(120, state.scale * factor));
+      render();
+    };
+
+    window.fitToScreen = function() {
+      if (!canvas) return;
+      const dpr = window.devicePixelRatio || 1;
+      const w = canvas.width / dpr;
+      const h = canvas.height / dpr;
+
+      // Estimate the required mathematical bounding box
+      const absA = Math.abs(state.a) || 1;
+      const absB = Math.abs(state.b) || 1;
+      const A = Math.sqrt(state.cVal / absA);
+      const B = Math.sqrt(state.cVal / absB);
+
+      // Desired math margin around the curve features
+      const margin = 2.0;
+      const reqWidth = 2 * (Math.abs(state.p) + A + margin);
+      const reqHeight = 2 * (Math.abs(state.q) + B + margin);
+
+      const scaleX = w / Math.max(reqWidth, 6);
+      const scaleY = h / Math.max(reqHeight, 6);
+
+      state.scale = Math.max(16, Math.min(80, Math.min(scaleX, scaleY)));
+      // Center the view on the mathematical center (p, q)
+      state.offsetX = -state.p * state.scale;
+      state.offsetY = state.q * state.scale;
+      render();
+    };
+
+    window.resetView = function() {
+      state.offsetX = 0;
+      state.offsetY = 0;
+      // Auto-adapt base scale according to container dimensions
+      if (canvas) {
+        const dpr = window.devicePixelRatio || 1;
+        const w = canvas.width / dpr;
+        // On mobile screens (< 500px), use a more compact scale
+        state.scale = w < 500 ? 26 : 36;
+      } else {
+        state.scale = 36;
+      }
+      render();
+    };
+
+    function resizeCanvas() {
+      if (!canvas) return;
+      const container = canvas.parentElement;
+      if (!container) return;
+      const dpr = window.devicePixelRatio || 1;
+      const rect = container.getBoundingClientRect();
+      const width = rect.width;
+      const height = rect.height;
+
+      // Check if this is initial load or drastic resize
+      const isNarrow = width < 480;
+      if (!canvas.dataset.initialized) {
+        state.scale = isNarrow ? 26 : 36;
+        canvas.dataset.initialized = 'true';
+      }
+
+      canvas.width = Math.floor(width * dpr);
+      canvas.height = Math.floor(height * dpr);
+      canvas.style.width = width + 'px';
+      canvas.style.height = height + 'px';
+
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      render();
+    }
+
+    function getPointerPos(e) {
+      const rect = canvas.getBoundingClientRect();
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      return {
+        x: clientX - rect.left,
+        y: clientY - rect.top
+      };
+    }
+
+    function onPointerDown(e) {
+      if (e.touches && e.touches.length === 2) {
+        // Multi-touch pinch start
+        state.isDragging = false;
+        state.initialPinchDist = Math.hypot(
+          e.touches[0].clientX - e.touches[1].clientX,
+          e.touches[0].clientY - e.touches[1].clientY
+        );
+        state.initialPinchScale = state.scale;
+        return;
+      }
+
+      const pos = getPointerPos(e);
+      const screenCenterX = toScreenX(state.p);
+      const screenCenterY = toScreenY(state.q);
+      const distToCenter = Math.hypot(pos.x - screenCenterX, pos.y - screenCenterY);
+
+      state.isDragging = true;
+      state.lastMouseX = pos.x;
+      state.lastMouseY = pos.y;
+
+      if (distToCenter < 24) {
+        state.dragTarget = 'center';
+      } else {
+        state.dragTarget = 'pan';
+      }
+    }
+
+    function onPointerMove(e) {
+      // Multi-touch pinch-to-zoom handling
+      if (e.touches && e.touches.length === 2) {
+        e.preventDefault();
+        const dist = Math.hypot(
+          e.touches[0].clientX - e.touches[1].clientX,
+          e.touches[0].clientY - e.touches[1].clientY
+        );
+        if (state.initialPinchDist > 0) {
+          const ratio = dist / state.initialPinchDist;
+          state.scale = Math.max(12, Math.min(120, state.initialPinchScale * ratio));
+          render();
+        }
+        return;
+      }
+
+      const pos = getPointerPos(e);
+
+      if (!state.isDragging) {
+        const screenCenterX = toScreenX(state.p);
+        const screenCenterY = toScreenY(state.q);
+        const dist = Math.hypot(pos.x - screenCenterX, pos.y - screenCenterY);
+        canvas.style.cursor = dist < 22 ? 'grab' : 'crosshair';
+        return;
+      }
+
+      if (state.dragTarget === 'center') {
+        const newMathX = Math.round(toMathX(pos.x) * 2) / 2;
+        const newMathY = Math.round(toMathY(pos.y) * 2) / 2;
+        state.p = Math.max(-4, Math.min(4, newMathX));
+        state.q = Math.max(-4, Math.min(4, newMathY));
+        if (sliderP) sliderP.value = state.p;
+        if (sliderQ) sliderQ.value = state.q;
+      } else if (state.dragTarget === 'pan') {
+        const dx = pos.x - state.lastMouseX;
+        const dy = pos.y - state.lastMouseY;
+        state.offsetX += dx;
+        state.offsetY += dy;
+        state.lastMouseX = pos.x;
+        state.lastMouseY = pos.y;
+      }
+      render();
+    }
+
+    function onPointerUp() {
+      state.isDragging = false;
+      state.dragTarget = null;
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      canvas = document.getElementById('mathCanvas');
+      if (!canvas) return;
+      ctx = canvas.getContext('2d');
+
+      sliderA = document.getElementById('inputA');
+      sliderB = document.getElementById('inputB');
+      sliderC = document.getElementById('inputC');
+      sliderP = document.getElementById('inputP');
+      sliderQ = document.getElementById('inputQ');
+
+      dispA = document.getElementById('valA');
+      dispB = document.getElementById('valB');
+      dispC = document.getElementById('valC');
+      dispP = document.getElementById('valP');
+      dispQ = document.getElementById('valQ');
+
+      chkAsymptotes = document.getElementById('chkAsymptotes');
+      chkForbiddenZone = document.getElementById('chkForbiddenZone');
+      chkBoundingBox = document.getElementById('chkBoundingBox');
+      chkFoci = document.getElementById('chkFoci');
+
+      sliderA.addEventListener('input', (e) => { 
+        let val = parseInt(e.target.value, 10);
+        if (val === 0) val = 1;
+        state.a = val; 
+        render(); 
+      });
+      sliderB.addEventListener('input', (e) => { 
+        let val = parseInt(e.target.value, 10);
+        if (val === 0) val = -1;
+        state.b = val; 
+        render(); 
+      });
+      sliderC.addEventListener('input', (e) => { 
+        state.cVal = parseInt(e.target.value, 10); 
+        render(); 
+      });
+      sliderP.addEventListener('input', (e) => { 
+        state.p = parseFloat(e.target.value); 
+        render(); 
+      });
+      sliderQ.addEventListener('input', (e) => { 
+        state.q = parseFloat(e.target.value); 
+        render(); 
+      });
+
+      [chkAsymptotes, chkForbiddenZone, chkBoundingBox, chkFoci].forEach(cb => {
+        if (cb) cb.addEventListener('change', render);
+      });
+
+      canvas.addEventListener('mousedown', onPointerDown);
+      window.addEventListener('mousemove', onPointerMove);
+      window.addEventListener('mouseup', onPointerUp);
+
+      canvas.addEventListener('touchstart', onPointerDown, { passive: true });
+      window.addEventListener('touchmove', onPointerMove, { passive: false });
+      window.addEventListener('touchend', onPointerUp);
+
+      canvas.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        const zoomFactor = e.deltaY < 0 ? 1.1 : 0.9;
+        adjustZoom(zoomFactor);
+      }, { passive: false });
+
+      window.addEventListener('resize', resizeCanvas);
+
+      applyTheme();
+      resizeCanvas();
+      syncInputs();
+    });
+  </script>
+</body>
+</html>

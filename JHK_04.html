@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>情報Ⅰ データサイエンス 分野別完全制覇特訓ドリル</title>
+  <title>情報の表現と管理 第4回報告課題ドリル（データサイエンス特訓100問）</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -17,7 +17,8 @@
               500: '#3b82f6',
               600: '#2563eb',
               700: '#1d4ed8',
-              800: '#1e40af'
+              800: '#1e40af',
+              900: '#1e3a8a',
             }
           }
         }
@@ -25,141 +26,194 @@
     }
   </script>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap');
     body {
       font-family: 'Noto Sans JP', sans-serif;
     }
+    .font-num {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
     .custom-scroll::-webkit-scrollbar {
-      width: 6px;
       height: 6px;
+      width: 6px;
     }
     .custom-scroll::-webkit-scrollbar-thumb {
       background: #cbd5e1;
-      border-radius: 4px;
+      border-radius: 9999px;
+    }
+    .option-card {
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .option-card:hover:not(:disabled) {
+      transform: translateY(-2px);
     }
   </style>
 </head>
-<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col antialiased selection:bg-blue-600 selection:text-white">
 
-  <!-- ヘッダー -->
-  <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
-    <div class="max-w-5xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
-      <div class="flex items-center space-x-2">
-        <span class="bg-blue-600 text-white text-xs font-bold px-2.5 py-1 rounded-md tracking-wider">高校 情報Ⅰ</span>
-        <h1 class="text-lg md:text-xl font-bold text-slate-800">データサイエンス 分野別特訓ドリル</h1>
+  <!-- トップヘッダー -->
+  <header class="bg-white/95 backdrop-blur-md border-b border-slate-200 sticky top-0 z-40 shadow-xs">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center space-x-3">
+        <span class="bg-blue-600 text-white text-xs font-bold px-2.5 py-1 rounded-md tracking-wider shadow-sm">
+          情報Ⅰ 第2章
+        </span>
+        <h1 class="text-base md:text-lg font-bold text-slate-800 flex items-center gap-1.5">
+          <span>情報の表現と管理 第4回報告課題ドリル</span>
+          <span class="text-xs bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded font-normal hidden sm:inline">100問特訓</span>
+        </h1>
       </div>
-      <div class="flex items-center space-x-4 text-sm font-medium">
-        <div class="flex items-center text-amber-600 bg-amber-50 px-2.5 py-1 rounded-full border border-amber-200">
+
+      <!-- リアルタイム学習ステータス -->
+      <div class="flex items-center space-x-3 text-xs md:text-sm font-semibold">
+        <div class="flex items-center text-amber-600 bg-amber-50 px-3 py-1 rounded-full border border-amber-200">
           <span class="mr-1">🔥 連続正解:</span>
-          <span id="streakCount" class="font-bold">0</span>
+          <span id="streakCount" class="font-num font-bold text-sm">0</span>
         </div>
-        <div class="text-slate-600 bg-slate-100 px-2.5 py-1 rounded-full border border-slate-200">
-          <span>スコア:</span>
-          <span id="correctScore" class="font-bold text-blue-600">0</span> / <span id="totalAttempted">0</span>
+        <div class="flex items-center text-blue-700 bg-blue-50 px-3 py-1 rounded-full border border-blue-200">
+          <span class="mr-1">正解:</span>
+          <span id="correctScore" class="font-num font-bold text-blue-600">0</span>
+          <span class="text-slate-400 mx-1">/</span>
+          <span id="totalAttempted" class="font-num text-slate-600">0</span>
+        </div>
+        <div id="rankBadge" class="hidden md:inline-flex items-center text-indigo-700 bg-indigo-50 px-2.5 py-1 rounded-full border border-indigo-200 text-xs">
+          🔰 見習いアナリスト
         </div>
       </div>
     </div>
   </header>
 
   <!-- メインコンテンツ -->
-  <main class="max-w-5xl mx-auto px-4 py-6 flex-1 w-full">
+  <main class="max-w-6xl mx-auto px-4 py-6 flex-1 w-full">
 
-    <!-- ナビゲーション・コントロールパネル -->
-    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 mb-6">
-      
-      <!-- 分野選択タブ -->
+    <!-- コントロールパネル -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 md:p-5 mb-6">
+      <!-- 学習分野の選択タブ -->
       <div class="mb-4">
-        <div class="flex items-center justify-between mb-2">
-          <span class="text-xs font-bold uppercase tracking-wider text-slate-500">学習分野の選択</span>
-          <span id="currentFilterCount" class="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-0.5 rounded">全40問</span>
+        <div class="flex items-center justify-between mb-2.5">
+          <span class="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+            <span>🎯</span> 学習分野の切り替え（全5分野・各20問）
+          </span>
+          <span id="currentFilterCount" class="text-xs font-semibold text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-100">
+            全100問
+          </span>
         </div>
-        <div class="flex flex-wrap gap-1.5 custom-scroll" id="categoryTabs">
-          <button onclick="setCategory('all')" data-cat="all" class="cat-btn px-3 py-1.5 text-xs md:text-sm font-medium rounded-lg transition-all bg-blue-600 text-white shadow-sm">
-            🌐 全分野総合
+
+        <div class="flex items-center gap-1.5 overflow-x-auto pb-1.5 custom-scroll" id="categoryTabs">
+          <button onclick="setCategory('all')" data-cat="all" class="cat-btn shrink-0 px-3.5 py-2 text-xs md:text-sm font-bold rounded-xl transition-all bg-blue-600 text-white shadow-sm">
+            🌐 全分野総合 (100問)
           </button>
-          <button onclick="setCategory('分析プロセス')" data-cat="分析プロセス" class="cat-btn px-3 py-1.5 text-xs md:text-sm font-medium rounded-lg transition-all bg-slate-100 text-slate-600 hover:bg-slate-200">
-            📁 1. 分析プロセス (8問)
+          <button onclick="setCategory('分析プロセスとデータ収集')" data-cat="分析プロセスとデータ収集" class="cat-btn shrink-0 px-3.5 py-2 text-xs md:text-sm font-medium rounded-xl transition-all bg-slate-100 text-slate-600 hover:bg-slate-200">
+            📁 1. 分析プロセス・データ収集 (20問)
           </button>
-          <button onclick="setCategory('度数分布と代表値')" data-cat="度数分布と代表値" class="cat-btn px-3 py-1.5 text-xs md:text-sm font-medium rounded-lg transition-all bg-slate-100 text-slate-600 hover:bg-slate-200">
-            📊 2. 度数分布・代表値 (8問)
+          <button onclick="setCategory('度数分布と代表値')" data-cat="度数分布と代表値" class="cat-btn shrink-0 px-3.5 py-2 text-xs md:text-sm font-medium rounded-xl transition-all bg-slate-100 text-slate-600 hover:bg-slate-200">
+            📊 2. 度数分布・代表値 (20問)
           </button>
-          <button onclick="setCategory('散布図と相関')" data-cat="散布図と相関" class="cat-btn px-3 py-1.5 text-xs md:text-sm font-medium rounded-lg transition-all bg-slate-100 text-slate-600 hover:bg-slate-200">
-            📈 3. 散布図と相関 (8問)
+          <button onclick="setCategory('散布図と相関・因果')" data-cat="散布図と相関・因果" class="cat-btn shrink-0 px-3.5 py-2 text-xs md:text-sm font-medium rounded-xl transition-all bg-slate-100 text-slate-600 hover:bg-slate-200">
+            📈 3. 散布図と相関・因果 (20問)
           </button>
-          <button onclick="setCategory('四分位数と箱ひげ図')" data-cat="四分位数と箱ひげ図" class="cat-btn px-3 py-1.5 text-xs md:text-sm font-medium rounded-lg transition-all bg-slate-100 text-slate-600 hover:bg-slate-200">
-            📦 4. 四分位数・箱ひげ図 (8問)
+          <button onclick="setCategory('四分位数と箱ひげ図')" data-cat="四分位数と箱ひげ図" class="cat-btn shrink-0 px-3.5 py-2 text-xs md:text-sm font-medium rounded-xl transition-all bg-slate-100 text-slate-600 hover:bg-slate-200">
+            📦 4. 四分位数・箱ひげ図 (20問)
           </button>
-          <button onclick="setCategory('公的統計とAPI')" data-cat="公的統計とAPI" class="cat-btn px-3 py-1.5 text-xs md:text-sm font-medium rounded-lg transition-all bg-slate-100 text-slate-600 hover:bg-slate-200">
-            🏛️ 5. 公的統計・API (8問)
+          <button onclick="setCategory('公的統計・データ形式とAPI')" data-cat="公的統計・データ形式とAPI" class="cat-btn shrink-0 px-3.5 py-2 text-xs md:text-sm font-medium rounded-xl transition-all bg-slate-100 text-slate-600 hover:bg-slate-200">
+            🏛️ 5. 公的統計・CSV・API (20問)
           </button>
-          <button onclick="setCategory('review')" data-cat="review" class="cat-btn px-3 py-1.5 text-xs md:text-sm font-medium rounded-lg transition-all bg-amber-100 text-amber-700 hover:bg-amber-200">
+          <button onclick="setCategory('review')" data-cat="review" class="cat-btn shrink-0 px-3.5 py-2 text-xs md:text-sm font-medium rounded-xl transition-all bg-amber-100 text-amber-800 hover:bg-amber-200">
             ⭐ 復習リスト (<span id="reviewBadge">0</span>)
           </button>
         </div>
       </div>
 
-      <!-- 難易度と操作ボタン -->
+      <!-- サブコントロール：難易度・モード・シャッフル -->
       <div class="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-100 text-xs md:text-sm">
-        <div class="flex items-center space-x-2">
-          <span class="text-slate-500 font-medium">難易度:</span>
-          <select id="levelFilter" onchange="setLevel(this.value)" class="bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1 text-slate-700 font-medium focus:ring-2 focus:ring-blue-500 outline-none">
-            <option value="all">すべて（基礎＋応用）</option>
-            <option value="基礎">基礎マスターのみ</option>
-            <option value="発展">応用・発展特訓のみ</option>
-          </select>
+        <div class="flex flex-wrap items-center gap-3">
+          <div class="flex items-center space-x-2">
+            <span class="text-slate-500 font-medium">難易度:</span>
+            <select id="levelFilter" onchange="setLevel(this.value)" class="bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1 text-slate-700 font-semibold focus:ring-2 focus:ring-blue-500 outline-none">
+              <option value="all">すべて（基礎＋発展）</option>
+              <option value="基礎">基礎マスターのみ</option>
+              <option value="発展">発展・共通テスト対策のみ</option>
+            </select>
+          </div>
+          <div class="flex items-center space-x-2">
+            <span class="text-slate-500 font-medium">出題数:</span>
+            <select id="sessionLimit" onchange="setSessionLimit(this.value)" class="bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1 text-slate-700 font-semibold focus:ring-2 focus:ring-blue-500 outline-none">
+              <option value="all">全問挑戦</option>
+              <option value="10">サクッと10問テスト</option>
+              <option value="20">しっかり20問演習</option>
+            </select>
+          </div>
         </div>
+
         <div class="flex items-center space-x-2">
-          <button onclick="restartDrill()" class="px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium rounded-lg transition">
-            🔄 最初から解く
+          <button onclick="restartDrill()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-lg transition active:scale-95">
+            🔄 最初から
           </button>
-          <button onclick="randomizeCurrent()" class="px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium rounded-lg transition">
-            🔀 シャッフル
+          <button onclick="shuffleCurrent()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-lg transition active:scale-95">
+            🔀 問題シャッフル
           </button>
         </div>
       </div>
-
     </div>
 
     <!-- 進捗バー -->
     <div class="mb-4">
-      <div class="flex justify-between text-xs font-semibold text-slate-600 mb-1">
-        <span>進捗: <span id="progressIndex">1</span> / <span id="totalQuestions">40</span> 問</span>
-        <span>正答率: <span id="accuracyRate">0%</span></span>
+      <div class="flex justify-between items-center text-xs font-bold text-slate-600 mb-1.5">
+        <span class="flex items-center gap-1.5">
+          <span>進捗:</span>
+          <span id="progressIndex" class="font-num text-blue-700 text-sm">1</span>
+          <span>/</span>
+          <span id="totalQuestions" class="font-num text-slate-700">100</span>
+          <span>問</span>
+        </span>
+        <span class="flex items-center gap-1.5">
+          <span>正答率:</span>
+          <span id="accuracyRate" class="font-num text-blue-600 text-sm">0%</span>
+        </span>
       </div>
-      <div class="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
-        <div id="progressBar" class="bg-blue-600 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+      <div class="w-full bg-slate-200/80 rounded-full h-2.5 overflow-hidden">
+        <div id="progressBar" class="bg-blue-600 h-2.5 rounded-full transition-all duration-300 ease-out" style="width: 1%"></div>
       </div>
     </div>
 
     <!-- クイズカード -->
-    <div id="quizCard" class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+    <div id="quizCard" class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden transition-all duration-200">
       
-      <!-- カード上部ヘッダー -->
-      <div class="bg-slate-50 px-5 py-3 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2">
+      <!-- カード上部バッジ＆ブックマーク -->
+      <div class="bg-slate-50/80 px-5 py-3 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2">
         <div class="flex items-center space-x-2">
-          <span id="badgeCategory" class="text-xs font-bold px-2 py-0.5 rounded bg-blue-100 text-blue-800">分野</span>
-          <span id="badgeLevel" class="text-xs font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">基礎</span>
-          <span id="questionNumText" class="text-xs font-medium text-slate-500">第 1 問</span>
+          <span id="badgeCategory" class="text-xs font-bold px-2.5 py-0.5 rounded-md bg-blue-100 text-blue-800">
+            分野
+          </span>
+          <span id="badgeLevel" class="text-xs font-bold px-2.5 py-0.5 rounded-md bg-emerald-100 text-emerald-800">
+            基礎
+          </span>
+          <span id="questionNumText" class="text-xs font-semibold text-slate-500 ml-1">
+            Question 1
+          </span>
         </div>
-        <button id="bookmarkBtn" onclick="toggleBookmark()" class="text-xs font-medium px-2.5 py-1 rounded-md border border-slate-200 text-slate-600 hover:bg-slate-100 transition flex items-center gap-1">
-          <span>⭐</span> <span id="bookmarkText">復習に追加</span>
+        <button id="bookmarkBtn" onclick="toggleBookmark()" class="text-xs font-semibold px-2.5 py-1 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-100 transition flex items-center gap-1 active:scale-95">
+          <span>⭐</span> <span id="bookmarkText">復習リストに追加</span>
         </button>
       </div>
 
-      <!-- 問題文 -->
-      <div class="p-6">
-        <h2 id="questionText" class="text-base md:text-lg font-bold text-slate-800 leading-relaxed mb-4">
-          問題文がここに読み込まれます
-        </h2>
-
-        <!-- ヒント表示アコーディオン -->
+      <!-- 問題本文エリア -->
+      <div class="p-6 md:p-8">
         <div class="mb-6">
-          <button onclick="toggleHint()" class="inline-flex items-center text-xs md:text-sm font-semibold text-amber-600 bg-amber-50 hover:bg-amber-100 px-3 py-1.5 rounded-lg border border-amber-200 transition">
+          <span class="text-xs font-bold uppercase tracking-wider text-blue-600 block mb-1">Question</span>
+          <h2 id="questionText" class="text-base md:text-lg lg:text-xl font-bold text-slate-900 leading-relaxed">
+            問題文がここに読み込まれます
+          </h2>
+        </div>
+
+        <!-- ヒント表示ボタンとアコーディオン -->
+        <div class="mb-6">
+          <button onclick="toggleHint()" class="inline-flex items-center text-xs md:text-sm font-bold text-amber-700 bg-amber-50 hover:bg-amber-100/80 px-3.5 py-1.5 rounded-xl border border-amber-200 transition active:scale-95">
             <span class="mr-1.5">💡</span>
             <span>ヒントを見る</span>
             <span id="hintArrow" class="ml-1 text-xs">▼</span>
           </button>
-          <div id="hintContent" class="hidden mt-2 p-3 bg-amber-50/80 border border-amber-200/80 rounded-xl text-xs md:text-sm text-amber-900 leading-relaxed">
+          <div id="hintContent" class="hidden mt-2.5 p-4 bg-amber-50/70 border border-amber-200 rounded-xl text-xs md:text-sm text-amber-900 leading-relaxed shadow-inner">
             ヒントの内容がここに表示されます。
           </div>
         </div>
@@ -169,30 +223,30 @@
           <!-- JSで動的にボタン生成 -->
         </div>
 
-        <!-- 回答後フィードバック・詳細解説エリア -->
+        <!-- 解答後フィードバック・詳細解説エリア -->
         <div id="feedbackContainer" class="hidden border-t border-slate-200 pt-6 mt-6">
           
           <div id="resultBanner" class="p-4 rounded-xl mb-4 font-bold text-sm md:text-base flex items-center">
             <!-- 正解・不正解表示 -->
           </div>
 
-          <!-- 重要ポイント -->
-          <div class="bg-indigo-50 border border-indigo-200 rounded-xl p-3.5 mb-4">
-            <div class="text-xs font-bold text-indigo-800 uppercase tracking-wider mb-1 flex items-center">
-              <span class="mr-1">📌</span> 核心のポイント
+          <!-- 核心ポイント解説 -->
+          <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-5">
+            <div class="text-xs font-bold text-blue-800 uppercase tracking-wider mb-1 flex items-center">
+              <span class="mr-1.5">📌</span> 核心の理解ポイント・鉄則
             </div>
-            <p id="keyPointText" class="text-xs md:text-sm text-indigo-950 font-medium leading-relaxed"></p>
+            <p id="keyPointText" class="text-xs md:text-sm text-blue-950 font-medium leading-relaxed"></p>
           </div>
 
-          <!-- 各選択肢の詳しい解説（なぜ間違いなのか・なぜ正しいのか） -->
-          <div class="space-y-2 mb-6">
-            <div class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">選択肢ごとの詳細分析（誤答の理由）</div>
+          <!-- 選択肢ごとの詳細解説（なぜ間違いなのか／なぜ正しいのか） -->
+          <div class="space-y-2.5 mb-6">
+            <div class="text-xs font-bold text-slate-500 uppercase tracking-wider">選択肢ごとの徹底分析（誤答の理由と正解の根拠）</div>
             <div id="detailedRationales" class="space-y-2 text-xs md:text-sm"></div>
           </div>
 
-          <!-- 次の問題へボタン -->
-          <div class="flex justify-end">
-            <button id="nextBtn" onclick="nextQuestion()" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-md hover:shadow-lg transition flex items-center space-x-1">
+          <!-- 次へ進むボタン -->
+          <div class="flex justify-end pt-2">
+            <button id="nextBtn" onclick="nextQuestion()" class="px-7 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-md hover:shadow-lg transition flex items-center space-x-2 active:scale-95">
               <span>次の問題へ進む</span>
               <span>➔</span>
             </button>
@@ -204,37 +258,46 @@
 
     </div>
 
-    <!-- 完了画面（非表示） -->
-    <div id="summaryCard" class="hidden bg-white rounded-2xl shadow-sm border border-slate-200 p-8 text-center">
-      <div class="inline-block p-4 bg-blue-50 rounded-full text-4xl mb-4">🎉</div>
-      <h2 class="text-2xl font-bold text-slate-800 mb-2">特訓ドリル修了！</h2>
-      <p class="text-slate-600 text-sm mb-6">選択した分野の全問題を解き終えました。素晴らしい集中力です！</p>
+    <!-- 演習完了画面 -->
+    <div id="summaryCard" class="hidden bg-white rounded-2xl shadow-sm border border-slate-200 p-8 md:p-12 text-center">
+      <div class="inline-flex items-center justify-center w-20 h-20 bg-blue-100 rounded-full text-4xl mb-4 shadow-inner">
+        🎉
+      </div>
+      <h2 class="text-2xl md:text-3xl font-bold text-slate-800 mb-2">第4回報告課題特訓 修了！</h2>
+      <p id="summarySubtext" class="text-slate-600 text-sm max-w-md mx-auto mb-8">
+        全問題を解き終えました。データサイエンスの考え方と分析リテラシーが確実に定着しています！
+      </p>
       
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-lg mx-auto mb-8">
+      <!-- スコアグリッド -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-xl mx-auto mb-8 text-left">
         <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
-          <div class="text-xs text-slate-500 mb-1">解いた問題</div>
-          <div id="sumTotal" class="text-xl font-bold text-slate-800">0</div>
+          <div class="text-xs font-semibold text-slate-500 mb-1">解いた問題数</div>
+          <div id="sumTotal" class="text-2xl font-num font-bold text-slate-800">0</div>
         </div>
         <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
-          <div class="text-xs text-slate-500 mb-1">正解数</div>
-          <div id="sumCorrect" class="text-xl font-bold text-emerald-600">0</div>
+          <div class="text-xs font-semibold text-slate-500 mb-1">正解数</div>
+          <div id="sumCorrect" class="text-2xl font-num font-bold text-emerald-600">0</div>
         </div>
         <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
-          <div class="text-xs text-slate-500 mb-1">正答率</div>
-          <div id="sumAccuracy" class="text-xl font-bold text-blue-600">0%</div>
+          <div class="text-xs font-semibold text-slate-500 mb-1">正答率</div>
+          <div id="sumAccuracy" class="text-2xl font-num font-bold text-blue-600">0%</div>
         </div>
         <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
-          <div class="text-xs text-slate-500 mb-1">最大コンボ</div>
-          <div id="sumStreak" class="text-xl font-bold text-amber-600">0</div>
+          <div class="text-xs font-semibold text-slate-500 mb-1">最大連続正解</div>
+          <div id="sumStreak" class="text-2xl font-num font-bold text-amber-600">0</div>
         </div>
       </div>
 
+      <!-- 操作ボタン -->
       <div class="flex flex-wrap justify-center gap-3">
-        <button onclick="restartDrill()" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition">
-          もう一度この分野を解く
+        <button onclick="restartDrill()" class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition shadow active:scale-95">
+          もう一度この条件で解く
         </button>
-        <button onclick="setCategory('all')" class="px-6 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition">
-          全分野総合に挑戦
+        <button onclick="setCategory('review')" class="px-6 py-3 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl transition shadow active:scale-95">
+          ⭐ 間違えた問題を復習する
+        </button>
+        <button onclick="setCategory('all')" class="px-6 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition active:scale-95">
+          全分野総合に戻る
         </button>
       </div>
     </div>
@@ -243,647 +306,1516 @@
 
   <!-- フッター -->
   <footer class="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-500 mt-auto">
-    高等学校「情報Ⅰ」第2章 データサイエンスとデータの表現 準拠学習ドリル
+    高等学校「情報Ⅰ」第2章 第5節 データサイエンスとデータの表現（第4回報告課題完全攻略ドリル）
   </footer>
 
   <script>
-    // 40問の精選完全データ（5分野×各8問：基礎4問＋応用4問）
-    const ALL_QUESTIONS = [
-      // ==========================================
-      // 分野1: 分析プロセス (8問)
-      // ==========================================
+    // =========================================================================
+    // 全100問 完全精選データベース（5分野 × 各20問：基礎10問＋発展10問）
+    // =========================================================================
+    const ALL_100_QUESTIONS = [
+      // -----------------------------------------------------------------------
+      // 分野1: 分析プロセスとデータ収集 (Q1〜Q20)
+      // -----------------------------------------------------------------------
       {
         id: 1,
-        category: "分析プロセス",
+        category: "分析プロセスとデータ収集",
         level: "基礎",
-        question: "データ分析を進める際の標準的な4段階のプロセスとして、最も適切な順序はどれか。",
-        hint: "データ集めを始める前に、まず「何のために行うか」を決定する必要があります。",
-        keyPoint: "目的を明確に定めないままデータ収集を始めると、不要なデータを集めたり分析が迷走します。",
+        question: "報告課題プリントの図1「データ分析の流れ」において、データの収集の前後に位置する標準的な4段階プロセスの順序として最も適切なものはどれか。",
+        hint: "課題プリントの[1](2)の設問です。データを集める前にまず「何のために行うか」を決めます。",
+        keyPoint: "データ分析の基本手順は「目的の設定（A） $\\rightarrow$ データの収集 $\\rightarrow$ データの整理（B） $\\rightarrow$ 分析と解釈（C）」です。",
         options: [
-          { text: "目的の設定 → データの収集 → データの整理 → 分析と解釈", isCorrect: true, exp: "正しい順序です。目的を定めてから収集し、表やグラフに整理した上で分析・解釈を行います。" },
-          { text: "データの収集 → 目的の設定 → データの整理 → 分析と解釈", isCorrect: false, exp: "収集を先に行うと、どんな項目が必要かが定まらず、無駄な作業が発生してしまいます。" },
-          { text: "目的の設定 → データの整理 → データの収集 → 分析と解釈", isCorrect: false, exp: "収集する前にデータを整理することは物理的に不可能です。" },
-          { text: "データの収集 → 分析と解釈 → データの整理 → 目的の設定", isCorrect: false, exp: "整理せずにいきなり解釈したり、最後に目的を決めるのは順序が完全に逆転しています。" }
+          { text: "どのようなデータを収集し分析するかを決める → データを整理して視覚的に比較しやすい形式にまとめる → 分析結果から明らかになったことを解釈する", isCorrect: true, exp: "課題プリントの選択肢「ア」の内容であり、目的設定→収集→整理→分析・解釈の正しい王道プロセスです。" },
+          { text: "データを整理して視覚的に比較しやすい形式にまとめる → どのようなデータを収集し分析するかを決める → 分析結果を解釈する", isCorrect: false, exp: "収集する前にデータを整理することは物理的に不可能です。" },
+          { text: "分析結果から明らかになったことを解釈する → データを整理する → どのようなデータを収集するか決める", isCorrect: false, exp: "順序が完全に逆転してしまっています。" },
+          { text: "どのようなデータを収集するか決める → 分析結果を解釈する → データを整理する", isCorrect: false, exp: "データを整理せずにいきなり解釈することはできません。" }
         ]
       },
       {
         id: 2,
-        category: "分析プロセス",
+        category: "分析プロセスとデータ収集",
         level: "基礎",
-        question: "自ら実験を行って温度を記録したり、街頭で通行人数を目視で数えて得たデータの分類として最も適切なものはどれか。",
-        hint: "誰かが作成・加工したデータではなく、自分で直接測定・取得した元データを指します。",
-        keyPoint: "自分で直接取得したデータは「1次データ」、他者が作成・公表した既存データは「2次データ」です。",
+        question: "課題プリントの[1](1)にある「データの収集」についての説明文の正誤判定（1:実験観察の記録、2:国公開データは国家機密で使用禁止、3:公的サイトDL）の組み合わせとして正しいものはどれか。",
+        hint: "国が公開している公的統計（オープンデータ）は国民の共有財産であり、国家機密ではありません。",
+        keyPoint: "1は正しい（ア）、2は誤り（イ）、3は正しい（ア）です。オープンデータは誰でも自由に活用できます。",
         options: [
-          { text: "1次データ（一次資料）", isCorrect: true, exp: "観測者自身が調査や実験によって直接取得した未加工のオリジナルデータです。" },
-          { text: "2次データ（二次資料）", isCorrect: false, exp: "他人がすでに収集・公表している統計や加工済みのデータを指すため誤りです。" },
-          { text: "質的カテゴリデータ", isCorrect: false, exp: "温度や通行人数は数値で表される「量的データ」であるため不適切です。" },
-          { text: "オープンデータ", isCorrect: false, exp: "私的に計測した記録であり、公に自由に利用できる形式で公開されたデータではありません。" }
+          { text: "1: 正しい(ア) 、 2: 誤り(イ) 、 3: 正しい(ア)", isCorrect: true, exp: "国が公開する統計は広く利用可能（2は誤り）であり、実験観察やWebDLは正規の収集手段です。" },
+          { text: "1: 正しい(ア) 、 2: 正しい(ア) 、 3: 正しい(ア)", isCorrect: false, exp: "国の公開統計は機密ではなく二次利用可能なオープンデータであるため、2は誤りです。" },
+          { text: "1: 誤り(イ) 、 2: 誤り(イ) 、 3: 誤り(イ)", isCorrect: false, exp: "1と3は日常的に行われるデータ収集の正当な方法です。" },
+          { text: "1: 誤り(イ) 、 2: 正しい(ア) 、 3: 正しい(ア)", isCorrect: false, exp: "実験観察による記録は一次データの収集として正当です。" }
         ]
       },
       {
         id: 3,
-        category: "分析プロセス",
+        category: "分析プロセスとデータ収集",
         level: "基礎",
-        question: "収集した生データに対して、表記揺れの統一、欠損値の穴埋めや削除、明らかな入力ミスの修正を行う作業の名称はどれか。",
-        hint: "データを分析に適した清潔・健全な状態に整えるクリーニング作業のことです。",
-        keyPoint: "データクレンジングを怠ると、異常値や表記の不一致によって分析結果が歪んでしまいます。",
+        question: "観測者自身が実験やアンケート調査、街頭での観察によって直接記録・測定したオリジナルの生データを何と呼ぶか。",
+        hint: "他人が加工・公表した二次データ（二次資料）と対比される用語です。",
+        keyPoint: "自身で直接取得した未加工の生データは「1次データ（一次資料）」です。",
         options: [
-          { text: "データクレンジング", isCorrect: true, exp: "データの品質を高め、分析の正確性を担保するための重要な前処理プロセスです。" },
-          { text: "データビジュアライゼーション", isCorrect: false, exp: "データをグラフや図として視覚化する工程のことです。" },
-          { text: "データマイニング", isCorrect: false, exp: "大量のデータから統計やAIを用いて隠れたパターンを発掘する技術です。" },
-          { text: "データモデリング", isCorrect: false, exp: "データベースの構造や数式モデルを設計・構築する作業です。" }
+          { text: "1次データ（一次資料）", isCorrect: true, exp: "調査者自らが目的のために直接計測・収集した未加工の元データです。" },
+          { text: "2次データ（二次資料）", isCorrect: false, exp: "他者や公的機関がすでに収集・加工・公表している既存データのことです。" },
+          { text: "メタデータ", isCorrect: false, exp: "データの作成日時や形式など、データ自体を説明する付随情報です。" },
+          { text: "名義データ", isCorrect: false, exp: "分類のための質的データの尺度名であり、収集の由来を表す用語ではありません。" }
         ]
       },
       {
         id: 4,
-        category: "分析プロセス",
+        category: "分析プロセスとデータ収集",
         level: "基礎",
-        question: "次のデータ項目のうち、計算（平均値や四則演算）を行うことが統計学的に意味を持つ「量的データ」はどれか。",
-        hint: "足したり割ったりして平均値を求めることに意味がある数値を選びましょう。",
-        keyPoint: "電話番号や郵便番号は数字で書かれていても、区別のための「質的データ（名義尺度）」です。",
+        question: "自然現象や社会現象のデータを収集する際、「観察」と「実験」の違いを説明したものとして最も適切なものはどれか。",
+        hint: "条件を人為的にコントロールするか、ありのままの自然な状態を記録するかの違いです。",
+        keyPoint: "「実験」は条件を意図的に操作・制御して変化を測定し、「観察」は対象をあるがままの状態で記録します。",
         options: [
-          { text: "走幅跳の跳躍距離（メートル）", isCorrect: true, exp: "数値そのものに連続的な量としての意味があり、平均値や差を求めることができる量的データです。" },
-          { text: "生徒の出席番号", isCorrect: false, exp: "個人の識別のためのラベル（質的データ）であり、平均番号を計算しても意味がありません。" },
-          { text: "アンケートの満足度（1:不満 〜 5:大満足）", isCorrect: false, exp: "順序には意味がありますが、等間隔な量とは言えない「順序尺度（質的データ）」です。" },
-          { text: "自宅の郵便番号", isCorrect: false, exp: "地域を表す記号（名義尺度）であり、足し算や引き算は成立しません。" }
+          { text: "実験は意図的に条件を操作・制御するが、観察はありのままの状態を記録する。", isCorrect: true, exp: "実験では変数を制御して因果を検証し、観察では自然な状態をそのまま測定します。" },
+          { text: "実験は人間のみを対象とし、観察は自然物のみを対象とする。", isCorrect: false, exp: "対象の種類によって観察と実験が限定されるわけではありません。" },
+          { text: "実験は常に質的データが得られ、観察は常に量的データが得られる。", isCorrect: false, exp: "どちらの手法でも質的データ・量的データの双方が得られます。" },
+          { text: "観察は統計分析を行うことが禁じられている。", isCorrect: false, exp: "観察研究のデータも統計分析の主要な対象です。" }
         ]
       },
       {
         id: 5,
-        category: "分析プロセス",
-        level: "発展",
-        question: "Webサイトの任意アンケートで「利用者の92%が満足」という結果が出た。この数値を一般の利用者全体の実態と判断できない最大の統計的理由はどれか。",
-        hint: "回答した人がどのような人物であるか（サンプルの偏り）に注目してください。",
-        keyPoint: "自発的に回答する人は「熱心なファン」や「極端な不満を持つ人」に偏る「選択バイアス」が生じます。",
+        category: "分析プロセスとデータ収集",
+        level: "基礎",
+        question: "収集した生データに見られる表記揺れ（「Tel」と「電話」）、全角半角の不一致、欠損値の補完や異常値の除去を行う作業の名称はどれか。",
+        hint: "データを綺麗に整え、分析の質を高めるための「掃除（クレンジング）」作業です。",
+        keyPoint: "「データクレンジング（データクリーニング）」を怠ると、プログラムが誤動作したり集計結果が歪みます。",
         options: [
-          { text: "自発的に回答する熱心な利用者に偏る「選択バイアス」が生じるため", isCorrect: true, exp: "熱意のある人だけが自主的に回答するため、無関心層や一般ユーザーの意見が反映されません。" },
-          { text: "アンケートの質問項目が5段階評価で作られていないため", isCorrect: false, exp: "尺度の形式ではなく、標本の集まり方（サンプリング方法）自体の歪みが問題です。" },
-          { text: "Web上のデータはすべて1次データではなく2次データとして扱われるため", isCorrect: false, exp: "Web上で直接収集した回答は1次データであり、この分類は理由になりません。" },
-          { text: "回答者の氏名や個人情報が特定されていないため", isCorrect: false, exp: "匿名調査であっても標本が偏っていなければ統計的推定は可能です。" }
+          { text: "データクレンジング", isCorrect: true, exp: "データの誤記や欠損、表記揺れを整えて品質を高める必須の前処理です。" },
+          { text: "データマイニング", isCorrect: false, exp: "蓄積されたビッグデータから未知のパターンや規則性を発掘する技術です。" },
+          { text: "データビジュアライゼーション", isCorrect: false, exp: "データをグラフや図にして視覚化する工程です。" },
+          { text: "データバックアップ", isCorrect: false, exp: "故障に備えてデータを複製退避させる作業です。" }
         ]
       },
       {
         id: 6,
-        category: "分析プロセス",
-        level: "発展",
-        question: "ある学習塾で、新アプリを利用した生徒群の平均点が、利用しなかった生徒群より15点高かった。これだけでは「アプリが成績を上げた」と結論できない理由はどれか。",
-        hint: "「自主的にアプリを使うような生徒」は、もともとどのような性質を持っていたでしょうか。",
-        keyPoint: "アプリ利用と成績の双方に影響を与える「本人の学習意欲」という交絡因子が存在する可能性があります。",
+        category: "分析プロセスとデータ収集",
+        level: "基礎",
+        question: "数字の羅列である膨大な生データを、表やグラフ、地図などの視覚的な形式にまとめる「データの可視化（ビジュアライゼーション）」を行う最大の意義はどれか。",
+        hint: "大量の数値を見つめるだけでは気づきにくい特徴を直感的に把握します。",
+        keyPoint: "可視化によって、分布の偏りや外れ値、データの傾向（トレンド）を一目で直感的に発見できます。",
         options: [
-          { text: "自主利用した生徒はもともと学習意欲が高いという交絡因子の存在", isCorrect: true, exp: "「意欲が高いからアプリも使い、勉強もして点数が高かった」という第三の変数が疑われます。" },
-          { text: "生徒の得点は質的データであり、平均値を計算することが統計的に禁じられているため", isCorrect: false, exp: "テストの得点は量的データ（比率尺度）であり、平均値の計算は完全に妥当です。" },
-          { text: "2つの生徒群の人数が同数でない場合、平均値の比較は一切無効になるため", isCorrect: false, exp: "群の人数が異なっていても平均値の比較自体は可能です。" },
-          { text: "アプリの利用ログは公的統計（e-Stat）の基準を満たしていないため", isCorrect: false, exp: "社内・塾内のデータ検証に公的統計基準は直接関係ありません。" }
+          { text: "数値の羅列では見落としやすい分布の偏りや傾向、外れ値を直感的に捉えるため", isCorrect: true, exp: "人間の視覚認知を活かして、データの特徴や異常を素早く正確に理解できます。" },
+          { text: "データのファイル容量を小さく圧縮してストレージを節約するため", isCorrect: false, exp: "グラフ画像に変換するとむしろ容量は増加することが多く、目的と異なります。" },
+          { text: "すべてのデータに著作権を主張して他人の利用を禁止するため", isCorrect: false, exp: "可視化の目的は他人の利用禁止ではありません。" },
+          { text: "数学的な平均値の計算を完全に省略して結論を出すため", isCorrect: false, exp: "可視化と統計数値の計算は互いに補完し合う関係にあります。" }
         ]
       },
       {
         id: 7,
-        category: "分析プロセス",
-        level: "発展",
-        question: "自分の仮説を支持するデータばかりを無意識に集め、反証となる不都合なデータを無視してしまう分析者の心理的傾向を何と呼ぶか。",
-        hint: "「自分の考えが正しいと確信したい」という思い込みによるバイアスです。",
-        keyPoint: "データサイエンスでは客観性を保つため、仮説を否定するデータにも公平に向き合う必要があります。",
+        category: "分析プロセスとデータ収集",
+        level: "基礎",
+        question: "データ分析を開始する際、データ収集よりも前に「目的の設定」を明確に行わなければならない最大の理由はどれか。",
+        hint: "目的が決まっていないと、何をどれだけ集めればよいか判断できません。",
+        keyPoint: "目的を明確にすることで、収集すべき項目・適切な分析手法・必要なサンプルサイズが定まります。",
         options: [
-          { text: "確証バイアス", isCorrect: true, exp: "自分の先入観や仮説に合致する情報ばかりを選好し、反例を軽視・無視してしまう心理的罠です。" },
-          { text: "正常性バイアス", isCorrect: false, exp: "自然災害などの異常事態に直面しても「自分は大丈夫」と思い込んでしまう心理です。" },
-          { text: "生存者バイアス", isCorrect: false, exp: "失敗した事例が消滅し、成功した事例（生き残った者）のみに注目してしまう誤りです。" },
-          { text: "ハロー効果", isCorrect: false, exp: "対象のある際立った特徴に引きずられて、全体の評価が歪んでしまう現象です。" }
+          { text: "どのようなデータを集めるべきか、どの分析手法を使うべきかを明確にするため", isCorrect: true, exp: "目的が曖昧なままデータを集めると、無関係なデータを集めたり分析が迷走します。" },
+          { text: "分析結果が必ず自分の思い通りの結論になるように誘導するため", isCorrect: false, exp: "結論ありきの誘導は客観的なデータ分析の倫理に反します。" },
+          { text: "法律によって事前の目的公表がすべてのデータに義務付けられているため", isCorrect: false, exp: "すべての私的研究に事前の法的目的公表が課されているわけではありません。" },
+          { text: "データの欠損値が自動的にゼロ個になるようにするため", isCorrect: false, exp: "目的を設定しても欠損値が自動で消えることはありません。" }
         ]
       },
       {
         id: 8,
-        category: "分析プロセス",
-        level: "発展",
-        question: "地方自治体がクリエイティブ・コモンズ（CC BY 4.0）で公開しているオープンデータを有償アプリ内で利用する際の条件として正しいものはどれか。",
-        hint: "「BY」は表示（Attribution）を意味します。",
-        keyPoint: "CC BYは、原作者のクレジット（著作権表示・出典）を明記すれば、営利目的（商用利用）も許可されます。",
+        category: "分析プロセスとデータ収集",
+        level: "基礎",
+        question: "公的機関や他社がWeb上で公開している統計データを利用する際、分析者が守るべき情報モラルとして最も適切なものはどれか。",
+        hint: "利用規約を確認し、どこから得たデータなのかを出典として明記します。",
+        keyPoint: "オープンデータであっても、利用規約の遵守と「出典の明記（クレジット表示）」は不可欠なルールです。",
         options: [
-          { text: "自治体の著作権表示や出典を明記すれば商用利用できる。", isCorrect: true, exp: "CC BYは「適切なクレジットの表示」を行えば、商用利用や改変が自由に認められています。" },
-          { text: "オープンデータは非営利目的に限られるため、有償アプリでの配信は禁止されている。", isCorrect: false, exp: "CC NC（非営利）が付いていない限り、オープンデータは商用利用が可能です。" },
-          { text: "データを一切改変・加工せず、元の状態のまま配信する場合のみ許可される。", isCorrect: false, exp: "CC ND（改変禁止）が付いていないため、データの加工・集計・整形も自由に許可されます。" },
-          { text: "事前に自治体の窓口へ書面で申請し、個別の許諾番号を得る必要がある。", isCorrect: false, exp: "ライセンス条件を遵守していれば、事前の個別申請や許諾は不要です。" }
+          { text: "公開サイトの利用規約を遵守し、分析結果を公表する際は出典を明記する。", isCorrect: true, exp: "データの信頼性を担保し、著作権や利用規約を尊重するための基本モラルです。" },
+          { text: "インターネット上のデータは誰のものでもないので、自由に変更して自作として公表する。", isCorrect: false, exp: "著作権法違反や盗用（剽窃）にあたる不正行為です。" },
+          { text: "自分の都合の悪いデータが含まれている場合は、数値を勝手に改ざんして報告する。", isCorrect: false, exp: "データの改ざん・捏造にあたる重大な研究不正です。" },
+          { text: "公的機関のデータは商業利用が法律で一切禁止されているので商売には使わない。", isCorrect: false, exp: "多くのオープンデータは適切なクレジット表示を行えば商用利用が認められています。" }
         ]
       },
-
-      // ==========================================
-      // 分野2: 度数分布と代表値 (8問)
-      // ==========================================
       {
         id: 9,
-        category: "度数分布と代表値",
+        category: "分析プロセスとデータ収集",
         level: "基礎",
-        question: "度数分布表における階級「50点以上70点未満」の「階級の幅」と「階級値」の組み合わせとして正しいものはどれか。",
-        hint: "幅は端点同士の引き算、階級値は端点の中央（平均値）です。",
-        keyPoint: "階級の幅 = 上限 - 下限、階級値 = (上限 + 下限) ÷ 2 です。",
+        question: "データ分析を行って新たな事実や傾向が明らかになった後、サイクルの最後に行うべき最も重要な活動はどれか。",
+        hint: "分析して「面白かった」で終わらせず、現実の課題を解決するために行動します。",
+        keyPoint: "データサイエンスのゴールは、得られた知見に基づいて「現実の課題解決のための施策を立案・実行する」ことです。",
         options: [
-          { text: "階級の幅: 20点 、 階級値: 60点", isCorrect: true, exp: "幅は 70 - 50 = 20点、階級値は (50 + 70) / 2 = 60点 で正しいです。" },
-          { text: "階級の幅: 60点 、 階級値: 20点", isCorrect: false, exp: "幅と階級値の値が逆になっています。" },
-          { text: "階級の幅: 20点 、 階級値: 50点", isCorrect: false, exp: "50点は階級の下限値であり、階級の中央値（平均）ではありません。" },
-          { text: "階級の幅: 70点 、 階級値: 60点", isCorrect: false, exp: "70点は階級の上限値であり、区間の幅ではありません。" }
+          { text: "分析結果から得られた知見をもとに、現実の課題解決に向けた具体的な施策を立案・実行する。", isCorrect: true, exp: "データ分析は課題解決の手段であり、意思決定や行動への反映が最終ゴールです。" },
+          { text: "収集したすべてのデータを直ちに消去して他人に知られないように隠す。", isCorrect: false, exp: "分析の再現性確認や検証のためにデータは適切に保管・管理されるべきです。" },
+          { text: "二度と同じ調査を行わないようにすべてのプログラムを破棄する。", isCorrect: false, exp: "継続的な効果測定や改善（PDCA）のためにプログラムは資産化されます。" },
+          { text: "結果のグラフを印刷して保管するだけで、現状の業務は一切変えない。", isCorrect: false, exp: "課題解決に結びつかなければ分析の価値が発揮されません。" }
         ]
       },
       {
         id: 10,
-        category: "度数分布と代表値",
+        category: "分析プロセスとデータ収集",
         level: "基礎",
-        question: "全体のデータ数が40個のとき、ある階級の度数が12であった。この階級の「相対度数」はいくらか。",
-        hint: "度数を全体の総度数で割り算します。",
-        keyPoint: "相対度数 = その階級の度数 ÷ 全体の度数の合計 です（割合を表す）。",
+        question: "クリエイティブ・コモンズ・ライセンスの「CC BY」が付与されたオープンデータを活用する際の条件として正しいものはどれか。",
+        hint: "「BY」は表示（Attribution）を意味します。",
+        keyPoint: "「CC BY」は、原作者のクレジット（著作権表示や出典）を表示すれば、商用利用や改変も自由に認められます。",
         options: [
-          { text: "0.30", isCorrect: true, exp: "12 ÷ 40 = 0.30 となり正しいです。" },
-          { text: "0.12", isCorrect: false, exp: "度数そのものの数値を小数にしただけの誤りです。" },
-          { text: "0.48", isCorrect: false, exp: "計算ミスです（40 × 1.2などの誤った演算）。" },
-          { text: "3.33", isCorrect: false, exp: "40 ÷ 12 と逆の割り算をしてしまっています。" }
+          { text: "原作者のクレジット（著作権表示や出典）を明記すれば、営利目的（商用利用）も含めて自由に利用できる。", isCorrect: true, exp: "CC BYは最も自由度の高いオープンライセンスの一つです。" },
+          { text: "非営利の教育目的でのみ利用が認められ、企業のアプリ内では一切使えない。", isCorrect: false, exp: "「NC（非営利）」マークが付いていない限り商用利用可能です。" },
+          { text: "データを一切加工・編集せず、元のファイルと完全に同一の状態で配る場合のみ使える。", isCorrect: false, exp: "「ND（改変禁止）」マークが付いていない限り加工・集計も自由です。" },
+          { text: "利用するたびに自治体の窓口へ書面で申請し、事前の許諾印をもらう必要がある。", isCorrect: false, exp: "ライセンス条件を満たしていれば事前の個別申請は不要です。" }
         ]
       },
       {
         id: 11,
-        category: "度数分布と代表値",
-        level: "基礎",
-        question: "ヒストグラムにおいて、一般的な棒グラフと異なり、長方形の柱同士を隙間なく密着させて描く理由はどれか。",
-        hint: "横軸が表している数値の連続性に注目してください。",
-        keyPoint: "棒グラフは独立した項目（離散量）、ヒストグラムは連続する数値区間を表すため隙間を空けません。",
+        category: "分析プロセスとデータ収集",
+        level: "発展",
+        question: "自社のWebサイト上に任意回答のアンケートを設置したところ、「回答者の89%がサービスに大満足」という結果が出た。この数値を全顧客の実態と見なすことが危険である統計的理由はどれか。",
+        hint: "自発的にアンケートに答えてくれる人は、どんな特徴を持った人たちでしょうか？",
+        keyPoint: "自発的に回答する熱心なファン層に偏る「選択バイアス（自己選択バイアス）」が生じ、一般層や無関心層が抜け落ちます。",
         options: [
-          { text: "横軸の数値が途切れず連続している区間であることを表すため", isCorrect: true, exp: "前の階級の終わりと次の階級の始まりが連続した量的データであることを示します。" },
-          { text: "グラフ全体のインク使用量を減らして印刷コストを下げるため", isCorrect: false, exp: "印刷上の都合ではなく、統計データの性質を正しく視覚表現するためのルールです。" },
-          { text: "すべての階級の度数の合計が100%になることを強調するため", isCorrect: false, exp: "合計が100%になるかどうかと柱を密着させる理由は無関係です。" },
-          { text: "縦軸の値が割合ではなく実数であることを示すため", isCorrect: false, exp: "相対度数を縦軸にとったヒストグラムでも柱は密着させて描きます。" }
+          { text: "自発的に回答する熱心な利用者にサンプルが偏る「選択バイアス」が生じているため", isCorrect: true, exp: "回答する労力を払ってくれる好意的な層が過剰に反映され、不満を持つ一般層の意見が反映されません。" },
+          { text: "アンケートの集計にPythonや表計算ソフトが使用されていないため", isCorrect: false, exp: "集計ツールの問題ではなく、標本抽出（サンプリング）の歪みが本質的な問題です。" },
+          { text: "アンケート結果は常に名義尺度に変換しなければならないという規則があるため", isCorrect: false, exp: "そのような統計規則は存在しません。" },
+          { text: "Webアンケートで得られたデータは1次データとして扱えないため", isCorrect: false, exp: "自社で直接集めたデータは1次データです。" }
         ]
       },
       {
         id: 12,
-        category: "度数分布と代表値",
-        level: "基礎",
-        question: "靴屋で最も売れるサイズの仕入れ数を決めたり、人気投票の結果を集計する際に最も役立つ代表値はどれか。",
-        hint: "最も多くの人が選んだ、出現回数が一番多い値です。",
-        keyPoint: "最も頻繁に現れる値を「最頻値（モード）」と呼び、サイズや人気投票などの質的・離散データに最適です。",
+        category: "分析プロセスとデータ収集",
+        level: "発展",
+        question: "分析者が「新教材を導入したクラスは成績が上がるはずだ」という仮説を持っているとき、成績が上がった生徒のデータばかりに目を向け、成績が下がった生徒のデータを軽視してしまう心理的傾向はどれか。",
+        hint: "自分の確信を補強する情報ばかりを集めてしまうバイアスです。",
+        keyPoint: "「確証バイアス」に陥ると、仮説に都合のよい反証不能な解釈をしてしまい、客観的な分析が損なわれます。",
         options: [
-          { text: "最頻値（モード）", isCorrect: true, exp: "最も出現頻度が高い値であり、商品の売れ筋サイズ等を決める際に直結します。" },
-          { text: "算術平均値", isCorrect: false, exp: "平均サイズ（例: 25.37cm）を計算しても、その靴が存在・売れるとは限りません。" },
-          { text: "中央値（メジアン）", isCorrect: false, exp: "真ん中の順位の値であり、最多販売サイズを特定する指標としては不十分です。" },
-          { text: "最大値", isCorrect: false, exp: "一番大きいサイズのみを仕入れることになり、商売として成り立ちません。" }
+          { text: "確証バイアス", isCorrect: true, exp: "先入観や自説を肯定する情報ばかりを無意識に集め、反証を無視する認知バイアスです。" },
+          { text: "正常性バイアス", isCorrect: false, exp: "災害時などに「自分は大丈夫だ」と危険を過小評価してしまう心理です。" },
+          { text: "生存者バイアス", isCorrect: false, exp: "生き残った成功例のみに注目し、淘汰された失敗例を無視してしまう誤りです。" },
+          { text: "アンカリング効果", isCorrect: false, exp: "最初に提示された数値に引きずられて判断が歪む現象です。" }
         ]
       },
       {
         id: 13,
-        category: "度数分布と代表値",
+        category: "分析プロセスとデータ収集",
         level: "発展",
-        question: "度数分布表で「0〜20点未満（度数2）」「20〜40点未満（度数5）」「40〜60点未満（度数3）」のとき、階級値を用いた推定平均値はいくらか。",
-        hint: "各階級値（10点, 30点, 50点）に度数を掛け、総度数（10）で割ります。",
-        keyPoint: "推定合計 = (10×2) + (30×5) + (50×3) = 20 + 150 + 150 = 320点。平均 = 320 ÷ 10 = 32点。",
+        question: "ある企業で「社内勉強会に自主参加した社員グループ」の売上が、不参加のグループより20%高かった。これだけで「勉強会が売上を伸ばした」と断定できない最大の統計的理由はどれか。",
+        hint: "自主的に勉強会に参加するような社員は、もともとどんな資質を持っていたでしょうか？",
+        keyPoint: "参加と売上の双方に影響を与える「本人の高い業務意欲や積極性」という交絡因子が存在する可能性が高いです。",
         options: [
-          { text: "32点", isCorrect: true, exp: "(10×2 + 30×5 + 50×3) ÷ (2+5+3) = 320 ÷ 10 = 32点 となります。" },
-          { text: "30点", isCorrect: false, exp: "各階級値の単純平均 (10+30+50)÷3 を計算してしまい、度数の重みを無視した誤りです。" },
-          { text: "35点", isCorrect: false, exp: "階級値ではなく階級の上限値で計算してしまった場合の誤りです。" },
-          { text: "28点", isCorrect: false, exp: "度数の掛け算の計算間違いです。" }
+          { text: "自主参加した社員はもともと仕事への意欲や能力が高いという「交絡因子」が存在するため", isCorrect: true, exp: "意欲が高いから勉強会にも参加し、売上も高いという因果の逆転や第三の交絡変数が疑われます。" },
+          { text: "売上の数値は質的データであり、平均値の比較が禁止されているため", isCorrect: false, exp: "売上額は量的データ（比例尺度）であり、平均値の比較は妥当です。" },
+          { text: "勉強会の参加人数が100人未満の場合は統計検定が無効になるため", isCorrect: false, exp: "少人数でも適切な統計手法（t検定等）は存在します。" },
+          { text: "企業の売上データは国の公的統計ではないため", isCorrect: false, exp: "社内データの分析に公的統計である必要はありません。" }
         ]
       },
       {
         id: 14,
-        category: "度数分布と代表値",
+        category: "分析プロセスとデータ収集",
         level: "発展",
-        question: "日本の世帯所得のように、右側に長い裾野を引く（右に歪んだ）分布において、代表値の大きさの順序として正しいものはどれか。",
-        hint: "ごく一部の超高額所得者が平均値を大きく引き上げます。",
-        keyPoint: "右に歪んだ分布では、山（ピーク）にある「最頻値」＜ 中央の「中央値」＜ 引きずられた「平均値」となります。",
+        question: "第二次世界大戦中、帰還した戦闘機の被弾箇所を調査したところ「主翼や胴体」に多くの弾痕が見られた。装甲を強化すべき箇所として統計学者が「被弾の少なかったエンジン部分」と指摘した論理（生存者バイアス）の根拠はどれか。",
+        hint: "基地に戻ってこられなかった（撃墜された）戦闘機は、どこを撃たれたのでしょうか？",
+        keyPoint: "「帰還できた戦闘機」だけを調べたため、エンジンを撃たれた機体は墜落してサンプルに含まれていないという生存者バイアスです。",
         options: [
-          { text: "最頻値 < 中央値 < 平均値", isCorrect: true, exp: "富裕層の外れ値によって平均値が最も高くなり、最頻値が最も小さくなります。" },
-          { text: "平均値 < 中央値 < 最頻値", isCorrect: false, exp: "左に長い裾野を引く（左に歪んだ）分布における順序です。" },
-          { text: "中央値 < 最頻値 < 平均値", isCorrect: false, exp: "山の頂点である最頻値は、中央値よりも左側（低い側）に位置します。" },
-          { text: "最頻値 = 中央値 = 平均値", isCorrect: false, exp: "左右対称の正規分布のような釣鐘型の分布でのみ成り立つ関係です。" }
+          { text: "エンジンを被弾した機体は墜落して帰還できず、調査対象の標本から抜け落ちていたため", isCorrect: true, exp: "観察された成功標本（帰還機）だけに注目すると真逆の判断をしてしまう典型例です。" },
+          { text: "主翼の被弾は飛行性能に全く影響を与えないことが物理学的に証明されているため", isCorrect: false, exp: "主翼も損傷すれば影響はありますが、エンジンは致命的です。" },
+          { text: "戦闘機の製造コストはエンジンよりも装甲板の方が圧倒的に安価であったため", isCorrect: false, exp: "コストの問題ではなく標本抽出の偏りの問題です。" },
+          { text: "敵軍がエンジンの破壊を意図的に避けて射撃していたため", isCorrect: false, exp: "敵軍は急所であるエンジンを狙って攻撃します。" }
         ]
       },
       {
         id: 15,
-        category: "度数分布と代表値",
+        category: "分析プロセスとデータ収集",
         level: "発展",
-        question: "変量 $x$ の各データに $y = 2x + 5$ の変換を行った。元の平均を $\\bar{x}$、分散を $s_x^2$ とするとき、$y$ の平均 $\\bar{y}$ と分散 $s_y^2$ はどうなるか。",
-        hint: "足し算（+5）は散らばり（分散）に影響を与えず、掛け算（×2）は分散では2乗（4倍）になります。",
-        keyPoint: "一次変換 $y = ax + b$ のとき、平均は $\\bar{y} = a\\bar{x} + b$、分散は $s_y^2 = a^2 s_x^2$ となります。",
+        question: "Webサイトの会員登録フォームで、生年月日を「2006/04/01」「2006年4月1日」「H18.4.1」のように自由入力させた結果、プログラムで日付計算ができなくなった。これを防ぐデータ設計として最適なものはどれか。",
+        hint: "自由に入力させず、カレンダー選択やプルダウンで規格を統一させます。",
+        keyPoint: "入力段階でプルダウンやカレンダーUIを用いてフォーマット（ISO 8601等）を統一・制約することが最高のデータ設計です。",
         options: [
-          { text: "平均: 2x̄ + 5 、 分散: 4s²", isCorrect: true, exp: "平均は線形に $2\\bar{x}+5$ となり、分散は散らばりの2乗なので $2^2 = 4$ 倍になります。" },
-          { text: "平均: 2x̄ + 5 、 分散: 2s² + 5", isCorrect: false, exp: "分散に平行移動の +5 は影響せず、係数も2乗されない誤りです。" },
-          { text: "平均: 2x̄ 、 分散: 4s²", isCorrect: false, exp: "平均値に足された定数 +5 を反映し忘れています。" },
-          { text: "平均: x̄ + 5 、 分散: 2s²", isCorrect: false, exp: "平均の倍率が反映されておらず、分散の2乗計算も行われていません。" }
+          { text: "日付選択ピッカーやドロップダウンを導入し、入力形式をあらかじめ統一・制限する。", isCorrect: true, exp: "入力時のバリデーション（制約）により、後のデータクレンジングのコストを劇的に削減できます。" },
+          { text: "生年月日の入力欄を完全に削除し、年齢だけを自由記述させる。", isCorrect: false, exp: "毎年年齢が変わるため、生年月日を保持しないと時系列分析ができなくなります。" },
+          { text: "全角文字の入力を推奨し、プログラム側で毎回手作業で目視修正する。", isCorrect: false, exp: "手作業修正は人的ミスを招き、大規模データで破綻します。" },
+          { text: "エラーが出た顧客のアカウントを事前通知なしに強制削除する。", isCorrect: false, exp: "サービス運用上不適切です。" }
         ]
       },
       {
         id: 16,
-        category: "度数分布と代表値",
+        category: "分析プロセスとデータ収集",
         level: "発展",
-        question: "20名のA組の平均点が50点、30名のB組の平均点が75点であった。両組全員（計50名）を合わせた全体の平均点は何点か。",
-        hint: "単純に平均同士を足して2で割るのではなく、人数の重みをかけた総得点を求めます。",
-        keyPoint: "総得点 = (50×20) + (75×30) = 1000 + 2250 = 3250点。全体平均 = 3250 ÷ 50 = 65.0点。",
+        question: "新薬の効果を科学的に検証する際、患者を「新薬を投与するグループ」と「有効成分のない偽薬（プラセボ）を投与するグループ」にランダムに割り振って比較する手法を何と呼ぶか。",
+        hint: "ランダム（無作為）に比較する対照実験です。",
+        keyPoint: "「ランダム化比較実験（A/Bテスト）」は、交絡因子を排除して真の因果効果を検証する最強の統計手法です。",
         options: [
-          { text: "65.0点", isCorrect: true, exp: "(50×20 + 75×30) ÷ 50 = 3250 ÷ 50 = 65点 と正しく加重平均されています。" },
-          { text: "62.5点", isCorrect: false, exp: "(50 + 75) ÷ 2 = 62.5点 と人数の違いを無視して単純平均してしまった誤りです。" },
-          { text: "60.0点", isCorrect: false, exp: "A組の人数が多いと錯覚して重み付けを逆にしてしまった計算ミスです。" },
-          { text: "70.0点", isCorrect: false, exp: "計算ミスです。" }
+          { text: "ランダム化比較実験（ABテスト）", isCorrect: true, exp: "被験者を無作為に割り当てることで、未知の交絡因子の影響を均等化して因果関係を証明します。" },
+          { text: "ケーススタディ法", isCorrect: false, exp: "特定の少数の事例を詳細に掘り下げる定性的な研究手法です。" },
+          { text: "デルファイ法", isCorrect: false, exp: "複数の専門家の意見をアンケートで繰り返し集約して合意を形成する予測手法です。" },
+          { text: "主成分分析", isCorrect: false, exp: "多数の量的変数を少数の合成変数に要約する多変量解析手法です。" }
         ]
       },
-
-      // ==========================================
-      // 分野3: 散布図と相関 (8問)
-      // ==========================================
       {
         id: 17,
-        category: "散布図と相関",
-        level: "基礎",
-        question: "散布図において、横軸の値が増加するにつれて縦軸の値が減少する右下がりの傾向を示す関係はどれか。",
-        hint: "一方が増えるともう一方は減る関係です。",
-        keyPoint: "右上がりの傾向は「正の相関」、右下がりの傾向は「負の相関」です。",
+        category: "分析プロセスとデータ収集",
+        level: "発展",
+        question: "「読書量が多い生徒ほど国語の学力テストの点数が高い」という調査結果に対し、「国語が得意だから本をたくさん読むのではないか」という指摘が成立するとき、この2変数間に存在する関係の可能性はどれか。",
+        hint: "原因と結果の矢印が逆向きにも成り立ち得る状態です。",
+        keyPoint: "「逆の因果関係（双方向の因果関係）」の可能性を考慮しないと、政策や施策を誤ります。",
         options: [
-          { text: "負の相関関係", isCorrect: true, exp: "一方の変量が増加すると他方が減少する関係を負の相関と呼びます。" },
-          { text: "正の相関関係", isCorrect: false, exp: "一方が増えるともう一方も増える右上がりの分布を指します。" },
-          { text: "無相関（相関関係なし）", isCorrect: false, exp: "点が一様に円形や正方形に散らばり、傾きが見られない状態です。" },
-          { text: "直接的因果関係", isCorrect: false, exp: "グラフの傾きの向きを表す用語ではなく、原因と結果の関係を指す概念です。" }
+          { text: "逆の因果関係（または相互に影響し合う双方向の因果）", isCorrect: true, exp: "AがBの原因なのか、BがAの原因なのかが横断的調査だけでは区別できない典型例です。" },
+          { text: "完全な無相関関係", isCorrect: false, exp: "数値として相関関係自体は存在しているため無相関ではありません。" },
+          { text: "シンプソンのパラドックス", isCorrect: false, exp: "グループ合算時の傾向逆転現象であり、因果の向きの問題ではありません。" },
+          { text: "名義尺度の等間隔性", isCorrect: false, exp: "尺度水準の概念と因果の方向性は無関係です。" }
         ]
       },
       {
         id: 18,
-        category: "散布図と相関",
-        level: "基礎",
-        question: "ピアソンの積率相関係数 $r$ が取り得る数値の範囲として正しいものはどれか。",
-        hint: "完全な負の相関から完全な正の相関までの間です。",
-        keyPoint: "相関係数 $r$ は常に $-1 \\le r \\le 1$ の範囲に収まります。100%やパーセントでは表しません。",
+        category: "分析プロセスとデータ収集",
+        level: "発展",
+        question: "アンケートで「あなたは使いやすいと評判の我が社の新アプリが好きですか？」のように、特定の回答へと回答者を誘導する質問文を設計してしまった際に生じる歪みはどれか。",
+        hint: "質問の誘導（ワーディング）によって生じるバイアスです。",
+        keyPoint: "質問の文言（ワーディング）が中立でないと、「質問者バイアス（誘導尋問）」が生じて真の意見が測れません。",
         options: [
-          { text: "-1 ≦ r ≦ 1", isCorrect: true, exp: "相関係数は最小値 -1（完全な負の相関）から最大値 1（完全な正の相関）の間をとります。" },
-          { text: "0 ≦ r ≦ 1", isCorrect: false, exp: "負の相関（マイナスの値）を考慮していない誤りです。" },
-          { text: "-100 ≦ r ≦ 100", isCorrect: false, exp: "パーセンテージと混同した誤りです。" },
-          { text: "0 ≦ r ≦ 100", isCorrect: false, exp: "百分率の範囲であり、相関係数の数学的定義ではありません。" }
+          { text: "誘導尋問による質問紙バイアス（ワーディングバイアス）", isCorrect: true, exp: "肯定的・否定的な言葉をあらかじめ含めることで、客観的な回答分布が破壊されます。" },
+          { text: "標本サイズ過大による計算エラー", isCorrect: false, exp: "質問文の表現の問題であり、サンプルサイズの計算量とは無関係です。" },
+          { text: "相関係数の負数化現象", isCorrect: false, exp: "相関の符号とは関係ありません。" },
+          { text: "ヒストグラムの階級幅過小化", isCorrect: false, exp: "グラフの描画設定とは無関係です。" }
         ]
       },
       {
         id: 19,
-        category: "散布図と相関",
-        level: "基礎",
-        question: "「アイスクリームの売上が増えると、水難事故の件数が増える」というデータに見られる関係を説明したものとして最も適切なものはどれか。",
-        hint: "アイスが事故を起こす原因でしょうか？共通の要因（夏の暑さ）があります。",
-        keyPoint: "共通の第三の要因（気温の上昇）によって生じる見かけ上の相関を「疑似相関」と呼びます。",
+        category: "分析プロセスとデータ収集",
+        level: "発展",
+        question: "時系列データを分析する際、「12月になるとケーキの売上が急増する」のように、1年周期で決まったパターンを繰り返す変動成分を何と呼ぶか。",
+        hint: "春夏秋冬などの季節に伴う変動です。",
+        keyPoint: "時系列データは「傾向変動（トレンド）」「季節変動」「循環変動」「不規則変動」に分解して分析します。",
         options: [
-          { text: "共通の要因（気温上昇）によって生じた「疑似相関」である。", isCorrect: true, exp: "気温が上がることで両方が独立に増加しているだけで、両者に直接の因果関係はありません。" },
-          { text: "アイスクリームを食べることが直接の原因となる「因果関係」である。", isCorrect: false, exp: "アイスを食べること自体が直接溺れる原因とは言えず、因果関係の誤認です。" },
-          { text: "2つの変数間には一切の統計的相関が見られない「無相関」である。", isCorrect: false, exp: "数値としては実際に高い正の相関を示すため、無相関ではありません。" },
-          { text: "相関係数 r が負の値を示す「負の相関」である。", isCorrect: false, exp: "両方とも夏に同時に増加するため、相関係数はプラス（正の相関）になります。" }
+          { text: "季節変動", isCorrect: true, exp: "気候や年中行事によって1年以内の周期で規則正しく繰り返される変動です。" },
+          { text: "トレンド（傾向変動）", isCorrect: false, exp: "数年から数十年にわたって持続的に上昇または下降する長期的な方向性です。" },
+          { text: "不規則変動（ノイズ）", isCorrect: false, exp: "天災や突発的事故など予測不能な一時的要因による変動です。" },
+          { text: "疑似相関変動", isCorrect: false, exp: "時系列の周期成分を表す公式用語ではありません。" }
         ]
       },
       {
         id: 20,
-        category: "散布図と相関",
-        level: "基礎",
-        question: "散布図の点が全体に円形や正方形のように均一に広がり、直線的な傾きが見られないときの相関係数 $r$ の値として最も近いものはどれか。",
-        hint: "傾きがなく、正とも負とも言えない状態です。",
-        keyPoint: "直線的な関連性がない「無相関」のとき、相関係数 $r$ は 0 付近になります。",
+        category: "分析プロセスとデータ収集",
+        level: "発展",
+        question: "行政が「オープンデータ」を公開する際、PDF形式ではなくCSV形式やJSON形式などの「機械判読に適した形式（マシンリーダブル）」で提供することが強く推奨される理由はどれか。",
+        hint: "プログラムが自動で数値を読み取って集計・加工しやすい形式です。",
+        keyPoint: "PDFは人間の視覚的閲覧用でありプログラムでの自動処理が困難ですが、CSV/JSONなら直接APIやAIで即座に処理できます。",
         options: [
-          { text: "r ≈ 0", isCorrect: true, exp: "無相関なデータ群では相関係数はほぼ0になります。" },
-          { text: "r ≈ 1", isCorrect: false, exp: "強い正の相関（細長い右上がり楕円）を示す値です。" },
-          { text: "r ≈ -1", isCorrect: false, exp: "強い負の相関（細長い右下がり楕円）を示す値です。" },
-          { text: "r ≈ 0.8", isCorrect: false, exp: "明確な右上がりの直線傾向がある状態です。" }
+          { text: "プログラムから直接データを読み込み、自動的な集計・加工・分析が容易に行えるため", isCorrect: true, exp: "二次利用のハードルを下げ、民間アプリ開発や研究での自動連携を促進します。" },
+          { text: "PDF形式に比べると絶対にコンピュータウイルスに感染しない安全な形式であるため", isCorrect: false, exp: "ファイル形式だけでウイルスの完全排除が保証されるわけではありません。" },
+          { text: "文字の色やフォントの装飾情報を100%忠実に保存できる唯一の形式であるため", isCorrect: false, exp: "CSVは装飾情報を持たない単純なカンマ区切りテキストです。" },
+          { text: "すべてのデータに自動的に暗号化パスワードがかけられるため", isCorrect: false, exp: "オープンデータはパスワードなしで広く利用可能にするのが前提です。" }
         ]
       },
+
+      // -----------------------------------------------------------------------
+      // 分野2: 度数分布と代表値 (Q21〜Q40)
+      // -----------------------------------------------------------------------
       {
         id: 21,
-        category: "散布図と相関",
-        level: "発展",
-        question: "散布図において、変数間の関係が綺麗な二次関数（$y = x^2$、$-3 \\le x \\le 3$）を描く放物線であるとき、相関係数 $r$ はどうなるか。",
-        hint: "ピアソンの相関係数は「直線的な関係（線形）」の強さを測る指標です。",
-        keyPoint: "放物線は左右対称で、前半の負の傾きと後半の正の傾きが相殺されるため、$r \\approx 0$ となります。",
+        category: "度数分布と代表値",
+        level: "基礎",
+        question: "課題プリントの[2](1)の設問です。収集したデータをある一定のルールのもと分けた区間のことを何と呼ぶか。",
+        hint: "語群の「ウ」にある言葉です。「40点以上50点未満」などの区切りです。",
+        keyPoint: "データを分類するために区切った一つひとつの区間を「階級（かいきゅう）」と呼びます。",
         options: [
-          { text: "r ≈ 0（無相関と判定される）", isCorrect: true, exp: "相関係数は直線関係を測るため、左右対称な曲線関係では打ち消し合って0付近になります。" },
-          { text: "r ≈ 1（完全な正の相関）", isCorrect: false, exp: "右肩上がりの直線ではないため、1にはなりません。" },
-          { text: "r ≈ -1（完全な負の相関）", isCorrect: false, exp: "右肩下がりの直線ではないため、-1にはなりません。" },
-          { text: "r の値は数学的に計算不可能である", isCorrect: false, exp: "公式に従って計算すること自体は可能で、結果として0が得られます。" }
+          { text: "階級", isCorrect: true, exp: "度数分布表において、連続した数値を区切る各区間のことです。" },
+          { text: "段階", isCorrect: false, exp: "一般的な日常語であり、統計用語の定義ではありません。" },
+          { text: "度数", isCorrect: false, exp: "その区間に含まれるデータの個数のことです。" },
+          { text: "代表値", isCorrect: false, exp: "データ全体の特徴を代表して表す単一の数値のことです。" }
         ]
       },
       {
         id: 22,
-        category: "散布図と相関",
-        level: "発展",
-        question: "ほぼ無相関（$r \\approx 0$）の100組のデータに、右上の極めて遠い位置に外れ値が1組だけ混入した。相関係数 $r$ はどう変化するか。",
-        hint: "相関係数は外れ値に非常に影響されやすい（引きずられやすい）指標です。",
-        keyPoint: "右上の極端な外れ値は、全体の共分散を急増させ、相関係数を一気にプラス方向へ引き上げます。",
+        category: "度数分布と代表値",
+        level: "基礎",
+        question: "課題プリントの[2](2)の設問です。階級の「端点の差」と「端点の平均」をそれぞれ何と呼ぶか。",
+        hint: "端点の引き算（上限-下限）が幅、端点の足して2で割った中央値が値です。",
+        keyPoint: "端点の差は「階級の幅」、端点の平均（中央値）は「階級値」です。",
         options: [
-          { text: "強い正の相関を示す方向へ大きく引きずられて上昇する。", isCorrect: true, exp: "1点だけ離れた右上にあるデータによって「右上がり」と認識され、相関係数が急上昇します。" },
-          { text: "データ数が100組もあるため、1点程度では数値は全く変動しない。", isCorrect: false, exp: "相関係数は外れ値に対して非常に脆弱であり、1点でも値が激変することがあります。" },
-          { text: "強い負の相関（マイナス）を示す方向へ急激に低下する。", isCorrect: false, exp: "右上の点は正の共分散を生むため、負の方向には動きません。" },
-          { text: "散らばりが増えるため、必ずちょうど 0.00 に固定される。", isCorrect: false, exp: "0に固定されることはありません。" }
+          { text: "端点の差: 階級の幅 、 端点の平均: 階級値", isCorrect: true, exp: "例えば「50〜70」なら幅は20、階級値は(50+70)/2=60となります。" },
+          { text: "端点の差: 階級値 、 端点の平均: 階級の幅", isCorrect: false, exp: "差と平均の用語が逆になっています。" },
+          { text: "端点の差: 度数 、 端点の平均: 相対度数", isCorrect: false, exp: "度数は区間内のデータの個数です。" },
+          { text: "端点の差: 段階の幅 、 端点の平均: 段階値", isCorrect: false, exp: "統計用語として正確ではありません。" }
         ]
       },
       {
         id: 23,
-        category: "散布図と相関",
-        level: "発展",
-        question: "「身長(cm)」と「体重(kg)」の相関係数が $r = 0.65$ であった。すべての身長をメートル(m)に、体重をグラム(g)に単位換算したときの相関係数はいくらか。",
-        hint: "単位換算は定数倍（正の数）の変換です。データの相対的な並び順や散布図の形状はどうなるでしょうか。",
-        keyPoint: "正の定数倍による単位換算を行っても、標準化された指標である相関係数 $r$ は一切変化しません。",
+        category: "度数分布と代表値",
+        level: "基礎",
+        question: "課題プリントの[2](2)の設問です。各階級に含まれるデータ（値）の「個数」のことを何と呼ぶか。",
+        hint: "語群の「オ」にある言葉です。頻度（Frequency）を表します。",
+        keyPoint: "各階級に含まれるデータの件数・個数を「度数（どすう）」と呼びます。",
         options: [
-          { text: "0.65", isCorrect: true, exp: "正の定数を掛けて単位を変えても、相関係数の値は不変です。" },
-          { text: "0.0065", isCorrect: false, exp: "cmからmへの変換（1/100）に引きずられて割ってしまった誤解です。" },
-          { text: "6.50", isCorrect: false, exp: "kgからgへの変換で相関係数も大きくなると錯覚した誤りです（1を超えることはありません）。" },
-          { text: "-0.65", isCorrect: false, exp: "正の定数倍なので符号が反転することはありません。" }
+          { text: "度数", isCorrect: true, exp: "その階級に該当するデータの個数・頻度のことです。" },
+          { text: "階級値", isCorrect: false, exp: "階級の中央の値です。" },
+          { text: "度値", isCorrect: false, exp: "存在しない統計用語です。" },
+          { text: "標本数", isCorrect: false, exp: "データ全体の総件数全般を指す用語です。" }
         ]
       },
       {
         id: 24,
-        category: "散布図と相関",
-        level: "発展",
-        question: "軽症・重症のどちらで比較しても病院Aの方が治癒率が高いのに、全患者を合わせると病院Bの方が高くなる逆転現象を何と呼ぶか。",
-        hint: "グループを分けたときと合算したときで傾向が逆転するパラドックスです。",
-        keyPoint: "各群の割合の違いによって全体合算の傾向が逆転する現象を「シンプソンのパラドックス」と呼びます。",
+        category: "度数分布と代表値",
+        level: "基礎",
+        question: "課題プリントの[2](3)の設問です。横軸に階級を、縦軸に度数をとり、柱（長方形）を用いて表したグラフを何と呼ぶか。",
+        hint: "一般的な棒グラフと異なり、柱同士を隙間なく密着させて描きます。",
+        keyPoint: "度数分布を長方形の柱で視覚化したグラフを「ヒストグラム」と呼びます。",
         options: [
-          { text: "シンプソンのパラドックス", isCorrect: true, exp: "病院Aが治りにくい重症患者を圧倒的多数引き受けていた場合などに生じる逆転現象です。" },
-          { text: "モンティ・ホール問題", isCorrect: false, exp: "確率論におけるドアの選択を変えるべきかどうかのゲーム問題です。" },
-          { text: "ベルトランの逆説", isCorrect: false, exp: "幾何学的確率において弦の長さの確率が問題の定義によって変わる逆説です。" },
-          { text: "ルーカスの批判", isCorrect: false, exp: "経済学において政策変更で人々の期待が変わりモデルが機能しなくなる現象です。" }
+          { text: "ヒストグラム", isCorrect: true, exp: "連続変量の度数分布を表すため、柱を隙間なく並べて描くグラフです。" },
+          { text: "ピクトグラム", isCorrect: false, exp: "絵文字や視覚記号（非常口のマーク等）のことです。" },
+          { text: "散布図", isCorrect: false, exp: "2つの変数の関係を点でプロットしたグラフです。" },
+          { text: "箱ひげ図", isCorrect: false, exp: "5数要約（四分位数など）を表すグラフです。" }
         ]
       },
-
-      // ==========================================
-      // 分野4: 四分位数と箱ひげ図 (8問)
-      // ==========================================
       {
         id: 25,
-        category: "四分位数と箱ひげ図",
+        category: "度数分布と代表値",
         level: "基礎",
-        question: "箱ひげ図を作成するために用いられる「5数要約」に含まれる統計量の組み合わせとして正しいものはどれか。",
-        hint: "箱の両端、中央の線、ひげの両端を構成する5つの数値です。",
-        keyPoint: "5数要約は「最小値、第1四分位数、中央値（第2四分位数）、第3四分位数、最大値」です。",
+        question: "課題プリントの[2](4)の設問です。平均値、中央値、最頻値のように、データ全体の特徴を代表して1つの数値で表したものの総称はどれか。",
+        hint: "語群の「キ」にある用語です。代表する値です。",
+        keyPoint: "データの特徴を一目で表す代表的な数値を「代表値（代表値）」と呼びます。",
         options: [
-          { text: "最小値、第1四分位数、中央値、第3四分位数、最大値", isCorrect: true, exp: "箱ひげ図の基本骨格を成す5つの値です。" },
-          { text: "最小値、平均値、中央値、最頻値、最大値", isCorrect: false, exp: "四分位数が含まれておらず、箱ひげ図が描けません。" },
-          { text: "第1四分位数、第2四分位数、第3四分位数、平均値、分散", isCorrect: false, exp: "最小値・最大値がなく、分散は5数要約に含まれません。" },
-          { text: "最小値、中央値、最大値、四分位範囲、分散", isCorrect: false, exp: "第1四分位数と第3四分位数が直接含まれていません。" }
+          { text: "代表値", isCorrect: true, exp: "平均値、中央値（メジアン）、最頻値（モード）などの総称です。" },
+          { text: "代表格", isCorrect: false, exp: "日常語であり、統計用語ではありません。" },
+          { text: "四分位数", isCorrect: false, exp: "データを4等分する位置の値であり、代表値の一部ですが総称ではありません。" },
+          { text: "分散", isCorrect: false, exp: "データの散らばり具合（ばらつき）を表す散布度です。" }
         ]
       },
       {
         id: 26,
-        category: "四分位数と箱ひげ図",
+        category: "度数分布と代表値",
         level: "基礎",
-        question: "箱ひげ図において、中央に描かれる長方形の「箱」の長さ（幅）が表している統計量はどれか。",
-        hint: "箱の右端（上端）から左端（下端）を引いた差です。",
-        keyPoint: "箱の長さは $Q_3 - Q_1$ であり、「四分位範囲（IQR）」を表します。",
+        question: "度数分布表において、階級「40点以上60点未満」の「階級の幅」と「階級値」の組み合わせとして正しいものはどれか。",
+        hint: "幅は引き算（60 - 40）、階級値は足して2で割る（(40 + 60) ÷ 2）です。",
+        keyPoint: "階級の幅 = 60 - 40 = 20点、階級値 = (40 + 60) ÷ 2 = 50点 です。",
         options: [
-          { text: "四分位範囲（IQR）", isCorrect: true, exp: "第3四分位数から第1四分位数を引いた長さ（データの中央50%の散らばり）です。" },
-          { text: "データ全体の範囲（レンジ）", isCorrect: false, exp: "箱の長さではなく、「ひげの左端から右端まで（最大値 - 最小値）」です。" },
-          { text: "データの平均値", isCorrect: false, exp: "平均値は箱の内部に「＋」記号などでプロットされる一点です。" },
-          { text: "データの標準偏差", isCorrect: false, exp: "箱の長さが直接標準偏差を表すわけではありません。" }
+          { text: "階級の幅: 20点 、 階級値: 50点", isCorrect: true, exp: "差が20点、中央（平均）が50点となります。" },
+          { text: "階級の幅: 50点 、 階級値: 20点", isCorrect: false, exp: "数値が逆になっています。" },
+          { text: "階級の幅: 60点 、 階級値: 40点", isCorrect: false, exp: "上限と下限をそのまま書いてしまった誤りです。" },
+          { text: "階級の幅: 10点 、 階級値: 50点", isCorrect: false, exp: "幅の計算間違いです。" }
         ]
       },
       {
         id: 27,
-        category: "四分位数と箱ひげ図",
+        category: "度数分布と代表値",
         level: "基礎",
-        question: "昇順に並んだ7個のデータ「2, 4, 6, 8, 10, 12, 14」における第1四分位数（$Q_1$）として正しいものはどれか。",
-        hint: "まず全体の中央値（4番目の8）を見つけ、その前半部分「2, 4, 6」の中央値を求めます。",
-        keyPoint: "前半グループ「2, 4, 6」の中央値は 4 です。",
+        question: "クラス40人のテストで、ある階級の度数が10人であった。この階級の「相対度数」はいくらか。",
+        hint: "その階級の度数を、全体の総度数で割ります。",
+        keyPoint: "相対度数 = その階級の度数 ÷ 全体の度数の合計 = 10 ÷ 40 = 0.25 です。",
         options: [
-          { text: "4", isCorrect: true, exp: "全体の中央値が8で、前半のデータ群 (2, 4, 6) の中央値は 4 となります。" },
-          { text: "2", isCorrect: false, exp: "2は最小値です。" },
-          { text: "6", isCorrect: false, exp: "6は前半グループの最大値であり、中央値ではありません。" },
-          { text: "8", isCorrect: false, exp: "8は全体の中央値（第2四分位数 Q2）です。" }
+          { text: "0.25", isCorrect: true, exp: "10 ÷ 40 = 0.25（全体の25%）となります。" },
+          { text: "0.10", isCorrect: false, exp: "度数そのものを小数にしただけの誤りです。" },
+          { text: "4.00", isCorrect: false, exp: "40 ÷ 10 と逆の割り算をしてしまった誤りです。" },
+          { text: "0.40", isCorrect: false, exp: "総度数の40を小数にした誤りです。" }
         ]
       },
       {
         id: 28,
-        category: "四分位数と箱ひげ図",
+        category: "度数分布と代表値",
         level: "基礎",
-        question: "散らばりを表す指標として、全体の「範囲（最大値 - 最小値）」と比較したときの「四分位範囲（IQR）」の長所はどれか。",
-        hint: "データの端っこに極端な数字が1つだけ混ざった場合を考えてみましょう。",
-        keyPoint: "四分位範囲は中央の50%を見るため、端の外れ値の影響をほとんど受けません。",
+        question: "データを小さい順に並べたとき、ちょうど真ん中（中央）に位置する値のことを何と呼ぶか。",
+        hint: "偶数個の場合は中央の2つの値の平均値をとります。メジアン（Median）とも呼ばれます。",
+        keyPoint: "真ん中の順位に位置する値を「中央値（メジアン）」と呼び、極端な外れ値の影響を受けにくい特徴があります。",
         options: [
-          { text: "極端な外れ値が存在しても、その影響をほとんど受けないこと", isCorrect: true, exp: "上下25%を切り捨てて中央部を評価するため、外れ値に対して頑健（ロバスト）です。" },
-          { text: "すべてのデータ値を合計して計算するため情報落ちがないこと", isCorrect: false, exp: "全データを合計するのは平均値や分散の性質です。" },
-          { text: "データ数が偶数の場合でも絶対に小数が登場しないこと", isCorrect: false, exp: "四分位数の計算で小数が生じることは頻繁にあります。" },
-          { text: "必ず標準偏差のちょうど2倍の値になること", isCorrect: false, exp: "分布によって比率は変わり、固定されることはありません。" }
+          { text: "中央値（メジアン）", isCorrect: true, exp: "並び順のちょうど真ん中に位置する代表値です。" },
+          { text: "算術平均値", isCorrect: false, exp: "すべてのデータを合計してデータ数で割った値です。" },
+          { text: "最頻値（モード）", isCorrect: false, exp: "最も出現頻度が高い値です。" },
+          { text: "四分位範囲", isCorrect: false, exp: "第3四分位数から第1四分位数を引いた散らばりの指標です。" }
         ]
       },
       {
         id: 29,
-        category: "四分位数と箱ひげ図",
-        level: "発展",
-        question: "昇順に並んだ31個のデータ $x_1, \\dots, x_{31}$ がある。文部科学省の標準方式で、$Q_1, Q_2, Q_3$ に対応するデータの番号はどれか。",
-        hint: "31個の中央は (31+1)/2 = 16番目。前半15個の中央は (15+1)/2 = 8番目です。",
-        keyPoint: "$Q_2 = x_{16}$、前半15個の中央 $Q_1 = x_8$、後半15個の中央 $Q_3 = x_{16+8} = x_{24}$ です。",
+        category: "度数分布と代表値",
+        level: "基礎",
+        question: "衣料品店で靴の仕入れ数を決める際、どのサイズを最も多く発注すべきかを判断するのに最も役に立つ代表値はどれか。",
+        hint: "最も多くの人に選ばれた（出現回数が一番多い）サイズを選びます。",
+        keyPoint: "最も頻繁に現れる値「最頻値（モード）」が、売れ筋商品の在庫発注において最も有用です。",
         options: [
-          { text: "Q1: x8 、 Q2: x16 、 Q3: x24", isCorrect: true, exp: "全体の中央値が16番目、前半15個の中央が8番目、後半15個の中央が24番目となります。" },
-          { text: "Q1: x7 、 Q2: x15 、 Q3: x23", isCorrect: false, exp: "データ数の数え間違いです（31の中央は15ではなく16）。" },
-          { text: "Q1: x8 、 Q2: x15 、 Q3: x23", isCorrect: false, exp: "中央値の特定で偶数奇数の扱いを誤っています。" },
-          { text: "Q1: x7.5 、 Q2: x16 、 Q3: x24.5", isCorrect: false, exp: "31個および15個は奇数個なので、整数番目のデータがそのまま四分位数になります。" }
+          { text: "最頻値（モード）", isCorrect: true, exp: "最も売れたサイズを特定できるため、在庫補充の意思決定に直結します。" },
+          { text: "算術平均値", isCorrect: false, exp: "平均サイズ（例: 26.34cm）を計算しても、その靴が存在・売れるとは限りません。" },
+          { text: "中央値（メジアン）", isCorrect: false, exp: "真ん中のサイズであり、最多需要を反映するとは限りません。" },
+          { text: "最大値", isCorrect: false, exp: "最大サイズだけを仕入れると大半の客に売れ残ります。" }
         ]
       },
       {
         id: 30,
-        category: "四分位数と箱ひげ図",
-        level: "発展",
-        question: "昇順の11個のデータ「3, 5, 8, 10, 12, 15, 18, 20, 22, 25, 29」の「四分位範囲(IQR)」と「範囲」の組み合わせはどれか。",
-        hint: "中央値は6番目の15。前半「3, 5, 8, 10, 12」のQ1は8。後半「18, 20, 22, 25, 29」のQ3は22です。",
-        keyPoint: "IQR = 22 - 8 = 14。範囲 = 29 - 3 = 26。",
+        category: "度数分布と代表値",
+        level: "基礎",
+        question: "データ「2, 5, 8, 12, 16, 20」の6個の値における「中央値」として正しいものはどれか。",
+        hint: "偶数個（6個）なので、3番目の「8」と4番目の「12」の平均値を計算します。",
+        keyPoint: "中央値 = (8 + 12) ÷ 2 = 10 です。",
         options: [
-          { text: "四分位範囲: 14 、 範囲: 26", isCorrect: true, exp: "Q1=8, Q3=22 より IQR=22-8=14。範囲は最大29-最小3=26 です。" },
-          { text: "四分位範囲: 12 、 範囲: 26", isCorrect: false, exp: "Q1やQ3の引き算ミスです。" },
-          { text: "四分位範囲: 14 、 範囲: 29", isCorrect: false, exp: "範囲の計算で最小値（3）を引かず最大値をそのまま書いてしまった誤りです。" },
-          { text: "四分位範囲: 7 、 範囲: 26", isCorrect: false, exp: "四分位偏差（IQRを2で割った値）と混同しています。" }
+          { text: "10", isCorrect: true, exp: "中央にある2数 8 と 12 の平均 (8+12)/2 = 10 となります。" },
+          { text: "8", isCorrect: false, exp: "3番目の値のみをとった誤りです。" },
+          { text: "12", isCorrect: false, exp: "4番目の値のみをとった誤りです。" },
+          { text: "10.5", isCorrect: false, exp: "全6個の算術平均値（63÷6=10.5）であり、中央値と混同しています。" }
         ]
       },
       {
         id: 31,
-        category: "四分位数と箱ひげ図",
+        category: "度数分布と代表値",
         level: "発展",
-        question: "ある箱ひげ図で、中央値の線が箱の左端（$Q_1$）に極端に寄り、右のひげが非常に長く伸びていた。この分布の特徴として正しいものはどれか。",
-        hint: "箱の中央値が左寄り＝小さい値にデータが密集していることを意味します。",
-        keyPoint: "小さい値に多くのデータが集中し、右側に少数の極端に大きい値が裾野を引く歪んだ分布です。",
+        question: "度数分布表で「0〜20点未満（度数2）」「20〜40点未満（度数5）」「40〜60点未満（度数3）」であるとき、階級値を用いた「推定平均値」はいくらか。",
+        hint: "各階級値（10点, 30点, 50点）に度数を掛け、総度数（10）で割ります。",
+        keyPoint: "推定合計 = (10×2) + (30×5) + (50×3) = 20 + 150 + 150 = 320点。平均 = 320 ÷ 10 = 32点 です。",
         options: [
-          { text: "小さい値に多くのデータが集中し、右側に裾野が長く伸びている。", isCorrect: true, exp: "所得分布のように、低〜中所得層に密集し、高所得層へ右に長く伸びた分布の形状です。" },
-          { text: "大きい値に多くのデータが集中し、左側に裾野が長く伸びている。", isCorrect: false, exp: "その場合は中央値が右端（Q3）に寄り、左のひげが長くなります。" },
-          { text: "データが最小値から最大値まで左右均等に広く散らばっている。", isCorrect: false, exp: "左右対称であれば、中央値の線は箱の真ん中に位置します。" },
-          { text: "すべてのデータが同じ値であり、分散が0である。", isCorrect: false, exp: "分散が0なら箱もひげも潰れて一本の直線になります。" }
+          { text: "32点", isCorrect: true, exp: "(10×2 + 30×5 + 50×3) ÷ 10 = 320 ÷ 10 = 32点 となります。" },
+          { text: "30点", isCorrect: false, exp: "階級値の単純平均 (10+30+50)÷3 を計算してしまい、度数の重みを無視した誤りです。" },
+          { text: "35点", isCorrect: false, exp: "階級の上限値で計算してしまった誤りです。" },
+          { text: "28点", isCorrect: false, exp: "計算ミスです。" }
         ]
       },
       {
         id: 32,
-        category: "四分位数と箱ひげ図",
+        category: "度数分布と代表値",
         level: "発展",
-        question: "生徒40名のクラスXとクラスYの箱ひげ図を比較した。Xの中央値は60点、Yの第3四分位数は58点だった。確実に論理的結論として言えるものはどれか。",
-        hint: "中央値以上は全体の50%（20名以上）。第3四分位数以上は全体の25%（10名程度）です。",
-        keyPoint: "Xは「60点以上」が少なくとも20名。Yは「58点超」が約10名以下。よって60点以上の人数はXの方が多いです。",
+        question: "日本の世帯所得のように、ごく一部の超富裕層が存在し右側に長い裾野を引く（右に歪んだ）分布において、代表値の大小関係として一般に成り立つ順序はどれか。",
+        hint: "極端な外れ値は平均値を強く引き上げます。山の頂点は最頻値です。",
+        keyPoint: "右に歪んだ分布では、山のピーク「最頻値」＜ 中央の「中央値」＜ 引きずられた「平均値」となります。",
         options: [
-          { text: "60点以上の生徒の人数は、クラスXの方がクラスYよりも多い。", isCorrect: true, exp: "Xは上位50%(20名以上)が60点以上ですが、Yは上位25%(10名)しか58点を超えていません。" },
-          { text: "クラスXの最高得点の生徒は、クラスYの最高得点より必ず高い。", isCorrect: false, exp: "ひげの右端（最大値）同士を比較した記述ではないため確定できません。" },
-          { text: "クラスXの平均点は、クラスYの平均点よりも必ず高い。", isCorrect: false, exp: "箱ひげ図の基本線は中央値であり、外れ値の存在等で平均値の大小は断定できません。" },
-          { text: "クラスXの生徒は全員58点以上を取っている。", isCorrect: false, exp: "中央値が60点なだけで、下位50%には58点未満の生徒が存在し得ます。" }
+          { text: "最頻値 < 中央値 < 平均値", isCorrect: true, exp: "高額所得者によって平均値が最も高くなり、最頻値が最も小さい側に位置します。" },
+          { text: "平均値 < 中央値 < 最頻値", isCorrect: false, exp: "左に長い裾野を引く分布における順序です。" },
+          { text: "中央値 < 最頻値 < 平均値", isCorrect: false, exp: "山の頂点である最頻値は中央値より左側にあります。" },
+          { text: "最頻値 = 中央値 = 平均値", isCorrect: false, exp: "左右対称な正規分布でのみ成り立つ関係です。" }
         ]
       },
-
-      // ==========================================
-      // 分野5: 公的統計とAPI (8問)
-      // ==========================================
       {
         id: 33,
-        category: "公的統計とAPI",
-        level: "基礎",
-        question: "日本国内の全世帯・全住民を対象に、5年ごとに総務省統計局が実施する最重要の「全数調査」はどれか。",
-        hint: "国勢を明らかにするための基本調査です。",
-        keyPoint: "国勢調査は標本抽出ではなく、国内のすべての人・世帯を対象とする全数調査です。",
+        category: "度数分布と代表値",
+        level: "発展",
+        question: "変量 $x$ の各データに $y = 2x + 5$ の一次変換を行った。元の平均値を $\\bar{x}$、分散を $s_x^2$ とするとき、$y$ の平均値 $\\bar{y}$ と分散 $s_y^2$ の表式として正しいものはどれか。",
+        hint: "平行移動（+5）は散らばり（分散）に影響せず、定数倍（×2）は分散では2乗（4倍）になります。",
+        keyPoint: "$y = ax + b$ のとき、平均は $\\bar{y} = a\\bar{x} + b$、分散は $s_y^2 = a^2 s_x^2$ となります。",
         options: [
-          { text: "国勢調査", isCorrect: true, exp: "国の最も基本となる人口・世帯の実態を把握する全数調査です。" },
-          { text: "家計調査", isCorrect: false, exp: "一部の世帯を抽出して毎月実施される「標本調査」です。" },
-          { text: "労働力調査", isCorrect: false, exp: "就業・失業状態を調べる標本調査です。" },
-          { text: "国民生活基礎調査", isCorrect: false, exp: "厚生労働省が実施する標本調査です。" }
+          { text: "平均: 2x̄ + 5 、 分散: 4sx²", isCorrect: true, exp: "平均は一次式そのまま $2\\bar{x}+5$ となり、分散は散らばりの2乗なので $2^2 = 4$ 倍になります。" },
+          { text: "平均: 2x̄ + 5 、 分散: 2sx² + 5", isCorrect: false, exp: "分散に平行移動の +5 は影響せず、係数も2乗されない誤りです。" },
+          { text: "平均: 2x̄ 、 分散: 4sx²", isCorrect: false, exp: "平均に足された定数 +5 を反映し忘れています。" },
+          { text: "平均: x̄ + 5 、 分散: 2sx²", isCorrect: false, exp: "平均の倍率が反映されておらず、分散の2乗計算も行われていません。" }
         ]
       },
       {
         id: 34,
-        category: "公的統計とAPI",
-        level: "基礎",
-        question: "各省庁が公表している公的統計データを一括検索し、閲覧やCSV等のダウンロードができる政府統計ポータルサイトはどれか。",
-        hint: "「ポータルサイト」として有名な政府統計の共通サイトです。",
-        keyPoint: "e-Stat（政府統計の総合窓口）は、総務省統計局が運営する日本の統計情報ポータルです。",
+        category: "度数分布と代表値",
+        level: "発展",
+        question: "生徒20名のA組の平均点が50点、生徒30名のB組の平均点が75点であった。両組全員（計50名）を合わせた全体の平均点として正しいものはどれか。",
+        hint: "単純に足して2で割るのではなく、人数の重みをかけた総得点（加重平均）を計算します。",
+        keyPoint: "総得点 = (50×20) + (75×30) = 1000 + 2250 = 3250点。全体平均 = 3250 ÷ 50 = 65.0点 です。",
         options: [
-          { text: "e-Stat（政府統計の総合窓口）", isCorrect: true, exp: "日本の各府省庁が公表する公的統計データが集約・公開されている総合サイトです。" },
-          { text: "e-Tax", isCorrect: false, exp: "国税庁が運営するオンライン確定申告システムです。" },
-          { text: "マイナポータル", isCorrect: false, exp: "行政手続きや自己の個人情報を確認するための個人向けポータルです。" },
-          { text: "GitHub", isCorrect: false, exp: "世界中のエンジニアがソースコードを共有・管理するためのプラットフォームです。" }
+          { text: "65.0点", isCorrect: true, exp: "(50×20 + 75×30) ÷ 50 = 3250 ÷ 50 = 65.0点 と正しく加重平均されています。" },
+          { text: "62.5点", isCorrect: false, exp: "(50 + 75) ÷ 2 = 62.5点 と人数の違いを無視して単純平均してしまった典型的な誤りです。" },
+          { text: "60.0点", isCorrect: false, exp: "人数の比率を逆に適用してしまった計算ミスです。" },
+          { text: "70.0点", isCorrect: false, exp: "計算ミスです。" }
         ]
       },
       {
         id: 35,
-        category: "公的統計とAPI",
-        level: "基礎",
-        question: "統計データ分析において極めて広く利用される「CSV形式」のファイル構造を説明したものとして正しいものはどれか。",
-        hint: "CSVの「C」はComma（カンマ）の略です。",
-        keyPoint: "CSV (Comma-Separated Values) は、各データ項目をカンマ(,)で区切ったプレーンテキストです。",
+        category: "度数分布と代表値",
+        level: "発展",
+        question: "ヒストグラムを作成する際、区切る階級の幅を「極端に狭くしすぎた場合」に生じる問題点として最も適切なものはどれか。",
+        hint: "階級の幅が細かすぎると、柱の高さがガタガタになってしまいます。",
+        keyPoint: "階級が狭すぎると度数が細分化されて柱に凸凹（ノイズ）が増え、全体の滑らかな分布傾向が捉えにくくなります。",
         options: [
-          { text: "各項目がカンマ（,）で区切られたシンプルなテキスト形式", isCorrect: true, exp: "表計算ソフトやプログラミング言語など環境を選ばず扱える汎用形式です。" },
-          { text: "文字や画像の色・レイアウト情報をそのまま固定保持する文書形式", isCorrect: false, exp: "PDF形式の説明です。" },
-          { text: "複雑な数式やグラフのマクロプログラムを含む専用バイナリ形式", isCorrect: false, exp: "Excel独自形式 (.xlsx / .xlsm) 等の説明です。" },
-          { text: "インターネット上のWebページを表現するためのタグ付きマークアップ形式", isCorrect: false, exp: "HTML形式の説明です。" }
+          { text: "度数が細分化されすぎて柱に凸凹が増え、全体の分布傾向が掴みにくくなる。", isCorrect: true, exp: "適切な階級幅を設定しないと、データの背後にある本質的な分布パターンが見えなくなります。" },
+          { text: "すべてのデータの中央値と最頻値が強制的に等しくなってしまう。", isCorrect: false, exp: "階級幅の変更によって元のデータの中央値が変化することはありません。" },
+          { text: "相対度数の合計が100%（1.0）を超えてしまう。", isCorrect: false, exp: "階級幅に関わらず相対度数の合計は必ず1.0です。" },
+          { text: "データの平均値が数学的に計算不可能になる。", isCorrect: false, exp: "生データがあれば平均値は常に計算可能です。" }
         ]
       },
       {
         id: 36,
-        category: "公的統計とAPI",
-        level: "基礎",
-        question: "ソフトウェアの機能やデータを、外部の別のプログラムから呼び出して利用するための接続規約・仕組みを何と呼ぶか。",
-        hint: "Application Programming Interface の頭文字です。",
-        keyPoint: "APIを利用することで、自作プログラムから他社の天気データや地図サービスを自動利用できます。",
+        category: "度数分布と代表値",
+        level: "発展",
+        question: "従業員100名の企業で年収の中央値は450万円、平均値は520万円であった。この企業に年収50億円の役員が1名新たに加わったとき、2つの代表値に現れる変化として正しいものはどれか。",
+        hint: "中央値は順位の真ん中を見るだけですが、平均値は全データを合計します。",
+        keyPoint: "外れ値が1つ加わっても中央値（50番目と51番目の間）はほぼ不動ですが、平均値は合計が跳ね上がるため急上昇します。",
         options: [
-          { text: "API", isCorrect: true, exp: "プログラム同士が連携してデータや機能を受け渡しするためのインターフェース規格です。" },
-          { text: "URL", isCorrect: false, exp: "インターネット上のWebリソースの所在を示すアドレスです。" },
-          { text: "CPU", isCorrect: false, exp: "コンピュータの演算処理を行う中央処理装置です。" },
-          { text: "DNS", isCorrect: false, exp: "ドメイン名とIPアドレスを相互変換する名前解決システムです。" }
+          { text: "平均値は大幅に急上昇するが、中央値はほとんど変動しない。", isCorrect: true, exp: "平均値は外れ値に弱く、中央値は外れ値に対して頑健（ロバスト）である特性の典型例です。" },
+          { text: "中央値は大幅に急上昇するが、平均値はほとんど変動しない。", isCorrect: false, exp: "中央値と平均値の性質が逆になっています。" },
+          { text: "平均値も中央値もどちらも約2倍に急上昇する。", isCorrect: false, exp: "中央値は1人増えた程度で急上昇することはありません。" },
+          { text: "従業員が100名を超過しているため、どちらの数値も一切変動しない。", isCorrect: false, exp: "合計額が増加するため平均値は劇的に上昇します。" }
         ]
       },
       {
         id: 37,
-        category: "公的統計とAPI",
+        category: "度数分布と代表値",
         level: "発展",
-        question: "気象庁や民間企業が提供する「Web API」を自作プログラムで活用する最大の技術的メリットはどれか。",
-        hint: "人間がいちいちブラウザでWebページを開いてダウンロードボタンを押す必要がなくなります。",
-        keyPoint: "Web APIを使うと、プログラムから最新データを定期的かつ自動的に取得・更新できます。",
+        question: "データ全体の散らばり（ばらつき）を測るため、各データの「平均値からの偏差（$x_i - \\bar{x}$）」をすべて足し合わせると、どのような数学的結果になるか。",
+        hint: "平均値より大きい偏差（プラス）と小さい偏差（マイナス）が存在します。",
+        keyPoint: "偏差の総和は常にちょうど「0」になります。そのため散らばりを測るには偏差を2乗した「分散」を用います。",
         options: [
-          { text: "最新データを手作業なしで定期的・自動的に取得・連携できる点", isCorrect: true, exp: "HTTP通信等を通じてスクリプトから自動リクエストを送り、リアルタイム連携が可能です。" },
-          { text: "インターネット接続が完全に切断されたオフライン環境でも通信できる点", isCorrect: false, exp: "Web APIの利用にはインターネット接続が必須です。" },
-          { text: "どんなデータでも著作権や利用規約の確認が一切不要になる点", isCorrect: false, exp: "API利用時もアクセス制限や利用規約（クレジット表記など）を守る必要があります。" },
-          { text: "コンピュータのCPUやメモリを全く消費せずに処理できる点", isCorrect: false, exp: "通信やデータのJSONパース等にCPU・メモリは消費されます。" }
+          { text: "常に必ずちょうど 0 になる。", isCorrect: true, exp: "平均値の定義から正の偏差と負の偏差が完全に相殺されるため、そのまま足すと常に0になります。" },
+          { text: "データの標準偏差と完全に等しい値になる。", isCorrect: false, exp: "標準偏差は偏差の2乗平均の平方根です。" },
+          { text: "データ全体の最大値と最小値の差（範囲）になる。", isCorrect: false, exp: "範囲とは無関係です。" },
+          { text: "データの個数 $n$ の2乗に等しくなる。", isCorrect: false, exp: "数学的に誤りです。" }
         ]
       },
       {
         id: 38,
-        category: "公的統計とAPI",
+        category: "度数分布と代表値",
         level: "発展",
-        question: "地域経済分析システム（RESAS）の機能や特徴を正しく説明したものはどれか。",
-        hint: "官民のビッグデータを集約し、地方創生のための産業や観光の強みを可視化するシステムです。",
-        keyPoint: "RESASは内閣官房・経産省が提供し、地域の産業・人口動態・観光ルート等を地図やグラフで直感的に表示します。",
+        question: "平均値の異なる2つのグループ（例：象の体重とネズミの体重）のばらつき度合いを、単位や平均の大きさの影響を受けずに公平に比較する統計指標はどれか。",
+        hint: "標準偏差を平均値で割った比率（変動の係数）です。",
+        keyPoint: "「変動係数（CV = 標準偏差 ÷ 平均値）」を用いることで、スケールの異なるデータ間の相対的なばらつきを比較できます。",
         options: [
-          { text: "産業構造や人口動態、観光動向を地図やグラフで視覚的に分析できる。", isCorrect: true, exp: "地方自治体や企業が地域課題を発見・解決するための強力な可視化分析プラットフォームです。" },
-          { text: "確定申告の税額計算や納税手続きを自動化するシステムである。", isCorrect: false, exp: "国税庁のe-Tax等の機能であり、RESASの目的ではありません。" },
-          { text: "全国の学校の期末テストの得点を集計し偏差値を算出するシステムである。", isCorrect: false, exp: "教育機関の成績管理システムではありません。" },
-          { text: "各家庭の電気メーターから秒単位の電力使用量のみを記録するシステムである。", isCorrect: false, exp: "スマートメーターの電力管理システムではありません。" }
+          { text: "変動係数（CV）", isCorrect: true, exp: "標準偏差を平均値で除算して無次元化した指標で、スケールが異なる集団の散らばり比較に最適です。" },
+          { text: "四分位範囲（IQR）", isCorrect: false, exp: "単位を持つ指標であり、スケール差を直接相殺することはできません。" },
+          { text: "相関係数（r）", isCorrect: false, exp: "2変数間の線形関係の強さを測る指標です。" },
+          { text: "最頻値比率", isCorrect: false, exp: "存在しない指標です。" }
         ]
       },
       {
         id: 39,
-        category: "公的統計とAPI",
+        category: "度数分布と代表値",
         level: "発展",
-        question: "「スマートフォンの世帯保有率が72%から83%へ上昇した」という統計表の数値のみから論理的に正しく言えることはどれか。",
-        hint: "「世帯」単位の統計です。「個人の利用実態」と混同しないように注意しましょう。",
-        keyPoint: "「世帯保有率」は、その世帯に1台以上ある割合を指すだけで、全員が持っているとは言えません。",
+        question: "テストの素点 $x$ を、平均 50、標準偏差 10 となるように標準化した「学力偏差値 $T$」の計算式として正しいものはどれか。（平均を $\\bar{x}$、標準偏差を $s$ とする）",
+        hint: "まず $(x - \\bar{x}) \\div s$ で標準化（平均0, 分散1）し、10倍して50を足します。",
+        keyPoint: "偏差値 $T = 10 \\times \\frac{x - \\bar{x}}{s} + 50$ です。",
         options: [
-          { text: "スマホを1台以上持っている世帯の割合が増加した。", isCorrect: true, exp: "世帯保有率の定義そのものであり、論理的に確実に言える事実です。" },
-          { text: "国内の全国民の83%が個人でスマートフォンを使っている。", isCorrect: false, exp: "「世帯保有率」と「個人保有率・利用率」を混同した誤読です。" },
-          { text: "若者よりも高齢者の方がスマートフォンを頻繁に利用している。", isCorrect: false, exp: "年齢別の利用頻度や利用時間はこのデータからは読み取れません。" },
-          { text: "スマートフォンを持つ世帯は固定電話をすべて解約した。", isCorrect: false, exp: "両方を併用して保有している世帯が多数存在するため、誤った推測です。" }
+          { text: "T = 10 × ( (x - x̄) / s ) + 50", isCorrect: true, exp: "Zスコア（標準得点）を10倍して50を足すことで、平均50・標準偏差10に変換します。" },
+          { text: "T = 50 × ( (x - x̄) / s ) + 10", isCorrect: false, exp: "10と50の係数が逆になっています。" },
+          { text: "T = (x / x̄) × 100", isCorrect: false, exp: "平均に対する達成率の計算であり、標準偏差が考慮されていません。" },
+          { text: "T = (x - 50) × 10 + s", isCorrect: false, exp: "計算式として誤りです。" }
         ]
       },
       {
         id: 40,
-        category: "公的統計とAPI",
+        category: "度数分布と代表値",
         level: "発展",
-        question: "統計グラフにおいて、縦軸のゼロ（原点）を省略して波線で途中を飛ばした棒グラフを見る際に警戒すべき罠はどれか。",
+        question: "次の4つのデータ項目のうち、算術平均値を計算することに統計学的妥当性がある（量的データである）ものはどれか。",
+        hint: "足したり割ったりして平均値を求めることに意味がある数値を選びます。",
+        keyPoint: "「走幅跳の跳躍距離」は連続的な量的データ（比例尺度）であり、平均値の計算が正当です。他は名義尺度や順序尺度です。",
+        options: [
+          { text: "走幅跳の跳躍距離（メートル）", isCorrect: true, exp: "実数として連続した量であり、平均値や差を計算することに明確な量的意味があります。" },
+          { text: "生徒の出席番号（1番〜40番）", isCorrect: false, exp: "個人を識別するための名義尺度（質的データ）であり、平均番号に意味はありません。" },
+          { text: "アンケートの満足度（1:不満, 2:普通, 3:満足）", isCorrect: false, exp: "順序尺度（質的データ）であり、段階の間隔が等しい保証がないため厳密には不適切です。" },
+          { text: "自宅の郵便番号（例: 271-0092）", isCorrect: false, exp: "地域を表す記号（名義尺度）です。" }
+        ]
+      },
+
+      // -----------------------------------------------------------------------
+      // 分野3: 散布図と相関・因果 (Q41〜Q60)
+      // -----------------------------------------------------------------------
+      {
+        id: 41,
+        category: "散布図と相関・因果",
+        level: "基礎",
+        question: "課題プリントの[3]にある散布図において、「横軸の値が増加するにつれて縦軸の値も増加する（右上がりの楕円形状）」関係を表す用語はどれか。",
+        hint: "課題プリントの図Bや図Eに見られる右上がりの傾向です。",
+        keyPoint: "右上がりの傾向は「正の相関関係」、右下がりの傾向は「負の相関関係」です。",
+        options: [
+          { text: "正の相関関係", isCorrect: true, exp: "一方の変量が増加するともう一方も増加する右上がりの関係です。" },
+          { text: "負の相関関係", isCorrect: false, exp: "一方の変量が増加するともう一方は減少する右下がりの関係です。" },
+          { text: "相関関係はない（無相関）", isCorrect: false, exp: "円形に散らばり傾きが見られない関係です。" },
+          { text: "因果関係", isCorrect: false, exp: "原因と結果の関係を指す概念であり、傾きの向きの用語ではありません。" }
+        ]
+      },
+      {
+        id: 42,
+        category: "散布図と相関・因果",
+        level: "基礎",
+        question: "課題プリントの[3]にある散布図において、「横軸の値が増加するにつれて縦軸の値が減少する（右下がりの楕円形状）」関係を表す用語はどれか。",
+        hint: "課題プリントの図Aや図Dに見られる右下がりの傾向です。",
+        keyPoint: "右下がりの傾向を示す2変数間の関係は「負の相関関係」です。",
+        options: [
+          { text: "負の相関関係", isCorrect: true, exp: "一方が増えるともう一方が減る右下がりの直線傾向です。" },
+          { text: "正の相関関係", isCorrect: false, exp: "右上がりの傾向です。" },
+          { text: "無相関", isCorrect: false, exp: "傾きがない状態です。" },
+          { text: "疑似相関", isCorrect: false, exp: "見かけ上の相関のメカニズムを指す用語です。" }
+        ]
+      },
+      {
+        id: 43,
+        category: "散布図と相関・因果",
+        level: "基礎",
+        question: "課題プリントの[3]にある散布図Cのように、プロットされた点が全体に円形に均一に広がり、直線的な傾きが全く見られない状態を表す用語はどれか。",
+        hint: "課題プリントの図Cです。正でも負でもない状態です。",
+        keyPoint: "点が円形や正方形に均一に散らばり、傾きがない状態を「相関関係はない（無相関）」と呼びます。",
+        options: [
+          { text: "相関関係はない（無相関）", isCorrect: true, exp: "一方の増減が他方の増減と直線的に連動していない状態です。" },
+          { text: "正の相関関係", isCorrect: false, exp: "右上がりの分布です。" },
+          { text: "負の相関関係", isCorrect: false, exp: "右下がりの分布です。" },
+          { text: "完全相関", isCorrect: false, exp: "すべての点が1本の直線上に完全に並ぶ状態です。" }
+        ]
+      },
+      {
+        id: 44,
+        category: "散布図と相関・因果",
+        level: "基礎",
+        question: "課題プリントの[3](1)の設問です。相関図A〜Eの相関関係の組み合わせとして正しいものはどれか。<br>（A: 右下がり楕円, B: 右上がり楕円, C: 円形, D: 細い右下がり楕円, E: 細い右上がり楕円）",
+        hint: "Aは負、Bは正、Cは無相関、Dは負、Eは正です。課題プリントの選択肢「イ」に対応します。",
+        keyPoint: "A: 負の相関、B: 正の相関、C: 相関関係はない（無相関）、D: 負の相関、E: 正の相関 です。",
+        options: [
+          { text: "A: 負 、 B: 正 、 C: 相関なし 、 D: 負 、 E: 正", isCorrect: true, exp: "課題プリントの相関図の形状通りの正しい組み合わせです。" },
+          { text: "A: 負 、 B: 負 、 C: 負 、 D: 正 、 E: 正", isCorrect: false, exp: "BやCの判定を誤っています。" },
+          { text: "A: 正 、 B: 負 、 C: 相関なし 、 D: 負 、 E: 正", isCorrect: false, exp: "AとBの傾きが逆になっています。" },
+          { text: "A: 正 、 B: 正 、 C: 負 、 D: 負 、 E: 相関なし", isCorrect: false, exp: "判定が誤っています。" }
+        ]
+      },
+      {
+        id: 45,
+        category: "散布図と相関・因果",
+        level: "基礎",
+        question: "ピアソンの積率相関係数 $r$ が数学的に取り得る値の範囲として正しいものはどれか。",
+        hint: "課題プリントの語群（-1から1の間）に注目してください。百分率（100）ではありません。",
+        keyPoint: "相関係数 $r$ は常に $-1 \\le r \\le 1$ の範囲に収まります。1が完全な正の相関、-1が完全な負の相関です。",
+        options: [
+          { text: "-1 ≦ r ≦ 1", isCorrect: true, exp: "最小値 -1（完全な負の相関）から最大値 1（完全な正の相関）の範囲をとります。" },
+          { text: "0 ≦ r ≦ 1", isCorrect: false, exp: "負の相関（マイナス）を考慮していない誤りです。" },
+          { text: "-100 ≦ r ≦ 100", isCorrect: false, exp: "パーセンテージと混同した誤りです。" },
+          { text: "0 ≦ r ≦ 100", isCorrect: false, exp: "百分率の範囲であり相関係数の定義ではありません。" }
+        ]
+      },
+      {
+        id: 46,
+        category: "散布図と相関・因果",
+        level: "基礎",
+        question: "課題プリントの図C（円形に均一に散らばった散布図）の相関係数 $r$ として最も適切な値はどれか。",
+        hint: "傾きがない「無相関」のときの相関係数です。",
+        keyPoint: "直線的な相関関係が見られないとき、相関係数 $r$ は 0 付近になります。",
+        options: [
+          { text: "0", isCorrect: true, exp: "無相関なデータ群では相関係数は 0 となります。" },
+          { text: "0.8", isCorrect: false, exp: "強い正の相関を示す値です。" },
+          { text: "-0.8", isCorrect: false, exp: "強い負の相関を示す値です。" },
+          { text: "1", isCorrect: false, exp: "完全な正の相関（一直線）を示す値です。" }
+        ]
+      },
+      {
+        id: 47,
+        category: "散布図と相関・因果",
+        level: "基礎",
+        question: "課題プリントの「図D（細長い右下がりの楕円）」と「図A（太い右下がりの楕円）」の相関係数 $r$ の組み合わせとして最も適切なものはどれか。",
+        hint: "楕円が細長く直線に近いほど相関は強くなります（負の場合は -1 に近づく）。",
+        keyPoint: "太い楕円Aは $r = -0.6$、より直線に近い細い楕円Dは強い負の相関 $r = -0.8$ です。",
+        options: [
+          { text: "図A: -0.6 、 図D: -0.8", isCorrect: true, exp: "散布図の楕円が細いほど相関が強いため、細いDの方が絶対値が大きくなります（-0.8）。" },
+          { text: "図A: -0.8 、 図D: -0.6", isCorrect: false, exp: "細長い方がより強い相関を示すため値が逆です。" },
+          { text: "図A: 0.6 、 図D: 0.8", isCorrect: false, exp: "右下がりの傾きなので正の数ではなく負の数です。" },
+          { text: "図A: -1.0 、 図D: 0", isCorrect: false, exp: "完全な直線ではなく、Dも無相関ではありません。" }
+        ]
+      },
+      {
+        id: 48,
+        category: "散布図と相関・因果",
+        level: "基礎",
+        question: "課題プリントの「図B（太い右上がりの楕円）」と「図E（細長い右上がりの楕円）」の相関係数 $r$ の組み合わせとして最も適切なものはどれか。",
+        hint: "右上がりなので正の数です。より細いEの方が1に近くなります。",
+        keyPoint: "太い楕円Bは $r = 0.6$、細い楕円Eはより強い正の相関 $r = 0.8$ です。",
+        options: [
+          { text: "図B: 0.6 、 図E: 0.8", isCorrect: true, exp: "正の傾きであり、点の集まりが細いEの方が高い相関（0.8）を示します。" },
+          { text: "図B: 0.8 、 図E: 0.6", isCorrect: false, exp: "細長いEの方が強い相関を示すため逆です。" },
+          { text: "図B: -0.6 、 図E: -0.8", isCorrect: false, exp: "右上がりなので正の値です。" },
+          { text: "図B: 0 、 図E: 1.0", isCorrect: false, exp: "Bには傾きがあり、Eも完全な1本の直線ではありません。" }
+        ]
+      },
+      {
+        id: 49,
+        category: "散布図と相関・因果",
+        level: "基礎",
+        question: "「アイスクリームの売上が増えると、水難事故の発生件数が増加する」という強い正の相関が見られる現象を説明したものとして最も適切なものはどれか。",
+        hint: "アイスクリームを食べることが直接溺れる原因でしょうか？共通の要因（夏の暑さ）があります。",
+        keyPoint: "共通の第三の要因（気温上昇）によって生じた見かけ上の相関を「疑似相関（見かけの相関）」と呼びます。",
+        options: [
+          { text: "共通の要因（気温の上昇）によって両方が同時に増加した「疑似相関」である。", isCorrect: true, exp: "アイスと事故に直接の因果関係はなく、第三の交絡変数（気温）が原因です。" },
+          { text: "アイスを食べることが直接溺れる原因となる「因果関係」である。", isCorrect: false, exp: "因果関係の誤認です。" },
+          { text: "2つの変数間には統計的な数値の連動が一切ない「無相関」である。", isCorrect: false, exp: "数値としては実際に高い正の相関を示します。" },
+          { text: "相関係数がマイナスを示す「負の相関」である。", isCorrect: false, exp: "両方とも夏に増えるため相関係数はプラスです。" }
+        ]
+      },
+      {
+        id: 50,
+        category: "散布図と相関・因果",
+        level: "基礎",
+        question: "「相関関係」と「因果関係」の違いを正しく説明したものはどれか。",
+        hint: "「連動して動くこと」と「一方が他方を直接引き起こすこと」の違いです。",
+        keyPoint: "相関関係は「2つの変数が連動して変化する関係」、因果関係は「一方が原因となって他方の結果を引き起こす関係」です。",
+        options: [
+          { text: "相関関係は両者が連動して変化する関係であり、因果関係は一方が直接の原因となる関係である。", isCorrect: true, exp: "相関関係があるからといって、因果関係があるとは絶対に断定できません。" },
+          { text: "相関関係があれば、必ずその背後に直接の因果関係が存在する。", isCorrect: false, exp: "疑似相関のように因果関係が存在しない相関は無数にあります。" },
+          { text: "因果関係は散布図で点が一直線に並ぶことのみを指す用語である。", isCorrect: false, exp: "因果関係は現象の発生メカニズムであり、散布図の形状の定義ではありません。" },
+          { text: "相関関係と因果関係は全く同一の意味を持つ同義語である。", isCorrect: false, exp: "統計学において最も明確に区別すべき概念です。" }
+        ]
+      },
+      {
+        id: 51,
+        category: "散布図と相関・因果",
+        level: "発展",
+        question: "散布図において、変数 $x$ と $y$ の関係が綺麗な下に凸の放物線（$y = x^2$、$-3 \\le x \\le 3$）を描いて分布しているとき、ピアソンの相関係数 $r$ はどうなるか。",
+        hint: "ピアソンの相関係数は「直線的な関係」の強さを測る指標です。",
+        keyPoint: "放物線は左右対称で、前半の負の傾きと後半の正の傾きが完全に相殺されるため、$r \\approx 0$（無相関）と判定されます。",
+        options: [
+          { text: "r ≈ 0（直線関係としては無相関と判定される）", isCorrect: true, exp: "相関係数は線形関係を測るため、強い二次関数の曲線関係があっても0付近になってしまいます。" },
+          { text: "r ≈ 1（完全な正の相関）", isCorrect: false, exp: "右肩上がりの直線ではないため1にはなりません。" },
+          { text: "r ≈ -1（完全な負の相関）", isCorrect: false, exp: "右肩下がりの直線ではないため-1にはなりません。" },
+          { text: "数学的に分母が0になり計算不可能である", isCorrect: false, exp: "公式に従って計算可能であり、結果として0が得られます。" }
+        ]
+      },
+      {
+        id: 52,
+        category: "散布図と相関・因果",
+        level: "発展",
+        question: "ほぼ無相関（$r \\approx 0$）を示す100組のデータ群に、右上の極めて遠い位置に外れ値が「1組だけ」混入した。相関係数 $r$ に生じる変化として正しいものはどれか。",
+        hint: "相関係数は外れ値に非常に強く引きずられます。",
+        keyPoint: "右上の極端な外れ値は共分散を急増させるため、相関係数は強い正の相関（プラス）へと大きく跳ね上がります。",
+        options: [
+          { text: "強い正の相関を示す方向へと大きく引きずられて急上昇する。", isCorrect: true, exp: "1点だけ離れた点によって全体が「右上がり」と誤認識され、相関係数が激変します。" },
+          { text: "データ数が100組もあるため、1点程度では数値は全く変動しない。", isCorrect: false, exp: "相関係数は外れ値に対して非常に脆弱（非ロバスト）です。" },
+          { text: "強い負の相関（マイナス）を示す方向へと急激に低下する。", isCorrect: false, exp: "右上にある点は正の共分散を生むため負には動きません。" },
+          { text: "必ずちょうど 0.00 に固定される。", isCorrect: false, exp: "0に固定されることはありません。" }
+        ]
+      },
+      {
+        id: 53,
+        category: "散布図と相関・因果",
+        level: "発展",
+        question: "生徒の「身長（cm）」と「体重（kg）」の相関係数が $r = 0.68$ であった。すべての生徒の身長を「メートル（m）」に、体重を「グラム（g）」に単位換算したときの相関係数はいくらか。",
+        hint: "正の定数倍による単位換算を行っても、散布図の相対的な点の並び順や標準化スコアはどうなるでしょうか？",
+        keyPoint: "正の定数倍による一次変換を行っても、相関係数 $r$ の値は一切変化しません（不変性）。",
+        options: [
+          { text: "0.68", isCorrect: true, exp: "相関係数は標準化された無次元の指標であるため、正の定数倍による単位換算で値は変わりません。" },
+          { text: "0.0068", isCorrect: false, exp: "cmからmへの変換（1/100）に引きずられて割ってしまった誤解です。" },
+          { text: "6.80", isCorrect: false, exp: "kgからgへの変換（1000倍）で相関係数も増大すると錯覚した誤りです（1を超えません）。" },
+          { text: "-0.68", isCorrect: false, exp: "正の定数倍なので符号は反転しません。" }
+        ]
+      },
+      {
+        id: 54,
+        category: "散布図と相関・因果",
+        level: "発展",
+        question: "小学校全校児童を調査したところ、「靴のサイズが大きい児童ほど、漢字テストの得点が高い」という強い正の相関が見られた。この見かけ上の相関（疑似相関）を生み出している共通の交絡因子はどれか。",
+        hint: "学年が上がる（成長する）と、足のサイズも大きくなり、習う漢字も増えます。",
+        keyPoint: "「児童の学年（年齢・身体発達）」が、靴のサイズと漢字テストの点数の双方に影響を与える交絡因子です。",
+        options: [
+          { text: "児童の学年（年齢や身体・学習の発達度）", isCorrect: true, exp: "高学年になるほど足も大きくなり、習得漢字数も増えるため生じた典型的な疑似相関です。" },
+          { text: "通学路の距離の長さ", isCorrect: false, exp: "漢字の学力と靴のサイズの双方を説明する主因ではありません。" },
+          { text: "学校の校庭の広さ", isCorrect: false, exp: "全校生徒で共通の環境要因です。" },
+          { text: "靴のメーカーのブランド力", isCorrect: false, exp: "漢字テストの得点と直接結びつきません。" }
+        ]
+      },
+      {
+        id: 55,
+        category: "散布図と相関・因果",
+        level: "発展",
+        question: "病院Aと病院Bで、軽症患者でも重症患者でも個別に比べると病院Aの方が治癒率が高いのに、患者全体を合算すると病院Bの方が治癒率が高くなる逆転現象を何と呼ぶか。",
+        hint: "グループごとの比率の違いによって全体傾向が逆転するパラドックスです。",
+        keyPoint: "部分ごとに成立する関係が、全体を合算すると逆転する現象を「シンプソンのパラドックス」と呼びます。",
+        options: [
+          { text: "シンプソンのパラドックス", isCorrect: true, exp: "病院Aが治癒しにくい重症患者を圧倒的多数引き受けていた場合などに生じる逆転現象です。" },
+          { text: "モンティ・ホール問題", isCorrect: false, exp: "確率論におけるドアの選択問題です。" },
+          { text: "囚人のジレンマ", isCorrect: false, exp: "ゲーム理論における協調と裏切りのジレンマです。" },
+          { text: "回帰の誤謬", isCorrect: false, exp: "平均への回帰を因果効果と勘違いする誤りです。" }
+        ]
+      },
+      {
+        id: 56,
+        category: "散布図と相関・因果",
+        level: "発展",
+        question: "相関関係がある2つの変数 $X$ と $Y$ について、回帰分析を行って「$Y = aX + b$」の直線を引いた。この回帰直線の傾き $a$ と切片 $b$ を決定する数学的基準（最小二乗法）はどれか。",
+        hint: "実際のデータ点と直線のズレ（残差）の2乗の合計を最も小さくします。",
+        keyPoint: "「最小二乗法」＝各データの残差（縦方向のズレ）の2乗の総和を最小化するように直線を決定します。",
+        options: [
+          { text: "各データ点と直線との縦方向の差（残差）の2乗の合計を最小にする。", isCorrect: true, exp: "残差の2乗和を最小化することで、最も当てはまりの良い直線を数学的に一意に求めます。" },
+          { text: "データ全体の相関係数 $r$ をちょうど 1.0 に引き上げる。", isCorrect: false, exp: "回帰直線を引いても元の相関係数の値自体は変わりません。" },
+          { text: "すべてのデータ点を必ず直線の上に正確に乗せる。", isCorrect: false, exp: "完全相関でない限りすべての点が直線上に来ることはありません。" },
+          { text: "傾き $a$ が常に 45度（1.0）になるように強制固定する。", isCorrect: false, exp: "傾きはデータの共分散と分散の比によって決まります。" }
+        ]
+      },
+      {
+        id: 57,
+        category: "散布図と相関・因果",
+        level: "発展",
+        question: "回帰分析において、決定係数 $R^2$ が 0.64 であった。この数値の統計学的解釈として最も適切なものはどれか。",
+        hint: "単回帰では相関係数 $r$ の2乗（$0.8^2 = 0.64$）に一致し、説明力を表します。",
+        keyPoint: "決定係数 $R^2 = 0.64$ は、「目的変数のばらつきの 64% を説明変数によって説明（予測）できる」ことを意味します。",
+        options: [
+          { text: "目的変数の全体の散らばりのうち、64%が説明変数によって説明できている。", isCorrect: true, exp: "モデルの予測当てはまりの良さ（寄与率）を表す指標です。" },
+          { text: "データの64%に入力ミスや欠損値が存在している。", isCorrect: false, exp: "データの不具合率ではありません。" },
+          { text: "残りの36%の確率で計算プログラムがクラッシュする。", isCorrect: false, exp: "システムエラーの確率ではありません。" },
+          { text: "相関係数が -0.64 であることと数学的に同値である。", isCorrect: false, exp: "相関係数は $\\pm 0.8$ です。" }
+        ]
+      },
+      {
+        id: 58,
+        category: "散布図と相関・因果",
+        level: "発展",
+        question: "「警察官の人数が多い地域ほど、犯罪発生件数が多い」という正の相関から、「警察官を増やしたから犯罪が増えたのだ」と結論づける誤謬はどれか。",
+        hint: "犯罪が多い地域だからこそ、多くの警察官が配備されているのです。",
+        keyPoint: "原因と結果を取り違える「因果の逆転（逆の因果関係）」の典型例です。",
+        options: [
+          { text: "因果の逆転（犯罪が多い地域だからこそ警察官が多く配備された）", isCorrect: true, exp: "結果（犯罪多発）が原因（警察官増員）を引き起こしている関係を見誤っています。" },
+          { text: "単位換算の計算ミス", isCorrect: false, exp: "単位の問題ではありません。" },
+          { text: "名義尺度の足し算エラー", isCorrect: false, exp: "犯罪件数も警察官数も比率尺度（量的データ）です。" },
+          { text: "標本サイズ不足による過学習", isCorrect: false, exp: "機械学習の過学習とは無関係です。" }
+        ]
+      },
+      {
+        id: 59,
+        category: "散布図と相関・因果",
+        level: "発展",
+        question: "あるテストの得点 $X$ と別のテストの得点 $Y$ について、共分散 $s_{xy}$ が正の値をとった。このとき確実に言えることはどれか。",
+        hint: "共分散の符号は、相関係数の符号と一致します。",
+        keyPoint: "共分散 $s_{xy} > 0$ のとき、相関係数 $r > 0$ となり、「正の相関傾向」があると言えます。",
+        options: [
+          { text: "XとYの間には正の相関の傾向（右上がりの傾向）がある。", isCorrect: true, exp: "共分散の正負の符号は、相関係数の正負の符号と常に完全に一致します。" },
+          { text: "XとYの間には負の相関の傾向がある。", isCorrect: false, exp: "負の相関なら共分散はマイナスになります。" },
+          { text: "相関係数 $r$ の値が必ずちょうど 1.0 になる。", isCorrect: false, exp: "正の数であることと1.0であることは異なります。" },
+          { text: "Xの平均値とYの平均値が完全に一致している。", isCorrect: false, exp: "平均値の一致とは無関係です。" }
+        ]
+      },
+      {
+        id: 60,
+        category: "散布図と相関・因果",
+        level: "発展",
+        question: "「健康的な食生活を送っている人ほど、毎日の運動時間が長い」というデータのみから導ける主張として、論理的に正しいものはどれか。",
+        hint: "相関関係のデータから、直接の因果を決めつけないことが重要です。",
+        keyPoint: "「食生活と運動時間には正の相関関係が見られる」という事実のみが確実に言える客観的結論です。",
+        options: [
+          { text: "食生活の改善と運動時間の長さの間には、正の相関関係が見られる。", isCorrect: true, exp: "連動して動いている相関の事実のみを客観的に述べた正確な記述です。" },
+          { text: "健康的な食事をとることが直接の原因となって運動を促している。", isCorrect: false, exp: "因果関係を短絡的に決めつけています。" },
+          { text: "運動時間を延ばせば、自動的に食事の内容が健康的になる。", isCorrect: false, exp: "逆の因果を決めつけています。" },
+          { text: "この2つのデータの間にはいかなる関連性も存在しない。", isCorrect: false, exp: "相関が見られているため関連性は存在します。" }
+        ]
+      },
+
+      // -----------------------------------------------------------------------
+      // 分野4: 四分位数と箱ひげ図 (Q61〜Q80)
+      // -----------------------------------------------------------------------
+      {
+        id: 61,
+        category: "四分位数と箱ひげ図",
+        level: "基礎",
+        question: "課題プリントの[4](1)の設問です。データのそれぞれの値と平均値との差（$x_i - \\bar{x}$）のことを何と呼ぶか。",
+        hint: "平均からどれくらい「偏って差があるか」を表す用語です。",
+        keyPoint: "データの値から平均値を引いた差を「偏差（へんさ）」と呼びます。",
+        options: [
+          { text: "偏差", isCorrect: true, exp: "個々のデータ値から平均値を引いた値です。" },
+          { text: "分散", isCorrect: false, exp: "偏差の2乗の平均値です。" },
+          { text: "標準偏差", isCorrect: false, exp: "分散の正の平方根です。" },
+          { text: "四分位偏差", isCorrect: false, exp: "四分位範囲を2で割った値です。" }
+        ]
+      },
+      {
+        id: 62,
+        category: "四分位数と箱ひげ図",
+        level: "基礎",
+        question: "課題プリントの[4](2)の設問です。長方形の「箱」と両端に伸びる「ひげ」によって、データの散らばり具合を視覚的に表現した図の名称はどれか。",
+        hint: "課題プリントのサンプルデータの図です。英語ではBox plotと呼ばれます。",
+        keyPoint: "箱とひげでデータの分布を表現したグラフを「箱ひげ図」と呼びます。",
+        options: [
+          { text: "箱ひげ図", isCorrect: true, exp: "5数要約を用いてデータの散らばりや偏りを要約表示するグラフです。" },
+          { text: "ヒストグラム", isCorrect: false, exp: "度数分布を表す柱状グラフです。" },
+          { text: "散布図", isCorrect: false, exp: "2変数の相関を表すグラフです。" },
+          { text: "レーダーチャート", isCorrect: false, exp: "複数の項目をクモの巣状に表示するグラフです。" }
+        ]
+      },
+      {
+        id: 63,
+        category: "四分位数と箱ひげ図",
+        level: "基礎",
+        question: "課題プリントの[4](3)の設問です。箱ひげ図を作成するために必要な「5つの数（5数要約）」に含まれる、第1四分位数・第3四分位数以外の3つの数値（19, 20, 21）はどれか。（漢字三文字）",
+        hint: "左のひげの端、中央の線、右のひげの端です。",
+        keyPoint: "5数要約は「最小値（19）」「第1四分位数」「中央値（20）」「第3四分位数」「最大値（21）」です。",
+        options: [
+          { text: "最小値 、 中央値 、 最大値", isCorrect: true, exp: "箱ひげ図の骨格を成す3つの重要数値です（中央値は第2四分位数とも呼ばれます）。" },
+          { text: "平均値 、 最頻値 、 最大値", isCorrect: false, exp: "箱ひげ図の基本骨格に平均値や最頻値は必須ではありません。" },
+          { text: "最小値 、 平均値 、 最大値", isCorrect: false, exp: "中央値の代わりに平均値を使うことはできません。" },
+          { text: "範囲値 、 中央値 、 分散値", isCorrect: false, exp: "5数要約の項目ではありません。" }
+        ]
+      },
+      {
+        id: 64,
+        category: "四分位数と箱ひげ図",
+        level: "基礎",
+        question: "近年の箱ひげ図において、箱の内部に「＋」マーク（十字記号）が追加でプロットされている場合、この記号は何を表しているか。",
+        hint: "課題プリントの[4](3)の図の上部に「＋ : 平均値」と明記されています。",
+        keyPoint: "箱ひげ図内の「＋」記号は「平均値」を表します。中央値の縦線と比較することで歪みが分かります。",
+        options: [
+          { text: "平均値", isCorrect: true, exp: "課題プリントにも示されている通り、データの算術平均値を表します。" },
+          { text: "最頻値", isCorrect: false, exp: "最頻値を表す記号ではありません。" },
+          { text: "外れ値", isCorrect: false, exp: "外れ値は通常ひげの外側に丸（○）やアスタリスク（*）で描かれます。" },
+          { text: "四分位範囲の中点", isCorrect: false, exp: "平均値の表示です。" }
+        ]
+      },
+      {
+        id: 65,
+        category: "四分位数と箱ひげ図",
+        level: "基礎",
+        question: "箱ひげ図において、中央に描かれる長方形の「箱」の長さ（幅）が示している統計量はどれか。",
+        hint: "第3四分位数から第1四分位数を引いた差です。",
+        keyPoint: "箱の長さは $Q_3 - Q_1$ であり、「四分位範囲（IQR）」を表します。全データの中央50%の散らばりです。",
+        options: [
+          { text: "四分位範囲（IQR）", isCorrect: true, exp: "データの中央50%が収まる幅（Q3 - Q1）を表します。" },
+          { text: "データ全体の範囲（レンジ）", isCorrect: false, exp: "ひげの両端（最大値 - 最小値）の長さです。" },
+          { text: "データの標準偏差", isCorrect: false, exp: "箱の長さが直接標準偏差になるわけではありません。" },
+          { text: "平均偏差", isCorrect: false, exp: "四分位範囲を表します。" }
+        ]
+      },
+      {
+        id: 66,
+        category: "四分位数と箱ひげ図",
+        level: "基礎",
+        question: "昇順に並んだ7個のデータ「2, 4, 6, 8, 10, 12, 14」における第1四分位数（$Q_1$）として正しいものはどれか。",
+        hint: "全体の中央値は4番目の「8」です。その前半グループ「2, 4, 6」の中央値を求めます。",
+        keyPoint: "前半データ「2, 4, 6」の中央値は 4 です。",
+        options: [
+          { text: "4", isCorrect: true, exp: "全体の中央値8を除いた下位半分 (2, 4, 6) の中央値は 4 となります。" },
+          { text: "2", isCorrect: false, exp: "最小値です。" },
+          { text: "6", isCorrect: false, exp: "前半グループの最大値です。" },
+          { text: "8", isCorrect: false, exp: "全体の中央値（第2四分位数 Q2）です。" }
+        ]
+      },
+      {
+        id: 67,
+        category: "四分位数と箱ひげ図",
+        level: "基礎",
+        question: "散らばりを表す指標として、データ全体の「範囲（最大値 - 最小値）」と比較したときの「四分位範囲（IQR）」の最大の長所はどれか。",
+        hint: "極端に大きい数値や小さい数値が1つだけ混ざった場合を考えます。",
+        keyPoint: "四分位範囲は上下25%を切り捨てて中央部を評価するため、極端な外れ値の影響をほとんど受けません。",
+        options: [
+          { text: "極端な外れ値が端に存在しても、その影響をほとんど受けないこと", isCorrect: true, exp: "範囲は外れ値で一気に跳ね上がりますが、四分位範囲は頑健（ロバスト）です。" },
+          { text: "すべてのデータ値を合計して計算するため計算が最も簡単であること", isCorrect: false, exp: "四分位範囲は合計ではなく並び順の位置から求めます。" },
+          { text: "必ず標準偏差のちょうど2倍の値になること", isCorrect: false, exp: "分布によって比率は変わり固定されません。" },
+          { text: "データ数が偶数のときは絶対に小数が生じないこと", isCorrect: false, exp: "四分位数で小数が生じることは頻繁にあります。" }
+        ]
+      },
+      {
+        id: 68,
+        category: "四分位数と箱ひげ図",
+        level: "基礎",
+        question: "複数のグループ（クラスA, B, Cなど）のテスト結果を比較する際、箱ひげ図を並べて表示する最大の利点はどれか。",
+        hint: "課題プリントの[4](2)のように複数の箱ひげ図を横並びに比較します。",
+        keyPoint: "各集団の中央値の違いや、散らばり（四分位範囲・ひげの長さ）の違いを一目で並列比較できます。",
+        options: [
+          { text: "各グループの中央値の違いや、ばらつき（散らばり）の度合いを一目で並列比較できる点", isCorrect: true, exp: "複数の集団の分布の特徴をコンパクトに並べて比較するのに最適なグラフです。" },
+          { text: "生徒一人ひとりの氏名と答案用紙の画像がすべて表示される点", isCorrect: false, exp: "箱ひげ図は要約統計量のみを表示します。" },
+          { text: "クラスごとの合計得点が棒の長さとして直接読み取れる点", isCorrect: false, exp: "合計点ではなく分布の要約です。" },
+          { text: "各クラスの平均点が中央値と完全に一致することが保証される点", isCorrect: false, exp: "歪んだ分布では平均値と中央値は一致しません。" }
+        ]
+      },
+      {
+        id: 69,
+        category: "四分位数と箱ひげ図",
+        level: "基礎",
+        question: "データ全体の散らばり具合を最も簡単に表す「範囲（レンジ）」の算出方法として正しいものはどれか。",
+        hint: "最も大きい値から、最も小さい値を引きます。",
+        keyPoint: "範囲（レンジ） = 最大値 - 最小値 です。",
+        options: [
+          { text: "最大値 - 最小値", isCorrect: true, exp: "データ全体の幅を最も単純に表す指標です。" },
+          { text: "第3四分位数 - 第1四分位数", isCorrect: false, exp: "これは四分位範囲（IQR）の算出方法です。" },
+          { text: "最大値 ÷ 最小値", isCorrect: false, exp: "比率の計算であり範囲ではありません。" },
+          { text: "平均値 - 中央値", isCorrect: false, exp: "歪みを見る差であり範囲ではありません。" }
+        ]
+      },
+      {
+        id: 70,
+        category: "四分位数と箱ひげ図",
+        level: "基礎",
+        question: "一般的な箱ひげ図において、箱の中央付近に引かれる1本の線は何を表しているか。",
+        hint: "5数要約のうち、真ん中の値です。",
+        keyPoint: "箱の中央に引かれる線は「中央値（第2四分位数 $Q_2$）」を表します。",
+        options: [
+          { text: "中央値（第2四分位数）", isCorrect: true, exp: "箱を2つに仕切る線が中央値です。" },
+          { text: "算術平均値", isCorrect: false, exp: "平均値は線ではなく「＋」印で別個に描かれることが一般的です。" },
+          { text: "最頻値", isCorrect: false, exp: "箱ひげ図には通常描かれません。" },
+          { text: "標準偏差の境界線", isCorrect: false, exp: "四分位数の境界線です。" }
+        ]
+      },
+      {
+        id: 71,
+        category: "四分位数と箱ひげ図",
+        level: "発展",
+        question: "課題プリントの[6]のデータ（Y市内の1月の平均温度、昇順並び31個）において、第1四分位数（$Q_1$）として正しい数値はどれか。",
+        hint: "31個の中央は16番目（4.8℃）。下位15個の中央は「8番目」のデータです。表2の8番目を確認してください。",
+        keyPoint: "下位15個の中央値は8番目のデータであり、表2より「2.5℃」です。",
+        options: [
+          { text: "2.5", isCorrect: true, exp: "課題プリントの解答番号27の正答です。31個の中央16番目を除いた前半15個の中央（8番目）は 2.5℃ です。" },
+          { text: "2.2", isCorrect: false, exp: "表2の7番目のデータです。" },
+          { text: "3.0", isCorrect: false, exp: "表2の9番目のデータです。" },
+          { text: "1.8", isCorrect: false, exp: "表2の6番目のデータです。" }
+        ]
+      },
+      {
+        id: 72,
+        category: "四分位数と箱ひげ図",
+        level: "発展",
+        question: "課題プリントの[6]のデータ（31個の昇順データ）において、第2四分位数（$Q_2$：中央値）として正しい数値はどれか。",
+        hint: "31個の中央値は (31+1)/2 = 16番目のデータです。表2の16番目を確認してください。",
+        keyPoint: "16番目のデータは、表2より「4.8℃」です。",
+        options: [
+          { text: "4.8", isCorrect: true, exp: "課題プリントの解答番号28の正答です。31個の中央である16番目のデータは 4.8℃ です。" },
+          { text: "4.2", isCorrect: false, exp: "表2の15番目のデータです。" },
+          { text: "5.2", isCorrect: false, exp: "表2の17番目のデータです。" },
+          { text: "4.5", isCorrect: false, exp: "15番目と16番目の平均をとってしまった計算ミスです（奇数個なので中央値は実在する16番目です）。" }
+        ]
+      },
+      {
+        id: 73,
+        category: "四分位数と箱ひげ図",
+        level: "発展",
+        question: "課題プリントの[6]のデータ（31個の昇順データ）において、第3四分位数（$Q_3$）として正しい数値はどれか。",
+        hint: "後半15個（17番目〜31番目）の中央値は「24番目」のデータ（16 + 8 = 24番目）です。表2の24番目を確認してください。",
+        keyPoint: "24番目のデータは、表2より「6.3℃」です。",
+        options: [
+          { text: "6.3", isCorrect: true, exp: "課題プリントの解答番号29の正答です。後半15個の中央（24番目）は 6.3℃ です。" },
+          { text: "6.1", isCorrect: false, exp: "表2の22〜23番目のデータです。" },
+          { text: "6.8", isCorrect: false, exp: "表2の25番目のデータです。" },
+          { text: "7.2", isCorrect: false, exp: "表2の26番目のデータです。" }
+        ]
+      },
+      {
+        id: 74,
+        category: "四分位数と箱ひげ図",
+        level: "発展",
+        question: "課題プリントの[6]のデータにおいて、「範囲（レンジ）」として正しい数値はどれか。",
+        hint: "最大値（31番目の8.8）から最小値（1番目の0.9）を引き算します。",
+        keyPoint: "範囲 = 最大値 - 最小値 = 8.8 - 0.9 = 7.9℃ です。",
+        options: [
+          { text: "7.9", isCorrect: true, exp: "課題プリントの解答番号30の正答です。8.8 - 0.9 = 7.9℃ となります。" },
+          { text: "8.8", isCorrect: false, exp: "最小値を引かずに最大値そのものを書いてしまった誤りです。" },
+          { text: "3.8", isCorrect: false, exp: "これは四分位範囲（6.3 - 2.5 = 3.8）であり、範囲と混同しています。" },
+          { text: "7.8", isCorrect: false, exp: "計算ミスです。" }
+        ]
+      },
+      {
+        id: 75,
+        category: "四分位数と箱ひげ図",
+        level: "発展",
+        question: "昇順に並んだ11個のデータ「3, 5, 8, 10, 12, 15, 18, 20, 22, 25, 29」における「四分位範囲（IQR）」と「範囲」の組み合わせとして正しいものはどれか。",
+        hint: "中央値は6番目の15。前半5個の中央Q1は8、後半5個の中央Q3は22です。",
+        keyPoint: "IQR = Q3 - Q1 = 22 - 8 = 14。範囲 = 29 - 3 = 26 です。",
+        options: [
+          { text: "四分位範囲: 14 、 範囲: 26", isCorrect: true, exp: "Q1=8, Q3=22 より IQR=22-8=14。範囲は最大29-最小3=26 となります。" },
+          { text: "四分位範囲: 12 、 範囲: 26", isCorrect: false, exp: "Q1やQ3の引き算ミスです。" },
+          { text: "四分位範囲: 14 、 範囲: 29", isCorrect: false, exp: "範囲で最小値を引き忘れています。" },
+          { text: "四分位範囲: 7 、 範囲: 26", isCorrect: false, exp: "四分位偏差（IQR÷2）と混同しています。" }
+        ]
+      },
+      {
+        id: 76,
+        category: "四分位数と箱ひげ図",
+        level: "発展",
+        question: "ある箱ひげ図において、箱の中央値の線が箱の左端（$Q_1$）に極端に寄っており、右側のひげが左側のひげに比べて非常に長く伸びていた。このデータの分布の特徴を表したものとして適切なものはどれか。",
+        hint: "中央値が左寄り＝小さい側にデータが密集し、右へ長く尾を引いています。",
+        keyPoint: "小さい値に多くのデータが密集し、右側に少数の極端に大きい値が裾野を引く「右に歪んだ分布」です。",
+        options: [
+          { text: "小さい値に多くのデータが集中し、右側に裾野が長く伸びている。", isCorrect: true, exp: "所得分布のように、低〜中所得に密集し高額所得へ右に長く伸びた分布の形状です。" },
+          { text: "大きい値に多くのデータが集中し、左側に裾野が長く伸びている。", isCorrect: false, exp: "その場合は中央値が右端（Q3）に寄り、左のひげが長くなります。" },
+          { text: "データが最小値から最大値まで左右対称に均等に散らばっている。", isCorrect: false, exp: "左右対称なら中央値の線は箱の真ん中に位置します。" },
+          { text: "すべてのデータが同一の値であり、分散が0である。", isCorrect: false, exp: "分散0なら箱もひげも潰れて一本の直線になります。" }
+        ]
+      },
+      {
+        id: 77,
+        category: "四分位数と箱ひげ図",
+        level: "発展",
+        question: "あるデータ群で第1四分位数が20、第3四分位数が40であった。一般的な箱ひげ図の外れ値判定ルール（Tukeyの $1.5\\times\\text{IQR}$ 基準）において、「外れ値」と判定される数値の範囲はどれか。",
+        hint: "IQR = 40 - 20 = 20。1.5 × IQR = 30。下限は Q1 - 30、上限は Q3 + 30 です。",
+        keyPoint: "下限境界 = 20 - 30 = -10、上限境界 = 40 + 30 = 70。よって「-10 未満、または 70 超」が外れ値です。",
+        options: [
+          { text: "-10 未満、または 70 超", isCorrect: true, exp: "Q1 - 1.5×IQR = 20 - 30 = -10、Q3 + 1.5×IQR = 40 + 30 = 70 を超える値が外れ値です。" },
+          { text: "0 未満、または 60 超", isCorrect: false, exp: "IQRをそのまま足し引きしてしまった誤りです。" },
+          { text: "-20 未満、または 80 超", isCorrect: false, exp: "2.0倍してしまった誤りです。" },
+          { text: "10 未満、または 50 超", isCorrect: false, exp: "計算ミスです。" }
+        ]
+      },
+      {
+        id: 78,
+        category: "四分位数と箱ひげ図",
+        level: "発展",
+        question: "生徒40名のクラスXとクラスYのテスト結果の箱ひげ図を比較した。クラスXの「中央値」は60点、クラスYの「第3四分位数」は58点であった。この2つの箱ひげ図から確実に論理的結論として言えることはどれか。",
+        hint: "中央値以上は全体の50%（20名以上）。第3四分位数以上は上位25%（10名程度）です。",
+        keyPoint: "クラスXは「60点以上」が少なくとも20名。クラスYは「58点超」が約10名以下。よって60点以上の人数はXの方が多いです。",
+        options: [
+          { text: "60点以上の生徒の人数は、クラスXの方がクラスYよりも多い。", isCorrect: true, exp: "Xは上位50%(20名以上)が60点以上ですが、Yは上位25%(10名)しか58点を超えていません。" },
+          { text: "クラスXの最高得点の生徒は、クラスYの最高得点より必ず高い。", isCorrect: false, exp: "最大値（ひげの右端）同士を比較した記述ではないため確定できません。" },
+          { text: "クラスXの平均点は、クラスYの平均点よりも必ず高い。", isCorrect: false, exp: "外れ値の存在等により中央値が高くても平均値が逆転することがあります。" },
+          { text: "クラスXの生徒は全員58点以上を取っている。", isCorrect: false, exp: "下位50%には58点未満の生徒が存在し得ます。" }
+        ]
+      },
+      {
+        id: 79,
+        category: "四分位数と箱ひげ図",
+        level: "発展",
+        question: "データ数が $n = 10$（偶数個）のときの四分位数の求め方として、文部科学省の標準方式（教科書方式）に従った正しい手順はどれか。",
+        hint: "10個を中央で下位5個と上位5個に真っ二つに分け、それぞれのグループの中央値を求めます。",
+        keyPoint: "中央値 $Q_2$ は5番目と6番目の平均。下位5個の中央（3番目）が $Q_1$、上位5個の中央（8番目）が $Q_3$ です。",
+        options: [
+          { text: "データを下位5個と上位5個に分け、下位の中央値（3番目）をQ1、上位の中央値（8番目）をQ3とする。", isCorrect: true, exp: "偶数個の場合、中央で等分した各半分の独立した中央値を四分位数とします。" },
+          { text: "中央の2個を除いた残り8個を4等分して各値を四分位数とする。", isCorrect: false, exp: "中央値の計算手順として誤りです。" },
+          { text: "偶数個の場合は四分位数は数学的に定義できないため計算を中止する。", isCorrect: false, exp: "偶数個でも明確に定義されています。" },
+          { text: "全データの平均値に標準偏差を足し引きして四分位数とする。", isCorrect: false, exp: "正規分布の区間推定と混同した誤りです。" }
+        ]
+      },
+      {
+        id: 80,
+        category: "四分位数と箱ひげ図",
+        level: "発展",
+        question: "箱ひげ図において、「ひげの長さ」が意味している統計的な解釈として最も適切なものはどれか。",
+        hint: "箱の端（Q1やQ3）から、外れ値を除いた最小値・最大値までの距離です。",
+        keyPoint: "ひげは、データの下位25%（最小値からQ1まで）および上位25%（Q3から最大値まで）のデータの散らばり具合を表します。",
+        options: [
+          { text: "データの下位25%および上位25%の数値がどれくらい広く散らばっているか", isCorrect: true, exp: "ひげが長いほど、端の25%のデータが広い範囲にまばらに分布していることを示します。" },
+          { text: "各階級に含まれるデータ件数そのものの絶対的な人数", isCorrect: false, exp: "箱ひげ図のひげの長さは度数（人数）ではなく値の散らばり幅です。" },
+          { text: "データの平均値と中央値の乖離幅", isCorrect: false, exp: "ひげの長さとは無関係です。" },
+          { text: "外れ値が存在する確率のパーセンテージ", isCorrect: false, exp: "確率を表すものではありません。" }
+        ]
+      },
+
+      // -----------------------------------------------------------------------
+      // 分野5: 公的統計・データ形式とAPI (Q81〜Q100)
+      // -----------------------------------------------------------------------
+      {
+        id: 81,
+        category: "公的統計・データ形式とAPI",
+        level: "基礎",
+        question: "課題プリントの[5]の会話文（22）の設問です。日本国内のすべての人口や世帯の実態を明らかにするために、5年ごとに実施される最も重要な基幹統計調査はどれか。",
+        hint: "調査員が玄関先に来たり、ネットで回答する全数調査です。語群の「オ」にあります。",
+        keyPoint: "国内のすべての人・世帯を対象とする全数調査は「国勢調査（こくせいちょうさ）」です。",
+        options: [
+          { text: "国勢調査", isCorrect: true, exp: "大正9年（1920年）から続く、日本の最も基本となる人口・世帯の全数調査です。" },
+          { text: "国民調査", isCorrect: false, exp: "公的な基幹統計の名称ではありません。" },
+          { text: "家計調査", isCorrect: false, exp: "毎月一部の世帯を抽出して行われる標本調査です。" },
+          { text: "労働力調査", isCorrect: false, exp: "就業・失業の実態を把握する標本調査です。" }
+        ]
+      },
+      {
+        id: 82,
+        category: "公的統計・データ形式とAPI",
+        level: "基礎",
+        question: "課題プリントの[5]の会話文（23）の設問です。国勢調査をはじめとする国の基本統計を企画・実施・とりまとめしている省庁の部局はどれか。",
+        hint: "語群の「カ」にある組織です。総務省に属しています。",
+        keyPoint: "国の統計制度の中枢を担うのは「総務省統計局（そうむしょうとうけいきょく）」です。",
+        options: [
+          { text: "総務省統計局", isCorrect: true, exp: "国勢調査の企画・実施や政府統計ポータル（e-Stat）を所管しています。" },
+          { text: "文部科学省統計局", isCorrect: false, exp: "学校基本調査などを所管しますが、国勢調査の実施機関ではありません。" },
+          { text: "農林水産省統計局", isCorrect: false, exp: "農林業センサスなどを所管します。" },
+          { text: "経済産業省統計部", isCorrect: false, exp: "商業動態統計などを所管します。" }
+        ]
+      },
+      {
+        id: 83,
+        category: "公的統計・データ形式とAPI",
+        level: "基礎",
+        question: "課題プリントの[5]の会話文（24）の設問です。各府省庁が公表する日本の公的統計データを一括検索・閲覧・ダウンロードできる政府統計の総合窓口ポータルサイトはどれか。",
+        hint: "語群の「イ」にあるWebサイトです。",
+        keyPoint: "「e-Stat（政府統計の総合窓口）」は、日本の公的オープンデータを網羅した公的ポータルサイトです。",
+        options: [
+          { text: "e-Stat", isCorrect: true, exp: "各省庁の統計表やAPIが集約された政府統計ポータルサイトです。" },
+          { text: "E-Start", isCorrect: false, exp: "誤った名称の選択肢です。" },
+          { text: "e-Date", isCorrect: false, exp: "誤った名称の選択肢です。" },
+          { text: "e-Tax", isCorrect: false, exp: "国税庁のオンライン確定申告システムです。" }
+        ]
+      },
+      {
+        id: 84,
+        category: "公的統計・データ形式とAPI",
+        level: "基礎",
+        question: "課題プリントの[5]の会話文（25）の設問です。統計データをダウンロードして表計算ソフトウェアやプログラミング言語で加工・分析するのに最も適した、各項目がカンマで区切られたファイル形式はどれか。",
+        hint: "語群の「ウ」にある3文字のアルファベットです。",
+        keyPoint: "Comma-Separated Values の略である「CSV」形式は、汎用性が最も高いテキストデータ形式です。",
+        options: [
+          { text: "CSV", isCorrect: true, exp: "カンマ区切りのシンプルなプレーンテキスト形式で、あらゆる分析ツールで開けます。" },
+          { text: "PDF", isCorrect: false, exp: "印刷・閲覧用レイアウト形式であり、データの集計・加工には適しません。" },
+          { text: "JPEG", isCorrect: false, exp: "画像ファイルの圧縮形式です。" },
+          { text: "HTML", isCorrect: false, exp: "Webページを表現するためのマークアップ形式です。" }
+        ]
+      },
+      {
+        id: 85,
+        category: "公的統計・データ形式とAPI",
+        level: "基礎",
+        question: "課題プリントの[5]の会話文（26）の設問です。地理的位置データ（緯度・経度）と様々な統計情報をコンピュータ上で結びつけ、地図上に重ね合わせて視覚的に表示・分析するシステムはどれか。",
+        hint: "語群の「シ」にあるアルファベット3文字です。Geographic Information Systemの略です。",
+        keyPoint: "「GIS（地理情報システム）」は、ハザードマップや商圏分析、観光動態の可視化に不可欠なシステムです。",
+        options: [
+          { text: "GIS（地理情報システム）", isCorrect: true, exp: "地図情報に統計データを重ね合わせ、空間的な分析や可視化を行うシステムです。" },
+          { text: "GPS", isCorrect: false, exp: "人工衛星を用いた全地球測位システムそのものです。" },
+          { text: "RESAS", isCorrect: false, exp: "地域経済分析システムであり、GIS技術を活用したWebシステムの一種です。" },
+          { text: "DNS", isCorrect: false, exp: "インターネットの名前解決システムです。" }
+        ]
+      },
+      {
+        id: 86,
+        category: "公的統計・データ形式とAPI",
+        level: "基礎",
+        question: "課題プリントの[7]の文章（31）の設問です。ソフトウェアの機能やデータを、外部の他のプログラムから呼び出して利用するための手順やデータ形式を定めた規約・仕組みはどれか。",
+        hint: "Application Programming Interfaceの略です。語群の「エ」にあります。",
+        keyPoint: "「API（Web API）」を利用することで、自作プログラムから他社の天気データや地図サービスを自動取得できます。",
+        options: [
+          { text: "API", isCorrect: true, exp: "プログラム同士が連携して機能やデータを受け渡しするための接続規約です。" },
+          { text: "AI", isCorrect: false, exp: "人工知能（Artificial Intelligence）のことです。" },
+          { text: "URL", isCorrect: false, exp: "Web上のリソースの所在を示すアドレスです。" },
+          { text: "GUI", isCorrect: false, exp: "グラフィカルユーザインタフェースのことです。" }
+        ]
+      },
+      {
+        id: 87,
+        category: "公的統計・データ形式とAPI",
+        level: "基礎",
+        question: "課題プリントの[7]の文章（32, 33, 34）に当てはまる語句（「31とは、32やシステムなどを、外部の33から呼び出して... 近年では34を通じて...」）の組み合わせとして正しいものはどれか。",
+        hint: "データをプログラムから呼び出し、インターネットを通じて利用します。",
+        keyPoint: "APIとは「データ（32）」を外部の「プログラム（33）」から呼び出し、「インターネット（34）」を通じて利用する規約です。",
+        options: [
+          { text: "32: データ 、 33: プログラム 、 34: インターネット", isCorrect: true, exp: "課題プリントの文章の文脈に完全に合致する正しい組み合わせです。" },
+          { text: "32: プログラム 、 33: データ 、 34: AI", isCorrect: false, exp: "呼び出す主体と客体が逆になっています。" },
+          { text: "32: デジタル 、 33: AI 、 34: インターネット", isCorrect: false, exp: "文脈に合致しません。" },
+          { text: "32: データ 、 33: デジタル 、 34: プログラム", isCorrect: false, exp: "文脈に合致しません。" }
+        ]
+      },
+      {
+        id: 88,
+        category: "公的統計・データ形式とAPI",
+        level: "基礎",
+        question: "民間企業や気象庁が提供する「Web API」を自作プログラムで活用する最大の技術的メリットはどれか。",
+        hint: "人間がいちいちブラウザでWebページを開いてダウンロードボタンを押す必要がなくなります。",
+        keyPoint: "Web APIを使うと、プログラムから最新データを定期的かつ自動的に取得・更新できます。",
+        options: [
+          { text: "最新の更新データを手作業なしで定期的かつ自動的に取得・連携できる点", isCorrect: true, exp: "HTTPリクエストを通じてリアルタイムな情報更新を自動化できます。" },
+          { text: "インターネット接続が完全に遮断された環境でも通信できる点", isCorrect: false, exp: "Web APIの利用にはネットワーク接続が必須です。" },
+          { text: "著作権や利用規約の確認が法律上完全に免除される点", isCorrect: false, exp: "API利用時も利用規約やアクセス制限を遵守する必要があります。" },
+          { text: "コンピュータのCPUやメモリを全く消費せずに動作する点", isCorrect: false, exp: "通信やデータパースにCPUとメモリを消費します。" }
+        ]
+      },
+      {
+        id: 89,
+        category: "公的統計・データ形式とAPI",
+        level: "基礎",
+        question: "公的統計などの統計表やグラフを読み解く際、最初に確認すべき重要事項として最も適切なものはどれか。",
+        hint: "いつ、誰を対象に調査し、単位は何なのかという基本情報（メタデータ）を確認します。",
+        keyPoint: "調査対象の範囲、調査年次、数値の単位、脚注・注記を最初に確認することが統計読解の鉄則です。",
+        options: [
+          { text: "調査対象者の定義（世帯主の年齢など）、調査年、数値の単位、脚注・注記", isCorrect: true, exp: "前提条件を確認せずに数値だけを見ると、誤読や早とちりの原因になります。" },
+          { text: "表を作成したデザイナーの使用フォントと配色パターン", isCorrect: false, exp: "デザインの美しさはデータの統計的意味とは関係ありません。" },
+          { text: "すべての数値の合計がちょうど 10000 になるかどうか", isCorrect: false, exp: "合計が10000になる必要はありません。" },
+          { text: "表の中に偶数の数値がいくつ含まれているか", isCorrect: false, exp: "偶数の個数に意味はありません。" }
+        ]
+      },
+      {
+        id: 90,
+        category: "公的統計・データ形式とAPI",
+        level: "基礎",
+        question: "課題プリントの[8]にある表12-2「世帯における情報通信機器の保有率」の注記に書かれている調査対象の定義として正しいものはどれか。",
+        hint: "表の下にある注記テキスト（調査年の4月1日現在で満20歳以上の…）を確認してください。",
+        keyPoint: "「調査年4月1日現在で満20歳以上の世帯主がいる世帯」が対象であり、全年齢の個人ではありません。",
+        options: [
+          { text: "満20歳以上の世帯主がいる世帯を対象とした調査である。", isCorrect: true, exp: "表の注記に明記されている客観的事実であり、世帯主単位の調査です。" },
+          { text: "日本国内の小中学生全員を対象とした全数調査である。", isCorrect: false, exp: "世帯主を対象とした世帯調査です。" },
+          { text: "通信機器を販売している家電量販店のみを対象とした調査である。", isCorrect: false, exp: "一般世帯を対象とした調査です。" },
+          { text: "海外に在住する日本人駐在員世帯のみを対象とした調査である。", isCorrect: false, exp: "国内の一般世帯が対象です。" }
+        ]
+      },
+      {
+        id: 91,
+        category: "公的統計・データ形式とAPI",
+        level: "発展",
+        question: "課題プリントの[8]の問35「FAXの保有率は減少傾向にあり、平成30年には35%を下回った」に対する判定として正しいものはどれか。<br>（表12-2: H27: 42.0%, H29: 35.3%, H30: 34.0%, R1: 33.1%）",
+        hint: "年々減少し、H30年は 34.0% であり 35% を下回っています。",
+        keyPoint: "表の数値の推移から明らかに正しい事実であるため「ア（正しい）」です。",
+        options: [
+          { text: "ア（正しい）", isCorrect: true, exp: "42.0% → 35.3% → 34.0% → 33.1% と減少しており、H30年には34.0%で35%を下回っています。" },
+          { text: "イ（誤っている）", isCorrect: false, exp: "表の数値と完全に一致しているため誤りではありません。" },
+          { text: "ウ（この表からは読み取れない）", isCorrect: false, exp: "表12-2のFAXの列から直接明確に読み取れます。" },
+          { text: "判定不能", isCorrect: false, exp: "数値が明確に記載されています。" }
+        ]
+      },
+      {
+        id: 92,
+        category: "公的統計・データ形式とAPI",
+        level: "発展",
+        question: "課題プリントの[8]の問36「ウェアラブル端末は女性より男性の方が多く使用している」に対する判定として正しいものはどれか。<br>（表12-2: ウェアラブル端末の世帯保有率 H27: 0.9%, H29: 1.9%, H30: 2.5%, R1: 4.7%）",
+        hint: "表に書かれているのは「世帯全体の保有率」だけであり、性別の使用実態データはあるでしょうか？",
+        keyPoint: "表12-2には男女別の利用内訳データは一切含まれていないため「ウ（この表からは読み取れない）」です。",
+        options: [
+          { text: "ウ（この表からは読み取れない）", isCorrect: true, exp: "表にあるのは「世帯保有率」のみであり、男女別の個人利用状況は記載されていないため読み取れません。" },
+          { text: "ア（正しい）", isCorrect: false, exp: "表に性別データがないのに正しいと断定するのは典型的な誤読です。" },
+          { text: "イ（誤っている）", isCorrect: false, exp: "表に記載がないため、誤っているとも断定できません。" },
+          { text: "判定不能（データが存在しないためア）", isCorrect: false, exp: "読み取れない場合は「ウ」と答えるルールです。" }
+        ]
+      },
+      {
+        id: 93,
+        category: "公的統計・データ形式とAPI",
+        level: "発展",
+        question: "課題プリントの[8]の問37「スマートフォンを持っている人は固定電話を持っていない」に対する判定として正しいものはどれか。<br>（表12-2: 令和元年 スマホ保有率 83.4%、固定電話保有率 69.0%）",
+        hint: "83.4% と 69.0% を足すと 152.4% になり、両方を保有している世帯が多数重複しています。",
+        keyPoint: "両方を併用保有している世帯が多く重複しているため、「持っていない」と断定するのは「イ（誤っている）」です。",
+        options: [
+          { text: "イ（誤っている）", isCorrect: true, exp: "保有率の合計が100%を大きく超えており、両方を同時に持つ世帯が多数存在するため誤りです。" },
+          { text: "ア（正しい）", isCorrect: false, exp: "併用世帯が存在するため正しいとは言えません。" },
+          { text: "ウ（この表からは読み取れない）", isCorrect: false, exp: "両者の保有率の大きさから併用世帯の存在は確実に言えるため、命題は明確に誤り（イ）です。" },
+          { text: "将来的にそうなるためア", isCorrect: false, exp: "表の調査時点の客観的データに基づいて判断する必要があります。" }
+        ]
+      },
+      {
+        id: 94,
+        category: "公的統計・データ形式とAPI",
+        level: "発展",
+        question: "課題プリントの[8]の問38「携帯電話の保有率は減少傾向にあるが、スマートフォンの保有率は増加傾向にある」に対する判定として正しいものはどれか。<br>（携帯: 63.6%→50.2%→46.1%→41.4%、スマホ: 72.0%→75.1%→79.2%→83.4%）",
+        hint: "表の年度推移を比較すると、携帯は下がり続け、スマホは上がり続けています。",
+        keyPoint: "表の数値の推移から明らかに事実であるため「ア（正しい）」です。",
+        options: [
+          { text: "ア（正しい）", isCorrect: true, exp: "携帯電話は年々減少し、スマートフォンは年々増加している推移が確実に読み取れます。" },
+          { text: "イ（誤っている）", isCorrect: false, exp: "表の数値の増減傾向と完全に合致しています。" },
+          { text: "ウ（この表からは読み取れない）", isCorrect: false, exp: "表12-2の年度推移から明確に読み取れます。" },
+          { text: "どちらも横ばいであるためイ", isCorrect: false, exp: "明確な減少および増加傾向を示しています。" }
+        ]
+      },
+      {
+        id: 95,
+        category: "公的統計・データ形式とAPI",
+        level: "発展",
+        question: "内閣官房・経済産業省が提供する「RESAS（地域経済分析システム）」の主たる機能や活用目的として最も適切なものはどれか。",
+        hint: "官民のビッグデータを集約し、地方創生のための産業・観光・人口動態を地図上に可視化します。",
+        keyPoint: "「RESAS」は、地方自治体や企業が自地域の産業構造や人口動態、観光客の流動を視覚的に分析するシステムです。",
+        options: [
+          { text: "ビッグデータを活用し、地域の産業構造や人口動態、観光動向を地図やグラフで視覚的に分析する。", isCorrect: true, exp: "地方創生の施策立案に向け、地域の強みや弱みを客観的に把握できるプラットフォームです。" },
+          { text: "国民全員の銀行口座残高と暗証番号を一元管理して税金を自動徴収する。", isCorrect: false, exp: "RESASの目的ではありません。" },
+          { text: "新幹線の全座席の予約と二重予約防止をミリ秒単位で制御する。", isCorrect: false, exp: "JR等の座席予約システムの役割です。" },
+          { text: "インターネット上の迷惑メールをすべて自動削除する。", isCorrect: false, exp: "スパムフィルタの役割です。" }
+        ]
+      },
+      {
+        id: 96,
+        category: "公的統計・データ形式とAPI",
+        level: "発展",
+        question: "「国勢調査」が全世帯・全住民を調べる「全数調査」であるのに対し、毎月の「労働力調査」や「家計調査」が一部の世帯を抽出して行われる「標本調査」である最大の理由はどれか。",
+        hint: "全国民を毎月調査すると、どれくらいの費用と人手がかかるでしょうか？",
+        keyPoint: "莫大な費用・人手・時間を抑え、迅速に速報結果を得るために、標本調査が採用されます。",
+        options: [
+          { text: "調査にかかる莫大な費用・時間・人員を抑え、迅速に結果を公表するため", isCorrect: true, exp: "統計学の標本抽出理論に基づき、少数の標本から高精度で全体を迅速に推計します。" },
+          { text: "全数調査を行うとコンピュータが必ず故障してしまうため", isCorrect: false, exp: "現代のコンピュータは全数データを十分に処理可能です。" },
+          { text: "標本調査の方が全数調査よりも数学的に誤差が絶対にゼロになるため", isCorrect: false, exp: "標本調査には標本誤差が必ず伴います。" },
+          { text: "法律によって毎月の全数調査が禁止されているため", isCorrect: false, exp: "コストと即時性の問題が本質です。" }
+        ]
+      },
+      {
+        id: 97,
+        category: "公的統計・データ形式とAPI",
+        level: "発展",
+        question: "公的機関のサイトからダウンロードしたCSV形式の統計データを、Pythonなどの分析プログラムで処理する際に直面しやすい典型的な前処理の課題はどれか。",
+        hint: "官公庁のCSVは、1行目にタイトルや注記が入っていたり、文字コードがShift-JISだったりします。",
+        keyPoint: "表の先頭にあるタイトル行や不要な空行、注記テキスト、文字コード（Shift-JISとUTF-8）の不一致が典型的な課題です。",
+        options: [
+          { text: "表の冒頭にあるタイトル行や注記テキスト、不要な空行、文字コードの違いへの対応", isCorrect: true, exp: "人間が見やすいレイアウトで作られた公的CSVを機械が正しく読むためのデータクレンジングが必要です。" },
+          { text: "CSVファイルが暗号化されていてパスワードを解読しなければ開けないこと", isCorrect: false, exp: "公的オープンデータは通常暗号化されていません。" },
+          { text: "CSV形式のデータはPythonプログラムから読み込むことが技術的に禁止されていること", isCorrect: false, exp: "Pythonの標準ライブラリやPandasで容易に読み込めます。" },
+          { text: "CSVファイルを開くとパソコンのハードディスクが初期化されてしまうこと", isCorrect: false, exp: "単なるテキストファイルでありそのような動作はしません。" }
+        ]
+      },
+      {
+        id: 98,
+        category: "公的統計・データ形式とAPI",
+        level: "発展",
+        question: "統計グラフにおいて、棒グラフの縦軸の基底（原点 0）を省略して波線で途中をカットした場合に生じる「視覚的な印象操作の罠」はどれか。",
         hint: "差がほんの少ししかないのに、棒の長さの比率が極端に見えてしまいます。",
         keyPoint: "基底（0）を省略すると、ごく僅かな差が劇的な変化に見える「視覚的誇張」が生じます。",
         options: [
-          { text: "ごく僅かな数値の差が、極めて巨大な差であるかのように誇張されること", isCorrect: true, exp: "例えば98点と99点の棒の長さが2倍に見えるような印象操作に騙されない注意が必要です。" },
-          { text: "正の相関関係が自動的に負の相関関係に反転して見えること", isCorrect: false, exp: "棒グラフの基底省略によって相関の正負が反転するわけではありません。" },
-          { text: "グラフのデータが1次データから2次データへ勝手に劣化すること", isCorrect: false, exp: "グラフの描画方法とデータの収集由来（1次/2次）は無関係です。" },
-          { text: "すべてのデータの中央値と平均値が必ず等しくなってしまうこと", isCorrect: false, exp: "グラフの見せ方によって元のデータの統計量が変化することはありません。" }
+          { text: "ごく僅かな数値の差が、極めて巨大な差であるかのように視覚的に誇張されること", isCorrect: true, exp: "例えば98点と99点の棒の長さが2倍に見えるような印象操作に騙されない注意が必要です。" },
+          { text: "正の相関関係が自動的に負の相関関係に反転して見えてしまうこと", isCorrect: false, exp: "棒グラフの基底省略によって相関の符号が反転するわけではありません。" },
+          { text: "すべてのデータの中央値と平均値が必ず等しくなってしまうこと", isCorrect: false, exp: "グラフの見せ方で元のデータの統計量は変わりません。" },
+          { text: "グラフのデータが1次データから2次データへ勝手に劣化すること", isCorrect: false, exp: "データの収集由来とは無関係です。" }
+        ]
+      },
+      {
+        id: 99,
+        category: "公的統計・データ形式とAPI",
+        level: "発展",
+        question: "「世帯におけるスマートフォンの保有率が83%である」という統計調査結果から、論理的に「正しく導き出せる結論」はどれか。",
+        hint: "「世帯」単位の統計です。「個人の保有・利用実態」と混同しないことが鉄則です。",
+        keyPoint: "世帯保有率＝「その世帯の誰かが1台以上持っている割合」です。国民全員が持っているという意味ではありません。",
+        options: [
+          { text: "スマートフォンを1台以上保有している世帯の割合が全体の83%である。", isCorrect: true, exp: "世帯単位の調査の定義そのままの正確な論理的帰結です。" },
+          { text: "日本国民の83%が個人でスマートフォンを所有し毎日利用している。", isCorrect: false, exp: "「世帯保有率」と「個人の保有率・利用実態」を混同した典型的な誤読です。" },
+          { text: "高齢者の83%がスマートフォンを完全に使いこなしている。", isCorrect: false, exp: "年齢別の習熟度は読み取れません。" },
+          { text: "残り17%の世帯には電化製品が一切存在しない。", isCorrect: false, exp: "固定電話やパソコンだけを持つ世帯もあるため誤りです。" }
+        ]
+      },
+      {
+        id: 100,
+        category: "公的統計・データ形式とAPI",
+        level: "発展",
+        question: "統計データを分析して社会に発信する際、データアナリストが最も厳重に心得るべきデータ倫理・リテラシーはどれか。",
+        hint: "都合のよいデータの切り取り、改ざん、結論ありきの印象操作を行わない誠実さです。",
+        keyPoint: "「客観性・中立性の保持」「個人情報の保護」「出典の明記」「バイアスの自覚」がデータサイエンスの倫理基盤です。",
+        options: [
+          { text: "自らの仮説に都合の良いデータだけを恣意的に抜き出さず、客観性と倫理を守って公平に解釈すること", isCorrect: true, exp: "確証バイアスや印象操作を排除し、事実に基づいた誠実な分析を行うことが最も重要です。" },
+          { text: "公的機関のオープンデータであっても出典は隠してすべて自作と主張すること", isCorrect: false, exp: "著作権侵害およびライセンス違反の不正行為です。" },
+          { text: "サンプル数が少ない場合は自分の直感で数値を水増ししてグラフを描くこと", isCorrect: false, exp: "データの捏造にあたる重大な研究不正です。" },
+          { text: "不都合な真実を示すデータはすべてプログラムのエラーとして破棄すること", isCorrect: false, exp: "科学的なデータ分析の姿勢に反します。" }
         ]
       }
     ];
 
+    // =========================================================================
     // アプリケーション状態管理
+    // =========================================================================
     let activeCategory = 'all';
     let activeLevel = 'all';
+    let sessionLimit = 'all';
     let currentQuestions = [];
     let currentIndex = 0;
     let selectedOptionIndex = null;
     let answeredCurrent = false;
-    let reviewList = JSON.parse(localStorage.getItem('drill_review_ids') || '[]');
+    let currentShuffledOptions = []; // 出題ごとに完全にランダムシャッフルされた選択肢
+
+    // 進行状況・スコア
     let currentStreak = 0;
     let maxStreak = 0;
     let totalScore = 0;
     let totalAnswered = 0;
 
-    // 初期化
+    // 復習リスト管理 (LocalStorage)
+    let reviewList = [];
+    try {
+      reviewList = JSON.parse(localStorage.getItem('info1_ds_review_ids') || '[]');
+    } catch(e) {
+      reviewList = [];
+    }
+
+    // アプリ初期化
     function init() {
       applyFilters();
       updateReviewBadge();
     }
 
-    // フィルタリングの適用
+    // フィルタリングとセッション問題群の生成
     function applyFilters() {
+      let filtered = [];
+
       if (activeCategory === 'review') {
-        currentQuestions = ALL_QUESTIONS.filter(q => reviewList.includes(q.id));
+        filtered = ALL_100_QUESTIONS.filter(q => reviewList.includes(q.id));
       } else if (activeCategory === 'all') {
-        currentQuestions = [...ALL_QUESTIONS];
+        filtered = [...ALL_100_QUESTIONS];
       } else {
-        currentQuestions = ALL_QUESTIONS.filter(q => q.category === activeCategory);
+        filtered = ALL_100_QUESTIONS.filter(q => q.category === activeCategory);
       }
 
       // 難易度フィルタ
       if (activeLevel !== 'all') {
-        currentQuestions = currentQuestions.filter(q => q.level === activeLevel);
+        filtered = filtered.filter(q => q.level === activeLevel);
       }
 
+      // 出題数制限
+      if (sessionLimit !== 'all') {
+        const limit = parseInt(sessionLimit, 10);
+        // シャッフルして先頭N問を抽出
+        const shuffled = [...filtered];
+        for (let i = shuffled.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        }
+        filtered = shuffled.slice(0, limit);
+      }
+
+      currentQuestions = filtered;
       currentIndex = 0;
       updateFilterHeader();
       loadQuestion();
     }
 
     function updateFilterHeader() {
-      document.getElementById('currentFilterCount').innerText = `${currentQuestions.length}問中`;
+      document.getElementById('currentFilterCount').innerText = `${currentQuestions.length}問 選択中`;
       document.getElementById('totalQuestions').innerText = currentQuestions.length;
     }
 
     function setCategory(cat) {
       activeCategory = cat;
-      // ボタンデザインの更新
       document.querySelectorAll('.cat-btn').forEach(btn => {
         if (btn.getAttribute('data-cat') === cat) {
-          btn.className = "cat-btn px-3 py-1.5 text-xs md:text-sm font-medium rounded-lg transition-all bg-blue-600 text-white shadow-sm";
+          btn.className = "cat-btn shrink-0 px-3.5 py-2 text-xs md:text-sm font-bold rounded-xl transition-all bg-blue-600 text-white shadow-sm";
         } else if (btn.getAttribute('data-cat') === 'review') {
-          btn.className = "cat-btn px-3 py-1.5 text-xs md:text-sm font-medium rounded-lg transition-all bg-amber-100 text-amber-700 hover:bg-amber-200";
+          btn.className = "cat-btn shrink-0 px-3.5 py-2 text-xs md:text-sm font-medium rounded-xl transition-all bg-amber-100 text-amber-800 hover:bg-amber-200";
         } else {
-          btn.className = "cat-btn px-3 py-1.5 text-xs md:text-sm font-medium rounded-lg transition-all bg-slate-100 text-slate-600 hover:bg-slate-200";
+          btn.className = "cat-btn shrink-0 px-3.5 py-2 text-xs md:text-sm font-medium rounded-xl transition-all bg-slate-100 text-slate-600 hover:bg-slate-200";
         }
       });
       applyFilters();
@@ -894,6 +1826,11 @@
       applyFilters();
     }
 
+    function setSessionLimit(lim) {
+      sessionLimit = lim;
+      applyFilters();
+    }
+
     function restartDrill() {
       currentIndex = 0;
       document.getElementById('summaryCard').classList.add('hidden');
@@ -901,7 +1838,7 @@
       loadQuestion();
     }
 
-    function randomizeCurrent() {
+    function shuffleCurrent() {
       for (let i = currentQuestions.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [currentQuestions[i], currentQuestions[j]] = [currentQuestions[j], currentQuestions[i]];
@@ -909,7 +1846,7 @@
       restartDrill();
     }
 
-    // 問題の読み込み表示
+    // 設問の読み込みとレンダリング（選択肢ランダムシャッフル）
     function loadQuestion() {
       if (currentQuestions.length === 0) {
         showEmptyState();
@@ -925,42 +1862,52 @@
       selectedOptionIndex = null;
       const q = currentQuestions[currentIndex];
 
-      // UI表示の更新
+      // UI表示のリセット
       document.getElementById('quizCard').classList.remove('hidden');
       document.getElementById('summaryCard').classList.add('hidden');
       document.getElementById('feedbackContainer').classList.add('hidden');
       document.getElementById('hintContent').classList.add('hidden');
       document.getElementById('hintArrow').innerText = '▼';
 
+      // プログレスバーの更新
       document.getElementById('progressIndex').innerText = currentIndex + 1;
       const progressPercent = ((currentIndex) / currentQuestions.length) * 100;
-      document.getElementById('progressBar').style.width = `${progressPercent}%`;
+      document.getElementById('progressBar').style.width = `${Math.max(2, progressPercent)}%`;
 
+      // バッジ表示
       document.getElementById('badgeCategory').innerText = q.category;
       document.getElementById('badgeLevel').innerText = q.level;
       if (q.level === '基礎') {
-        document.getElementById('badgeLevel').className = "text-xs font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800";
+        document.getElementById('badgeLevel').className = "text-xs font-bold px-2.5 py-0.5 rounded-md bg-emerald-100 text-emerald-800";
       } else {
-        document.getElementById('badgeLevel').className = "text-xs font-bold px-2 py-0.5 rounded bg-purple-100 text-purple-800";
+        document.getElementById('badgeLevel').className = "text-xs font-bold px-2.5 py-0.5 rounded-md bg-purple-100 text-purple-800";
       }
 
-      document.getElementById('questionNumText').innerText = `第 ${currentIndex + 1} 問 / 全 ${currentQuestions.length} 問`;
-      document.getElementById('questionText').innerText = q.question;
-      document.getElementById('hintContent').innerText = q.hint;
-      document.getElementById('keyPointText').innerText = q.keyPoint;
+      document.getElementById('questionNumText').innerText = `Question ${currentIndex + 1} / ${currentQuestions.length}`;
+      document.getElementById('questionText').innerHTML = q.question;
+      document.getElementById('hintContent').innerHTML = q.hint;
+      document.getElementById('keyPointText').innerHTML = q.keyPoint;
 
-      // ブックマークボタン状態
+      // ブックマークボタン更新
       updateBookmarkBtnState(q.id);
 
-      // 選択肢の生成
+      // 選択肢の描画（出題ごとにA〜Dの位置を完全にランダムシャッフル）
       const container = document.getElementById('optionsContainer');
       container.innerHTML = '';
-      q.options.forEach((opt, idx) => {
+
+      // Fisher-Yatesアルゴリズムで選択肢を公平にシャッフル
+      currentShuffledOptions = [...q.options];
+      for (let i = currentShuffledOptions.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [currentShuffledOptions[i], currentShuffledOptions[j]] = [currentShuffledOptions[j], currentShuffledOptions[i]];
+      }
+
+      currentShuffledOptions.forEach((opt, idx) => {
         const btn = document.createElement('button');
         btn.id = `opt-${idx}`;
-        btn.className = "w-full text-left p-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 hover:border-blue-300 transition flex items-start text-sm md:text-base font-medium text-slate-800 group";
+        btn.className = "option-card w-full text-left p-4 md:p-5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 hover:border-blue-300 transition flex items-start text-sm md:text-base font-medium text-slate-800 group shadow-2xs";
         btn.innerHTML = `
-          <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-slate-100 text-slate-600 text-xs font-bold mr-3 mt-0.5 group-hover:bg-blue-600 group-hover:text-white transition">
+          <span class="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-slate-100 text-slate-600 font-num text-xs font-bold mr-3.5 mt-0.5 group-hover:bg-blue-600 group-hover:text-white transition shrink-0">
             ${['A', 'B', 'C', 'D'][idx]}
           </span>
           <span class="flex-1 leading-relaxed">${opt.text}</span>
@@ -983,7 +1930,7 @@
       }
     }
 
-    // 選択肢をクリックした時の判定処理
+    // 回答選択時の処理
     function selectOption(index) {
       if (answeredCurrent) return;
       answeredCurrent = true;
@@ -991,7 +1938,8 @@
       totalAnswered++;
 
       const q = currentQuestions[currentIndex];
-      const isCorrect = q.options[index].isCorrect;
+      // シャッフルされた配列のインデックスをもとに正誤判定
+      const isCorrect = currentShuffledOptions[index].isCorrect;
 
       if (isCorrect) {
         totalScore++;
@@ -999,7 +1947,7 @@
         if (currentStreak > maxStreak) maxStreak = currentStreak;
       } else {
         currentStreak = 0;
-        // 間違えた問題を自動で復習リストに追加
+        // 間違えた問題を自動的に復習リストへストック
         if (!reviewList.includes(q.id)) {
           reviewList.push(q.id);
           saveReviewList();
@@ -1015,16 +1963,19 @@
       const acc = Math.round((totalScore / totalAnswered) * 100);
       document.getElementById('accuracyRate').innerText = `${acc}%`;
 
-      // 選択肢ボタンのスタイル反映
-      q.options.forEach((opt, idx) => {
+      // 称号バッジの更新
+      updateRankBadge();
+
+      // 選択肢ボタンのカラー変更（シャッフルされた配列に基づいて反映）
+      currentShuffledOptions.forEach((opt, idx) => {
         const btn = document.getElementById(`opt-${idx}`);
         btn.disabled = true;
         if (opt.isCorrect) {
-          btn.className = "w-full text-left p-4 rounded-xl border-2 border-emerald-500 bg-emerald-50/70 text-emerald-950 font-bold transition flex items-start text-sm md:text-base";
+          btn.className = "option-card w-full text-left p-4 md:p-5 rounded-xl border-2 border-emerald-500 bg-emerald-50/70 text-emerald-950 font-bold transition flex items-start text-sm md:text-base shadow-sm";
         } else if (idx === index) {
-          btn.className = "w-full text-left p-4 rounded-xl border-2 border-rose-500 bg-rose-50/70 text-rose-950 font-bold transition flex items-start text-sm md:text-base";
+          btn.className = "option-card w-full text-left p-4 md:p-5 rounded-xl border-2 border-rose-500 bg-rose-50/70 text-rose-950 font-bold transition flex items-start text-sm md:text-base shadow-sm";
         } else {
-          btn.className = "w-full text-left p-4 rounded-xl border border-slate-200 bg-slate-50 text-slate-400 opacity-60 flex items-start text-sm md:text-base";
+          btn.className = "option-card w-full text-left p-4 md:p-5 rounded-xl border border-slate-200 bg-slate-50 text-slate-400 opacity-60 flex items-start text-sm md:text-base";
         }
       });
 
@@ -1033,30 +1984,36 @@
       if (isCorrect) {
         resultBanner.className = "p-4 rounded-xl mb-4 font-bold text-sm md:text-base flex items-center bg-emerald-100 text-emerald-900 border border-emerald-200";
         resultBanner.innerHTML = `
-          <span class="text-xl mr-2">⭕</span>
-          <span>正解です！見事な理解です。</span>
+          <span class="text-2xl mr-2.5">⭕</span>
+          <div>
+            <div class="font-bold">正解です！見事な理解です。</div>
+            <div class="text-xs text-emerald-800 font-normal mt-0.5">知識と論理が定着しています。この調子で進めましょう！</div>
+          </div>
         `;
       } else {
         resultBanner.className = "p-4 rounded-xl mb-4 font-bold text-sm md:text-base flex items-center bg-rose-100 text-rose-900 border border-rose-200";
         resultBanner.innerHTML = `
-          <span class="text-xl mr-2">❌</span>
-          <span>おしい！不正解です。（復習リストに自動登録されました）</span>
+          <span class="text-2xl mr-2.5">❌</span>
+          <div>
+            <div class="font-bold">おしい！不正解です。</div>
+            <div class="text-xs text-rose-800 font-normal mt-0.5">間違えた問題は自動で復習リストに登録されました。詳細解説をじっくり確認しましょう！</div>
+          </div>
         `;
       }
 
-      // 詳細解説（なぜ正解か、なぜ誤答なのか）の描画
+      // 各選択肢の詳しい解説（シャッフルされた順序・記号 A〜D と完全に一致させて表示）
       const rationalesContainer = document.getElementById('detailedRationales');
       rationalesContainer.innerHTML = '';
-      q.options.forEach((opt, idx) => {
+      currentShuffledOptions.forEach((opt, idx) => {
         const div = document.createElement('div');
         div.className = opt.isCorrect 
-          ? "p-3 rounded-lg bg-emerald-50/80 border border-emerald-200 text-emerald-950" 
-          : "p-3 rounded-lg bg-slate-50 border border-slate-200 text-slate-700";
+          ? "p-3.5 rounded-xl bg-emerald-50/80 border border-emerald-200 text-emerald-950" 
+          : "p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-700";
         
         div.innerHTML = `
           <div class="font-bold flex items-center mb-1">
-            <span class="mr-1.5">${opt.isCorrect ? '✅ 正解' : '✖ 誤答'} [${['A','B','C','D'][idx]}]</span>
-            <span class="text-xs ${opt.isCorrect ? 'text-emerald-700' : 'text-slate-500'} font-normal">${opt.text}</span>
+            <span class="mr-2">${opt.isCorrect ? '✅ 正解' : '✖ 誤答'} [${['A','B','C','D'][idx]}]</span>
+            <span class="text-xs ${opt.isCorrect ? 'text-emerald-700' : 'text-slate-500'} font-medium">${opt.text}</span>
           </div>
           <div class="text-xs md:text-sm leading-relaxed ${opt.isCorrect ? 'text-emerald-900 font-medium' : 'text-slate-600'}">
             ${opt.exp}
@@ -1072,6 +2029,24 @@
     function nextQuestion() {
       currentIndex++;
       loadQuestion();
+    }
+
+    // 称号の動的更新
+    function updateRankBadge() {
+      const badge = document.getElementById('rankBadge');
+      if (totalScore >= 80) {
+        badge.innerHTML = "🏆 データサイエンス・マスター";
+        badge.className = "hidden md:inline-flex items-center text-amber-800 bg-amber-100 px-3 py-1 rounded-full border border-amber-300 text-xs font-bold";
+      } else if (totalScore >= 50) {
+        badge.innerHTML = "📊 上級データアナリスト";
+        badge.className = "hidden md:inline-flex items-center text-purple-800 bg-purple-100 px-3 py-1 rounded-full border border-purple-300 text-xs font-bold";
+      } else if (totalScore >= 20) {
+        badge.innerHTML = "📈 一等リサーチ調査員";
+        badge.className = "hidden md:inline-flex items-center text-blue-800 bg-blue-100 px-3 py-1 rounded-full border border-blue-300 text-xs font-bold";
+      } else {
+        badge.innerHTML = "🔰 見習いアナリスト";
+        badge.className = "hidden md:inline-flex items-center text-indigo-700 bg-indigo-50 px-2.5 py-1 rounded-full border border-indigo-200 text-xs font-semibold";
+      }
     }
 
     // ブックマーク（復習）切り替え
@@ -1095,36 +2070,38 @@
       const btn = document.getElementById('bookmarkBtn');
       if (isSaved) {
         text.innerText = "復習リストから削除";
-        btn.className = "text-xs font-medium px-2.5 py-1 rounded-md border border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100 transition flex items-center gap-1";
+        btn.className = "text-xs font-semibold px-2.5 py-1 rounded-lg border border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100 transition flex items-center gap-1";
       } else {
-        text.innerText = "復習に追加";
-        btn.className = "text-xs font-medium px-2.5 py-1 rounded-md border border-slate-200 text-slate-600 hover:bg-slate-100 transition flex items-center gap-1";
+        text.innerText = "復習リストに追加";
+        btn.className = "text-xs font-semibold px-2.5 py-1 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-100 transition flex items-center gap-1";
       }
     }
 
     function saveReviewList() {
-      localStorage.setItem('drill_review_ids', JSON.stringify(reviewList));
+      try {
+        localStorage.setItem('info1_ds_review_ids', JSON.stringify(reviewList));
+      } catch(e) {}
     }
 
     function updateReviewBadge() {
       document.getElementById('reviewBadge').innerText = reviewList.length;
     }
 
-    // 問題がない状態（復習リストが空など）
+    // 問題がないときの空画面表示
     function showEmptyState() {
       document.getElementById('quizCard').classList.add('hidden');
       document.getElementById('summaryCard').classList.remove('hidden');
       document.getElementById('summaryCard').innerHTML = `
         <div class="text-4xl mb-3">📂</div>
-        <h3 class="text-lg font-bold text-slate-800 mb-2">該当する問題がありません</h3>
-        <p class="text-sm text-slate-600 mb-6">復習リストが空か、選択された条件に合致する問題が存在しません。</p>
-        <button onclick="setCategory('all')" class="px-5 py-2 bg-blue-600 text-white font-bold rounded-xl">
-          全分野総合を表示
+        <h3 class="text-xl font-bold text-slate-800 mb-2">該当する問題がありません</h3>
+        <p class="text-sm text-slate-600 mb-6">復習リストが空であるか、選択された条件に合致する問題が存在しません。</p>
+        <button onclick="setCategory('all')" class="px-6 py-2.5 bg-blue-600 text-white font-bold rounded-xl shadow hover:bg-blue-700 transition">
+          全分野総合（100問）を表示
         </button>
       `;
     }
 
-    // 全問終了時のサマリー画面
+    // セッション修了画面
     function showSummary() {
       document.getElementById('quizCard').classList.add('hidden');
       document.getElementById('summaryCard').classList.remove('hidden');
@@ -1135,9 +2112,18 @@
       const acc = totalAnswered > 0 ? Math.round((totalScore / totalAnswered) * 100) : 0;
       document.getElementById('sumAccuracy').innerText = `${acc}%`;
       document.getElementById('sumStreak').innerText = maxStreak;
+
+      const sub = document.getElementById('summarySubtext');
+      if (acc >= 90) {
+        sub.innerText = "驚異的な正答率です！第4回報告課題のデータサイエンス・統計分析・APIは完全にマスターできています！";
+      } else if (acc >= 70) {
+        sub.innerText = "素晴らしい理解度です！間違えた問題を復習リストで振り返れば、定期試験・共通テストも万全です！";
+      } else {
+        sub.innerText = "お疲れ様でした！間違えた問題を中心に解説をじっくり読み直し、着実に知識を自分のものにしていきましょう！";
+      }
     }
 
-    // 開始
+    // 開始イベントリスナー
     window.addEventListener('DOMContentLoaded', init);
   </script>
 </body>

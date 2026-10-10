@@ -1752,6 +1752,7 @@
     let currentIndex = 0;
     let selectedOptionIndex = null;
     let answeredCurrent = false;
+    let currentShuffledOptions = []; // 出題ごとにランダムシャッフルされた選択肢を保持
 
     // 進行状況・スコア
     let currentStreak = 0;
@@ -1897,12 +1898,18 @@
       // ブックマークボタン更新
       updateBookmarkBtnState(q.id);
 
-      // 選択肢の描画（シャッフルして表示）
+      // 選択肢の描画（出題ごとにA〜Dの位置を完全にランダムシャッフル）
       const container = document.getElementById('optionsContainer');
       container.innerHTML = '';
 
-      // 選択肢インデックスを配列化
-      q.options.forEach((opt, idx) => {
+      // Fisher-Yatesアルゴリズムで選択肢を公平にシャッフル
+      currentShuffledOptions = [...q.options];
+      for (let i = currentShuffledOptions.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [currentShuffledOptions[i], currentShuffledOptions[j]] = [currentShuffledOptions[j], currentShuffledOptions[i]];
+      }
+
+      currentShuffledOptions.forEach((opt, idx) => {
         const btn = document.createElement('button');
         btn.id = `opt-${idx}`;
         btn.className = "option-card w-full text-left p-4 md:p-5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 hover:border-emerald-300 transition flex items-start text-sm md:text-base font-medium text-slate-800 group shadow-2xs";
@@ -1938,7 +1945,8 @@
       totalAnswered++;
 
       const q = currentQuestions[currentIndex];
-      const isCorrect = q.options[index].isCorrect;
+      // シャッフルされた配列のインデックスをもとに正誤判定
+      const isCorrect = currentShuffledOptions[index].isCorrect;
 
       if (isCorrect) {
         totalScore++;
@@ -1965,8 +1973,8 @@
       // 称号バッジの更新
       updateRankBadge();
 
-      // 選択肢ボタンのカラー変更
-      q.options.forEach((opt, idx) => {
+      // 選択肢ボタンのカラー変更（シャッフルされた配列に基づいて反映）
+      currentShuffledOptions.forEach((opt, idx) => {
         const btn = document.getElementById(`opt-${idx}`);
         btn.disabled = true;
         if (opt.isCorrect) {
@@ -2000,10 +2008,10 @@
         `;
       }
 
-      // 各選択肢の詳しい解説（なぜ間違いなのか／なぜ正しいのか）
+      // 各選択肢の詳しい解説（シャッフルされた順序・記号 A〜D と完全に一致させて表示）
       const rationalesContainer = document.getElementById('detailedRationales');
       rationalesContainer.innerHTML = '';
-      q.options.forEach((opt, idx) => {
+      currentShuffledOptions.forEach((opt, idx) => {
         const div = document.createElement('div');
         div.className = opt.isCorrect 
           ? "p-3.5 rounded-xl bg-emerald-50/80 border border-emerald-200 text-emerald-950" 

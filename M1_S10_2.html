@@ -3,661 +3,1053 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>数学Ⅰ 三角比「必要な割合」探究スタジオ</title>
-  <!-- Tailwind CSS -->
+  <title>直角三角形と三角比のビジュアル探究スタジオ</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- KaTeX core CSS & JS -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
-  <!-- KaTeX Auto-Render Extension -->
-  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
-
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+  <!-- KaTeX数式組版ライブラリ（/を使わない美しい分数・平方根・等式を表示） -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&family=Inter:wght@400;500;600;700;800&display=swap');
-    
     body {
-      font-family: 'Inter', 'BIZ UDPGothic', 'Hiragino Kaku Gothic ProN', 'Yu Gothic', sans-serif;
+      font-family: 'Noto Sans JP', 'Inter', sans-serif;
     }
-
-    /* KaTeX数式のサイズと視認性の最適化 */
+    .smooth-transition {
+      transition: all 0.25s ease-out;
+    }
+    .triangle-path {
+      transition: d 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    /* KaTeXの分数線の太さとフォントサイズ微調整 */
     .katex {
-      font-size: 1.1em;
-      text-rendering: optimizeLegibility;
+      font-size: 1.05em;
     }
     .katex-display {
-      margin: 0.4em 0 !important;
+      margin: 0.5em 0;
     }
-
-    /* 印刷・復習シート出力用 */
-    @media print {
-      header, .no-print { display: none !important; }
-      body { background: white !important; color: black !important; }
-      .print-border { border: 1px solid #ccc !important; box-shadow: none !important; }
+    /* カスタムスクロールバー */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
     }
   </style>
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          colors: {
-            brand: {
-              50: '#eef2ff',
-              100: '#e0e7ff',
-              500: '#6366f1',
-              600: '#4f46e5',
-              700: '#4338ca',
-            }
-          }
-        }
-      }
-    }
-  </script>
 </head>
-<body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col transition-colors duration-200">
+<body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col">
 
-  <!-- ヘッダー -->
-  <header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm">
-    <div class="max-w-7xl mx-auto px-4 py-3 sm:px-6 flex flex-wrap items-center justify-between gap-4">
-      
-      <!-- タイトル領域（シミュレータの語は含めない） -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
       <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-bold text-xl shadow-md shadow-indigo-200 select-none">
+        <div class="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-bold text-lg shadow-sm">
           ⊿
         </div>
         <div>
           <div class="flex items-center gap-2">
-            <span class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-800 border border-indigo-200 select-none">
-              高校数学Ⅰ 三角比 第2時
-            </span>
-            <span class="text-xs text-slate-500 font-medium hidden sm:inline">45分・生徒用探究ワークシート対応</span>
+            <span class="text-xs font-semibold px-2 py-0.5 bg-indigo-50 text-indigo-700 rounded-full border border-indigo-200">高校数学Ⅰ</span>
+            <span class="text-xs text-slate-500 font-medium">第2時：角度と辺の割合</span>
           </div>
-          <h1 class="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">
-            「必要な割合」を見つけよう
+          <h1 class="text-lg sm:text-xl font-bold text-slate-900 leading-tight">
+            角度が変わると辺の割合はどう変わるか？
           </h1>
         </div>
       </div>
-
-      <!-- 右側コントロール：用語切り替え・印刷復習ボタン -->
-      <div class="flex items-center gap-3">
-        <!-- 日常語 / 数学用語 切り替えスイッチ -->
-        <div class="bg-slate-100 p-1 rounded-xl border border-slate-200 flex items-center text-xs font-bold">
-          <button id="termDailyBtn" onclick="setTerminology('daily')" class="px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 transition-all">
-            日常語 (斜め・横・高さ)
-          </button>
-          <button id="termMathBtn" onclick="setTerminology('math')" class="px-3 py-1.5 rounded-lg bg-indigo-600 text-white shadow-sm transition-all">
-            数学用語 (斜辺・隣辺・対辺)
-          </button>
-        </div>
-
-        <!-- 印刷・保存ボタン -->
-        <button onclick="window.print()" class="no-print p-2 rounded-xl border border-slate-200 text-slate-600 hover:text-indigo-600 hover:bg-slate-100 text-xs font-bold transition flex items-center gap-1.5" title="復習用に印刷またはPDF保存">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
-          <span class="hidden sm:inline">印刷 / 保存</span>
-        </button>
+      <!-- クイック要点バッジ -->
+      <div class="hidden sm:flex items-center gap-2 text-xs font-medium bg-slate-100 text-slate-600 px-3 py-1.5 rounded-lg border border-slate-200">
+        <span>💡 今日の合言葉:</span>
+        <span class="text-indigo-700 font-semibold">「斜辺を固定して棒を立てる」</span>
       </div>
-
     </div>
+
+    <nav class="max-w-6xl mx-auto px-4 border-t border-slate-100 flex overflow-x-auto no-scrollbar">
+      <button onclick="switchTab('tab1')" id="nav-tab1" class="tab-btn px-4 py-2.5 text-sm font-semibold border-b-2 border-indigo-600 text-indigo-600 whitespace-nowrap flex items-center gap-2">
+        <span class="w-5 h-5 rounded-full bg-indigo-100 text-indigo-700 text-xs flex items-center justify-center">1</span>
+        棒を立てる＆sin・cos
+      </button>
+      <button onclick="switchTab('tab2')" id="nav-tab2" class="tab-btn px-4 py-2.5 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-800 whitespace-nowrap flex items-center gap-2">
+        <span class="w-5 h-5 rounded-full bg-slate-100 text-slate-600 text-xs flex items-center justify-center">2</span>
+        45°の秘密＆視点の転換
+      </button>
+      <button onclick="switchTab('tab3')" id="nav-tab3" class="tab-btn px-4 py-2.5 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-800 whitespace-nowrap flex items-center gap-2">
+        <span class="w-5 h-5 rounded-full bg-slate-100 text-slate-600 text-xs flex items-center justify-center">3</span>
+        tanと横1mあたりの高さ
+      </button>
+      <button onclick="switchTab('tab4')" id="nav-tab4" class="tab-btn px-4 py-2.5 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-800 whitespace-nowrap flex items-center gap-2">
+        <span class="w-5 h-5 rounded-full bg-slate-100 text-slate-600 text-xs flex items-center justify-center">4</span>
+        3・4・5と3つの比の関係
+      </button>
+      <button onclick="switchTab('tab5')" id="nav-tab5" class="tab-btn px-4 py-2.5 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-800 whitespace-nowrap flex items-center gap-2">
+        <span class="w-5 h-5 rounded-full bg-slate-100 text-slate-600 text-xs flex items-center justify-center">5</span>
+        確認テスト＆振り返り
+      </button>
+    </nav>
   </header>
-  <!-- メインコンテンツ -->
-  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 space-y-6">
 
-    <!-- 本時のコアメッセージ・案内カード -->
-    <div class="rounded-2xl bg-white border border-indigo-100 p-4 sm:p-5 shadow-sm relative overflow-hidden ring-1 ring-slate-200/80">
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div class="space-y-1.5">
-          <div class="flex items-center gap-2">
-            <span class="flex h-2.5 w-2.5 relative">
-              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
-            </span>
-            <span class="text-xs font-bold tracking-wider text-indigo-700 uppercase">本時の中心メッセージ</span>
+  <main class="max-w-6xl mx-auto px-4 py-6 flex-1 w-full">
+
+    <!-- ======================================================== -->
+    <!-- TAB 1: 棒を立てる＆sin・cos (WS 1 & 2) -->
+    <!-- ======================================================== -->
+    <section id="content-tab1" class="tab-content block space-y-6">
+      <!-- 問いの提示カード -->
+      <div class="bg-indigo-50 border border-indigo-200 rounded-2xl p-4 sm:p-5">
+        <div class="flex items-start gap-3">
+          <span class="px-2.5 py-1 bg-indigo-600 text-white rounded-md text-xs font-bold uppercase tracking-wide">本日の問い</span>
+          <div class="space-y-1">
+            <h2 class="text-base sm:text-lg font-bold text-indigo-950">
+              斜辺の長さ（10m）を固定したまま、角度を大きくしていくと高さと横はどう変わる？
+            </h2>
+            <p class="text-xs sm:text-sm text-indigo-800 leading-relaxed">
+              長さ10mのハシゴや棒を地面から徐々に「立てていく」様子を想像してみましょう。三角形の角度と、対辺（高さ）・隣辺（横）の変化、そして三角比（sin・cos）の数値を確かめます。
+            </p>
           </div>
-          <p class="text-base sm:text-lg font-bold text-slate-900 leading-snug">
-            公式の形を丸暗記して選ぶのではなく、
-            <span class="bg-amber-100 text-amber-900 px-1.5 py-0.5 rounded border border-amber-300 font-extrabold">「分かっている辺」</span>と
-            <span class="bg-indigo-100 text-indigo-900 px-1.5 py-0.5 rounded border border-indigo-300 font-extrabold">「求めたい辺」</span>の2本から、必要な割合を自分で決める！
-          </p>
-        </div>
-        
-        <div class="flex items-center gap-2 shrink-0">
-          <button onclick="scrollToSection('interactiveCanvasArea')" class="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition shadow-sm flex items-center gap-1.5">
-            <span>図で確かめる</span>
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-          </button>
-          <button onclick="scrollToSection('drillSection')" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 text-xs font-bold transition">
-            判断トレーニング
-          </button>
         </div>
       </div>
-    </div>
 
-    <!-- インタラクティブ探究セクション -->
-    <div id="interactiveCanvasArea" class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-
-      <!-- 左側：視覚的キャンバス領域（7カラム） -->
-      <div class="lg:col-span-7 space-y-4">
-        
-        <!-- シナリオ切り替えタブ（問3〜問5に直結） -->
-        <div class="bg-white p-1.5 rounded-2xl border border-slate-200 shadow-sm flex flex-wrap gap-1.5">
-          <button id="sceneSinBtn" onclick="switchScenario('sin')" class="flex-1 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2 bg-indigo-600 text-white shadow-sm">
-            <span>① 斜めから「高さ」</span>
-            <span class="px-1.5 py-0.5 rounded bg-white/20 text-xs font-mono font-bold">sin</span>
-          </button>
-          <button id="sceneCosBtn" onclick="switchScenario('cos')" class="flex-1 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2 text-slate-600 hover:bg-slate-100">
-            <span>② 斜めから「横」</span>
-            <span class="px-1.5 py-0.5 rounded bg-slate-200 text-slate-700 text-xs font-mono font-bold">cos</span>
-          </button>
-          <button id="sceneTanBtn" onclick="switchScenario('tan')" class="flex-1 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2 text-slate-600 hover:bg-slate-100">
-            <span>③ 横から「高さ」</span>
-            <span class="px-1.5 py-0.5 rounded bg-slate-200 text-slate-700 text-xs font-mono font-bold">tan</span>
-          </button>
-        </div>
-        <!-- 幾何ビジュアル表示領域（枠内に必ず収まるセーフエリア＆HTML正確数式バッジ） -->
-        <div id="canvasContainer" class="relative w-full h-[360px] sm:h-[400px] bg-white rounded-3xl border-2 border-slate-200 shadow-md overflow-hidden p-4 select-none">
-          
-          <!-- 背景方眼パターン -->
-          <div class="absolute inset-0 bg-[radial-gradient(#cbd5e1_1px,transparent_1px)] [background-size:16px_16px] opacity-70"></div>
-
-          <!-- SVG幾何グラフィクス描画エリア -->
-          <svg id="triangleSvg" class="absolute inset-0 w-full h-full pointer-events-none"></svg>
-
-          <!-- HTML 数式ラベルオーバーレイ（KaTeX による正式な縦積み分数・根号描画、枠内自動クランプ） -->
-          
-          <!-- 1. 斜辺バッジ -->
-          <div id="hypLabelBadge" class="absolute -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-auto transition-all duration-150">
-            <div class="px-3 py-1.5 rounded-xl font-bold text-xs sm:text-sm shadow-md flex items-center gap-1.5 border bg-white border-sky-300 text-slate-900 ring-2 ring-sky-200/70 whitespace-nowrap">
-              <span id="hypRoleIcon" class="text-xs">⭕️</span>
-              <span id="hypNameText" class="text-sky-700 font-bold">斜辺</span>
-              <span id="hypValueMath" class="font-bold text-slate-900"></span>
-            </div>
-          </div>
-
-          <!-- 2. 底辺（横・隣辺）バッジ -->
-          <div id="adjLabelBadge" class="absolute -translate-x-1/2 translate-y-2 z-20 pointer-events-auto transition-all duration-150">
-            <div class="px-3 py-1.5 rounded-xl font-bold text-xs sm:text-sm shadow-md flex items-center gap-1.5 border bg-white border-emerald-300 text-slate-900 ring-2 ring-emerald-200/70 whitespace-nowrap">
-              <span id="adjRoleIcon" class="text-xs"></span>
-              <span id="adjNameText" class="text-emerald-700 font-bold">隣辺</span>
-              <span id="adjValueMath" class="font-bold text-slate-900"></span>
-            </div>
-          </div>
-
-          <!-- 3. 高さ（対辺）バッジ -->
-          <div id="oppLabelBadge" class="absolute translate-x-2 -translate-y-1/2 z-20 pointer-events-auto transition-all duration-150">
-            <div class="px-3 py-1.5 rounded-xl font-bold text-xs sm:text-sm shadow-md flex items-center gap-1.5 border bg-white border-amber-400 text-slate-900 ring-2 ring-amber-200/80 whitespace-nowrap">
-              <span id="oppRoleIcon" class="text-xs">⭐️</span>
-              <span id="oppNameText" class="text-amber-700 font-bold">対辺</span>
-              <span id="oppValueMath" class="font-bold text-slate-900"></span>
-            </div>
-          </div>
-
-          <!-- 角度表示バッジ -->
-          <div id="angleBadge" class="absolute z-20 text-xs font-extrabold text-indigo-900 bg-indigo-50 px-2.5 py-1 rounded-lg border border-indigo-300 shadow-sm whitespace-nowrap">
-            <span id="angleValueMath"></span>
-          </div>
-
-          <!-- 状況メモ（観測点など） -->
-          <div id="groundMarker" class="absolute bottom-3 left-4 flex items-center gap-1.5 text-slate-500 text-xs font-bold pointer-events-none">
-            <span class="text-base">📐</span>
-            <span id="sceneContextNote">基準の直角三角形</span>
-          </div>
-        </div>
-
-        <!-- 有名角セレクタと基準の長さコントローラー（小数を一切出さない厳密設定） -->
-        <div class="p-4 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-3.5">
-          <div class="flex flex-wrap items-center justify-between gap-3">
-            <div class="flex items-center gap-2">
-              <span class="text-xs font-bold text-slate-700">基準の角度 $\theta$ (有名角):</span>
-              <span class="text-xs text-indigo-600 font-medium">※正確なルート・分数で表示</span>
-            </div>
-            
-            <!-- 有名角 30°/45°/60° ワンタッチボタン -->
-            <div class="flex items-center gap-2">
-              <button onclick="setAngle(30)" id="deg30Btn" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-indigo-600 text-white shadow-sm transition">
-                30°
-              </button>
-              <button onclick="setAngle(45)" id="deg45Btn" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 transition">
-                45°
-              </button>
-              <button onclick="setAngle(60)" id="deg60Btn" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 transition">
-                60°
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div class="lg:col-span-7 bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-4">
+              <span class="text-sm font-bold text-slate-700 flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-indigo-600 inline-block"></span>
+                直角三角形のビジュアル（縮尺共通）
+              </span>
+              <!-- 相似拡大スイッチ -->
+              <button id="scale-toggle-btn" onclick="toggleScale()" class="text-xs px-3 py-1.5 rounded-lg border border-slate-300 bg-slate-50 hover:bg-slate-100 text-slate-700 font-medium transition flex items-center gap-1.5">
+                <span id="scale-badge" class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                <span>斜辺: <strong id="hypotenuse-text" class="text-indigo-600">10m</strong></span>
+                <span class="text-[10px] text-slate-600">(拡大切替)</span>
               </button>
             </div>
+
+            <!-- SVG 描画キャンバス -->
+            <div class="relative w-full aspect-[4/3] max-h-[380px] bg-slate-900 rounded-xl overflow-hidden p-2 flex items-center justify-center">
+              <svg id="triangle-svg-1" viewBox="0 0 460 340" class="w-full h-full select-none">
+                <!-- グリッド背景線 -->
+                <defs>
+                  <pattern id="grid-pattern" width="20" height="20" patternUnits="userSpaceOnUse">
+                    <path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+                  </pattern>
+                </defs>
+                <rect width="460" height="340" fill="url(#grid-pattern)" />
+
+                <!-- 棒が動く円弧の軌跡（斜辺の長さ一定を示す扇形点線） -->
+                <path id="svg-arc-trail" d="" fill="none" stroke="rgba(148, 163, 184, 0.3)" stroke-width="2" stroke-dasharray="4 4" />
+
+                <!-- 地面基準線 -->
+                <line x1="30" y1="290" x2="430" y2="290" stroke="#334155" stroke-width="2"/>
+
+                <!-- 直角三角形の塗りつぶし -->
+                <polygon id="svg-triangle-fill" points="50,290 350,290 350,90" fill="rgba(99, 102, 241, 0.15)" stroke="none" />
+
+                <!-- 各辺のライン -->
+                <!-- 横（隣辺） -->
+                <line id="svg-base-line" x1="50" y1="290" x2="350" y2="290" stroke="#38bdf8" stroke-width="4" stroke-linecap="round" />
+                <!-- 高さ（対辺） -->
+                <line id="svg-height-line" x1="350" y1="290" x2="350" y2="90" stroke="#f43f5e" stroke-width="4" stroke-linecap="round" />
+                <!-- 斜辺（固定棒） -->
+                <line id="svg-hypo-line" x1="50" y1="290" x2="350" y2="90" stroke="#a855f7" stroke-width="5" stroke-linecap="round" />
+
+                <!-- 直角マーク -->
+                <path id="svg-right-angle" d="" fill="none" stroke="#94a3b8" stroke-width="2" />
+
+                <!-- 角度弧 -->
+                <path id="svg-angle-arc" d="" fill="none" stroke="#f59e0b" stroke-width="3" />
+                <text id="svg-angle-text" x="90" y="275" fill="#f59e0b" font-size="14" font-weight="bold">θ°</text>
+
+                <!-- 頂点の点 -->
+                <circle id="svg-pt-c" cx="350" cy="90" r="5" fill="#ffffff" stroke="#a855f7" stroke-width="3" />
+                <circle cx="50" cy="290" r="4" fill="#ffffff" />
+                <circle id="svg-pt-b" cx="350" cy="290" r="4" fill="#ffffff" />
+
+                <!-- 寸法ラベル -->
+                <text id="svg-label-hypo" x="180" y="170" fill="#c084fc" font-size="13" font-weight="bold">斜辺 10m</text>
+                <text id="svg-label-base" x="200" y="315" fill="#38bdf8" font-size="13" font-weight="bold">横: 9.4m</text>
+                <text id="svg-label-height" x="365" y="190" fill="#f43f5e" font-size="13" font-weight="bold">高さ: 3.4m</text>
+              </svg>
+            </div>
           </div>
 
-          <!-- 基準となる長さ（偶数単位で小数を完全に防ぐ） -->
-          <div class="pt-2 border-t border-slate-100 flex items-center justify-between gap-4">
-            <label id="baseLengthLabel" class="text-xs font-bold text-slate-700 shrink-0">基準の長さ (斜辺):</label>
-            <div class="flex items-center gap-3 w-full max-w-xs">
-              <input type="range" id="baseLengthRange" min="2" max="16" step="2" value="10" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600">
-              <span id="baseLengthDisplay" class="font-bold text-slate-900 w-16 text-right text-sm">10 m</span>
+          <div class="mt-4 pt-4 border-t border-slate-100 space-y-4">
+            <!-- プリセットボタン（WSの代表角 + 有名角） -->
+            <div class="flex items-center justify-between gap-2 flex-wrap">
+              <span class="text-xs font-semibold text-slate-500">角度プリセット:</span>
+              <div class="flex gap-1.5 flex-wrap">
+                <button onclick="setAngle(20)" class="px-2.5 py-1 text-xs font-bold rounded-lg border border-slate-200 bg-white hover:bg-indigo-50 hover:text-indigo-600 transition">20°</button>
+                <button onclick="setAngle(30)" class="px-2.5 py-1 text-xs font-bold rounded-lg border border-slate-200 bg-white hover:bg-indigo-50 hover:text-indigo-600 transition">30°</button>
+                <button onclick="setAngle(45)" class="px-2.5 py-1 text-xs font-bold rounded-lg border border-slate-200 bg-white hover:bg-indigo-50 hover:text-indigo-600 transition">45°</button>
+                <button onclick="setAngle(60)" class="px-2.5 py-1 text-xs font-bold rounded-lg border border-slate-200 bg-white hover:bg-indigo-50 hover:text-indigo-600 transition">60°</button>
+                <button onclick="setAngle(70)" class="px-2.5 py-1 text-xs font-bold rounded-lg border border-slate-200 bg-white hover:bg-indigo-50 hover:text-indigo-600 transition">70°</button>
+              </div>
+            </div>
+
+            <!-- 角度スライダー -->
+            <div>
+              <div class="flex justify-between items-center mb-1.5">
+                <label for="angle-slider" class="text-sm font-bold text-slate-700 flex items-center gap-1.5">
+                  <span class="text-amber-500">∠</span> 角度 (θ):
+                  <span id="slider-val-badge" class="text-lg font-extrabold text-indigo-600 ml-1">20°</span>
+                </label>
+                <span class="text-xs text-slate-600">※ 0°〜90°の鋭角</span>
+              </div>
+              <input type="range" id="angle-slider" min="10" max="80" step="1" value="20" class="w-full h-2.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600">
+              <div class="flex justify-between text-[11px] text-slate-600 mt-1">
+                <span>10° (寝かせた状態)</span>
+                <span>45° (中間)</span>
+                <span>80° (立ち上がった状態)</span>
+              </div>
             </div>
           </div>
         </div>
 
-      </div>
-      <!-- 右側：意味の日本語読解と4ステップ解説（5カラム） -->
-      <div class="lg:col-span-5 space-y-4">
-        
-        <!-- 意味を日本語で読むカード -->
-        <div class="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-4 ring-1 ring-slate-100">
-          <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-            <div class="flex items-center gap-2">
-              <span class="w-2.5 h-2.5 rounded-full bg-indigo-600 animate-pulse"></span>
-              <h2 class="font-bold text-sm sm:text-base text-slate-900">「割合」の意味を日本語で読む</h2>
-            </div>
-            <span id="activeRatioBadge" class="px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 text-xs font-bold border border-indigo-200"></span>
-          </div>
-
-          <!-- 日本語読解文ボックス（小数を廃止し、正確な分数と根号で説明） -->
-          <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2.5">
-            <p id="sentenceReadout" class="text-sm sm:text-base font-medium leading-relaxed text-slate-800"></p>
-            <div id="unitRateFormula" class="text-xs text-slate-600 pt-2 border-t border-slate-200 font-medium"></div>
-          </div>
-
-          <!-- 割合の厳密値表示カード -->
-          <div class="space-y-1.5">
-            <div class="flex justify-between items-center text-xs">
-              <span id="ratioBarTitle" class="text-slate-600 font-bold">基準に対する厳密な割合</span>
-              <span id="ratioExactMath" class="font-bold text-indigo-700 text-sm"></span>
-            </div>
-            <div class="h-3 w-full bg-slate-100 rounded-full overflow-hidden p-0.5 border border-slate-200">
-              <div id="ratioProgressBar" class="h-full bg-indigo-600 rounded-full transition-all duration-300" style="width: 50%;"></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- ワークシートの「迷ったときの4ステップ」カード -->
-        <div class="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-3.5 ring-1 ring-slate-100">
-          <div class="flex items-center justify-between">
-            <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
-              <span class="text-amber-500 font-black">★</span>
-              <span>迷ったときの4ステップ</span>
+        <div class="lg:col-span-5 space-y-5">
+          <!-- リアルタイム割合カード（分数と正確な定義式） -->
+          <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
+            <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+              <span class="text-xs px-2 py-0.5 bg-slate-100 rounded text-slate-600 font-mono">STEP 1</span>
+              斜辺を「1」としたときの割合（分数の定義式）
             </h3>
-            <span class="text-xs text-slate-500">（公式暗記に頼らない）</span>
-          </div>
 
-          <div class="space-y-2 text-xs sm:text-sm font-medium">
-            <!-- ステップ1 -->
-            <div class="flex items-center gap-3 p-2.5 rounded-xl bg-slate-50 border border-slate-200">
-              <span class="w-6 h-6 rounded-lg bg-amber-100 text-amber-800 font-black flex items-center justify-center shrink-0 border border-amber-200">1</span>
-              <div>
-                <span class="text-slate-500">分かっている辺に ⭕️ :</span>
-                <span id="stepKnownEdge" class="font-bold text-sky-800 ml-1.5"></span>
+            <!-- sin & cos 表示カード（分数表記） -->
+            <div class="space-y-3">
+              <!-- sinθ -->
+              <div class="p-3.5 rounded-xl bg-rose-50/70 border border-rose-200">
+                <div class="flex justify-between items-center mb-1">
+                  <div class="font-bold text-rose-800 text-xs flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-rose-500"></span>
+                    <span id="math-sin-def">$\sin\theta = \dfrac{\text{対辺（高さ）}}{\text{斜辺}}$</span>
+                  </div>
+                  <!-- 正確な分数表示エリア -->
+                  <div id="math-sin-frac" class="font-bold text-rose-900 text-sm bg-white px-2.5 py-1 rounded-md border border-rose-200 shadow-xs">
+                    $\dfrac{17}{50} \approx 0.34$
+                  </div>
+                </div>
+                <div class="w-full bg-rose-200/50 rounded-full h-2 overflow-hidden my-2">
+                  <div id="bar-sin" class="bg-rose-500 h-full rounded-full transition-all duration-200" style="width: 34%;"></div>
+                </div>
+                <div class="text-[11px] text-rose-700 flex justify-between items-center">
+                  <span>実際の高さ: <span id="actual-height-frac" class="font-bold text-rose-900">$10 \times \sin\theta = 3.4\text{ m}$</span></span>
+                  <span class="text-rose-600 font-medium">（角度↑で <strong>増加</strong>）</span>
+                </div>
+              </div>
+
+              <!-- cosθ -->
+              <div class="p-3.5 rounded-xl bg-sky-50/70 border border-sky-200">
+                <div class="flex justify-between items-center mb-1">
+                  <div class="font-bold text-sky-800 text-xs flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-sky-500"></span>
+                    <span id="math-cos-def">$\cos\theta = \dfrac{\text{隣辺（横）}}{\text{斜辺}}$</span>
+                  </div>
+                  <!-- 正確な分数表示エリア -->
+                  <div id="math-cos-frac" class="font-bold text-sky-900 text-sm bg-white px-2.5 py-1 rounded-md border border-sky-200 shadow-xs">
+                    $\dfrac{47}{50} \approx 0.94$
+                  </div>
+                </div>
+                <div class="w-full bg-sky-200/50 rounded-full h-2 overflow-hidden my-2">
+                  <div id="bar-cos" class="bg-sky-500 h-full rounded-full transition-all duration-200" style="width: 94%;"></div>
+                </div>
+                <div class="text-[11px] text-sky-700 flex justify-between items-center">
+                  <span>実際の横幅: <span id="actual-base-frac" class="font-bold text-sky-900">$10 \times \cos\theta = 9.4\text{ m}$</span></span>
+                  <span class="text-sky-600 font-medium">（角度↑で <strong>減少</strong>）</span>
+                </div>
               </div>
             </div>
 
-            <!-- ステップ2 -->
-            <div class="flex items-center gap-3 p-2.5 rounded-xl bg-slate-50 border border-slate-200">
-              <span class="w-6 h-6 rounded-lg bg-amber-100 text-amber-800 font-black flex items-center justify-center shrink-0 border border-amber-200">2</span>
-              <div>
-                <span class="text-slate-500">求めたい辺に ⭐️ :</span>
-                <span id="stepTargetEdge" class="font-bold text-amber-800 ml-1.5"></span>
+            <!-- WS2の表再現プレビュー（分数対応） -->
+            <div class="border-t border-slate-100 pt-3">
+              <span class="text-xs font-semibold text-slate-500 block mb-2">ワークシート対応表 (斜辺10mのとき)</span>
+              <div class="overflow-x-auto">
+                <table class="w-full text-xs text-center border-collapse">
+                  <thead>
+                    <tr class="bg-slate-100 text-slate-700 font-semibold">
+                      <th class="p-1.5 border border-slate-200">角度 $\theta$</th>
+                      <th class="p-1.5 border border-slate-200 text-rose-700">$\sin\theta = \dfrac{\text{対辺}}{\text{斜辺}}$</th>
+                      <th class="p-1.5 border border-slate-200 text-rose-700">高さ ($10 \times \sin$)</th>
+                      <th class="p-1.5 border border-slate-200 text-sky-700">$\cos\theta = \dfrac{\text{隣辺}}{\text{斜辺}}$</th>
+                      <th class="p-1.5 border border-slate-200 text-sky-700">横 ($10 \times \cos$)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr id="row-20" class="hover:bg-slate-50 cursor-pointer" onclick="setAngle(20)">
+                      <td class="p-1.5 border border-slate-200 font-bold">20°</td>
+                      <td class="p-1.5 border border-slate-200">$\dfrac{17}{50} \; (0.34)$</td>
+                      <td class="p-1.5 border border-slate-200 font-medium">$3.4\text{ m}$</td>
+                      <td class="p-1.5 border border-slate-200">$\dfrac{47}{50} \; (0.94)$</td>
+                      <td class="p-1.5 border border-slate-200 font-medium">$9.4\text{ m}$</td>
+                    </tr>
+                    <tr id="row-45" class="hover:bg-slate-50 cursor-pointer" onclick="setAngle(45)">
+                      <td class="p-1.5 border border-slate-200 font-bold">45°</td>
+                      <td class="p-1.5 border border-slate-200">$\dfrac{1}{\sqrt{2}} \approx \dfrac{71}{100}$</td>
+                      <td class="p-1.5 border border-slate-200 font-medium">約 $7.1\text{ m}$</td>
+                      <td class="p-1.5 border border-slate-200">$\dfrac{1}{\sqrt{2}} \approx \dfrac{71}{100}$</td>
+                      <td class="p-1.5 border border-slate-200 font-medium">約 $7.1\text{ m}$</td>
+                    </tr>
+                    <tr id="row-70" class="hover:bg-slate-50 cursor-pointer" onclick="setAngle(70)">
+                      <td class="p-1.5 border border-slate-200 font-bold">70°</td>
+                      <td class="p-1.5 border border-slate-200">$\dfrac{47}{50} \; (0.94)$</td>
+                      <td class="p-1.5 border border-slate-200 font-medium">$9.4\text{ m}$</td>
+                      <td class="p-1.5 border border-slate-200">$\dfrac{17}{50} \; (0.34)$</td>
+                      <td class="p-1.5 border border-slate-200 font-medium">$3.4\text{ m}$</td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
             </div>
+          </div>
 
-            <!-- ステップ3 -->
-            <div class="flex items-center gap-3 p-2.5 rounded-xl bg-slate-50 border border-slate-200">
-              <span class="w-6 h-6 rounded-lg bg-indigo-100 text-indigo-800 font-black flex items-center justify-center shrink-0 border border-indigo-200">3</span>
-              <div>
-                <span class="text-slate-500">比べる2辺だけを見る:</span>
-                <span id="stepComparedEdges" class="font-bold text-slate-900 ml-1.5"></span>
-              </div>
+          <div class="bg-amber-50/80 border border-amber-200 rounded-2xl p-4 text-xs text-amber-900 space-y-2">
+            <div class="font-bold flex items-center gap-1.5 text-amber-800">
+              <span>✍️ ワークシートの理解ポイント（前回の復習と今回の違い）</span>
             </div>
-
-            <!-- ステップ4 -->
-            <div class="flex items-center gap-3 p-2.5 rounded-xl bg-indigo-50 border border-indigo-200">
-              <span class="w-6 h-6 rounded-lg bg-indigo-600 text-white font-black flex items-center justify-center shrink-0">4</span>
-              <div>
-                <span class="text-indigo-950 font-bold">その2辺の割合の名前:</span>
-                <span id="stepRatioName" class="font-black text-indigo-700 ml-1.5"></span>
-              </div>
-            </div>
+            <ul class="list-disc list-inside space-y-1 text-amber-800 leading-relaxed">
+              <li><strong>三角形を拡大した場合：</strong> 辺の長さは2倍になるが、<strong>辺の割合（sin, cos）は変わりません</strong>（相似）。</li>
+              <li><strong>角度を変えた場合：</strong> 形そのものが変化するため、<strong>辺の割合が変わります</strong>。</li>
+              <li>斜辺を一定にして角度を立てると、対辺（高さ）は増え、隣辺（横）は縮みます。だから <strong>sinは増加し、cosは減少</strong> します。</li>
+            </ul>
           </div>
-
-          <!-- 正確な計算式ボックス（正式な縦積み分数・根号） -->
-          <div class="p-3.5 rounded-xl bg-indigo-900 text-white text-center space-y-1 shadow-sm">
-            <span class="text-[11px] font-bold text-indigo-200 tracking-wider uppercase block">求める長さの計算式</span>
-            <div id="finalEquationDisplay" class="text-base sm:text-lg font-bold py-1"></div>
-          </div>
-        </div>
-
-      </div>
-    </div>
-    <!-- 教科書の定義まとめ（問6 接続・高コントラスト白ベース＆数式完全レンダリング） -->
-    <div class="p-6 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-4">
-      <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-100 pb-3">
-        <div>
-          <div class="flex items-center gap-2">
-            <span class="w-6 h-6 rounded-lg bg-indigo-100 text-indigo-800 font-bold text-xs flex items-center justify-center border border-indigo-200">6</span>
-            <h2 class="text-base sm:text-lg font-bold text-slate-900">教科書の言葉に置き換えよう</h2>
-            <span class="text-xs text-indigo-600 font-bold bg-indigo-50 px-2 py-0.5 rounded-md border border-indigo-100">直角三角形の3つの割合</span>
-          </div>
-          <p class="text-xs text-slate-600 mt-1">
-            基準となる角 $\theta$ の位置によって「対辺（向かい側）」「隣辺（となり）」の呼び方が決まります。
-          </p>
-        </div>
-
-        <!-- 3つの定義のコンパクトなまとめ -->
-        <div class="text-xs sm:text-sm text-slate-700 bg-slate-50 px-4 py-2.5 rounded-xl border border-slate-200 shrink-0 font-medium">
-          $\sin\theta = \frac{\text{対辺}}{\text{斜辺}} \qquad \cos\theta = \frac{\text{隣辺}}{\text{斜辺}} \qquad \tan\theta = \frac{\text{対辺}}{\text{隣辺}}$
         </div>
       </div>
+    </section>
 
-      <!-- 3つの定義カード（sin, cos, tan） -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        
-        <!-- sin 定義カード -->
-        <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2 hover:border-sky-300 transition">
-          <div class="flex items-center justify-between">
-            <span class="font-bold text-sky-800 text-sm">正弦 (sine)</span>
-            <span class="text-xs text-slate-500 font-medium">斜め ➜ 高さ</span>
-          </div>
-          <div class="text-center py-2 bg-white rounded-lg border border-slate-200 shadow-xs">
-            $$\sin\theta = \frac{\text{対辺}}{\text{斜辺}}$$
-          </div>
-          <p class="text-xs text-slate-600 leading-relaxed font-medium">
-            斜辺を $1$ としたときの<span class="text-amber-700 font-bold">「高さ（対辺）」</span>の割合。
-          </p>
-        </div>
-
-        <!-- cos 定義カード -->
-        <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2 hover:border-emerald-300 transition">
-          <div class="flex items-center justify-between">
-            <span class="font-bold text-emerald-800 text-sm">余弦 (cosine)</span>
-            <span class="text-xs text-slate-500 font-medium">斜め ➜ 横</span>
-          </div>
-          <div class="text-center py-2 bg-white rounded-lg border border-slate-200 shadow-xs">
-            $$\cos\theta = \frac{\text{隣辺}}{\text{斜辺}}$$
-          </div>
-          <p class="text-xs text-slate-600 leading-relaxed font-medium">
-            斜辺を $1$ としたときの<span class="text-emerald-700 font-bold">「横（隣辺）」</span>の割合。
-          </p>
-        </div>
-
-        <!-- tan 定義カード -->
-        <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2 hover:border-amber-300 transition">
-          <div class="flex items-center justify-between">
-            <span class="font-bold text-amber-800 text-sm">正接 (tangent)</span>
-            <span class="text-xs text-slate-500 font-medium">横 ➜ 高さ (傾き)</span>
-          </div>
-          <div class="text-center py-2 bg-white rounded-lg border border-slate-200 shadow-xs">
-            $$\tan\theta = \frac{\text{対辺}}{\text{隣辺}}$$
-          </div>
-          <p class="text-xs text-slate-600 leading-relaxed font-medium">
-            斜辺を使わず、<span class="text-emerald-700 font-bold">横（隣辺）</span>に対する<span class="text-amber-700 font-bold">高さ（対辺）</span>の割合。
-          </p>
-        </div>
-
-      </div>
-    </div>
-
-    <!-- 問7 「どれを使う？」判断トレーニング（ワークシート問7完全同期） -->
-    <div id="drillSection" class="p-6 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-4">
-      <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-3">
-        <div>
-          <div class="flex items-center gap-2">
-            <span class="w-6 h-6 rounded-lg bg-emerald-100 text-emerald-800 font-bold text-xs flex items-center justify-center border border-emerald-200">7</span>
-            <h2 class="text-base sm:text-lg font-bold text-slate-900">「どれを使う？」判断トレーニング</h2>
-            <span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold border border-emerald-200">即時判定ドリル</span>
-          </div>
-          <p class="text-xs text-slate-600 mt-1">「比べる2辺」から、どれを使うべきか瞬時に判断する練習です（公式暗記ではなく関係性で判断）。</p>
-        </div>
-        <div class="text-right">
-          <span class="text-xs text-slate-500 font-bold">正解数:</span>
-          <span id="drillScoreText" class="text-base font-black text-indigo-700 ml-1 font-mono">0 / 4</span>
-        </div>
-      </div>
-
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        
-        <!-- 問題 A -->
-        <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3 flex flex-col justify-between" id="cardDrill0">
-          <div class="space-y-1.5">
-            <div class="flex items-center justify-between">
-              <span class="px-2 py-0.5 rounded bg-slate-200 text-xs font-bold text-slate-700">問題 A</span>
-              <span class="text-[11px] text-slate-400 font-medium">ロープから高さ</span>
-            </div>
-            <div class="text-xs text-slate-700 space-y-1 font-medium">
-              <div>分かる辺: <strong class="text-sky-800">斜辺</strong></div>
-              <div>求めたい辺: <strong class="text-amber-800">高さ (対辺)</strong></div>
-              <div class="text-slate-500 pt-0.5">比べる2辺: <strong class="text-slate-800">「斜辺」と「高さ」</strong></div>
-            </div>
-          </div>
-          <div class="grid grid-cols-3 gap-1.5 pt-2 border-t border-slate-200">
-            <button onclick="checkDrill(0, 'sin')" class="py-2 rounded-lg bg-white hover:bg-indigo-600 hover:text-white border border-slate-300 text-xs font-bold transition shadow-xs">sin</button>
-            <button onclick="checkDrill(0, 'cos')" class="py-2 rounded-lg bg-white hover:bg-indigo-600 hover:text-white border border-slate-300 text-xs font-bold transition shadow-xs">cos</button>
-            <button onclick="checkDrill(0, 'tan')" class="py-2 rounded-lg bg-white hover:bg-indigo-600 hover:text-white border border-slate-300 text-xs font-bold transition shadow-xs">tan</button>
-          </div>
-          <div id="drillFeedback0" class="text-xs font-bold hidden text-center py-1.5 px-2 rounded-lg"></div>
-        </div>
-
-        <!-- 問題 B -->
-        <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3 flex flex-col justify-between" id="cardDrill1">
-          <div class="space-y-1.5">
-            <div class="flex items-center justify-between">
-              <span class="px-2 py-0.5 rounded bg-slate-200 text-xs font-bold text-slate-700">問題 B</span>
-              <span class="text-[11px] text-slate-400 font-medium">ロープから横</span>
-            </div>
-            <div class="text-xs text-slate-700 space-y-1 font-medium">
-              <div>分かる辺: <strong class="text-sky-800">斜辺</strong></div>
-              <div>求めたい辺: <strong class="text-emerald-800">横 (隣辺)</strong></div>
-              <div class="text-slate-500 pt-0.5">比べる2辺: <strong class="text-slate-800">「斜辺」と「横」</strong></div>
-            </div>
-          </div>
-          <div class="grid grid-cols-3 gap-1.5 pt-2 border-t border-slate-200">
-            <button onclick="checkDrill(1, 'sin')" class="py-2 rounded-lg bg-white hover:bg-indigo-600 hover:text-white border border-slate-300 text-xs font-bold transition shadow-xs">sin</button>
-            <button onclick="checkDrill(1, 'cos')" class="py-2 rounded-lg bg-white hover:bg-indigo-600 hover:text-white border border-slate-300 text-xs font-bold transition shadow-xs">cos</button>
-            <button onclick="checkDrill(1, 'tan')" class="py-2 rounded-lg bg-white hover:bg-indigo-600 hover:text-white border border-slate-300 text-xs font-bold transition shadow-xs">tan</button>
-          </div>
-          <div id="drillFeedback1" class="text-xs font-bold hidden text-center py-1.5 px-2 rounded-lg"></div>
-        </div>
-
-        <!-- 問題 C -->
-        <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3 flex flex-col justify-between" id="cardDrill2">
-          <div class="space-y-1.5">
-            <div class="flex items-center justify-between">
-              <span class="px-2 py-0.5 rounded bg-slate-200 text-xs font-bold text-slate-700">問題 C</span>
-              <span class="text-[11px] text-slate-400 font-medium">校舎を見上げる</span>
-            </div>
-            <div class="text-xs text-slate-700 space-y-1 font-medium">
-              <div>分かる辺: <strong class="text-emerald-800">横 (隣辺)</strong></div>
-              <div>求めたい辺: <strong class="text-amber-800">高さ (対辺)</strong></div>
-              <div class="text-slate-500 pt-0.5">比べる2辺: <strong class="text-slate-800">「横」と「高さ」</strong></div>
-            </div>
-          </div>
-          <div class="grid grid-cols-3 gap-1.5 pt-2 border-t border-slate-200">
-            <button onclick="checkDrill(2, 'sin')" class="py-2 rounded-lg bg-white hover:bg-indigo-600 hover:text-white border border-slate-300 text-xs font-bold transition shadow-xs">sin</button>
-            <button onclick="checkDrill(2, 'cos')" class="py-2 rounded-lg bg-white hover:bg-indigo-600 hover:text-white border border-slate-300 text-xs font-bold transition shadow-xs">cos</button>
-            <button onclick="checkDrill(2, 'tan')" class="py-2 rounded-lg bg-white hover:bg-indigo-600 hover:text-white border border-slate-300 text-xs font-bold transition shadow-xs">tan</button>
-          </div>
-          <div id="drillFeedback2" class="text-xs font-bold hidden text-center py-1.5 px-2 rounded-lg"></div>
-        </div>
-
-        <!-- 問題 D -->
-        <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3 flex flex-col justify-between" id="cardDrill3">
-          <div class="space-y-1.5">
-            <div class="flex items-center justify-between">
-              <span class="px-2 py-0.5 rounded bg-slate-200 text-xs font-bold text-slate-700">問題 D</span>
-              <span class="text-[11px] text-slate-400 font-medium">高さから斜め</span>
-            </div>
-            <div class="text-xs text-slate-700 space-y-1 font-medium">
-              <div>分かる辺: <strong class="text-amber-800">高さ (対辺)</strong></div>
-              <div>求めたい辺: <strong class="text-sky-800">斜辺</strong></div>
-              <div class="text-slate-500 pt-0.5">比べる2辺: <strong class="text-slate-800">「高さ」と「斜辺」</strong></div>
-            </div>
-          </div>
-          <div class="grid grid-cols-3 gap-1.5 pt-2 border-t border-slate-200">
-            <button onclick="checkDrill(3, 'sin')" class="py-2 rounded-lg bg-white hover:bg-indigo-600 hover:text-white border border-slate-300 text-xs font-bold transition shadow-xs">sin</button>
-            <button onclick="checkDrill(3, 'cos')" class="py-2 rounded-lg bg-white hover:bg-indigo-600 hover:text-white border border-slate-300 text-xs font-bold transition shadow-xs">cos</button>
-            <button onclick="checkDrill(3, 'tan')" class="py-2 rounded-lg bg-white hover:bg-indigo-600 hover:text-white border border-slate-300 text-xs font-bold transition shadow-xs">tan</button>
-          </div>
-          <div id="drillFeedback3" class="text-xs font-bold hidden text-center py-1.5 px-2 rounded-lg"></div>
-        </div>
-
-      </div>
-    </div>
-    <!-- 問8 逆向きの思考探究（坂道と角度） -->
-    <div class="p-6 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-4">
-      <div class="flex items-center gap-2 border-b border-slate-100 pb-3">
-        <span class="w-6 h-6 rounded-lg bg-purple-100 text-purple-800 font-bold text-xs flex items-center justify-center border border-purple-200">8</span>
-        <h2 class="text-base sm:text-lg font-bold text-slate-900">少し逆向きに考えてみよう（割合から角度へ）</h2>
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
-        <div class="md:col-span-7 space-y-3 text-sm text-slate-700 leading-relaxed font-medium">
-          <p>
-            「横に $10\text{ m}$ 進むと、高さが $5\text{ m}$ 上がる坂道」があります。
-          </p>
-          <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-1.5">
-            <div class="text-xs text-slate-500 font-bold">この坂道の傾きの割合（$\tan\theta$）は：</div>
-            <div id="slopeTanFormula" class="text-base font-bold text-indigo-700 py-1">
-              $$\tan\theta = \frac{5}{10} = \frac{1}{2}$$
-            </div>
-            <p class="text-xs text-slate-600">
-              「横に $1\text{ m}$ 進むと、高さがちょうど <strong class="text-indigo-800 font-bold">$\frac{1}{2}\text{ m}$</strong> 上がる」という意味です。
+    <!-- ======================================================== -->
+    <!-- TAB 2: 45°の秘密＆視点の転換 (WS 3) -->
+    <!-- ======================================================== -->
+    <section id="content-tab2" class="tab-content hidden space-y-6">
+      <div class="bg-indigo-50 border border-indigo-200 rounded-2xl p-4 sm:p-5">
+        <div class="flex items-start gap-3">
+          <span class="px-2.5 py-1 bg-indigo-600 text-white rounded-md text-xs font-bold uppercase tracking-wide">探究テーマ</span>
+          <div class="space-y-1">
+            <h2 class="text-base sm:text-lg font-bold text-indigo-950">
+              ① 45°で sin と cos がぴったり等しくなる理由 &nbsp;/&nbsp; ② 視点を変えると対辺と隣辺が入れ替わる？
+            </h2>
+            <p class="text-xs sm:text-sm text-indigo-800 leading-relaxed">
+              「縦の辺＝常に対辺」と思い込んでいませんか？ 注目する角がどちらかによって、対辺と隣辺の呼び名は変わります。
             </p>
           </div>
-          <p class="text-xs text-slate-800 font-bold">
-            💡 <span class="text-amber-600">問いかけ:</span> この割合（$\tan\theta = \frac{1}{2}$）が分かっていれば、逆に坂道の角度 $\theta$ も決まるでしょうか？
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- 45度の直角二等辺三角形カード -->
+        <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
+          <div class="flex items-center justify-between">
+            <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full bg-amber-500"></span>
+              45°の直角二等辺三角形のヒミツ
+            </h3>
+            <span class="text-xs font-bold px-2 py-0.5 bg-amber-100 text-amber-800 rounded">θ = 45°</span>
+          </div>
+
+          <!-- 45度専用SVG -->
+          <div class="w-full aspect-[4/3] bg-slate-900 rounded-xl p-3 flex items-center justify-center">
+            <svg viewBox="0 0 360 280" class="w-full h-full select-none">
+              <!-- 三角形塗りつぶし -->
+              <polygon points="50,230 250,230 250,30" fill="rgba(245, 158, 11, 0.15)" stroke="none" />
+              <!-- 横 -->
+              <line x1="50" y1="230" x2="250" y2="230" stroke="#38bdf8" stroke-width="4" stroke-linecap="round"/>
+              <!-- 高さ -->
+              <line x1="250" y1="230" x2="250" y2="30" stroke="#f43f5e" stroke-width="4" stroke-linecap="round"/>
+              <!-- 斜辺 -->
+              <line x1="50" y1="230" x2="250" y2="30" stroke="#a855f7" stroke-width="4" stroke-linecap="round"/>
+              
+              <!-- 等辺マーク (二重線) -->
+              <line x1="145" y1="225" x2="145" y2="235" stroke="#f59e0b" stroke-width="2"/>
+              <line x1="155" y1="225" x2="155" y2="235" stroke="#f59e0b" stroke-width="2"/>
+              <line x1="245" y1="125" x2="255" y2="125" stroke="#f59e0b" stroke-width="2"/>
+              <line x1="245" y1="135" x2="255" y2="135" stroke="#f59e0b" stroke-width="2"/>
+
+              <!-- 直角マーク -->
+              <rect x="232" y="212" width="18" height="18" fill="none" stroke="#94a3b8" stroke-width="2"/>
+
+              <!-- 角45° (下) -->
+              <path d="M 85 230 A 35 35 0 0 0 75 205" fill="none" stroke="#f59e0b" stroke-width="2.5"/>
+              <text x="90" y="220" fill="#f59e0b" font-size="13" font-weight="bold">45°</text>
+
+              <!-- 角45° (上) -->
+              <path d="M 250 65 A 35 35 0 0 1 225 55" fill="none" stroke="#f59e0b" stroke-width="2.5"/>
+              <text x="215" y="80" fill="#f59e0b" font-size="13" font-weight="bold">45°</text>
+
+              <!-- ラベル -->
+              <text x="135" y="115" fill="#c084fc" font-size="12" font-weight="bold">斜辺 10m</text>
+              <text x="120" y="255" fill="#38bdf8" font-size="12" font-weight="bold">横: 約7.1m</text>
+              <text x="260" y="135" fill="#f43f5e" font-size="12" font-weight="bold">高さ: 約7.1m</text>
+            </svg>
+          </div>
+
+          <!-- 論理的解説ボックス（数式形式） -->
+          <div class="space-y-2 text-xs text-slate-700 bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+            <h4 class="font-bold text-slate-900 text-sm">💡 なぜ $\sin 45^\circ = \cos 45^\circ$ になるのか？</h4>
+            <ol class="list-decimal list-inside space-y-2 leading-relaxed text-slate-600">
+              <li>直角が $90^\circ$、左下が $45^\circ$ なので、残りの上の角も $180^\circ - 90^\circ - 45^\circ = 45^\circ$。</li>
+              <li>2つの鋭角が等しいので、この三角形は <strong>直角二等辺三角形</strong> になる。</li>
+              <li>したがって、<strong>対辺（高さ）と隣辺（横）の長さが等しい</strong>（$\text{対辺} = \text{隣辺}$）。</li>
+              <li>
+                同じ長さを共通の斜辺で割るため、正確な分数として等しくなる：
+                <div class="bg-white p-2 rounded-lg border border-slate-200 text-center font-bold text-indigo-800 my-1">
+                  $\sin 45^\circ = \dfrac{\text{対辺}}{\text{斜辺}} = \dfrac{\text{隣辺}}{\text{斜辺}} = \cos 45^\circ = \dfrac{1}{\sqrt{2}}$
+                </div>
+              </li>
+              <li>
+                さらに、等しい長さ同士を割るため：
+                <div class="bg-white p-2 rounded-lg border border-slate-200 text-center font-bold text-emerald-800 my-1">
+                  $\tan 45^\circ = \dfrac{\text{対辺}}{\text{隣辺}} = \dfrac{\text{高さ}}{\text{高さ}} = 1$
+                </div>
+              </li>
+            </ol>
+          </div>
+        </div>
+
+        <!-- 視点の転換カード (20° vs 70°) -->
+        <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
+          <div class="flex items-center justify-between">
+            <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full bg-indigo-500"></span>
+              注目する角を替えるとどうなる？
+            </h3>
+            <span class="text-xs text-slate-600 font-medium">ワークシート ③・⑨</span>
+          </div>
+
+          <!-- 視点切り替えスイッチ -->
+          <div class="flex items-center justify-center p-1 bg-slate-100 rounded-xl">
+            <button onclick="setFocusAngle('bottom')" id="focus-btn-bottom" class="flex-1 py-1.5 text-xs font-bold rounded-lg bg-white text-indigo-600 shadow-sm transition">
+              下の角 (20°) から見る
+            </button>
+            <button onclick="setFocusAngle('top')" id="focus-btn-top" class="flex-1 py-1.5 text-xs font-bold rounded-lg text-slate-500 hover:text-slate-800 transition">
+              上の角 (70°) から見る
+            </button>
+          </div>
+
+          <!-- 視点SVG表示 -->
+          <div class="w-full aspect-[4/3] bg-slate-900 rounded-xl p-3 flex items-center justify-center relative">
+            <svg viewBox="0 0 360 280" class="w-full h-full select-none">
+              <!-- 三角形塗りつぶし -->
+              <polygon points="40,240 320,240 320,138" fill="rgba(99, 102, 241, 0.12)" stroke="none" />
+              <!-- 横辺 -->
+              <line id="persp-base-line" x1="40" y1="240" x2="320" y2="240" stroke="#38bdf8" stroke-width="4" stroke-linecap="round"/>
+              <!-- 高さ辺 -->
+              <line id="persp-height-line" x1="320" y1="240" x2="320" y2="138" stroke="#f43f5e" stroke-width="4" stroke-linecap="round"/>
+              <!-- 斜辺 -->
+              <line x1="40" y1="240" x2="320" y2="138" stroke="#a855f7" stroke-width="4" stroke-linecap="round"/>
+
+              <!-- 直角マーク -->
+              <rect x="304" y="224" width="16" height="16" fill="none" stroke="#94a3b8" stroke-width="2"/>
+
+              <!-- 下の角 20° -->
+              <circle id="persp-circle-bottom" cx="40" cy="240" r="14" fill="rgba(245, 158, 11, 0.2)" stroke="#f59e0b" stroke-width="2"/>
+              <text x="65" y="235" fill="#f59e0b" font-size="13" font-weight="bold">20°</text>
+
+              <!-- 上の角 70° -->
+              <circle id="persp-circle-top" cx="320" cy="138" r="14" fill="none" stroke="#94a3b8" stroke-width="1.5"/>
+              <text x="285" y="130" fill="#94a3b8" font-size="13" font-weight="bold">70°</text>
+
+              <!-- 動的ラベル -->
+              <text id="persp-label-base" x="150" y="260" fill="#38bdf8" font-size="12" font-weight="bold">隣辺 (横) 9.4m</text>
+              <text id="persp-label-height" x="240" y="185" fill="#f43f5e" font-size="12" font-weight="bold">対辺 (高さ) 3.4m</text>
+              <text x="160" y="175" fill="#c084fc" font-size="12" font-weight="bold">斜辺 10m</text>
+            </svg>
+          </div>
+
+          <div id="perspective-info-box" class="bg-indigo-50 border border-indigo-200 rounded-xl p-3.5 space-y-2 text-xs">
+            <div class="font-bold text-indigo-900 text-sm flex items-center justify-between">
+              <span id="perspective-title">現在の視点: 20° の角</span>
+              <span class="text-[11px] font-normal text-indigo-700">角の向かい側が「対辺」</span>
+            </div>
+            <div class="grid grid-cols-2 gap-2 text-slate-800">
+              <div class="bg-white p-2 rounded-lg border border-indigo-100">
+                <span class="text-rose-600 font-bold block">対辺 (向かい側)</span>
+                <span id="persp-opp-text" class="text-xs font-semibold">縦の辺 (約3.4m)</span>
+              </div>
+              <div class="bg-white p-2 rounded-lg border border-indigo-100">
+                <span class="text-sky-600 font-bold block">隣辺 (隣の辺)</span>
+                <span id="persp-adj-text" class="text-xs font-semibold">横の辺 (約9.4m)</span>
+              </div>
+            </div>
+            <div class="bg-white p-2.5 rounded-lg text-indigo-950 text-center text-xs border border-indigo-100 font-semibold">
+              <div id="perspective-relation">
+                $$\sin 20^\circ = \dfrac{3.4}{10} = \dfrac{17}{50} = \cos 70^\circ$$
+              </div>
+            </div>
+            <p class="text-[11px] text-indigo-800 leading-snug">
+              ✨ <strong>重要:</strong> 20°から見た「対辺」は、70°から見ると「隣辺」になります。だから分数の値が一致し、<span class="font-bold">$\sin 20^\circ = \cos 70^\circ$</span>、<span class="font-bold">$\cos 20^\circ = \sin 70^\circ$</span> となるのです！
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================== -->
+    <!-- TAB 3: tanと横1mあたりの高さ (WS 4) -->
+    <!-- ======================================================== -->
+    <section id="content-tab3" class="tab-content hidden space-y-6">
+      <div class="bg-indigo-50 border border-indigo-200 rounded-2xl p-4 sm:p-5">
+        <div class="flex items-start gap-3">
+          <span class="px-2.5 py-1 bg-indigo-600 text-white rounded-md text-xs font-bold uppercase tracking-wide">本時の核心</span>
+          <div class="space-y-1">
+            <h2 class="text-base sm:text-lg font-bold text-indigo-950 flex items-center gap-2 flex-wrap">
+              <span>$\tan\theta = \dfrac{\text{対辺（高さ）}}{\text{隣辺（横）}}$ は「横を1m進んだときの高さ（傾き）」を表す！</span>
+            </h2>
+            <p class="text-xs sm:text-sm text-indigo-800 leading-relaxed">
+              これまでは斜辺を10mに固定していましたが、<strong>$\tan\theta$ を読むときは「横を1m」に揃えて考えます</strong>。<br>
+              横1mに対して高さがどれだけ上がるかで、坂道の急さ（傾斜）を比べることができます。
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div class="lg:col-span-7 bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
+          <div class="flex items-center justify-between flex-wrap gap-2">
+            <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+              「横1m」基準での直角三角形比較
+            </h3>
+            <!-- 基準の切替表示 -->
+            <div class="flex gap-1 bg-slate-100 p-1 rounded-lg text-xs">
+              <button onclick="setTanAngle(30)" id="tan-btn-30" class="tan-angle-btn px-2.5 py-1 rounded font-bold bg-white text-emerald-700 shadow-xs">30°</button>
+              <button onclick="setTanAngle(45)" id="tan-btn-45" class="tan-angle-btn px-2.5 py-1 rounded font-medium text-slate-600 hover:text-slate-900">45°</button>
+              <button onclick="setTanAngle(60)" id="tan-btn-60" class="tan-angle-btn px-2.5 py-1 rounded font-medium text-slate-600 hover:text-slate-900">60°</button>
+              <button onclick="setTanAngle(80)" id="tan-btn-80" class="tan-angle-btn px-2.5 py-1 rounded font-medium text-slate-600 hover:text-slate-900">80°</button>
+            </div>
+          </div>
+
+          <!-- 横1m基準のSVG -->
+          <div class="w-full aspect-[4/3] max-h-[380px] bg-slate-900 rounded-xl overflow-hidden p-3 flex items-center justify-center relative">
+            <svg id="tan-svg" viewBox="0 0 440 320" class="w-full h-full select-none">
+              <rect width="440" height="320" fill="url(#grid-pattern)" />
+              
+              <!-- 地面 -->
+              <line x1="20" y1="270" x2="420" y2="270" stroke="#334155" stroke-width="2"/>
+
+              <!-- 横1mの基準ライン（固定幅） -->
+              <line x1="50" y1="270" x2="190" y2="270" stroke="#38bdf8" stroke-width="4" stroke-linecap="round"/>
+              <text x="100" y="295" fill="#38bdf8" font-size="13" font-weight="bold">横 1 m (基準)</text>
+
+              <!-- 高さライン (tan値に比例) -->
+              <line id="tan-svg-height" x1="190" y1="270" x2="190" y2="188" stroke="#10b981" stroke-width="4" stroke-linecap="round"/>
+              
+              <!-- 斜辺ライン -->
+              <line id="tan-svg-hypo" x1="50" y1="270" x2="190" y2="188" stroke="#a855f7" stroke-width="3" stroke-linecap="round"/>
+
+              <!-- 直角マーク -->
+              <rect id="tan-svg-rect" x="174" y="254" width="16" height="16" fill="none" stroke="#94a3b8" stroke-width="1.5"/>
+
+              <!-- 角度弧 -->
+              <path id="tan-svg-arc" d="M 85 270 A 35 35 0 0 0 80 252" fill="none" stroke="#f59e0b" stroke-width="2.5"/>
+              <text id="tan-svg-angle-text" x="90" y="260" fill="#f59e0b" font-size="13" font-weight="bold">30°</text>
+
+              <!-- 高さのラベル -->
+              <text id="tan-svg-height-label" x="205" y="230" fill="#10b981" font-size="13" font-weight="bold">高さ: 約0.58m</text>
+
+              <!-- 45度(1m)の基準点線ライン -->
+              <line x1="50" y1="270" x2="190" y2="130" stroke="rgba(255,255,255,0.15)" stroke-width="1.5" stroke-dasharray="3 3"/>
+              <text x="200" y="135" fill="rgba(255,255,255,0.4)" font-size="10">45°の高さ(1.0m)</text>
+            </svg>
+          </div>
+
+          <!-- 横に2m進んだら？シミュレーション（数式表記） -->
+          <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 flex items-center justify-between flex-wrap gap-2 text-xs">
+            <div class="flex items-center gap-2">
+              <span class="px-2 py-1 bg-emerald-100 text-emerald-800 font-bold rounded">ワークシート ⑪</span>
+              <span class="text-slate-700">横に <strong>2m</strong> 進むと高さは何m？</span>
+            </div>
+            <div class="text-emerald-800 font-bold text-sm bg-white px-3 py-1.5 rounded-md border border-slate-200">
+              <span id="tan-calc-formula">$2\text{ m} \times \tan 30^\circ = 2 \times \dfrac{1}{\sqrt{3}} \approx 1.16\text{ m}$</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="lg:col-span-5 space-y-4">
+          <!-- tanの表（分数と根号の正確な値） -->
+          <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-3">
+            <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+              <span class="text-xs px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-mono">WS 4</span>
+              $\tan\theta$ と「横1mあたりの高さ」対応表
+            </h3>
+
+            <div class="overflow-x-auto">
+              <table class="w-full text-xs text-center border-collapse">
+                <thead>
+                  <tr class="bg-slate-100 text-slate-700 font-semibold">
+                    <th class="p-2 border border-slate-200">角度 $\theta$</th>
+                    <th class="p-2 border border-slate-200 text-emerald-700">$\tan\theta = \dfrac{\text{対辺}}{\text{隣辺}}$</th>
+                    <th class="p-2 border border-slate-200 text-emerald-700">横1mあたりの高さ</th>
+                    <th class="p-2 border border-slate-200">特徴</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr id="tan-row-30" class="hover:bg-slate-50 cursor-pointer" onclick="setTanAngle(30)">
+                    <td class="p-2 border border-slate-200 font-bold">30°</td>
+                    <td class="p-2 border border-slate-200">$\dfrac{1}{\sqrt{3}} = \dfrac{\sqrt{3}}{3} \approx 0.58$</td>
+                    <td class="p-2 border border-slate-200 font-bold text-emerald-600">$\dfrac{1}{\sqrt{3}}\text{ m} \approx 0.58\text{ m}$</td>
+                    <td class="p-2 border border-slate-200 text-slate-600">なだらか</td>
+                  </tr>
+                  <tr id="tan-row-45" class="hover:bg-slate-50 cursor-pointer" onclick="setTanAngle(45)">
+                    <td class="p-2 border border-slate-200 font-bold">45°</td>
+                    <td class="p-2 border border-slate-200">$\dfrac{1}{1} = 1$</td>
+                    <td class="p-2 border border-slate-200 font-bold text-emerald-600">$1\text{ m}$</td>
+                    <td class="p-2 border border-slate-200 text-amber-600 font-medium">横＝高さ</td>
+                  </tr>
+                  <tr id="tan-row-60" class="hover:bg-slate-50 cursor-pointer" onclick="setTanAngle(60)">
+                    <td class="p-2 border border-slate-200 font-bold">60°</td>
+                    <td class="p-2 border border-slate-200">$\dfrac{\sqrt{3}}{1} = \sqrt{3} \approx 1.73$</td>
+                    <td class="p-2 border border-slate-200 font-bold text-emerald-600">$\sqrt{3}\text{ m} \approx 1.73\text{ m}$</td>
+                    <td class="p-2 border border-slate-200 text-rose-600 font-medium">1を超える！</td>
+                  </tr>
+                  <tr id="tan-row-80" class="hover:bg-slate-50 cursor-pointer" onclick="setTanAngle(80)">
+                    <td class="p-2 border border-slate-200 font-bold">80°</td>
+                    <td class="p-2 border border-slate-200">$\approx \dfrac{567}{100} = 5.67$</td>
+                    <td class="p-2 border border-slate-200 font-bold text-emerald-600">約 $5.67\text{ m}$</td>
+                    <td class="p-2 border border-slate-200 text-rose-600 font-medium">急激に上昇</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- tanの疑問解決アコーディオン -->
+            <div class="space-y-2 pt-2">
+              <div class="border border-slate-200 rounded-xl p-3 bg-slate-50 text-xs space-y-1">
+                <span class="font-bold text-slate-900 flex items-center gap-1">
+                  ❓ $\tan\theta$ は 1 より大きくなることがある？（ワークシート ⑫）
+                </span>
+                <p class="text-slate-600 leading-relaxed">
+                  <strong>あります！</strong> 45°を超えると「高さ（対辺）」が「横の長さ（隣辺）」より大きくなるため、分数 $\dfrac{\text{対辺}}{\text{隣辺}}$ の分子が分母を超えて <strong>$\tan\theta > 1$</strong> となります。
+                </p>
+              </div>
+
+              <div class="border border-slate-200 rounded-xl p-3 bg-slate-50 text-xs space-y-1">
+                <span class="font-bold text-slate-900 flex items-center gap-1">
+                  ❓ 角度が2倍（30°→60°）になると、$\tan\theta$ も2倍になる？
+                </span>
+                <p class="text-slate-600 leading-relaxed">
+                  <strong>なりません！</strong> $30^\circ$ では $\dfrac{1}{\sqrt{3}} \approx 0.58$ ですが、$60^\circ$ では $\sqrt{3} \approx 1.73$（約3倍）になります。角度と割合は比例しません。
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- よくある誤解トラップ解消カード -->
+          <div class="bg-rose-50 border border-rose-200 rounded-2xl p-4 text-xs text-rose-900 space-y-2">
+            <div class="font-bold flex items-center gap-1.5 text-rose-800">
+              <span class="text-base">⚠️</span>
+              <span>よくある間違い！「坂道を1m歩く」と何が違う？</span>
+            </div>
+            <p class="text-rose-800 leading-relaxed">
+              「tan30°は約0.58だから、<strong>坂道を1m歩くと</strong> 高さが0.58m上がる」は <span class="bg-rose-200 px-1 py-0.5 rounded font-bold text-rose-950">間違い</span> です！
+            </p>
+            <div class="bg-white p-2.5 rounded-xl border border-rose-200 text-[11px] space-y-1 text-slate-700">
+              <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-rose-500 shrink-0"></span>
+                <span><strong>坂道に沿って歩く距離:</strong> 「斜辺」のこと（sin と関係）</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0"></span>
+                <span><strong>地面に沿って水平に進む距離:</strong> 「横（隣辺）」のこと（tan と関係）</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================== -->
+    <!-- TAB 4: 3・4・5と3つの比の関係 (WS 5) -->
+    <!-- ======================================================== -->
+    <section id="content-tab4" class="tab-content hidden space-y-6">
+      <div class="bg-indigo-50 border border-indigo-200 rounded-2xl p-4 sm:p-5">
+        <div class="flex items-start gap-3">
+          <span class="px-2.5 py-1 bg-indigo-600 text-white rounded-md text-xs font-bold uppercase tracking-wide">つながりの発見</span>
+          <div class="space-y-1">
+            <h2 class="text-base sm:text-lg font-bold text-indigo-950">
+              3つの三角比はつながっている！ 分数の割り算で導く $\tan\theta = \dfrac{\sin\theta}{\cos\theta}$
+            </h2>
+            <p class="text-xs sm:text-sm text-indigo-800 leading-relaxed">
+              高さ3、横4、斜辺5の直角三角形を使って、共通の基準である「斜辺」が分数の約分で消える仕組みと、割合から角度を推定する逆問題を体験します。
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- 3-4-5 三角形と約分ビジュアル -->
+        <div class="lg:col-span-7 bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-5">
+          <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-indigo-600"></span>
+            高さ3・横4・斜辺5 の直角三角形
+          </h3>
+
+          <!-- SVG 3-4-5 -->
+          <div class="w-full aspect-[4/3] max-h-[300px] bg-slate-900 rounded-xl p-3 flex items-center justify-center">
+            <svg viewBox="0 0 380 260" class="w-full h-full select-none">
+              <!-- 三角形塗り -->
+              <polygon points="50,220 290,220 290,40" fill="rgba(99, 102, 241, 0.15)" stroke="none" />
+              <!-- 辺 -->
+              <line x1="50" y1="220" x2="290" y2="220" stroke="#38bdf8" stroke-width="4" stroke-linecap="round"/>
+              <line x1="290" y1="220" x2="290" y2="40" stroke="#f43f5e" stroke-width="4" stroke-linecap="round"/>
+              <line x1="50" y1="220" x2="290" y2="40" stroke="#a855f7" stroke-width="4" stroke-linecap="round"/>
+              <!-- 直角マーク -->
+              <rect x="274" y="204" width="16" height="16" fill="none" stroke="#94a3b8" stroke-width="2"/>
+              <!-- 角度弧 -->
+              <path d="M 85 220 A 35 35 0 0 0 80 198" fill="none" stroke="#f59e0b" stroke-width="2.5"/>
+              <text x="95" y="210" fill="#f59e0b" font-size="14" font-weight="bold">θ</text>
+              <!-- ラベル -->
+              <text x="140" y="120" fill="#c084fc" font-size="14" font-weight="bold">斜辺 5</text>
+              <text x="160" y="245" fill="#38bdf8" font-size="14" font-weight="bold">横 (隣辺) 4</text>
+              <text x="305" y="135" fill="#f43f5e" font-size="14" font-weight="bold">高さ (対辺) 3</text>
+            </svg>
+          </div>
+
+          <!-- 分数の割り算ステップカード -->
+          <div class="bg-indigo-50/70 border border-indigo-200 rounded-xl p-4 space-y-3">
+            <span class="text-xs font-bold text-indigo-950 uppercase tracking-wide">分数の定義（ワークシート ⑬）</span>
+            <div class="grid grid-cols-3 gap-2 text-center text-xs">
+              <div class="bg-white p-2.5 rounded-lg border border-indigo-100">
+                <span class="text-slate-500 block mb-1">$\sin\theta$</span>
+                <span class="text-rose-600 font-bold text-base">$\dfrac{3}{5}$</span>
+              </div>
+              <div class="bg-white p-2.5 rounded-lg border border-indigo-100">
+                <span class="text-slate-500 block mb-1">$\cos\theta$</span>
+                <span class="text-sky-600 font-bold text-base">$\dfrac{4}{5}$</span>
+              </div>
+              <div class="bg-white p-2.5 rounded-lg border border-indigo-100">
+                <span class="text-slate-500 block mb-1">$\tan\theta$</span>
+                <span class="text-emerald-600 font-bold text-base">$\dfrac{3}{4}$</span>
+              </div>
+            </div>
+
+            <!-- 式の展開：繁分数と逆数の掛け算 -->
+            <div class="bg-white p-3.5 rounded-xl border border-indigo-100 space-y-2 text-center">
+              <div class="text-xs text-slate-500 font-medium">$\sin\theta$ を $\cos\theta$ で割ると...（繁分数と逆数の計算）</div>
+              <div class="text-base font-bold text-slate-900 overflow-x-auto py-1">
+                $$\dfrac{\sin\theta}{\cos\theta} = \dfrac{\;\dfrac{3}{5}\;}{\;\dfrac{4}{5}\;} = \dfrac{3}{5} \div \dfrac{4}{5} = \dfrac{3}{\mathbf{5}} \times \dfrac{\mathbf{5}}{4} = \dfrac{3}{4} = \tan\theta$$
+              </div>
+            </div>
+
+            <!-- 一般の直角三角形での文字式証明 -->
+            <div class="bg-white/80 p-3 rounded-xl border border-indigo-100 space-y-1.5 text-xs text-indigo-950">
+              <span class="font-bold block text-indigo-900">📚 一般の文字（対辺 $a$, 隣辺 $b$, 斜辺 $c$）での導出：</span>
+              <div class="text-center font-bold text-sm py-1">
+                $$\dfrac{\sin\theta}{\cos\theta} = \dfrac{\;\dfrac{a}{c}\;}{\;\dfrac{b}{c}\;} = \dfrac{a}{c} \div \dfrac{b}{c} = \dfrac{a}{c} \times \dfrac{c}{b} = \dfrac{a}{b} = \tan\theta$$
+              </div>
+              <p class="leading-relaxed text-indigo-900">
+                💡 共通の基準だった <strong>「斜辺 $c$」が約分されて相殺</strong> され、対辺 $a$ と隣辺 $b$ の比が残ります！<br>
+                したがって、どの直角三角形でも常に <span class="font-bold text-indigo-700">$\tan\theta = \dfrac{\sin\theta}{\cos\theta}$</span> が成り立ちます。
+              </p>
+            </div>
+
+            <!-- 発展：三平方の定理との結合（指導案p.9） -->
+            <div class="bg-amber-50/80 border border-amber-200 rounded-xl p-3 text-xs text-amber-950 space-y-1">
+              <span class="font-bold text-amber-900 block">✨ 発展：三平方の定理とつなぐと？</span>
+              <div class="text-center font-bold text-sm">
+                $$\left(\dfrac{3}{5}\right)^2 + \left(\dfrac{4}{5}\right)^2 = \dfrac{9}{25} + \dfrac{16}{25} = \dfrac{25}{25} = 1 \implies \sin^2\theta + \cos^2\theta = 1$$
+              </div>
+              <p class="text-[11px] text-amber-900 leading-snug">
+                三平方の定理 $a^2 + b^2 = c^2$ の両辺を $c^2$ で割ると、$\left(\dfrac{a}{c}\right)^2 + \left(\dfrac{b}{c}\right)^2 = 1$ となり、直角三角形のすべての性質が結びつきます。
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 割合から角度を調べる（逆引き） -->
+        <div class="lg:col-span-5 bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
+          <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+            <span class="text-xs px-2 py-0.5 bg-amber-100 text-amber-800 rounded font-mono">WS 5</span>
+            割合から角度を推定する（逆引きチャレンジ）
+          </h3>
+          <p class="text-xs text-slate-600">
+            横と高さの長さから $\tan\theta$ の分数を計算し、表と照らし合わせて角度をおよそ特定してみましょう。
+          </p>
+
+          <!-- チャレンジ3問 -->
+          <div class="space-y-3">
+            <!-- 逆問題 1 -->
+            <div class="border border-slate-200 rounded-xl p-3 bg-slate-50 space-y-2">
+              <div class="flex justify-between items-center text-xs">
+                <span class="font-bold text-slate-800">問題 ⑭：横 10m、高さ 10m</span>
+                <span class="font-bold text-indigo-700">$\tan\theta = \dfrac{10}{10} = 1$</span>
+              </div>
+              <button onclick="toggleAnswer('inv-ans-1')" class="w-full text-left text-xs text-indigo-600 hover:text-indigo-800 font-semibold flex items-center justify-between">
+                <span>正解と理由を見る</span>
+                <span id="inv-ans-1-arrow">▼</span>
+              </button>
+              <div id="inv-ans-1" class="hidden text-xs text-slate-700 bg-white p-2.5 rounded-lg border border-slate-200 space-y-1">
+                <p><strong>$\tan\theta = 1$</strong> なので、角度は <strong>ちょうど $45^\circ$</strong> です！</p>
+                <p class="text-slate-500 text-[11px]">（横と高さが等しい＝直角二等辺三角形）</p>
+              </div>
+            </div>
+
+            <!-- 逆問題 2 -->
+            <div class="border border-slate-200 rounded-xl p-3 bg-slate-50 space-y-2">
+              <div class="flex justify-between items-center text-xs">
+                <span class="font-bold text-slate-800">問題 ⑮：横 10m、高さ 約5.8m</span>
+                <span class="font-bold text-indigo-700">$\tan\theta = \dfrac{5.8}{10} = \dfrac{29}{50} \approx 0.58$</span>
+              </div>
+              <button onclick="toggleAnswer('inv-ans-2')" class="w-full text-left text-xs text-indigo-600 hover:text-indigo-800 font-semibold flex items-center justify-between">
+                <span>正解と理由を見る</span>
+                <span id="inv-ans-2-arrow">▼</span>
+              </button>
+              <div id="inv-ans-2" class="hidden text-xs text-slate-700 bg-white p-2.5 rounded-lg border border-slate-200 space-y-1">
+                <p>表の <strong>$\tan 30^\circ = \dfrac{1}{\sqrt{3}} \approx 0.58$</strong> と一致するので、角度は <strong>約 $30^\circ$</strong> です！</p>
+              </div>
+            </div>
+
+            <!-- 逆問題 3 -->
+            <div class="border border-slate-200 rounded-xl p-3 bg-slate-50 space-y-2">
+              <div class="flex justify-between items-center text-xs">
+                <span class="font-bold text-slate-800">問題 ⑯：横 10m、高さ 8m</span>
+                <span class="font-bold text-indigo-700">$\tan\theta = \dfrac{8}{10} = \dfrac{4}{5} = 0.80$</span>
+              </div>
+              <button onclick="toggleAnswer('inv-ans-3')" class="w-full text-left text-xs text-indigo-600 hover:text-indigo-800 font-semibold flex items-center justify-between">
+                <span>正解と理由を見る</span>
+                <span id="inv-ans-3-arrow">▼</span>
+              </button>
+              <div id="inv-ans-3" class="hidden text-xs text-slate-700 bg-white p-2.5 rounded-lg border border-slate-200 space-y-1">
+                <p>$\tan\theta = \dfrac{4}{5} = 0.80$ は、$\tan 30^\circ \approx 0.58$ と $\tan 45^\circ = 1.00$ の間にあります。</p>
+                <div class="text-center font-bold text-indigo-900 bg-indigo-50 p-1.5 rounded my-1">
+                  $$\tan 30^\circ < \dfrac{4}{5} < \tan 45^\circ \implies 30^\circ < \theta < 45^\circ$$
+                </div>
+                <p>したがって、角度は <strong>「$30^\circ$ と $45^\circ$ の間」</strong> と推定できます！</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- ミニまとめ -->
+          <div class="bg-indigo-50 border border-indigo-200 rounded-xl p-3 text-xs text-indigo-900">
+            <strong>💡 学びのポイント:</strong>
+            三角比の表があれば、<strong>辺の長さの分数比から角度を推定</strong> することも、<strong>角度と1つの辺から他の辺を求める</strong> ことも自由に行き来できます。
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================== -->
+    <!-- TAB 5: 確認テスト＆振り返り (WS 6 & Exit Ticket) -->
+    <!-- ======================================================== -->
+    <section id="content-tab5" class="tab-content hidden space-y-6">
+      <div class="bg-indigo-50 border border-indigo-200 rounded-2xl p-4 sm:p-5">
+        <div class="flex items-start gap-3">
+          <span class="px-2.5 py-1 bg-indigo-600 text-white rounded-md text-xs font-bold uppercase tracking-wide">まとめ＆復習</span>
+          <div class="space-y-1">
+            <h2 class="text-base sm:text-lg font-bold text-indigo-950">
+              第2時 理解度チェック＆Exit Ticket
+            </h2>
+            <p class="text-xs sm:text-sm text-indigo-800 leading-relaxed">
+              ワークシートの問いに挑戦して、自分の言葉で説明できるか確かめましょう。テスト前の復習にも役立ちます。
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 確認問題 4問グリッド（分数・正確な数式対応） -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- 問1 -->
+        <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold px-2 py-0.5 bg-indigo-100 text-indigo-700 rounded">問 1 (授業優先)</span>
+            <span class="text-xs text-slate-600">WS 6</span>
+          </div>
+          <h3 class="text-sm font-bold text-slate-800">
+            $40^\circ$ と $50^\circ$ では、$\sin$ が大きいのはどっち？ $\cos$ が大きいのはどっち？
+          </h3>
+          <div class="space-y-2 pt-1">
+            <button onclick="toggleQuizAnswer('quiz-1')" class="w-full text-center py-2 px-3 text-xs font-bold rounded-xl bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 transition">
+              答えと解説を表示
+            </button>
+            <div id="quiz-1" class="hidden text-xs bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-1.5 text-slate-700 leading-relaxed">
+              <p><strong>正解:</strong> $\sin$ が大きいのは <strong class="text-rose-600">$50^\circ$</strong>、$\cos$ が大きいのは <strong class="text-sky-600">$40^\circ$</strong></p>
+              <div class="text-center font-bold text-slate-900 bg-white p-1 rounded border border-slate-200 my-1">
+                $$\sin 50^\circ > \sin 40^\circ, \quad \cos 40^\circ > \cos 50^\circ$$
+              </div>
+              <p class="text-slate-600"><strong>理由:</strong> 斜辺を同じ長さにして角度を大きくすると、三角形が起き上がって対辺（高さ）が増え、隣辺（横）が減るため。</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 問2 -->
+        <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold px-2 py-0.5 bg-slate-100 text-slate-700 rounded">問 2 (余裕があれば)</span>
+            <span class="text-xs text-slate-600">WS 6</span>
+          </div>
+          <h3 class="text-sm font-bold text-slate-800">
+            $\sin\theta = \dfrac{3}{5}\;(0.60)$, $\cos\theta = \dfrac{4}{5}\;(0.80)$ のとき、$\tan\theta$ は？ またその意味は？
+          </h3>
+          <div class="space-y-2 pt-1">
+            <button onclick="toggleQuizAnswer('quiz-2')" class="w-full text-center py-2 px-3 text-xs font-bold rounded-xl bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 transition">
+              答えと解説を表示
+            </button>
+            <div id="quiz-2" class="hidden text-xs bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2 text-slate-700 leading-relaxed">
+              <p><strong>分数の計算式:</strong></p>
+              <div class="text-center font-bold text-slate-900 bg-white p-1.5 rounded border border-slate-200">
+                $$\tan\theta = \dfrac{\sin\theta}{\cos\theta} = \dfrac{\;\dfrac{3}{5}\;}{\;\dfrac{4}{5}\;} = \dfrac{3}{5} \div \dfrac{4}{5} = \dfrac{3}{5} \times \dfrac{5}{4} = \dfrac{3}{4} \; (= 0.75)$$
+              </div>
+              <p><strong>意味:</strong> <strong>横に1m進むと、高さが $\dfrac{3}{4}\text{ m}$（$0.75\text{ m}$）上がる</strong> という傾きを表している。</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 問3 -->
+        <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold px-2 py-0.5 bg-indigo-100 text-indigo-700 rounded">問 3 (授業優先)</span>
+            <span class="text-xs text-slate-600">WS 6</span>
+          </div>
+          <h3 class="text-sm font-bold text-slate-800">
+            「$\tan 30^\circ = \dfrac{1}{\sqrt{3}} \approx 0.58$ なので、坂道を1m歩くと高さが約0.58m上がる」は正しい？
+          </h3>
+          <div class="space-y-2 pt-1">
+            <button onclick="toggleQuizAnswer('quiz-3')" class="w-full text-center py-2 px-3 text-xs font-bold rounded-xl bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 transition">
+              答えと解説を表示
+            </button>
+            <div id="quiz-3" class="hidden text-xs bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-1.5 text-slate-700 leading-relaxed">
+              <p><strong class="text-rose-600">間違いです！</strong></p>
+              <p><strong>正しい説明:</strong> 「地面に沿って <strong>横（水平）に1m進むと</strong> 高さが約 $\dfrac{1}{\sqrt{3}}\text{ m}$（約 $0.58\text{ m}$）上がる」</p>
+              <p class="text-slate-500 text-[11px]">※ 坂道を歩く距離は「斜辺」なので、横（隣辺）を基準とする $\tan\theta = \dfrac{\text{対辺}}{\text{隣辺}}$ とは異なります。</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 問4 -->
+        <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold px-2 py-0.5 bg-slate-100 text-slate-700 rounded">問 4 (発展)</span>
+            <span class="text-xs text-slate-600">WS 6</span>
+          </div>
+          <h3 class="text-sm font-bold text-slate-800">
+            高さが横より短い直角三角形で、左下の角は $45^\circ$ より大きい？ 小さい？
+          </h3>
+          <div class="space-y-2 pt-1">
+            <button onclick="toggleQuizAnswer('quiz-4')" class="w-full text-center py-2 px-3 text-xs font-bold rounded-xl bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 transition">
+              答えと解説を表示
+            </button>
+            <div id="quiz-4" class="hidden text-xs bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-1.5 text-slate-700 leading-relaxed">
+              <p><strong>正解:</strong> <strong>$45^\circ$ より小さい</strong></p>
+              <div class="text-center font-bold text-slate-900 bg-white p-1 rounded border border-slate-200 my-1">
+                $$\text{高さ} < \text{横} \implies \tan\theta = \dfrac{\text{高さ}}{\text{横}} < 1 = \tan 45^\circ \implies \theta < 45^\circ$$
+              </div>
+              <p class="text-slate-600"><strong>理由:</strong> $45^\circ$ のとき高さ＝横で $\tan 45^\circ = 1$。高さが横より短いということは $\tan\theta < 1$ となるので、角度は $45^\circ$ より小さくなります。</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 shadow-sm space-y-5">
+        <div class="border-b border-slate-100 pb-3">
+          <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
+            <span>📝</span> 最後の振り返り (Exit Ticket)
+          </h3>
+          <p class="text-xs text-slate-500 mt-1">
+            授業のまとめとして、自分の言葉で説明を完成させ、理解度を自己評価してみましょう。
           </p>
         </div>
 
-        <div class="md:col-span-5 p-5 rounded-xl bg-slate-50 border border-slate-200 space-y-3 text-center">
-          <div class="text-xs font-bold text-slate-600">次時（第3時）へのステップ探究</div>
-          <button onclick="revealSlopeAngle()" id="revealSlopeBtn" class="w-full py-2.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs transition shadow-sm">
-            割合から角度が決まるか確かめる
+        <!-- 問い: 一文で説明 -->
+        <div class="space-y-2">
+          <label class="block text-xs font-bold text-slate-800">
+            Q. 「同じ斜辺で角度を大きくすると、sin と cos はどう変わる？」辺の変化を使って一文で説明しよう:
+          </label>
+          <textarea id="exit-ticket-text" rows="3" placeholder="（例）斜辺を同じ長さにして角度を大きくすると、高さ（対辺）が増えて横（隣辺）が減るので、sinは増えてcosは減る。" class="w-full p-3 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"></textarea>
+        </div>
+
+        <!-- 自己評価 3段階 -->
+        <div class="space-y-2">
+          <label class="block text-xs font-bold text-slate-800">自分の理解度：</label>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+            <label class="flex items-center gap-2 p-3 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer">
+              <input type="radio" name="self-rating" value="自分で説明できる" class="accent-indigo-600">
+              <span class="font-bold text-emerald-700">😆 自分で説明できる</span>
+            </label>
+            <label class="flex items-center gap-2 p-3 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer">
+              <input type="radio" name="self-rating" value="図や表があれば説明できる" checked class="accent-indigo-600">
+              <span class="font-bold text-indigo-700">🙂 図や表があれば説明できる</span>
+            </label>
+            <label class="flex items-center gap-2 p-3 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer">
+              <input type="radio" name="self-rating" value="もう一度確かめたい" class="accent-indigo-600">
+              <span class="font-bold text-amber-700">🤔 もう一度確かめたい</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- アクションボタン -->
+        <div class="flex items-center justify-between pt-2">
+          <button onclick="copyExitTicket()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl transition flex items-center gap-2 shadow-sm">
+            <span>📋</span> 振り返り内容をコピーする
           </button>
-          <div id="slopeRevealBox" class="hidden p-3.5 rounded-xl bg-white border border-indigo-200 text-xs space-y-1.5 shadow-sm text-left">
-            <div class="text-slate-800 font-bold text-center text-sm">💡 角度はただ1つに決まる！</div>
-            <p class="text-xs text-slate-600 leading-relaxed font-medium">
-              直角三角形では、割合の値が決まれば、対応する角度 $\theta$ も必ず $1$ つに定まります。
-              三角比は「角度 $\leftrightarrow$ 割合」をいつでも双方向に結びつける強力な架け橋です！
-            </p>
-          </div>
+          <span id="copy-toast" class="text-xs font-semibold text-emerald-600 opacity-0 transition-opacity">クリップボードにコピーしました！</span>
         </div>
       </div>
-    </div>
 
-    <!-- 問9 Exit Ticket（授業振り返りノート・復習用クリップボードコピー） -->
-    <div class="p-6 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-4">
-      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-        <div class="flex items-center gap-2">
-          <span class="w-6 h-6 rounded-lg bg-indigo-600 text-white font-bold text-xs flex items-center justify-center">9</span>
-          <h2 class="text-base sm:text-lg font-bold text-slate-900">Exit Ticket（授業の振り返りノート）</h2>
-        </div>
-        <button onclick="copyExitTicket()" id="copyExitBtn" class="px-3.5 py-1.5 rounded-lg bg-slate-100 hover:bg-indigo-50 hover:text-indigo-700 text-slate-700 text-xs font-bold border border-slate-300 transition flex items-center gap-1.5">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg>
-          <span>内容をコピー</span>
-        </button>
+      <!-- 要点まとめカード -->
+      <div class="bg-slate-900 text-white rounded-2xl p-5 sm:p-6 space-y-3">
+        <h3 class="text-sm font-bold text-indigo-300 flex items-center gap-2">
+          <span>📌</span> 今日の重要ポイント 5箇条（テスト前の見直し用）
+        </h3>
+        <ul class="text-xs space-y-2.5 text-slate-300 leading-relaxed">
+          <li class="flex items-start gap-2">
+            <span class="text-indigo-400 font-bold shrink-0">①</span>
+            <span><strong>形と割合：</strong> 角度が変わると直角三角形の形が変わり、辺の割合（三角比）も変わる。</span>
+          </li>
+          <li class="flex items-start gap-2">
+            <span class="text-indigo-400 font-bold shrink-0">②</span>
+            <span><strong>鋭角の変化：</strong> 斜辺を固定すると、角度↑で対辺（高さ）↑、隣辺（横）↓。よって $\sin\theta = \dfrac{\text{対辺}}{\text{斜辺}}$ は増え、$\cos\theta = \dfrac{\text{隣辺}}{\text{斜辺}}$ は減る。</span>
+          </li>
+          <li class="flex items-start gap-2">
+            <span class="text-indigo-400 font-bold shrink-0">③</span>
+            <span><strong>45°の特別さ：</strong> 直角二等辺三角形になり対辺＝隣辺。$\sin 45^\circ = \cos 45^\circ = \dfrac{1}{\sqrt{2}}$、$\tan 45^\circ = 1$。</span>
+          </li>
+          <li class="flex items-start gap-2">
+            <span class="text-indigo-400 font-bold shrink-0">④</span>
+            <span><strong>tanの正体：</strong> 横1mあたりの高さ（傾斜）。分数の割り算により $\tan\theta = \dfrac{\sin\theta}{\cos\theta}$ でつながる。</span>
+          </li>
+          <li class="flex items-start gap-2">
+            <span class="text-indigo-400 font-bold shrink-0">⑤</span>
+            <span><strong>逆引き：</strong> 辺の長さの分数比 $\tan\theta = \dfrac{\text{対辺}}{\text{隣辺}}$ から、角度の範囲を推定できる。</span>
+          </li>
+        </ul>
       </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        
-        <!-- 設問1 -->
-        <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
-          <label class="text-xs font-bold text-slate-800 block">
-            ① <span id="exitQ1Math">$\sin 30^\circ = \frac{1}{2}$</span> の分数は何を意味しますか？
-          </label>
-          <textarea id="exitAns1" rows="3" class="w-full bg-white border border-slate-300 rounded-lg p-2.5 text-xs text-slate-800 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 resize-none font-medium" placeholder="例: 斜辺を1としたときに、対辺(高さ)が1/2（半分）になるという意味。"></textarea>
-        </div>
-
-        <!-- 設問2 -->
-        <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
-          <label class="text-xs font-bold text-slate-800 block">
-            ② 斜辺 $10\text{ m}$・$30^\circ$ から高さを求めるとき使う比とその理由は？
-          </label>
-          <textarea id="exitAns2" rows="3" class="w-full bg-white border border-slate-300 rounded-lg p-2.5 text-xs text-slate-800 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 resize-none font-medium" placeholder="例: sin を使う。分かっている「斜辺」と求めたい「対辺(高さ)」を比べる割合だから。"></textarea>
-        </div>
-
-        <!-- 設問3 -->
-        <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
-          <label class="text-xs font-bold text-slate-800 block">
-            ③ 今日、三角比を使うと「何が楽になる」と分かりましたか？
-          </label>
-          <textarea id="exitAns3" rows="3" class="w-full bg-white border border-slate-300 rounded-lg p-2.5 text-xs text-slate-800 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 resize-none font-medium" placeholder="例: 直接測れないビルの高さなどを、角度と1辺の長さだけで正確に計算できる。"></textarea>
-        </div>
-
-      </div>
-
-      <!-- コピー通知トースト -->
-      <div id="copyNotice" class="hidden text-center text-xs font-bold text-emerald-700 py-1.5 bg-emerald-50 rounded-lg border border-emerald-300">
-        ✓ 振り返り内容をクリップボードにコピーしました！ワークシート提出やノートに貼り付けできます。
-      </div>
-    </div>
+    </section>
 
   </main>
+
+  <footer class="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-600">
+    高校数学Ⅰ「三角比 第2時：角度が変わると辺の割合はどう変わるか」自学・探究ワークスペース
+  </footer>
+
+  <!-- ======================================================== -->
+  <!-- JAVASCRIPT LOGIC -->
+  <!-- ======================================================== -->
   <script>
-    // 状態管理
-    let currentScenario = 'sin'; // 'sin' | 'cos' | 'tan'
-    let currentAngle = 30; // 30 | 45 | 60
-    let baseLength = 10;
-    let currentTerminology = 'math'; // 'math' | 'daily'
-    let drillScores = [false, false, false, false];
+    let currentAngle = 20;
+    let isDoubleScale = false; // 斜辺2倍モード
+    let currentFocus = 'bottom'; // 'bottom' (20°) or 'top' (70°)
+    let currentTanAngle = 30;
 
-    // 有名角の厳密値データ（小数を一切含まず、全て正式な分数・根号）
-    const exactTable = {
-      30: {
-        sinTex: '\\frac{1}{2}',
-        cosTex: '\\frac{\\sqrt{3}}{2}',
-        tanTex: '\\frac{\\sqrt{3}}{3}',
-        sinRatioNum: 1, sinRatioDen: 2,
-        cosRatioNum: 1, cosRatioDen: 2, // coeff for \sqrt{3}
-        tanRatioNum: 1, tanRatioDen: 3, // coeff for \sqrt{3}
-        barRatioVal: 0.5
-      },
-      45: {
-        sinTex: '\\frac{\\sqrt{2}}{2}',
-        cosTex: '\\frac{\\sqrt{2}}{2}',
-        tanTex: '1',
-        barRatioVal: 0.707
-      },
-      60: {
-        sinTex: '\\frac{\\sqrt{3}}{2}',
-        cosTex: '\\frac{1}{2}',
-        tanTex: '\\sqrt{3}',
-        barRatioVal: 0.866
-      }
+    // 三角比テーブル（正確な分数表現と近似値の両方を保持）
+    const trigTable = {
+      10: { sin: 0.17, cos: 0.98, tan: 0.18, sinFrac: "\\dfrac{17}{100}", cosFrac: "\\dfrac{49}{50}", tanFrac: "\\dfrac{9}{50}" },
+      20: { sin: 0.34, cos: 0.94, tan: 0.36, sinFrac: "\\dfrac{17}{50}", cosFrac: "\\dfrac{47}{50}", tanFrac: "\\dfrac{9}{25}" },
+      30: { sin: 0.50, cos: 0.87, tan: 0.58, sinFrac: "\\dfrac{1}{2}", cosFrac: "\\dfrac{\\sqrt{3}}{2}", tanFrac: "\\dfrac{1}{\\sqrt{3}}" },
+      40: { sin: 0.64, cos: 0.77, tan: 0.84, sinFrac: "\\dfrac{16}{25}", cosFrac: "\\dfrac{77}{100}", tanFrac: "\\dfrac{21}{25}" },
+      45: { sin: 0.71, cos: 0.71, tan: 1.00, sinFrac: "\\dfrac{1}{\\sqrt{2}}", cosFrac: "\\dfrac{1}{\\sqrt{2}}", tanFrac: "1" },
+      50: { sin: 0.77, cos: 0.64, tan: 1.19, sinFrac: "\\dfrac{77}{100}", cosFrac: "\\dfrac{16}{25}", tanFrac: "\\dfrac{119}{100}" },
+      60: { sin: 0.87, cos: 0.50, tan: 1.73, sinFrac: "\\dfrac{\\sqrt{3}}{2}", cosFrac: "\\dfrac{1}{2}", tanFrac: "\\sqrt{3}" },
+      70: { sin: 0.94, cos: 0.34, tan: 2.75, sinFrac: "\\dfrac{47}{50}", cosFrac: "\\dfrac{17}{50}", tanFrac: "\\dfrac{11}{4}" },
+      80: { sin: 0.98, cos: 0.17, tan: 5.67, sinFrac: "\\dfrac{49}{50}", cosFrac: "\\dfrac{17}{100}", tanFrac: "\\dfrac{567}{100}" }
     };
 
-    // 用語定義辞書
-    const terms = {
-      math: {
-        hyp: '斜辺',
-        adj: '隣辺(横)',
-        opp: '対辺(高さ)',
-        hypShort: '斜辺',
-        adjShort: '隣辺',
-        oppShort: '対辺'
-      },
-      daily: {
-        hyp: '斜めの長さ',
-        adj: '横の長さ',
-        opp: '高さ',
-        hypShort: '斜め',
-        adjShort: '横',
-        oppShort: '高さ'
-      }
-    };
-    // KaTeX を用いた文字列レンダリングヘルパー
-    function renderTex(tex, display = false) {
-      if (typeof katex !== 'undefined') {
-        try {
-          return katex.renderToString(tex, {
-            displayMode: display,
-            throwOnError: false
-          });
-        } catch (e) {
-          console.error(e);
-        }
-      }
-      return `<span class="font-bold">${tex}</span>`;
-    }
-
-    // ページ全体の数式を安全に自動レンダリング
-    function renderAllMathInPage() {
-      if (typeof renderMathInElement !== 'undefined') {
-        renderMathInElement(document.body, {
+    // KaTeX レンダリング補助関数
+    function renderMath(element) {
+      if (window.renderMathInElement) {
+        renderMathInElement(element || document.body, {
           delimiters: [
             { left: '$$', right: '$$', display: true },
             { left: '$', right: '$', display: false }
@@ -667,435 +1059,366 @@
       }
     }
 
-    // 正確な数学的表現（ルート・分数）の生成ルーチン
-    function getExactSideTex(deg, L, side, scenario) {
-      // side: 'hyp' | 'adj' | 'opp'
-      if (scenario === 'tan') {
-        // tanシナリオ: 隣辺(横)が基準 L
-        if (side === 'adj') {
-          return `${L}\\text{ m}`;
-        }
-        if (deg === 30) {
-          // 対辺 = L * \frac{\sqrt{3}}{3}
-          if (side === 'opp') {
-            if (L % 3 === 0) {
-              const c = L / 3;
-              return c === 1 ? `\\sqrt{3}\\text{ m}` : `${c}\\sqrt{3}\\text{ m}`;
-            } else {
-              return `\\frac{${L}\\sqrt{3}}{3}\\text{ m}`;
-            }
-          }
-          // 斜辺 = 2L * \frac{\sqrt{3}}{3}
-          if (side === 'hyp') {
-            const num = 2 * L;
-            if (num % 3 === 0) {
-              const c = num / 3;
-              return c === 1 ? `\\sqrt{3}\\text{ m}` : `${c}\\sqrt{3}\\text{ m}`;
-            } else {
-              return `\\frac{${num}\\sqrt{3}}{3}\\text{ m}`;
-            }
-          }
-        } else if (deg === 45) {
-          if (side === 'opp') return `${L}\\text{ m}`;
-          if (side === 'hyp') return `${L}\\sqrt{2}\\text{ m}`;
-        } else if (deg === 60) {
-          if (side === 'opp') return `${L}\\sqrt{3}\\text{ m}`;
-          if (side === 'hyp') return `${2 * L}\\text{ m}`;
-        }
-      } else {
-        // sin, cos シナリオ: 斜辺が基準 L
-        if (side === 'hyp') {
-          return `${L}\\text{ m}`;
-        }
-        const half = L / 2; // baseLength は 2の倍数なので常に整数
-        if (deg === 30) {
-          if (side === 'opp') return `${half}\\text{ m}`;
-          if (side === 'adj') return half === 1 ? `\\sqrt{3}\\text{ m}` : `${half}\\sqrt{3}\\text{ m}`;
-        } else if (deg === 45) {
-          if (side === 'opp') return half === 1 ? `\\sqrt{2}\\text{ m}` : `${half}\\sqrt{2}\\text{ m}`;
-          if (side === 'adj') return half === 1 ? `\\sqrt{2}\\text{ m}` : `${half}\\sqrt{2}\\text{ m}`;
-        } else if (deg === 60) {
-          if (side === 'opp') return half === 1 ? `\\sqrt{3}\\text{ m}` : `${half}\\sqrt{3}\\text{ m}`;
-          if (side === 'adj') return `${half}\\text{ m}`;
+    function renderKaTeX(elementId, latex, displayMode = false) {
+      const el = document.getElementById(elementId);
+      if (el && window.katex) {
+        try {
+          katex.render(latex, el, { displayMode: displayMode, throwOnError: false });
+        } catch (e) {
+          el.textContent = latex;
         }
       }
-      return `${L}\\text{ m}`;
     }
-    // シナリオ切り替え
-    function switchScenario(scenario) {
-      currentScenario = scenario;
-      ['sin', 'cos', 'tan'].forEach(s => {
-        const btn = document.getElementById(`scene${s.charAt(0).toUpperCase() + s.slice(1)}Btn`);
-        if (s === scenario) {
-          btn.className = "flex-1 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2 bg-indigo-600 text-white shadow-sm";
-          btn.querySelector('span:last-child').className = "px-1.5 py-0.5 rounded bg-white/20 text-xs font-mono font-bold";
-        } else {
-          btn.className = "flex-1 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2 text-slate-600 hover:bg-slate-100";
-          btn.querySelector('span:last-child').className = "px-1.5 py-0.5 rounded bg-slate-200 text-slate-700 text-xs font-mono font-bold";
-        }
+
+    function switchTab(tabId) {
+      // 全コンテンツ非表示
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      // 全ボタン非アクティブ
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('border-indigo-600', 'text-indigo-600', 'font-semibold');
+        btn.classList.add('border-transparent', 'text-slate-500', 'font-medium');
       });
 
-      const baseLabel = document.getElementById('baseLengthLabel');
-      if (scenario === 'tan') {
-        baseLabel.textContent = `基準の長さ (${terms[currentTerminology].adjShort}):`;
-      } else {
-        baseLabel.textContent = `基準の長さ (${terms[currentTerminology].hypShort}):`;
+      // 対象タブ表示
+      const activeContent = document.getElementById('content-' + tabId);
+      if (activeContent) activeContent.classList.remove('hidden');
+
+      const activeNav = document.getElementById('nav-' + tabId);
+      if (activeNav) {
+        activeNav.classList.remove('border-transparent', 'text-slate-500', 'font-medium');
+        activeNav.classList.add('border-indigo-600', 'text-indigo-600', 'font-semibold');
       }
 
-      updateAll();
+      // 数式組版更新
+      setTimeout(() => {
+        if (activeContent) renderMath(activeContent);
+      }, 30);
+
+      // 描画再実行
+      if (tabId === 'tab1') updateStep1Visual();
+      if (tabId === 'tab3') updateTanVisual();
     }
 
-    // 角度設定 (30° / 45° / 60°)
     function setAngle(deg) {
       currentAngle = deg;
-      [30, 45, 60].forEach(d => {
-        const btn = document.getElementById(`deg${d}Btn`);
-        if (d === deg) {
-          btn.className = "px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-indigo-600 text-white shadow-sm transition";
-        } else {
-          btn.className = "px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 transition";
-        }
+      document.getElementById('angle-slider').value = deg;
+      updateStep1Visual();
+    }
+
+    function toggleScale() {
+      isDoubleScale = !isDoubleScale;
+      const hypotenuse = isDoubleScale ? 20 : 10;
+      document.getElementById('hypotenuse-text').textContent = hypotenuse + 'm';
+      const badge = document.getElementById('scale-badge');
+      if (isDoubleScale) {
+        badge.className = 'w-2 h-2 rounded-full bg-indigo-500';
+      } else {
+        badge.className = 'w-2 h-2 rounded-full bg-emerald-500';
+      }
+      updateStep1Visual();
+    }
+
+    // スライダーイベントリスナー登録
+    document.getElementById('angle-slider').addEventListener('input', function(e) {
+      currentAngle = parseInt(e.target.value);
+      updateStep1Visual();
+    });
+
+    function updateStep1Visual() {
+      const rad = currentAngle * Math.PI / 180;
+      const hypotenuseLength = isDoubleScale ? 20 : 10;
+
+      // ワークシート対応の近似値 & 分数定義
+      let sinVal, cosVal, sinFrac, cosFrac;
+      if (trigTable[currentAngle]) {
+        sinVal = trigTable[currentAngle].sin;
+        cosVal = trigTable[currentAngle].cos;
+        sinFrac = trigTable[currentAngle].sinFrac;
+        cosFrac = trigTable[currentAngle].cosFrac;
+      } else {
+        sinVal = Math.round(Math.sin(rad) * 100) / 100;
+        cosVal = Math.round(Math.cos(rad) * 100) / 100;
+        sinFrac = `\\dfrac{${Math.round(sinVal * 100)}}{100}`;
+        cosFrac = `\\dfrac{${Math.round(cosVal * 100)}}{100}`;
+      }
+
+      const actualHeight = (hypotenuseLength * sinVal).toFixed(1);
+      const actualBase = (hypotenuseLength * cosVal).toFixed(1);
+
+      // UI表示の更新
+      document.getElementById('slider-val-badge').textContent = currentAngle + '°';
+
+      // KaTeX による正確な分数レンダリング（スラッシュなし）
+      renderKaTeX('math-sin-frac', `${sinFrac} \\; (${sinVal.toFixed(2)})`);
+      renderKaTeX('math-cos-frac', `${cosFrac} \\; (${cosVal.toFixed(2)})`);
+      renderKaTeX('actual-height-frac', `${hypotenuseLength} \\times \\sin ${currentAngle}^\\circ = ${actualHeight}\\text{ m}`);
+      renderKaTeX('actual-base-frac', `${hypotenuseLength} \\times \\cos ${currentAngle}^\\circ = ${actualBase}\\text{ m}`);
+
+      document.getElementById('bar-sin').style.width = (sinVal * 100) + '%';
+      document.getElementById('bar-cos').style.width = (cosVal * 100) + '%';
+
+      // 表のハイライト
+      ['row-20', 'row-45', 'row-70'].forEach(id => {
+        const row = document.getElementById(id);
+        if (row) row.classList.remove('bg-indigo-50', 'font-bold');
       });
+      if (currentAngle === 20) document.getElementById('row-20')?.classList.add('bg-indigo-50', 'font-bold');
+      if (currentAngle === 45) document.getElementById('row-45')?.classList.add('bg-indigo-50', 'font-bold');
+      if (currentAngle === 70) document.getElementById('row-70')?.classList.add('bg-indigo-50', 'font-bold');
 
-      updateAll();
+      // SVG 幾何計算
+      const originX = 50;
+      const originY = 290;
+      const pixelRadius = 250;
+
+      const topX = originX + pixelRadius * Math.cos(rad);
+      const topY = originY - pixelRadius * Math.sin(rad);
+
+      const rightX = topX;
+      const rightY = originY;
+
+      // 線分・塗りつぶし更新
+      const triangleFill = document.getElementById('svg-triangle-fill');
+      triangleFill.setAttribute('points', `${originX},${originY} ${rightX},${rightY} ${topX},${topY}`);
+
+      document.getElementById('svg-base-line').setAttribute('x1', originX);
+      document.getElementById('svg-base-line').setAttribute('y1', originY);
+      document.getElementById('svg-base-line').setAttribute('x2', rightX);
+      document.getElementById('svg-base-line').setAttribute('y2', rightY);
+
+      document.getElementById('svg-height-line').setAttribute('x1', rightX);
+      document.getElementById('svg-height-line').setAttribute('y1', rightY);
+      document.getElementById('svg-height-line').setAttribute('x2', topX);
+      document.getElementById('svg-height-line').setAttribute('y2', topY);
+
+      document.getElementById('svg-hypo-line').setAttribute('x1', originX);
+      document.getElementById('svg-hypo-line').setAttribute('y1', originY);
+      document.getElementById('svg-hypo-line').setAttribute('x2', topX);
+      document.getElementById('svg-hypo-line').setAttribute('y2', topY);
+
+      // 頂点ポイント
+      document.getElementById('svg-pt-c').setAttribute('cx', topX);
+      document.getElementById('svg-pt-c').setAttribute('cy', topY);
+      document.getElementById('svg-pt-b').setAttribute('cx', rightX);
+      document.getElementById('svg-pt-b').setAttribute('cy', rightY);
+
+      // 円弧の軌跡
+      const trailPath = `M ${originX + pixelRadius} ${originY} A ${pixelRadius} ${pixelRadius} 0 0 0 ${originX + pixelRadius * Math.cos(80 * Math.PI / 180)} ${originY - pixelRadius * Math.sin(80 * Math.PI / 180)}`;
+      document.getElementById('svg-arc-trail').setAttribute('d', trailPath);
+
+      // 直角記号
+      const rSize = 14;
+      const rightAnglePath = `M ${rightX - rSize} ${rightY} L ${rightX - rSize} ${rightY - rSize} L ${rightX} ${rightY - rSize}`;
+      document.getElementById('svg-right-angle').setAttribute('d', rightAnglePath);
+
+      // 角度弧
+      const arcRadius = 40;
+      const arcEndX = originX + arcRadius * Math.cos(rad);
+      const arcEndY = originY - arcRadius * Math.sin(rad);
+      const angleArcPath = `M ${originX + arcRadius} ${originY} A ${arcRadius} ${arcRadius} 0 0 0 ${arcEndX} ${arcEndY}`;
+      document.getElementById('svg-angle-arc').setAttribute('d', angleArcPath);
+      document.getElementById('svg-angle-text').textContent = currentAngle + '°';
+
+      // 寸法ラベル位置
+      const labelHypo = document.getElementById('svg-label-hypo');
+      labelHypo.setAttribute('x', originX + (topX - originX) / 2 - 25);
+      labelHypo.setAttribute('y', originY + (topY - originY) / 2 - 10);
+      labelHypo.textContent = `斜辺 ${hypotenuseLength}m`;
+
+      const labelBase = document.getElementById('svg-label-base');
+      labelBase.setAttribute('x', originX + (rightX - originX) / 2 - 20);
+      labelBase.setAttribute('y', originY + 25);
+      labelBase.textContent = `横: ${actualBase}m`;
+
+      const labelHeight = document.getElementById('svg-label-height');
+      labelHeight.setAttribute('x', rightX + 10);
+      labelHeight.setAttribute('y', topY + (originY - topY) / 2 + 5);
+      labelHeight.textContent = `高さ: ${actualHeight}m`;
     }
 
-    // 用語切り替え
-    function setTerminology(type) {
-      currentTerminology = type;
-      const dailyBtn = document.getElementById('termDailyBtn');
-      const mathBtn = document.getElementById('termMathBtn');
+    function setFocusAngle(focus) {
+      currentFocus = focus;
+      const btnBottom = document.getElementById('focus-btn-bottom');
+      const btnTop = document.getElementById('focus-btn-top');
+      const circleBottom = document.getElementById('persp-circle-bottom');
+      const circleTop = document.getElementById('persp-circle-top');
 
-      if (type === 'daily') {
-        dailyBtn.className = "px-3 py-1.5 rounded-lg bg-indigo-600 text-white shadow-sm transition-all";
-        mathBtn.className = "px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 transition-all";
+      if (focus === 'bottom') {
+        // 20°視点
+        btnBottom.className = 'flex-1 py-1.5 text-xs font-bold rounded-lg bg-white text-indigo-600 shadow-sm transition';
+        btnTop.className = 'flex-1 py-1.5 text-xs font-bold rounded-lg text-slate-500 hover:text-slate-800 transition';
+
+        circleBottom.setAttribute('stroke', '#f59e0b');
+        circleBottom.setAttribute('fill', 'rgba(245, 158, 11, 0.25)');
+        circleTop.setAttribute('stroke', '#94a3b8');
+        circleTop.setAttribute('fill', 'none');
+
+        document.getElementById('perspective-title').textContent = '現在の視点: 20° の角 (左下)';
+        document.getElementById('persp-opp-text').textContent = '縦の辺 (約3.4m) = 対辺';
+        document.getElementById('persp-adj-text').textContent = '横の辺 (約9.4m) = 隣辺';
+        
+        // 正確な数式（分数）で等式をレンダリング
+        renderKaTeX('perspective-relation', '\\sin 20^\\circ = \\dfrac{3.4}{10} = \\dfrac{17}{50} = \\cos 70^\\circ \\quad \\Big| \\quad \\cos 20^\\circ = \\dfrac{9.4}{10} = \\dfrac{47}{50} = \\sin 70^\\circ', true);
+
+        document.getElementById('persp-label-base').textContent = '隣辺 (横) 9.4m';
+        document.getElementById('persp-label-height').textContent = '対辺 (高さ) 3.4m';
       } else {
-        mathBtn.className = "px-3 py-1.5 rounded-lg bg-indigo-600 text-white shadow-sm transition-all";
-        dailyBtn.className = "px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 transition-all";
-      }
+        // 70°視点
+        btnTop.className = 'flex-1 py-1.5 text-xs font-bold rounded-lg bg-white text-indigo-600 shadow-sm transition';
+        btnBottom.className = 'flex-1 py-1.5 text-xs font-bold rounded-lg text-slate-500 hover:text-slate-800 transition';
 
-      const baseLabel = document.getElementById('baseLengthLabel');
-      if (currentScenario === 'tan') {
-        baseLabel.textContent = `基準の長さ (${terms[currentTerminology].adjShort}):`;
-      } else {
-        baseLabel.textContent = `基準の長さ (${terms[currentTerminology].hypShort}):`;
-      }
+        circleTop.setAttribute('stroke', '#f59e0b');
+        circleTop.setAttribute('fill', 'rgba(245, 158, 11, 0.25)');
+        circleBottom.setAttribute('stroke', '#94a3b8');
+        circleBottom.setAttribute('fill', 'none');
 
-      updateAll();
+        document.getElementById('perspective-title').textContent = '現在の視点: 70° の角 (右上)';
+        document.getElementById('persp-opp-text').textContent = '横の辺 (約9.4m) = 対辺';
+        document.getElementById('persp-adj-text').textContent = '縦の辺 (約3.4m) = 隣辺';
+
+        // 正確な数式（分数）で等式をレンダリング
+        renderKaTeX('perspective-relation', '\\sin 70^\\circ = \\dfrac{9.4}{10} = \\dfrac{47}{50} = \\cos 20^\\circ \\quad \\Big| \\quad \\cos 70^\\circ = \\dfrac{3.4}{10} = \\dfrac{17}{50} = \\sin 20^\\circ', true);
+
+        document.getElementById('persp-label-base').textContent = '対辺 (横) 9.4m';
+        document.getElementById('persp-label-height').textContent = '隣辺 (高さ) 3.4m';
+      }
     }
-    // 全体更新ルーチン
-    function updateAll() {
-      const t = terms[currentTerminology];
-      const exact = exactTable[currentAngle];
 
-      // 各辺の正確な数式（分数・根号）
-      const hypMathTex = getExactSideTex(currentAngle, baseLength, 'hyp', currentScenario);
-      const adjMathTex = getExactSideTex(currentAngle, baseLength, 'adj', currentScenario);
-      const oppMathTex = getExactSideTex(currentAngle, baseLength, 'opp', currentScenario);
+    function setTanAngle(deg) {
+      currentTanAngle = deg;
+      document.querySelectorAll('.tan-angle-btn').forEach(b => {
+        b.className = 'tan-angle-btn px-2.5 py-1 rounded font-medium text-slate-600 hover:text-slate-900';
+      });
+      const activeBtn = document.getElementById('tan-btn-' + deg);
+      if (activeBtn) activeBtn.className = 'tan-angle-btn px-2.5 py-1 rounded font-bold bg-white text-emerald-700 shadow-xs';
 
-      // バッジの名称テキストと KaTeX 数式
-      document.getElementById('hypNameText').textContent = t.hypShort;
-      document.getElementById('adjNameText').textContent = t.adjShort;
-      document.getElementById('oppNameText').textContent = t.oppShort;
-
-      document.getElementById('hypValueMath').innerHTML = renderTex(hypMathTex);
-      document.getElementById('adjValueMath').innerHTML = renderTex(adjMathTex);
-      document.getElementById('oppValueMath').innerHTML = renderTex(oppMathTex);
-      document.getElementById('angleValueMath').innerHTML = renderTex(`${currentAngle}^\\circ`);
-
-      // 4ステップガイド & 日本語読解文の構築
-      const stepKnown = document.getElementById('stepKnownEdge');
-      const stepTarget = document.getElementById('stepTargetEdge');
-      const stepCompared = document.getElementById('stepComparedEdges');
-      const stepRatio = document.getElementById('stepRatioName');
-      const finalEq = document.getElementById('finalEquationDisplay');
-      const sentence = document.getElementById('sentenceReadout');
-      const unitRate = document.getElementById('unitRateFormula');
-      const activeBadge = document.getElementById('activeRatioBadge');
-      const barTitle = document.getElementById('ratioBarTitle');
-      const ratioExactMath = document.getElementById('ratioExactMath');
-      const progressBar = document.getElementById('ratioProgressBar');
-
-      // 役割アイコンのリセット
-      document.getElementById('hypRoleIcon').textContent = '';
-      document.getElementById('adjRoleIcon').textContent = '';
-      document.getElementById('oppRoleIcon').textContent = '';
-
-      if (currentScenario === 'sin') {
-        document.getElementById('hypRoleIcon').textContent = '⭕️';
-        document.getElementById('oppRoleIcon').textContent = '⭐️';
-
-        activeBadge.innerHTML = renderTex(`\\sin ${currentAngle}^\\circ`);
-        stepKnown.textContent = `${t.hypShort} (${baseLength}m)`;
-        stepTarget.textContent = `${t.oppShort} (?m)`;
-        stepCompared.textContent = `「${t.hypShort}」と「${t.oppShort}」`;
-        stepRatio.innerHTML = renderTex(`\\sin ${currentAngle}^\\circ`);
-
-        const ratioTex = exact.sinTex;
-        ratioExactMath.innerHTML = renderTex(`\\sin ${currentAngle}^\\circ = ${ratioTex}`);
-        finalEq.innerHTML = renderTex(`\\text{${t.oppShort}} = ${baseLength} \\times ${ratioTex} = ${oppMathTex}`, true);
-        sentence.innerHTML = `「${t.hypShort}の長さの <span class="font-extrabold text-indigo-700 bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-200">${renderTex(ratioTex)}</span> 倍が <span class="text-amber-800 font-extrabold">${t.oppShort}</span> になる」`;
-        unitRate.innerHTML = `式で表すと: ${renderTex(`\\text{${t.oppShort}} = \\text{${t.hypShort}} \\times \\sin ${currentAngle}^\\circ`)} （${t.hypShort}が $1\\text{m}$ なら${t.oppShort}は ${renderTex(ratioTex + '\\text{m}')}）`;
-        
-        progressBar.style.width = currentAngle === 30 ? '50%' : (currentAngle === 45 ? '70.7%' : '86.6%');
-        barTitle.textContent = `${t.hypShort}に対する${t.oppShort}の割合 (sin)`;
-
-      } else if (currentScenario === 'cos') {
-        document.getElementById('hypRoleIcon').textContent = '⭕️';
-        document.getElementById('adjRoleIcon').textContent = '⭐️';
-
-        activeBadge.innerHTML = renderTex(`\\cos ${currentAngle}^\\circ`);
-        stepKnown.textContent = `${t.hypShort} (${baseLength}m)`;
-        stepTarget.textContent = `${t.adjShort} (?m)`;
-        stepCompared.textContent = `「${t.hypShort}」と「${t.adjShort}」`;
-        stepRatio.innerHTML = renderTex(`\\cos ${currentAngle}^\\circ`);
-
-        const ratioTex = exact.cosTex;
-        ratioExactMath.innerHTML = renderTex(`\\cos ${currentAngle}^\\circ = ${ratioTex}`);
-        finalEq.innerHTML = renderTex(`\\text{${t.adjShort}} = ${baseLength} \\times ${ratioTex} = ${adjMathTex}`, true);
-        sentence.innerHTML = `「${t.hypShort}の長さの <span class="font-extrabold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">${renderTex(ratioTex)}</span> 倍が <span class="text-emerald-800 font-extrabold">${t.adjShort}</span> になる」`;
-        unitRate.innerHTML = `式で表すと: ${renderTex(`\\text{${t.adjShort}} = \\text{${t.hypShort}} \\times \\cos ${currentAngle}^\\circ`)} （${t.hypShort}が $1\\text{m}$ なら${t.adjShort}は ${renderTex(ratioTex + '\\text{m}')}）`;
-        
-        progressBar.style.width = currentAngle === 60 ? '50%' : (currentAngle === 45 ? '70.7%' : '86.6%');
-        barTitle.textContent = `${t.hypShort}に対する${t.adjShort}の割合 (cos)`;
-
-      } else {
-        // tan
-        document.getElementById('adjRoleIcon').textContent = '⭕️';
-        document.getElementById('oppRoleIcon').textContent = '⭐️';
-
-        activeBadge.innerHTML = renderTex(`\\tan ${currentAngle}^\\circ`);
-        stepKnown.textContent = `${t.adjShort} (${baseLength}m)`;
-        stepTarget.textContent = `${t.oppShort} (?m)`;
-        stepCompared.textContent = `「${t.adjShort}」と「${t.oppShort}」 (斜辺は不要!)`;
-        stepRatio.innerHTML = renderTex(`\\tan ${currentAngle}^\\circ`);
-
-        const ratioTex = exact.tanTex;
-        ratioExactMath.innerHTML = renderTex(`\\tan ${currentAngle}^\\circ = ${ratioTex}`);
-        finalEq.innerHTML = renderTex(`\\text{${t.oppShort}} = ${baseLength} \\times ${ratioTex} = ${oppMathTex}`, true);
-        sentence.innerHTML = `「<span class="text-emerald-800 font-extrabold">${t.adjShort}に 1m</span> 進むと、<span class="text-amber-800 font-extrabold">${t.oppShort}</span> が <span class="font-extrabold text-indigo-700 bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-200">${renderTex(ratioTex)}</span>m 上がる」`;
-        unitRate.innerHTML = `式で表すと: ${renderTex(`\\text{${t.oppShort}} = \\text{${t.adjShort}} \\times \\tan ${currentAngle}^\\circ`)} （斜辺を測らずに高さを求められる）`;
-        
-        progressBar.style.width = currentAngle === 30 ? '57.7%' : (currentAngle === 45 ? '75%' : '100%');
-        barTitle.textContent = `${t.adjShort}に対する${t.oppShort}の傾き割合 (tan)`;
-      }
-
-      drawTriangleVisual();
-      renderAllMathInPage();
+      updateTanVisual();
     }
-    // SVG線分描画＆バッジの枠内完全収容配置（Dynamic Safety Margin）
-    function drawTriangleVisual() {
-      const container = document.getElementById('canvasContainer');
-      const svg = document.getElementById('triangleSvg');
+
+    function updateTanVisual() {
+      const data = trigTable[currentTanAngle] || { tan: Math.tan(currentTanAngle * Math.PI / 180), tanFrac: `\\tan ${currentTanAngle}^\\circ` };
+      const tanVal = data.tan;
+      const tanFrac = data.tanFrac;
+
+      // テーブルのハイライト
+      [30, 45, 60, 80].forEach(deg => {
+        const row = document.getElementById('tan-row-' + deg);
+        if (row) row.classList.remove('bg-emerald-50', 'font-bold');
+      });
+      document.getElementById('tan-row-' + currentTanAngle)?.classList.add('bg-emerald-50', 'font-bold');
+
+      // SVG幾何更新
+      const originX = 50;
+      const originY = 270;
+      const baseWidth = 140; 
+      const cornerX = originX + baseWidth;
       
-      const w = container.clientWidth || 560;
-      const h = container.clientHeight || 380;
-
-      // 枠外はみ出しを防ぐ十分なセーフエリア
-      const padLeft = 65;
-      const padRight = 160;  // 右側の対辺バッジが絶対に右枠内に収まるマージン
-      const padTop = 50;     // 上側の頂点Bが天井を突き抜けないマージン
-      const padBottom = 65;  // 下側の隣辺バッジが底を突き抜けないマージン
-
-      const availW = Math.max(100, w - padLeft - padRight);
-      const availH = Math.max(100, h - padTop - padBottom);
-
-      // 三角形の幾何的比率（tanのときは隣辺=1、sin/cosのときは斜辺=1）
-      const rad = (currentAngle * Math.PI) / 180;
-      let ratioAdj, ratioOpp;
-
-      if (currentScenario === 'tan') {
-        ratioAdj = 1.0;
-        ratioOpp = Math.tan(rad);
-      } else {
-        ratioAdj = Math.cos(rad);
-        ratioOpp = Math.sin(rad);
+      let pixelHeight = baseWidth * tanVal;
+      if (pixelHeight > 230) {
+        pixelHeight = 230;
       }
 
-      // セーフエリア内に100%収まる拡大スケールを計算
-      const scale = Math.min(availW / ratioAdj, availH / ratioOpp);
+      const topY = originY - pixelHeight;
 
-      const drawAdj = ratioAdj * scale;
-      const drawOpp = ratioOpp * scale;
+      // 高さライン
+      document.getElementById('tan-svg-height').setAttribute('y2', topY);
+      // 斜辺ライン
+      document.getElementById('tan-svg-hypo').setAttribute('x2', cornerX);
+      document.getElementById('tan-svg-hypo').setAttribute('y2', topY);
 
-      const xA = padLeft;
-      const yA = h - padBottom;
-      const xC = padLeft + drawAdj;
-      const yC = h - padBottom;
-      const xB = xC;
-      const yB = yC - drawOpp;
+      // 直角マーク
+      document.getElementById('tan-svg-rect').setAttribute('x', cornerX - 16);
+      document.getElementById('tan-svg-rect').setAttribute('y', originY - 16);
 
-      const sq = 18;
-      const arcR = Math.min(40, drawAdj * 0.28);
-      const arcX = xA + arcR * Math.cos(rad);
-      const arcY = yA - arcR * Math.sin(rad);
+      // 角度弧
+      const rad = currentTanAngle * Math.PI / 180;
+      const arcR = 35;
+      const arcEndX = originX + arcR * Math.cos(rad);
+      const arcEndY = originY - arcR * Math.sin(rad);
+      document.getElementById('tan-svg-arc').setAttribute('d', `M ${originX + arcR} ${originY} A ${arcR} ${arcR} 0 0 0 ${arcEndX} ${arcEndY}`);
+      document.getElementById('tan-svg-angle-text').textContent = currentTanAngle + '°';
 
-      const isSin = currentScenario === 'sin';
-      const isCos = currentScenario === 'cos';
-      const isTan = currentScenario === 'tan';
+      // 高さラベル
+      const heightLabel = document.getElementById('tan-svg-height-label');
+      heightLabel.setAttribute('y', Math.max(20, originY - pixelHeight / 2));
+      heightLabel.textContent = `高さ: 約 ${tanVal.toFixed(2)}m`;
 
-      const hypOpacity = isTan ? '0.2' : '1.0';
-      const adjOpacity = isSin ? '0.2' : '1.0';
-      const oppOpacity = isCos ? '0.2' : '1.0';
-
-      svg.innerHTML = `
-        <defs>
-          <linearGradient id="areaFillGrad" x1="0%" y1="100%" x2="100%" y2="0%">
-            <stop offset="0%" stop-color="#4f46e5" stop-opacity="0.08"/>
-            <stop offset="100%" stop-color="#38bdf8" stop-opacity="0.03"/>
-          </linearGradient>
-        </defs>
-
-        <!-- 地面ガイドライン -->
-        <line x1="15" y1="${yA}" x2="${w - 15}" y2="${yA}" stroke="#cbd5e1" stroke-width="2" stroke-dasharray="4,4"/>
-
-        <!-- 三角形塗りつぶし -->
-        <polygon points="${xA},${yA} ${xC},${yC} ${xB},${yB}" fill="url(#areaFillGrad)"/>
-
-        <!-- 直角マーク (C地点) -->
-        <polyline points="${xC - sq},${yC} ${xC - sq},${yC - sq} ${xC},${yC - sq}" fill="none" stroke="#f59e0b" stroke-width="2.5" stroke-linejoin="round"/>
-
-        <!-- 角度円弧 (A地点) -->
-        <path d="M ${xA + arcR} ${yA} A ${arcR} ${arcR} 0 0 0 ${arcX} ${arcY}" fill="none" stroke="#6366f1" stroke-width="3"/>
-
-        <!-- 横 (隣辺) -->
-        <line x1="${xA}" y1="${yA}" x2="${xC}" y2="${yC}" stroke="#10b981" stroke-width="${isSin ? 2.5 : 5}" opacity="${adjOpacity}" stroke-linecap="round"/>
-
-        <!-- 高さ (対辺) -->
-        <line x1="${xC}" y1="${yC}" x2="${xB}" y2="${yB}" stroke="#f59e0b" stroke-width="${isCos ? 2.5 : 5}" opacity="${oppOpacity}" stroke-linecap="round"/>
-
-        <!-- 斜辺 -->
-        <line x1="${xA}" y1="${yA}" x2="${xB}" y2="${yB}" stroke="#0284c7" stroke-width="${isTan ? 2.5 : 6}" opacity="${hypOpacity}" stroke-linecap="round"/>
-
-        <!-- 頂点 -->
-        <circle cx="${xA}" cy="${yA}" r="5" fill="#0284c7" stroke="#ffffff" stroke-width="2"/>
-        <circle cx="${xC}" cy="${yC}" r="5" fill="#10b981" stroke="#ffffff" stroke-width="2"/>
-        <circle cx="${xB}" cy="${yB}" r="6" fill="#f59e0b" stroke="#ffffff" stroke-width="2"/>
-      `;
-
-      // HTMLバッジの配置（枠内に完全に収まるクランプ処理）
-      const hypBadge = document.getElementById('hypLabelBadge');
-      const adjBadge = document.getElementById('adjLabelBadge');
-      const oppBadge = document.getElementById('oppLabelBadge');
-      const angleBadge = document.getElementById('angleBadge');
-
-      // 斜辺バッジ：斜辺中点から少し左上にオフセット
-      const midHypX = (xA + xB) / 2;
-      const midHypY = (yA + yB) / 2;
-      hypBadge.style.left = `${midHypX - 25}px`;
-      hypBadge.style.top = `${midHypY - 14}px`;
-      hypBadge.style.opacity = hypOpacity;
-
-      // 隣辺（底辺）バッジ：地面線の中央直下に配置
-      adjBadge.style.left = `${(xA + xC) / 2}px`;
-      adjBadge.style.top = `${yA + 12}px`;
-      adjBadge.style.opacity = adjOpacity;
-
-      // 対辺（高さ）バッジ：xC の右側（十分なセーフエリアがあるため右枠内に必ず収まる）
-      oppBadge.style.left = `${xC + 14}px`;
-      oppBadge.style.top = `${(yC + yB) / 2}px`;
-      oppBadge.style.opacity = oppOpacity;
-
-      // 角度バッジ：円弧のすぐ右斜め上に配置
-      angleBadge.style.left = `${xA + arcR + 10}px`;
-      angleBadge.style.top = `${yA - 30}px`;
+      // 2m進むと？の計算式（正確な数式形式）
+      const twoMeterHeight = (2 * tanVal).toFixed(2);
+      renderKaTeX('tan-calc-formula', `2\\text{ m} \\times \\tan ${currentTanAngle}^\\circ = 2 \\times ${tanFrac} \\approx ${twoMeterHeight}\\text{ m}`);
     }
-    // ドリルの判定
-    const drillAnswers = ['sin', 'cos', 'tan', 'sin'];
-    const drillExplanations = [
-      '正解！「斜辺」と「高さ(対辺)」を比べる割合は sin です。',
-      '正解！「斜辺」と「横(隣辺)」を比べる割合は cos です。',
-      '正解！斜辺を使わず「横」と「高さ」を比べる割合は tan です。',
-      '正解！「高さ」と「斜辺」の関係も sin です（対辺 = 斜辺 × sinθ）。'
-    ];
 
-    function checkDrill(index, selected) {
-      const feedback = document.getElementById(`drillFeedback${index}`);
-      feedback.classList.remove('hidden');
-
-      if (selected === drillAnswers[index]) {
-        drillScores[index] = true;
-        feedback.className = "text-xs font-bold text-center py-1.5 px-2 rounded-lg bg-emerald-100 border border-emerald-300 text-emerald-800";
-        feedback.textContent = drillExplanations[index];
+    function toggleAnswer(id) {
+      const el = document.getElementById(id);
+      const arrow = document.getElementById(id + '-arrow');
+      if (el.classList.contains('hidden')) {
+        el.classList.remove('hidden');
+        if (arrow) arrow.textContent = '▲';
+        renderMath(el);
       } else {
-        drillScores[index] = false;
-        feedback.className = "text-xs font-bold text-center py-1.5 px-2 rounded-lg bg-rose-100 border border-rose-300 text-rose-800";
-        feedback.textContent = `惜しい！「${index === 0 ? '斜辺と高さ' : (index === 1 ? '斜辺と横' : (index === 2 ? '横と高さ' : '高さと斜辺'))}」に使う割合をもう一度確認しましょう。`;
+        el.classList.add('hidden');
+        if (arrow) arrow.textContent = '▼';
       }
-
-      const totalCorrect = drillScores.filter(Boolean).length;
-      document.getElementById('drillScoreText').textContent = `${totalCorrect} / 4`;
     }
 
-    // 坂道角度の種明かし
-    function revealSlopeAngle() {
-      const box = document.getElementById('slopeRevealBox');
-      const btn = document.getElementById('revealSlopeBtn');
-      box.classList.remove('hidden');
-      btn.textContent = "確認完了（角度と割合が1対1に対応）";
-      btn.className = "w-full py-2.5 px-4 rounded-xl bg-slate-200 text-slate-600 font-bold text-xs transition cursor-default";
-      btn.disabled = true;
-      renderAllMathInPage();
+    function toggleQuizAnswer(id) {
+      const el = document.getElementById(id);
+      if (el.classList.contains('hidden')) {
+        el.classList.remove('hidden');
+        renderMath(el);
+      } else {
+        el.classList.add('hidden');
+      }
     }
 
-    // Exit Ticket のコピー
     function copyExitTicket() {
-      const a1 = document.getElementById('exitAns1').value.trim() || '（未記入）';
-      const a2 = document.getElementById('exitAns2').value.trim() || '（未記入）';
-      const a3 = document.getElementById('exitAns3').value.trim() || '（未記入）';
+      const text = document.getElementById('exit-ticket-text').value.trim();
+      const rating = document.querySelector('input[name="self-rating"]:checked')?.value || '未選択';
+      
+      const copyContent = `【数学Ⅰ 三角比 第2時 振り返り (Exit Ticket)】\n● 自分の説明:\n${text || '（未入力）'}\n● 自己評価: ${rating}`;
 
-      const text = `【数学Ⅰ 三角比第2時 Exit Ticket 振り返り】\n\n` +
-        `① sin30° = 1/2 の分数の意味:\n${a1}\n\n` +
-        `② 斜辺10m・30°で高さを求める理由:\n${a2}\n\n` +
-        `③ 三角比で何が楽になったか:\n${a3}\n`;
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(copyContent).then(showToast).catch(() => fallbackCopy(copyContent));
+      } else {
+        fallbackCopy(copyContent);
+      }
+    }
 
-      const tempArea = document.createElement('textarea');
-      tempArea.value = text;
-      document.body.appendChild(tempArea);
-      tempArea.select();
+    function fallbackCopy(str) {
+      const textArea = document.createElement("textarea");
+      textArea.value = str;
+      textArea.style.position = "fixed";
+      textArea.style.left = "-999999px";
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
       try {
         document.execCommand('copy');
-        const notice = document.getElementById('copyNotice');
-        notice.classList.remove('hidden');
-        setTimeout(() => notice.classList.add('hidden'), 3500);
+        showToast();
       } catch (err) {
-        console.error('Copy failed:', err);
+        console.error('Copy failed', err);
       }
-      document.body.removeChild(tempArea);
+      document.body.removeChild(textArea);
     }
 
-    // スムーズスクロール
-    function scrollToSection(id) {
-      const el = document.getElementById(id);
-      if (el) {
-        el.scrollIntoView({ behavior: 'smooth' });
-      }
+    function showToast() {
+      const toast = document.getElementById('copy-toast');
+      toast.classList.remove('opacity-0');
+      toast.classList.add('opacity-100');
+      setTimeout(() => {
+        toast.classList.remove('opacity-100');
+        toast.classList.add('opacity-0');
+      }, 2500);
     }
 
-    // 初期化とリサイズ監視
     window.addEventListener('DOMContentLoaded', () => {
-      document.getElementById('baseLengthRange').addEventListener('input', (e) => {
-        baseLength = parseInt(e.target.value, 10);
-        document.getElementById('baseLengthDisplay').textContent = `${baseLength} m`;
-        updateAll();
-      });
-
-      // ウィンドウリサイズ時にも枠内に自動再フィッティング
-      window.addEventListener('resize', () => {
-        drawTriangleVisual();
-      });
-
-      // ResizeObserver による確実なリサイズ追従
-      const container = document.getElementById('canvasContainer');
-      if (window.ResizeObserver && container) {
-        const ro = new ResizeObserver(() => {
-          drawTriangleVisual();
-        });
-        ro.observe(container);
-      }
-
-      updateAll();
-      renderAllMathInPage();
+      // 初期レンダリング
+      setTimeout(() => {
+        renderMath(document.body);
+        updateStep1Visual();
+        updateTanVisual();
+        setFocusAngle('bottom');
+      }, 100);
     });
   </script>
 </body>

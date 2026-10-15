@@ -100,11 +100,17 @@
             </div>
             
             <!-- Quick Transform Toggles (Visible only for sin initially) -->
-            <div id="transformToggles" class="flex flex-wrap gap-1.5">
-              <button onclick="setMod('none')" id="mod-none" class="mod-btn px-2.5 py-1 text-xs font-bold rounded-lg bg-slate-800 text-white shadow-sm border border-slate-700">通常</button>
-              <button onclick="setMod('amp')" id="mod-amp" class="mod-btn px-2.5 py-1 text-xs font-bold rounded-lg bg-white text-slate-600 hover:bg-slate-50 border border-slate-200">振幅 2sinθ</button>
-              <button onclick="setMod('shift')" id="mod-shift" class="mod-btn px-2.5 py-1 text-xs font-bold rounded-lg bg-white text-slate-600 hover:bg-slate-50 border border-slate-200">移動 sinθ+2</button>
-              <button onclick="setMod('freq')" id="mod-freq" class="mod-btn px-2.5 py-1 text-xs font-bold rounded-lg bg-white text-slate-600 hover:bg-slate-50 border border-slate-200">周期 sin(2θ)</button>
+            <div id="transformToggles-sin" class="flex flex-wrap gap-1.5">
+              <button onclick="setMod('none')" id="mod-sin-none" class="mod-btn px-2.5 py-1 text-xs font-bold rounded-lg bg-slate-800 text-white shadow-sm border border-slate-700 transition-colors">通常</button>
+              <button onclick="setMod('amp')" id="mod-sin-amp" class="mod-btn px-2.5 py-1 text-xs font-bold rounded-lg bg-white text-slate-600 hover:bg-slate-50 border border-slate-200 transition-colors">振幅 2sinθ</button>
+              <button onclick="setMod('shift')" id="mod-sin-shift" class="mod-btn px-2.5 py-1 text-xs font-bold rounded-lg bg-white text-slate-600 hover:bg-slate-50 border border-slate-200 transition-colors">移動 sinθ+2</button>
+              <button onclick="setMod('freq')" id="mod-sin-freq" class="mod-btn px-2.5 py-1 text-xs font-bold rounded-lg bg-white text-slate-600 hover:bg-slate-50 border border-slate-200 transition-colors">周期 sin(2θ)</button>
+            </div>
+            
+            <!-- Quick Transform Toggles for cos -->
+            <div id="transformToggles-cos" class="hidden flex-wrap gap-1.5">
+              <button onclick="setMod('none')" id="mod-cos-none" class="mod-btn px-2.5 py-1 text-xs font-bold rounded-lg bg-blue-700 text-white shadow-sm border border-blue-800 transition-colors">通常</button>
+              <button onclick="setMod('compare')" id="mod-cos-compare" class="mod-btn px-2.5 py-1 text-xs font-bold rounded-lg bg-white text-blue-600 hover:bg-blue-50 border border-blue-200 transition-colors flex items-center gap-1"><i data-lucide="layers" class="w-3.5 h-3.5"></i>sinと重ねる</button>
             </div>
           </div>
 
@@ -218,6 +224,21 @@
 
           <!-- Controls -->
           <div class="space-y-3 pt-2">
+            
+            <!-- Phase Shift Slider (Only for compare mode) -->
+            <div id="phaseSliderContainer" class="hidden flex-col space-y-1.5 pb-3 border-b border-slate-100">
+               <label class="text-xs font-bold text-slate-700 flex items-center justify-between">
+                 <span class="flex items-center text-blue-700"><i data-lucide="move-horizontal" class="w-4 h-4 mr-1.5"></i>cos の波を左右にずらす</span>
+                 <span id="phaseValText" class="text-blue-700 font-mono font-bold text-sm">0°</span>
+               </label>
+               <input type="range" id="phaseRange" min="-180" max="180" value="0" step="1" class="w-full h-2.5 bg-blue-200 rounded-lg appearance-none cursor-pointer">
+               <div class="flex justify-between text-[10px] text-slate-400 font-bold px-1">
+                 <span>-180°</span>
+                 <span>0°</span>
+                 <span>+180°</span>
+               </div>
+            </div>
+
             <div class="flex items-center justify-between">
               <label for="angleRange" class="text-xs font-bold text-slate-700 flex items-center">
                 <i data-lucide="settings-2" class="w-4 h-4 mr-1.5 text-sky-600"></i>
@@ -231,11 +252,6 @@
             </div>
             
             <input type="range" id="angleRange" min="0" max="360" value="30" step="1" class="w-full h-2.5 bg-slate-200 rounded-lg appearance-none cursor-pointer">
-            
-            <label class="flex items-center space-x-2 text-xs font-bold text-slate-600 cursor-pointer justify-end">
-              <input type="checkbox" id="toggleSnap" checked class="rounded text-sky-600 w-4 h-4 focus:ring-sky-500">
-              <span>有名角にスナップ（自動吸着）</span>
-            </label>
           </div>
         </div>
 
@@ -552,7 +568,8 @@
     // State Variables
     let currentDeg = 30;
     let currentFunc = 'sin'; // 'sin', 'cos', 'tan'
-    let currentMod = 'none'; // 'none', 'amp', 'shift', 'freq'
+    let currentMod = 'none'; // 'none', 'amp', 'shift', 'freq', 'compare'
+    let phaseOffset = 0; // -180 to 180 (for cos compare mode)
 
     // Constants for SVG mapping (ViewBox 800x340)
     const Cx = 100; // Circle center X
@@ -564,7 +581,7 @@
     function degToRad(deg) { return deg * Math.PI / 180; }
 
     function snapToLandmark(deg) {
-      if (!document.getElementById('toggleSnap').checked) return deg;
+      // 常時有名角にスナップし、小数を完全に排除する
       let closest = LANDMARKS[0];
       let minDiff = 360;
       for (let lm of LANDMARKS) {
@@ -573,7 +590,7 @@
           closest = lm;
         }
       }
-      return minDiff < 10 ? closest : deg;
+      return closest;
     }
 
     function stepLandmark(dir) {
@@ -610,15 +627,22 @@
         }
       });
 
-      // Show/Hide transform toggles (Only relevant for sin in this interactive)
-      const tGrp = document.getElementById('transformToggles');
+      // Show/Hide transform toggles
+      const tGrpSin = document.getElementById('transformToggles-sin');
+      const tGrpCos = document.getElementById('transformToggles-cos');
+      
       if (func === 'sin') {
-        tGrp.classList.remove('hidden');
-        tGrp.classList.add('flex');
+        tGrpSin.classList.remove('hidden'); tGrpSin.classList.add('flex');
+        tGrpCos.classList.add('hidden'); tGrpCos.classList.remove('flex');
+        setMod('none', false);
+      } else if (func === 'cos') {
+        tGrpSin.classList.add('hidden'); tGrpSin.classList.remove('flex');
+        tGrpCos.classList.remove('hidden'); tGrpCos.classList.add('flex');
+        setMod('none', false);
       } else {
-        tGrp.classList.add('hidden');
-        tGrp.classList.remove('flex');
-        setMod('none', false); // Reset mod silently
+        tGrpSin.classList.add('hidden'); tGrpSin.classList.remove('flex');
+        tGrpCos.classList.add('hidden'); tGrpCos.classList.remove('flex');
+        setMod('none', false);
       }
 
       // Update Title & Explainer
@@ -656,7 +680,7 @@
         label.className = 'text-[10px] font-bold text-blue-700 mb-2 relative z-10 transition-colors';
         label.innerText = 'cos は横座標';
         document.getElementById('valMath').className = 'text-blue-900 font-black min-h-[50px] flex items-center justify-center text-2xl relative z-10 transition-colors';
-        explainer.innerHTML = '今度は円の<strong class="text-blue-300">横座標</strong>を、グラフでは「縦の高さ」として記録します。0°で1から始まる理由を確認しましょう。';
+        explainer.innerHTML = '今度は円の<strong class="text-blue-300">横座標</strong>を、グラフでは「縦の高さ」として記録します。<br>0°で1から始まる理由を確認しましょう。';
         document.getElementById('indCos').classList.remove('hidden');
       }
       else if (func === 'tan') {
@@ -685,15 +709,43 @@
       if(playSnd) playTone('click');
       currentMod = mod;
       
-      // Update toggle buttons
-      ['none', 'amp', 'shift', 'freq'].forEach(m => {
-        const btn = document.getElementById(`mod-${m}`);
-        if(m === mod) {
-          btn.className = `mod-btn px-2.5 py-1 text-xs font-bold rounded-lg bg-slate-800 text-white shadow-sm border border-slate-700 transition-colors`;
-        } else {
-          btn.className = `mod-btn px-2.5 py-1 text-xs font-bold rounded-lg bg-white text-slate-600 hover:bg-slate-50 border border-slate-200 transition-colors`;
-        }
-      });
+      // Reset phase
+      phaseOffset = 0;
+      document.getElementById('phaseRange').value = 0;
+      document.getElementById('phaseValText').innerText = '0°';
+      document.getElementById('mainValBox').classList.remove('ring-4', 'ring-emerald-400');
+      
+      // Update toggle buttons for sin
+      if (currentFunc === 'sin') {
+        ['none', 'amp', 'shift', 'freq'].forEach(m => {
+          const btn = document.getElementById(`mod-sin-${m}`);
+          if(btn) {
+            if(m === mod) btn.className = `mod-btn px-2.5 py-1 text-xs font-bold rounded-lg bg-slate-800 text-white shadow-sm border border-slate-700 transition-colors`;
+            else btn.className = `mod-btn px-2.5 py-1 text-xs font-bold rounded-lg bg-white text-slate-600 hover:bg-slate-50 border border-slate-200 transition-colors`;
+          }
+        });
+      }
+
+      // Update toggle buttons for cos
+      if (currentFunc === 'cos') {
+        ['none', 'compare'].forEach(m => {
+          const btn = document.getElementById(`mod-cos-${m}`);
+          if(btn) {
+            if(m === mod) btn.className = `mod-btn px-2.5 py-1 text-xs font-bold rounded-lg bg-blue-700 text-white shadow-sm border border-blue-800 transition-colors`;
+            else btn.className = `mod-btn px-2.5 py-1 text-xs font-bold rounded-lg bg-white text-blue-600 hover:bg-blue-50 border border-blue-200 transition-colors`;
+          }
+        });
+      }
+      
+      // Toggle phase slider
+      const phaseContainer = document.getElementById('phaseSliderContainer');
+      if (mod === 'compare') {
+          phaseContainer.classList.remove('hidden');
+          phaseContainer.classList.add('flex');
+      } else {
+          phaseContainer.classList.add('hidden');
+          phaseContainer.classList.remove('flex');
+      }
 
       // Update Title & Guide lines based on Mod
       const title = document.getElementById('funcTitle');
@@ -704,30 +756,40 @@
       document.getElementById('guideYMin2').classList.add('hidden');
       document.getElementById('labelYMin2').classList.add('hidden');
 
-      if (mod === 'none') {
-        title.innerText = '基本のグラフ： y = sin θ';
-      } else if (mod === 'amp') {
-        title.innerText = '振幅の変更： y = 2sin θ';
-        document.getElementById('guideY2').classList.remove('hidden');
-        document.getElementById('labelY2').classList.remove('hidden');
-        document.getElementById('guideYMin2').classList.remove('hidden');
-        document.getElementById('labelYMin2').classList.remove('hidden');
-      } else if (mod === 'shift') {
-        title.innerText = '上下の移動： y = sin θ + 2';
-        document.getElementById('guideY2').classList.remove('hidden');
-        document.getElementById('labelY2').classList.remove('hidden');
-        document.getElementById('guideY3').classList.remove('hidden');
-        document.getElementById('labelY3').classList.remove('hidden');
-      } else if (mod === 'freq') {
-        title.innerText = '周期の変更： y = sin (2θ)';
+      if (currentFunc === 'sin') {
+        if (mod === 'none') {
+          title.innerText = '基本のグラフ： y = sin θ';
+        } else if (mod === 'amp') {
+          title.innerText = '振幅の変更： y = 2sin θ';
+          document.getElementById('guideY2').classList.remove('hidden');
+          document.getElementById('labelY2').classList.remove('hidden');
+          document.getElementById('guideYMin2').classList.remove('hidden');
+          document.getElementById('labelYMin2').classList.remove('hidden');
+        } else if (mod === 'shift') {
+          title.innerText = '上下の移動： y = sin θ + 2';
+          document.getElementById('guideY2').classList.remove('hidden');
+          document.getElementById('labelY2').classList.remove('hidden');
+          document.getElementById('guideY3').classList.remove('hidden');
+          document.getElementById('labelY3').classList.remove('hidden');
+        } else if (mod === 'freq') {
+          title.innerText = '周期の変更： y = sin (2θ)';
+        }
+      } else if (currentFunc === 'cos') {
+        if (mod === 'none') title.innerText = '基本のグラフ： y = cos θ';
+        else if (mod === 'compare') title.innerText = '波の比較： cos波を横にずらす';
       }
 
       drawBaseWaves();
       updateVisuals(currentDeg);
+      updateCompareMessage();
     }
 
     function getWaveY(deg) {
-      const rad = degToRad(deg);
+      let offsetDeg = 0;
+      if (currentFunc === 'cos' && currentMod === 'compare') {
+          offsetDeg = -phaseOffset;
+      }
+      const rad = degToRad(deg + offsetDeg);
       let yval = 0;
       
       if (currentFunc === 'sin') {
@@ -747,7 +809,7 @@
     }
 
     function drawBaseWaves() {
-      // Draw Ghost (Base sin if modified)
+      // Draw Ghost
       const ghost = document.getElementById('ghostWave');
       if (currentFunc === 'sin' && currentMod !== 'none') {
         let gd = `M ${Gx} ${Cy} `;
@@ -755,6 +817,16 @@
           gd += `L ${Gx + i*1.5} ${Cy - Math.sin(degToRad(i))*R} `;
         }
         ghost.setAttribute('d', gd);
+        ghost.setAttribute('stroke', '#cbd5e1'); // gray
+        ghost.classList.remove('hidden');
+      } else if (currentFunc === 'cos' && currentMod === 'compare') {
+        // sin ghost in compare mode
+        let gd = `M ${Gx} ${Cy} `;
+        for(let i=0; i<=360; i+=2) {
+          gd += `L ${Gx + i*1.5} ${Cy - Math.sin(degToRad(i))*R} `;
+        }
+        ghost.setAttribute('d', gd);
+        ghost.setAttribute('stroke', '#fda4af'); // light rose
         ghost.classList.remove('hidden');
       } else {
         ghost.classList.add('hidden');
@@ -857,7 +929,7 @@
       ptG.setAttribute('stroke', color);
       syncLine.setAttribute('stroke', color);
 
-      if (currentFunc === 'tan' && isTanUndef) {
+      if ((currentFunc === 'tan' && isTanUndef) || currentMod === 'compare') {
         ptG.classList.add('hidden');
         syncLine.classList.add('hidden');
       } else {
@@ -891,27 +963,26 @@
         renderMath('valTheta', MATH_DICT[deg].rad);
         
         if (currentFunc === 'sin') {
-          if (currentMod === 'none') mathVal = `\\sin\\theta = ${MATH_DICT[deg].sin}`;
+          if (currentMod === 'none') {
+             mathVal = `\\sin\\theta = ${MATH_DICT[deg].sin}`;
+          }
           else if (currentMod === 'amp') {
-            // Calculate strictly if needed, but for simplicity we rely on KaTeX rendering.
-            let v = Math.sin(rad)*2;
-            let displayV = Number.isInteger(v) ? v : (v.toFixed(2));
-            // Exact display for 2sin
-            if(deg===30||deg===150) displayV = "1";
-            if(deg===210||deg===330) displayV = "-1";
-            if(deg===60||deg===120) displayV = "\\sqrt{3}";
-            if(deg===240||deg===300) displayV = "-\\sqrt{3}";
-            if(deg===45||deg===135) displayV = "\\sqrt{2}";
-            if(deg===225||deg===315) displayV = "-\\sqrt{2}";
-            mathVal = `2\\sin\\theta = ${displayV}`;
+             const ampMap = {
+               "0": "0", "1": "2", "-1": "-2", 
+               "\\frac{1}{2}": "1", "-\\frac{1}{2}": "-1",
+               "\\frac{\\sqrt{2}}{2}": "\\sqrt{2}", "-\\frac{\\sqrt{2}}{2}": "-\\sqrt{2}",
+               "\\frac{\\sqrt{3}}{2}": "\\sqrt{3}", "-\\frac{\\sqrt{3}}{2}": "-\\sqrt{3}"
+             };
+             mathVal = `2\\sin\\theta = ${ampMap[MATH_DICT[deg].sin]}`;
           }
           else if (currentMod === 'shift') {
-            let v = Math.sin(rad)+2;
-            let displayV = MATH_DICT[deg].sin;
-            if(displayV==="0") mathVal = `\\sin\\theta+2 = 2`;
-            else if(displayV==="1") mathVal = `\\sin\\theta+2 = 3`;
-            else if(displayV==="-1") mathVal = `\\sin\\theta+2 = 1`;
-            else mathVal = `\\sin\\theta+2 = 2 + ${displayV}`;
+             const shiftMap = {
+               "0": "2", "1": "3", "-1": "1",
+               "\\frac{1}{2}": "\\frac{5}{2}", "-\\frac{1}{2}": "\\frac{3}{2}",
+               "\\frac{\\sqrt{2}}{2}": "2 + \\frac{\\sqrt{2}}{2}", "-\\frac{\\sqrt{2}}{2}": "2 - \\frac{\\sqrt{2}}{2}",
+               "\\frac{\\sqrt{3}}{2}": "2 + \\frac{\\sqrt{3}}{2}", "-\\frac{\\sqrt{3}}{2}": "2 - \\frac{\\sqrt{3}}{2}"
+             };
+             mathVal = `\\sin\\theta+2 = ${shiftMap[MATH_DICT[deg].sin]}`;
           }
           else if (currentMod === 'freq') {
             let deg2 = (deg * 2) % 360;
@@ -920,27 +991,50 @@
           }
         } 
         else if (currentFunc === 'cos') {
-          mathVal = `\\cos\\theta = ${MATH_DICT[deg].cos}`;
+          if (currentMod === 'compare') {
+            let shiftStr = "";
+            if (phaseOffset > 0) shiftStr = `- ${phaseOffset}^{\\circ}`;
+            else if (phaseOffset < 0) shiftStr = `+ ${-phaseOffset}^{\\circ}`;
+            
+            if (phaseOffset === 90) {
+               mathVal = `\\cos(\\theta - 90^{\\circ}) = \\sin\\theta`;
+            } else {
+               mathVal = `y = \\cos(\\theta ${shiftStr})`;
+            }
+          } else {
+            mathVal = `\\cos\\theta = ${MATH_DICT[deg].cos}`;
+          }
         }
         else if (currentFunc === 'tan') {
           mathVal = `\\tan\\theta = ${MATH_DICT[deg].tan}`;
         }
-        
-      } else {
-        // Fallback
-        let frac = (deg/180).toFixed(2).replace('.00','') + "\\pi";
-        if(deg===0) frac = "0";
-        renderMath('valTheta', frac);
-        
-        let rawVal = 0;
-        if(currentFunc==='sin') rawVal = Math.sin(rad);
-        if(currentFunc==='cos') rawVal = Math.cos(rad);
-        if(currentFunc==='tan') rawVal = Math.tan(rad);
-        
-        mathVal = `\\approx ${rawVal.toFixed(2)}`;
       }
       
       renderMath('valMath', mathVal);
+    }
+    
+    let hasPlayedBingo = false;
+    function updateCompareMessage() {
+      if (currentFunc !== 'cos' || currentMod !== 'compare') {
+         hasPlayedBingo = false;
+         return;
+      }
+      
+      const explainer = document.getElementById('condExplainer');
+      const box = document.getElementById('mainValBox');
+      
+      if (phaseOffset === 90) {
+         explainer.innerHTML = '<span class="text-emerald-300 font-bold">🎉 ピタリと重なりました！</span><br>cos の波を右に 90° ずらすと sin の波と完全に一致します。<strong class="text-white">「cos(θ - 90°) = sin θ」</strong>という重要な関係が成り立っています。';
+         box.classList.add('ring-4', 'ring-emerald-400');
+         if(!hasPlayedBingo) {
+             playTone('correct');
+             hasPlayedBingo = true;
+         }
+      } else {
+         explainer.innerHTML = 'スライダーを動かして、青い <strong class="text-blue-300">cos の波</strong> を左右にずらし、赤い <strong class="text-rose-300">sin の波</strong>（破線）に重ねてみましょう。ずらすだけで全く同じ波形になることが分かります。';
+         box.classList.remove('ring-4', 'ring-emerald-400');
+         hasPlayedBingo = false;
+      }
     }
 
     // Drag Interaction
@@ -984,6 +1078,24 @@
       val = snapToLandmark(val);
       e.target.value = val;
       updateVisuals(val);
+    });
+    
+    document.getElementById('phaseRange').addEventListener('input', (e) => {
+      let val = parseInt(e.target.value);
+      // Snap to important phase offsets
+      if (Math.abs(val - 90) < 10) val = 90;
+      if (Math.abs(val - (-90)) < 10) val = -90;
+      if (Math.abs(val - 0) < 10) val = 0;
+      if (Math.abs(val - 180) < 10) val = 180;
+      if (Math.abs(val - (-180)) < 10) val = -180;
+      
+      e.target.value = val;
+      phaseOffset = val;
+      document.getElementById('phaseValText').innerText = (val > 0 ? '+' : '') + val + '°';
+      
+      drawBaseWaves();
+      updateVisuals(currentDeg);
+      updateCompareMessage();
     });
 
     function switchTab(tab) {

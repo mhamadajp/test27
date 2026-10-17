@@ -3,60 +3,26 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>不定積分 探究スタジオ 第2時 〜「増え方を分けて」元の量を組み立てる〜</title>
-  <!-- Tailwind CSS CDN -->
+  <title>不定積分 探究スタジオ II | 項ごとの復元と 1/x の探究</title>
+  
+  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Tone.js for educational audio feedback -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script>
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          colors: {
-            brand: {
-              50: '#f5f3ff',
-              100: '#ede9fe',
-              500: '#8b5cf6',
-              600: '#7c3aed',
-              700: '#6d28d9'
-            },
-            termPower: {
-              light: '#eff6ff',
-              border: '#bfdbfe',
-              DEFAULT: '#2563eb',
-              dark: '#1d4ed8'
-            },
-            termConst: {
-              light: '#ecfdf5',
-              border: '#a7f3d0',
-              DEFAULT: '#10b981',
-              dark: '#047857'
-            },
-            termLog: {
-              light: '#fff1f2',
-              border: '#fecdd3',
-              DEFAULT: '#f43f5e',
-              dark: '#be123c'
-            }
-          }
-        }
-      }
-    }
-  </script>
+  
+  <!-- KaTeX for High Quality Mathematical Typesetting -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+  
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@500;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap');
+    
     body {
-      font-family: 'BIZ UDPGothic', 'Inter', -apple-system, sans-serif;
+      font-family: 'Inter', 'Noto Sans JP', sans-serif;
     }
-    .font-mono {
+    .font-mono-math {
       font-family: 'JetBrains Mono', monospace;
     }
-    .math-serif {
-      font-family: 'Cambria Math', 'Times New Roman', serif;
-      font-style: italic;
-    }
-    /* Sleek custom scrollbars */
+    
     ::-webkit-scrollbar {
       width: 6px;
       height: 6px;
@@ -66,1894 +32,1869 @@
     }
     ::-webkit-scrollbar-thumb {
       background: #cbd5e1;
-      border-radius: 3px;
+      border-radius: 4px;
     }
     ::-webkit-scrollbar-thumb:hover {
       background: #94a3b8;
     }
+
+    input[type=range] {
+      accent-color: #2563eb;
+    }
+    
+    .glass-card {
+      background: rgba(255, 255, 255, 0.96);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(226, 232, 240, 0.9);
+    }
+
+    .pulse-glow {
+      box-shadow: 0 0 15px rgba(59, 130, 246, 0.35);
+    }
   </style>
 </head>
-<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col antialiased selection:bg-brand-500 selection:text-white">
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
 
-  <!-- Header -->
-  <header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm backdrop-blur-md bg-white/90">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-wrap items-center justify-between gap-4">
-      <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 via-indigo-500 to-purple-600 text-white flex items-center justify-center font-bold text-xl shadow-md shadow-brand-500/20">
-          <span class="font-serif text-2xl font-normal">∫</span>
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white font-bold text-xl shadow-md shadow-indigo-500/20">
+          ∫
         </div>
         <div>
-          <h1 class="text-lg sm:text-xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
-            不定積分 探究スタジオ
-            <span class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-brand-50 text-brand-700 border border-brand-200">
-              数学III・不定積分（第2時）
-            </span>
-          </h1>
-          <p class="text-xs text-slate-500 hidden sm:block">「増え方を分けて考える」〜掲示用リボンの伸びから、和の積分と特別な1/xの謎を解き明かす〜</p>
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700">高校数学Ⅲ</span>
+            <span class="text-xs font-medium text-slate-500">不定積分 第2時</span>
+          </div>
+          <h1 class="text-base sm:text-lg font-bold text-slate-900 tracking-tight">不定積分 探究スタジオ II</h1>
         </div>
       </div>
 
-      <!-- Header Tools & Audio -->
-      <div class="flex items-center gap-2">
-        <button id="soundToggleBtn" class="p-2 rounded-lg text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors" title="効果音のON/OFF">
-          <svg id="soundOnIcon" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M11 5L6 9H2v6h4l5 4V5z"/>
-          </svg>
-          <svg id="soundOffIcon" class="w-5 h-5 hidden text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" stroke-dasharray="2 2" />
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" />
-          </svg>
+      <!-- Navigation Tabs -->
+      <nav class="flex items-center space-x-1 bg-slate-100 p-1 rounded-xl text-xs sm:text-sm font-medium overflow-x-auto max-w-full">
+        <button id="tab-btn-1" onclick="switchTab(1)" class="tab-btn px-3 py-1.5 rounded-lg bg-white text-indigo-700 shadow-sm transition font-bold shrink-0">
+          1. リボンの伸びと項の分離
         </button>
-        <button id="quickGuideBtn" class="text-xs font-semibold px-3 py-1.5 rounded-lg border border-slate-300 hover:bg-slate-100 text-slate-700 flex items-center gap-1.5 transition">
-          <svg class="w-4 h-4 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          分解の3ステップ
+        <button id="tab-btn-2" onclick="switchTab(2)" class="tab-btn px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 transition font-medium shrink-0">
+          2. 和と定数倍の分解工房
         </button>
-      </div>
-    </div>
-
-    <!-- Navigation Tabs -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 border-t border-slate-100 flex space-x-1 overflow-x-auto py-1.5">
-      <button class="nav-tab active-tab px-4 py-2 text-sm font-semibold rounded-lg flex items-center gap-2 text-brand-700 bg-brand-50 hover:bg-brand-100" data-tab="tab-story">
-        <span>📖</span> 授業ストーリー（ワークシート連動）
-      </button>
-      <button class="nav-tab px-4 py-2 text-sm font-semibold rounded-lg flex items-center gap-2 text-slate-600 hover:bg-slate-100" data-tab="tab-ribbon-lab">
-        <span>🔬</span> 動的リボン＆多項式ラボ（自由探究）
-      </button>
-      <button class="nav-tab px-4 py-2 text-sm font-semibold rounded-lg flex items-center gap-2 text-slate-600 hover:bg-slate-100" data-tab="tab-fraction-log">
-        <span>📐</span> 分数式＆対数 log|x| 解剖ナビ
-      </button>
-      <button class="nav-tab px-4 py-2 text-sm font-semibold rounded-lg flex items-center gap-2 text-slate-600 hover:bg-slate-100" data-tab="tab-quiz">
-        <span>🎯</span> 自作問題・理解度チェック
-      </button>
+        <button id="tab-btn-3" onclick="switchTab(3)" class="tab-btn px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 transition font-medium shrink-0">
+          3. 分数式の分割ラボ
+        </button>
+        <button id="tab-btn-4" onclick="switchTab(4)" class="tab-btn px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 transition font-medium shrink-0">
+          4. 1/x と log|x| の秘密
+        </button>
+        <button id="tab-btn-5" onclick="switchTab(5)" class="tab-btn px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 transition font-medium shrink-0">
+          5. 微分検算ラボ＆出口課題
+        </button>
+      </nav>
     </div>
   </header>
 
-  <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
 
-    <!-- TAB 1: 授業ストーリー（生徒用ワークシート 1〜2ページ連動） -->
-    <section id="tab-story" class="tab-content block space-y-6">
-      <!-- Worksheet Step Header Bar -->
-      <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-        <div>
-          <span class="text-xs font-bold uppercase tracking-wider text-brand-600 bg-brand-50 px-2.5 py-1 rounded-md border border-brand-200">
-            第2時：増え方を分けて考える（45分）
-          </span>
-          <h2 class="text-xl font-bold text-slate-900 mt-1">本時の問い：だんだん増える部分といつも同じ部分、元の長さはどう組み立てる？</h2>
-          <p class="text-xs text-slate-500">生徒用ワークシート（1ページ〜2ページ）の流れに沿って、ステップ順に体験・入力できます</p>
+    <!-- ==========================================
+         TAB 1: リボンの伸びと項の分離 (2t+3 の直感モデル)
+         ========================================== -->
+    <section id="panel-tab-1" class="tab-panel space-y-6">
+      
+      <!-- Top Concept Card: Clarifying the 2 Core Goals & Formula Breakdown -->
+      <div class="bg-gradient-to-r from-indigo-900 via-blue-900 to-slate-900 rounded-2xl p-6 text-white shadow-lg space-y-4">
+        <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div>
+            <div class="flex items-center gap-2 mb-2">
+              <span class="px-2.5 py-1 rounded bg-indigo-500/30 text-indigo-300 text-xs font-bold uppercase tracking-wider">本時の学習ゴール</span>
+              <span class="text-xs text-amber-300 font-semibold">★ 足し算の積分は「別々に戻して最後に合体」</span>
+            </div>
+            <h2 class="text-xl sm:text-2xl font-bold tracking-tight">「増え方が足し算なら、元の長さも項ごとに足し合わせるだけ！」</h2>
+            <p class="text-slate-300 text-xs sm:text-sm mt-1 leading-relaxed max-w-3xl">
+              リボンの伸びる速さが \(r(t) = 2t + 3 \ \mathrm{cm/s}\) のとき、全体の長さ \(L(t)\) は「3つの成分の合計」でできています。
+            </p>
+          </div>
+          <div class="p-3 bg-white/10 rounded-xl border border-white/15 text-center shrink-0">
+            <div class="text-xs text-indigo-200">復元の公式</div>
+            <div class="text-sm sm:text-base font-bold font-mono text-amber-300 pt-0.5">$$\int (2t+3) \, dt = t^2 + 3t + C$$</div>
+          </div>
         </div>
-        <!-- Steps Navigator -->
-        <div class="flex flex-wrap gap-1.5 p-1 bg-slate-100 rounded-xl border border-slate-200">
-          <button class="story-step-btn px-3 py-1.5 text-xs font-bold rounded-lg transition active-step-btn bg-white text-brand-700 shadow-sm" data-step="0">
-            1. 前時を1分で思い出す
-          </button>
-          <button class="story-step-btn px-3 py-1.5 text-xs font-bold rounded-lg transition text-slate-600 hover:bg-white/60" data-step="1">
-            2. 二つの部分を戻す
-          </button>
-          <button class="story-step-btn px-3 py-1.5 text-xs font-bold rounded-lg transition text-slate-600 hover:bg-white/60" data-step="2">
-            3. 分けた考え方の練習
-          </button>
-          <button class="story-step-btn px-3 py-1.5 text-xs font-bold rounded-lg transition text-slate-600 hover:bg-white/60" data-step="3">
-            4. 分数式を見える形に
-          </button>
-          <button class="story-step-btn px-3 py-1.5 text-xs font-bold rounded-lg transition text-slate-600 hover:bg-white/60" data-step="4">
-            5 & 6. 特別な1/xと出口
-          </button>
+
+        <!-- Visual 3-Part Relationship Diagram -->
+        <div class="p-4 bg-slate-950/70 rounded-xl border border-indigo-500/30 space-y-2">
+          <div class="text-xs font-bold text-indigo-200">【3つの成分の関係性】全体の長さ \(L(t)\) はどう成り立っている？</div>
+          
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1 text-xs">
+            <!-- Part 1: C -->
+            <div class="p-3 rounded-lg bg-emerald-950/50 border border-emerald-500/40 space-y-1">
+              <div class="flex items-center justify-between text-emerald-400 font-bold">
+                <span>① 初期の長さ \(C\)</span>
+                <span class="text-[10px] bg-emerald-900/60 px-1.5 py-0.5 rounded">スタート時の長さ</span>
+              </div>
+              <div class="font-mono text-white font-bold text-sm">\(C = 5\,\mathrm{cm}\) など</div>
+              <p class="text-slate-300 text-[11px] leading-tight">
+                最初からあった長さ。時間によって変化しないため、<strong>微分すると \(0\) になって増え方に現れない</strong>。
+              </p>
+            </div>
+
+            <!-- Part 2: 3t -->
+            <div class="p-3 rounded-lg bg-amber-950/50 border border-amber-500/40 space-y-1">
+              <div class="flex items-center justify-between text-amber-400 font-bold">
+                <span>② 定速の伸び \(3t\)</span>
+                <span class="text-[10px] bg-amber-900/60 px-1.5 py-0.5 rounded">一定ペースで増えた分</span>
+              </div>
+              <div class="font-mono text-white font-bold text-sm">\(3 \times t\) 秒</div>
+              <p class="text-slate-300 text-[11px] leading-tight">
+                毎秒 \(3\,\mathrm{cm}\) ずつ等速で伸びる。<strong>\(t\) 秒後には \(3t\,\mathrm{cm}\)</strong> 伸びる（微分すると \(3\) に戻る）。
+              </p>
+            </div>
+
+            <!-- Part 3: t^2 -->
+            <div class="p-3 rounded-lg bg-blue-950/50 border border-blue-500/40 space-y-1">
+              <div class="flex items-center justify-between text-blue-400 font-bold">
+                <span>③ 加速の伸び \(t^2\)</span>
+                <span class="text-[10px] bg-blue-900/60 px-1.5 py-0.5 rounded">加速しながら増えた分</span>
+              </div>
+              <div class="font-mono text-white font-bold text-sm">\(t^2\,\mathrm{cm}\)</div>
+              <p class="text-slate-300 text-[11px] leading-tight">
+                毎秒 \(2t\,\mathrm{cm/s}\) とだんだん速くなりながら伸びる。<strong>\(t\) 秒後には \(t^2\,\mathrm{cm}\)</strong> 伸びる（微分すると \(2t\) に戻る）。
+              </p>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-center gap-2 pt-1 font-mono text-xs sm:text-sm text-center text-slate-200">
+            <span>全体の長さ: </span>
+            <span class="text-emerald-400 font-bold">\(C\)</span>
+            <span>+</span>
+            <span class="text-amber-400 font-bold">\(3t\)</span>
+            <span>+</span>
+            <span class="text-blue-400 font-bold">\(t^2\)</span>
+            <span class="text-slate-400">（微分すると \(\to\) </span>
+            <span class="text-emerald-400 font-bold">\(0\)</span>
+            <span>+</span>
+            <span class="text-amber-400 font-bold">\(3\)</span>
+            <span>+</span>
+            <span class="text-blue-400 font-bold">\(2t\)</span>
+            <span class="text-slate-400">）</span>
+          </div>
         </div>
       </div>
 
-      <!-- Step 0: 前時を1分で思い出す -->
-      <div id="story-step-0" class="story-step-container grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <div class="lg:col-span-5 bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex flex-col justify-between">
-          <div class="space-y-4">
-            <div class="flex items-center gap-2">
-              <span class="w-7 h-7 rounded-full bg-brand-100 text-brand-700 font-bold flex items-center justify-center text-sm">1</span>
-              <h3 class="font-bold text-slate-900 text-lg">1. 前時を1分で思い出す</h3>
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- Left: Ribbon Visualizer & Length Graph (8 cols) -->
+        <div class="lg:col-span-8 space-y-5">
+          
+          <!-- Ribbon Length Simulator Card -->
+          <div class="glass-card rounded-2xl p-5 shadow-sm space-y-4">
+            <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
+              <div class="flex items-center gap-2">
+                <span class="w-3 h-3 rounded-full bg-indigo-600 animate-pulse"></span>
+                <h3 class="font-bold text-slate-800 text-base">リボンのリアルタイム伸長ビジュアライザー</h3>
+              </div>
+              <div class="text-xs font-mono bg-slate-100 px-2.5 py-1 rounded-lg text-slate-700">
+                経過時間 \(t = \) <span id="ribbon-time-disp" class="font-bold text-indigo-600 text-sm">0.00</span> 秒
+              </div>
             </div>
-            <p class="text-sm text-slate-600 leading-relaxed">
-              第1時で学んだ大切な事実を振り返りましょう。<br>
-              ある物体の速さが時刻 t に <strong class="font-mono text-brand-700">v(t) ＝ 2t</strong> だったとき、元の位置はどう表されたでしょうか？
-            </p>
 
-            <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3 text-xs">
-              <div>
-                <label class="font-bold text-slate-800 block mb-1">Q. 速さが 2t なら元の位置は？</label>
-                <div class="flex items-center gap-2">
-                  <span class="font-mono text-sm font-bold">s(t) ＝ </span>
-                  <input id="step0-ans-pos" type="text" placeholder="下のパレットまたはキーボードで組み立て" class="p-2 border rounded-lg font-mono font-bold flex-1 bg-white">
-                  <button id="step0-check-btn" class="px-3 py-2 bg-brand-600 text-white font-bold rounded-lg hover:bg-brand-700 transition">
-                    判定
-                  </button>
+            <!-- Ribbon Graphic Canvas -->
+            <div class="space-y-2">
+              <div class="flex flex-wrap items-center justify-between text-xs text-slate-500 gap-2">
+                <span class="font-semibold text-slate-700">リボンの全長 ＝「最初の長さ」＋「一定の伸び」＋「加速の伸び」</span>
+                <div class="flex items-center gap-3">
+                  <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded bg-emerald-500"></span>初期の長さ \(C\)</span>
+                  <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded bg-amber-500"></span>定速の伸び \(3t\)</span>
+                  <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded bg-blue-500"></span>加速の伸び \(t^2\)</span>
                 </div>
-                <!-- 数式パーツパレット（ダミー選択肢・編集機能付き） -->
-                <div class="mt-2.5 p-2.5 bg-slate-100/90 rounded-xl border border-slate-200">
-                  <div class="flex items-center justify-between mb-1.5">
-                    <span class="text-[10px] text-slate-500 font-bold">数式パーツを選んで組み立てる:</span>
-                    <div class="flex gap-1">
-                      <button type="button" id="math-bs-btn" class="px-2 py-0.5 bg-white hover:bg-slate-200 text-slate-600 rounded text-[10px] font-bold border border-slate-300 shadow-xs">⌫ 1文字消去</button>
-                      <button type="button" id="math-clear-btn" class="px-2 py-0.5 bg-white hover:bg-rose-50 text-rose-600 rounded text-[10px] font-bold border border-slate-300 shadow-xs">全クリア</button>
-                    </div>
-                  </div>
-                  <div class="flex flex-wrap gap-1.5 items-center">
-                    <!-- 変数・べき（ダミー含む） -->
-                    <button type="button" class="math-insert-btn px-2.5 py-1 bg-white hover:bg-brand-50 hover:border-brand-300 border border-slate-300 rounded-lg font-mono font-bold text-xs shadow-xs text-slate-800" data-insert="t²">t²</button>
-                    <button type="button" class="math-insert-btn px-2.5 py-1 bg-white hover:bg-brand-50 hover:border-brand-300 border border-slate-300 rounded-lg font-mono font-bold text-xs shadow-xs text-slate-700" data-insert="2t">2t</button>
-                    <button type="button" class="math-insert-btn px-2.5 py-1 bg-white hover:bg-brand-50 hover:border-brand-300 border border-slate-300 rounded-lg font-mono font-bold text-xs shadow-xs text-slate-700" data-insert="t">t</button>
-                    <button type="button" class="math-insert-btn px-2.5 py-1 bg-white hover:bg-brand-50 hover:border-brand-300 border border-slate-300 rounded-lg font-mono font-bold text-xs shadow-xs text-slate-700" data-insert="t³">t³</button>
-                    <span class="text-slate-300 text-xs">|</span>
-                    <!-- 演算子 -->
-                    <button type="button" class="math-insert-btn px-2.5 py-1 bg-white hover:bg-brand-50 hover:border-brand-300 border border-slate-300 rounded-lg font-mono font-bold text-xs shadow-xs text-slate-800" data-insert=" ＋ ">＋</button>
-                    <button type="button" class="math-insert-btn px-2.5 py-1 bg-white hover:bg-brand-50 hover:border-brand-300 border border-slate-300 rounded-lg font-mono font-bold text-xs shadow-xs text-slate-700" data-insert=" － ">－</button>
-                    <span class="text-slate-300 text-xs">|</span>
-                    <!-- 定数・記号（ダミー含む） -->
-                    <button type="button" class="math-insert-btn px-2.5 py-1 bg-white hover:bg-brand-50 hover:border-brand-300 border border-slate-300 rounded-lg font-mono font-bold text-xs shadow-xs text-slate-800" data-insert="C">C</button>
-                    <button type="button" class="math-insert-btn px-2.5 py-1 bg-white hover:bg-brand-50 hover:border-brand-300 border border-slate-300 rounded-lg font-mono font-bold text-xs shadow-xs text-slate-700" data-insert="2">2</button>
-                  </div>
-                </div>
-                <div id="step0-check-fb" class="hidden mt-2 p-2.5 rounded bg-emerald-50 text-emerald-800 font-bold text-[11px]"></div>
               </div>
 
-              <div class="border-t border-slate-200 pt-2 space-y-1">
-                <span class="font-bold text-slate-800 block">Q. 最後の ＋ C は何を表す？</span>
-                <p class="p-2 bg-white rounded border border-slate-200 text-slate-700 font-medium">
-                  👉 「<strong>最初の出発位置（初期位置）</strong>」を表す！定数は微分すると0になって消えてしまうため、何通りも考えられるのでした。
+              <div class="relative bg-slate-900 rounded-xl p-4 overflow-hidden border border-slate-800 shadow-inner">
+                <canvas id="ribbonCanvas" class="w-full h-32 block"></canvas>
+              </div>
+            </div>
+
+            <!-- Live Calculation Breakdown Table -->
+            <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+              <span class="text-xs font-bold text-slate-800 block">各成分のリアルタイム計算内訳（3つを足すと全長になる）</span>
+              
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs text-center font-mono">
+                <div class="p-2 bg-emerald-50 rounded-lg border border-emerald-200">
+                  <div class="text-[10px] text-emerald-800 font-bold">初期長 \(C\)</div>
+                  <div id="calc-c-val" class="font-bold text-emerald-950 text-sm">5.0 cm</div>
+                  <div class="text-[10px] text-slate-600">（時間で変わらない）</div>
+                </div>
+
+                <div class="p-2 bg-amber-50 rounded-lg border border-amber-200">
+                  <div class="text-[10px] text-amber-800 font-bold">定速の伸び \(3t\)</div>
+                  <div id="calc-3t-val" class="font-bold text-amber-950 text-sm">0.0 cm</div>
+                  <div id="calc-3t-detail" class="text-[10px] text-slate-600">3 × 0.0s</div>
+                </div>
+
+                <div class="p-2 bg-blue-50 rounded-lg border border-blue-200">
+                  <div class="text-[10px] text-blue-800 font-bold">加速の伸び \(t^2\)</div>
+                  <div id="calc-tsq-val" class="font-bold text-blue-950 text-sm">0.0 cm</div>
+                  <div id="calc-tsq-detail" class="text-[10px] text-slate-600">0.0²</div>
+                </div>
+
+                <div class="p-2 bg-indigo-50 rounded-lg border border-indigo-200">
+                  <div class="text-[10px] text-indigo-800 font-bold">現在の全長 \(L(t)\)</div>
+                  <div id="calc-total-val" class="font-bold text-indigo-950 text-sm">5.0 cm</div>
+                  <div class="text-[10px] text-slate-600">上記3つの合計</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Playback Controls -->
+            <div class="flex flex-wrap items-center justify-between gap-4 pt-1">
+              <div class="flex items-center gap-2">
+                <button id="btn-play-ribbon" onclick="toggleRibbonPlay()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-medium text-sm flex items-center gap-2 shadow-sm transition active:scale-95">
+                  <svg id="ribbon-play-icon" class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                  <span id="ribbon-play-text">伸びるアニメーション開始</span>
+                </button>
+                <button onclick="resetRibbonTime()" class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-sm font-medium transition active:scale-95">
+                  0秒に戻す
+                </button>
+              </div>
+
+              <div class="flex-1 max-w-xs flex items-center gap-3">
+                <span class="text-xs font-semibold text-slate-500">t</span>
+                <input id="slider-ribbon-t" type="range" min="0" max="4" step="0.05" value="0" oninput="onRibbonSliderInput(this.value)" class="w-full h-2 bg-slate-200 rounded-lg cursor-pointer">
+                <span class="text-xs font-mono text-slate-500 w-10 text-right">4.0s</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="glass-card rounded-2xl p-5 shadow-sm space-y-3">
+            <div class="flex items-center justify-between">
+              <div>
+                <h4 class="font-bold text-sm text-slate-800">長さのグラフ \(L(t) = t^2 + 3t + C\) と接線の傾き</h4>
+                <p class="text-xs text-slate-500">初期の長さ \(C\) が違っても、グラフが上下にずれるだけで、同じ時刻 \(t\) での傾き（伸びる速さ）は完全に \(2t+3\) で一致します。</p>
+              </div>
+              <label class="flex items-center gap-1.5 text-xs text-indigo-700 bg-indigo-50 px-2.5 py-1 rounded-lg cursor-pointer">
+                <input type="checkbox" id="show-ribbon-tangent" checked onchange="drawRibbonGraph()" class="rounded text-indigo-600">
+                <span class="font-semibold">接線（その瞬間の速さ）を表示</span>
+              </label>
+            </div>
+
+            <div class="h-64 bg-white rounded-xl border border-slate-200 relative overflow-hidden">
+              <canvas id="ribbonGraphCanvas" class="w-full h-full block"></canvas>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Right: Ribbon Interactive Thinking Panel (4 cols) -->
+        <div class="lg:col-span-4 space-y-4">
+          
+          <!-- Initial Length Slider Card -->
+          <div class="glass-card rounded-2xl p-5 shadow-sm border-l-4 border-l-emerald-500 space-y-3">
+            <div class="flex items-center justify-between">
+              <h4 class="font-bold text-slate-900 text-sm">初めの長さ \(L(0) = C\) を変えてみる</h4>
+              <span class="text-xs px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-mono font-bold">初期値 C</span>
+            </div>
+            
+            <p class="text-xs text-slate-600 leading-relaxed">
+              開始時の長さを変えると、グラフ全体が上下に移動します。しかし「伸びるペース \(2t+3\)」は変わりません。
+            </p>
+
+            <div class="space-y-1.5 pt-1">
+              <div class="flex justify-between items-center text-xs">
+                <span class="font-medium text-slate-600">開始時の長さ \(C\):</span>
+                <span id="ribbon-c-val" class="font-mono font-bold text-emerald-700 text-sm">5.0 cm</span>
+              </div>
+              <input type="range" id="slider-ribbon-c" min="0" max="10" step="1" value="5" oninput="updateRibbonC(this.value)" class="w-full h-2 bg-slate-200 rounded-lg cursor-pointer">
+              <div class="flex justify-between text-[11px] text-slate-600 font-mono">
+                <span>0 cm</span>
+                <span>5 cm (ワーク)</span>
+                <span>10 cm</span>
+              </div>
+            </div>
+
+            <!-- Formula display -->
+            <div class="p-3 bg-emerald-50/70 rounded-xl border border-emerald-200 text-center text-xs font-mono text-emerald-950 font-bold" id="ribbon-formula-box">
+              $$L(t) = t^2 + 3t + 5$$
+            </div>
+          </div>
+
+          <!-- Crucial Concept Comparison: 3 vs C -->
+          <div class="glass-card rounded-2xl p-5 shadow-sm space-y-3 border-l-4 border-l-amber-500">
+            <h4 class="font-bold text-slate-900 text-sm flex items-center gap-2 text-amber-900">
+              <svg class="w-4 h-4 text-amber-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/></svg>
+              <span>最大の疑問：「3」と「C」は何が違うの？</span>
+            </h4>
+            
+            <div class="text-xs text-slate-700 space-y-2 leading-relaxed">
+              <div class="p-2.5 bg-amber-50 rounded-lg border border-amber-200 space-y-1">
+                <span class="font-bold text-amber-950">① 定数の「3」は『伸びる速さ』</span>
+                <p class="text-slate-600">
+                  毎秒 \(3\,\mathrm{cm}\) のペースで伸び続けるため、\(t\) 秒後には <strong>\(3t\,\mathrm{cm}\)</strong> 増えます。<br>
+                  微分検算: \((3t)' = 3\) （1次式を微分すると傾き3が残る）
+                </p>
+              </div>
+
+              <div class="p-2.5 bg-emerald-50 rounded-lg border border-emerald-200 space-y-1">
+                <span class="font-bold text-emerald-950">② 積分定数「C」は『スタートの長さ』</span>
+                <p class="text-slate-600">
+                  最初からリボンが持っていた長さ。時間経過によって変化しないため、伸びる速さ（微分）には現れず消えてしまいます。<br>
+                  微分検算: \((C)' = 0\) （定数を微分すると0で消滅）
                 </p>
               </div>
             </div>
           </div>
 
-          <div class="pt-4 flex justify-between items-center">
-            <span class="text-xs text-slate-400">生徒用ワークシート 1ページ目 1連動</span>
-            <button class="story-next-btn px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-bold shadow-md shadow-brand-500/20 transition flex items-center gap-1.5" data-to="1">
-              次へ: 二つの部分を別々に戻す →
-            </button>
+          <!-- Term Mapping Summary Table -->
+          <div class="glass-card rounded-2xl p-4 shadow-sm border border-slate-200 text-xs space-y-2">
+            <span class="font-bold text-slate-900 block">増え方（微分）と元の式（積分）の対応</span>
+            <table class="w-full text-left font-mono">
+              <thead>
+                <tr class="text-slate-500 border-b border-slate-200">
+                  <th class="pb-1">増え方 \(r(t)\)</th>
+                  <th class="pb-1">元の式 \(L(t)\)</th>
+                  <th class="pb-1">微分で検算</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100 text-slate-700">
+                <tr>
+                  <td class="py-1 text-blue-600 font-bold">\(2t\)</td>
+                  <td>\(t^2\)</td>
+                  <td>\((t^2)' = 2t\)</td>
+                </tr>
+                <tr>
+                  <td class="py-1 text-amber-600 font-bold">\(3\)</td>
+                  <td>\(3t\)</td>
+                  <td>\((3t)' = 3\)</td>
+                </tr>
+                <tr>
+                  <td class="py-1 text-emerald-600 font-bold">\(0\)（現れない）</td>
+                  <td>\(C\)</td>
+                  <td>\((C)' = 0\)</td>
+                </tr>
+                <tr class="font-bold bg-slate-50">
+                  <td class="py-1 text-indigo-700">\(2t + 3\)</td>
+                  <td class="text-indigo-700">\(t^2 + 3t + C\)</td>
+                  <td class="text-indigo-700">\((t^2+3t+C)' = 2t+3\)</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
+
         </div>
 
-        <!-- Canvas for Step 0 -->
-        <div class="lg:col-span-7 bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex flex-col">
-          <div class="flex items-center justify-between mb-3 text-xs">
-            <span class="font-bold text-slate-700">速さ 2t と 無数の放物線 s(t) ＝ t² ＋ C</span>
-            <span class="font-mono text-brand-600 font-bold bg-brand-50 px-2 py-0.5 rounded border border-brand-200">
-              どの高さでも傾きは 2t
-            </span>
-          </div>
-          <div class="relative w-full h-80 bg-slate-950 rounded-xl overflow-hidden shadow-inner flex items-center justify-center">
-            <canvas id="step0Canvas" class="w-full h-full block"></canvas>
-          </div>
-          <p class="text-xs text-slate-500 mt-3 text-center">
-            💡 どの曲線も曲がり具合（増え方）は同じ！上下の平行移動（C）だけが違います。
-          </p>
+      </div>
+
+    </section>
+
+    <!-- ==========================================
+         TAB 2: 和と定数倍の分解工房 (足し算の積分)
+         ========================================== -->
+    <section id="panel-tab-2" class="tab-panel hidden space-y-6">
+      
+      <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div>
+          <span class="text-xs font-bold text-indigo-600 uppercase tracking-wider">和・差・定数倍の公式</span>
+          <h2 class="text-xl sm:text-2xl font-bold text-slate-900 mt-1">「バラバラにして元に戻し、最後に +C を添える」</h2>
+          <p class="text-sm text-slate-600 mt-1">微分の性質 \(\{ k f(x) + l g(x) \}' = k f'(x) + l g'(x)\) の逆向きのルールです。</p>
+        </div>
+        <div class="p-3 bg-indigo-50 border border-indigo-200 rounded-xl font-mono text-xs sm:text-sm font-bold text-indigo-950 shrink-0">
+          $$\int \{ k f(x) + l g(x) \} \, dx = k \int f(x) \, dx + l \int g(x) \, dx$$
         </div>
       </div>
 
-      <!-- Step 1: 二つの部分を別々に戻す（リボンの伸び） -->
-      <div id="story-step-1" class="story-step-container hidden grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <div class="lg:col-span-5 bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex flex-col justify-between">
-          <div class="space-y-4">
-            <div class="flex items-center gap-2">
-              <span class="w-7 h-7 rounded-full bg-brand-100 text-brand-700 font-bold flex items-center justify-center text-sm">2</span>
-              <h3 class="font-bold text-slate-900 text-lg">2. 二つの部分を別々に戻す</h3>
-            </div>
-            <p class="text-sm text-slate-600 leading-relaxed">
-              文化祭で掲示用のリボンが自動で伸びる装置があります。<br>
-              伸びる速さは <strong class="font-mono text-brand-700">r(t) ＝ 2t ＋ 3</strong> (cm/秒, t ≥ 0) です。<br>
-              「だんだん速くなる部分 <span class="text-termPower font-bold">2t</span>」と「いつも同じ速さの部分 <span class="text-termConst font-bold">3</span>」に分けて考えましょう！
-            </p>
-
-            <!-- Table for Worksheet Step 2 -->
-            <div class="overflow-x-auto rounded-xl border border-slate-200 text-xs">
-              <table class="w-full text-left font-mono">
-                <thead class="bg-slate-100 text-slate-700 font-bold font-sans">
-                  <tr>
-                    <th class="p-2 border-r">増え方の部分</th>
-                    <th class="p-2 text-brand-700">微分するとその部分になる式（元の量）</th>
-                  </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-200 font-bold">
-                  <tr class="hover:bg-slate-50">
-                    <td class="p-2 text-blue-600 border-r">2t（だんだん増える）</td>
-                    <td class="p-2 text-blue-700">t²</td>
-                  </tr>
-                  <tr class="hover:bg-slate-50">
-                    <td class="p-2 text-emerald-600 border-r">3（いつも同じ速さ）</td>
-                    <td class="p-2 text-emerald-700">3t <span class="text-[10px] text-slate-500 font-sans">（※3ではなく3t！）</span></td>
-                  </tr>
-                  <tr class="hover:bg-purple-50 bg-purple-50/40">
-                    <td class="p-2 text-purple-700 border-r">2t ＋ 3（全体）</td>
-                    <td class="p-2 text-purple-900">t² ＋ 3t ＋ C</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-
-            <!-- Caution: 3 vs 3t -->
-            <div class="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-950 space-y-1">
-              <span class="font-bold block text-amber-900">⚠️ よくある落とし穴：「3」の元はなぜ「3t」？</span>
-              <p>毎秒 3cm ずつ伸びるなら、1秒で3cm、2秒で6cm、t秒では <strong>3t cm</strong> 累積します！定数 3 をそのまま足すのではなく、時間を掛けて <strong>3t</strong> になります。</p>
-            </div>
-
-            <div class="p-3 rounded-xl bg-indigo-50 border border-indigo-200 text-xs text-indigo-950 font-medium">
-              💡 <strong>開始時に 5cm あったら？</strong><br>
-              初期値 R(0) ＝ C ＝ 5 なので、全体の式は <strong class="font-mono text-brand-700">R(t) ＝ t² ＋ 3t ＋ 5</strong> になります！
-            </div>
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- Left: Interactive Decomposition Steps (7 cols) -->
+        <div class="lg:col-span-7 glass-card rounded-2xl p-6 shadow-sm space-y-5">
+          <div class="flex items-center justify-between">
+            <h3 class="font-bold text-slate-900 text-base">ステップ式 分解工房</h3>
+            <span class="text-xs px-2.5 py-1 bg-slate-100 rounded-full font-mono text-slate-700">手動シミュレーション</span>
           </div>
 
-          <div class="pt-4 flex justify-between items-center">
-            <button class="story-prev-btn text-xs text-slate-500 hover:text-slate-800 font-semibold" data-to="0">← 前のステップ</button>
-            <span class="text-xs text-slate-400 hidden sm:inline">生徒用ワークシート 1ページ目 2連動</span>
-            <button class="story-next-btn px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-bold shadow-md shadow-brand-500/20 transition flex items-center gap-1.5" data-to="2">
-              次へ: 分けた考え方を練習する →
-            </button>
-          </div>
-        </div>
-
-        <!-- Visualizer for Step 1 -->
-        <div class="lg:col-span-7 bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex flex-col">
-          <div class="flex items-center justify-between mb-3 text-xs">
-            <span class="font-bold text-slate-700">リボンのリアルタイム伸長（色分け累積モデル）</span>
-            <div class="flex items-center gap-2">
-              <button id="step1-play-btn" class="px-3 py-1 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-lg transition flex items-center gap-1 shadow-xs">
-                <span id="step1-play-icon">▶</span>
-                <span id="step1-play-text">リボンを伸ばす</span>
+          <!-- Problem presets -->
+          <div class="space-y-2">
+            <label class="text-xs font-semibold text-slate-600">例題・練習問題を選択:</label>
+            <div class="flex flex-wrap gap-2">
+              <button onclick="selectSumProblem('prob1')" id="sum-btn-prob1" class="sum-prob-btn px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold border border-indigo-600 bg-indigo-600 text-white shadow-sm transition">
+                練習: ∫ (2x² + 3) dx
               </button>
-              <button id="step1-reset-btn" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-lg transition">
-                リセット
+              <button onclick="selectSumProblem('prob2')" id="sum-btn-prob2" class="sum-prob-btn px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 transition">
+                例題: ∫ (6x² + 4) dx
+              </button>
+              <button onclick="selectSumProblem('prob3')" id="sum-btn-prob3" class="sum-prob-btn px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 transition">
+                応用: ∫ (4x³ + 2) dx
               </button>
             </div>
           </div>
-          <div class="relative w-full h-80 bg-slate-950 rounded-xl overflow-hidden shadow-inner flex items-center justify-center">
-            <canvas id="step1Canvas" class="w-full h-full block"></canvas>
-            <div class="absolute top-3 left-4 bg-slate-900/90 backdrop-blur border border-slate-700 text-white text-xs px-3 py-1.5 rounded-lg shadow-lg font-mono">
-              時刻 t ＝ <span id="step1-time-val" class="text-brand-400 font-bold">0.0</span> 秒
-            </div>
-            <div class="absolute bottom-3 right-4 bg-slate-900/90 backdrop-blur border border-slate-700 text-white text-xs px-3 py-1.5 rounded-lg shadow-lg font-mono">
-              総長さ: <span id="step1-len-val" class="font-bold text-amber-400">5.0</span> cm
-            </div>
-          </div>
-          <div class="mt-3 flex items-center justify-center gap-4 text-xs font-semibold">
-            <span class="flex items-center gap-1 text-slate-500"><span class="w-3 h-3 rounded bg-amber-500 inline-block"></span>初期長 C=5cm</span>
-            <span class="flex items-center gap-1 text-emerald-600"><span class="w-3 h-3 rounded bg-emerald-500 inline-block"></span>等速分 3t cm</span>
-            <span class="flex items-center gap-1 text-blue-600"><span class="w-3 h-3 rounded bg-blue-500 inline-block"></span>加速分 t² cm</span>
-          </div>
-        </div>
-      </div>
 
-      <!-- Step 2: 分けた考え方を練習する（線形性） -->
-      <div id="story-step-2" class="story-step-container hidden grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <div class="lg:col-span-5 bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex flex-col justify-between">
-          <div class="space-y-4">
-            <div class="flex items-center gap-2">
-              <span class="w-7 h-7 rounded-full bg-brand-100 text-brand-700 font-bold flex items-center justify-center text-sm">3</span>
-              <h3 class="font-bold text-slate-900 text-lg">3. 分けた考え方を練習する</h3>
-            </div>
-            <p class="text-sm text-slate-600 leading-relaxed">
-              リボンと同じように、足し算された式 <strong class="font-mono text-brand-700">∫ (2x² ＋ 3) dx</strong> を項ごとに分解して戻してみましょう！
-            </p>
-
-            <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3 text-xs">
-              <div class="space-y-2">
-                <div class="flex justify-between items-center">
-                  <span class="font-bold text-blue-700">① 2x² の元は？</span>
-                  <span class="font-mono font-bold text-blue-700 bg-white px-2 py-0.5 rounded border border-blue-200">(2/3) x³</span>
-                </div>
-                <div class="flex justify-between items-center">
-                  <span class="font-bold text-emerald-700">② 3 の元は？</span>
-                  <span class="font-mono font-bold text-emerald-700 bg-white px-2 py-0.5 rounded border border-emerald-200">3x</span>
-                </div>
-                <div class="border-t border-slate-200 pt-2 flex justify-between items-center">
-                  <span class="font-bold text-purple-900">③ 合わせると？</span>
-                  <span class="font-mono font-bold text-purple-700 bg-white px-2.5 py-1 rounded border border-purple-300 text-sm">
-                    (2/3) x³ ＋ 3x ＋ C
-                  </span>
-                </div>
-              </div>
-
-              <!-- Rule Box -->
-              <div class="p-3 bg-white rounded-lg border border-brand-200 space-y-1">
-                <span class="font-bold text-brand-700 block">🔑 積分の合言葉：足し算はそのまま分けて戻せる！</span>
-                <div class="font-mono text-center font-bold text-slate-800 text-[11px] pt-1">
-                  ∫ ( f(x) ＋ g(x) ) dx ＝ ∫ f(x) dx ＋ ∫ g(x) dx
-                </div>
-                <p class="text-[10px] text-slate-500 text-center">（※定数倍 k もインテグラルの外に出せます）</p>
-              </div>
-
-              <div class="p-2.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-900 text-[11px] font-semibold">
-                ✓ <strong>検算</strong>: ((2/3)x³ ＋ 3x ＋ C)' ＝ (2/3) × 3x² ＋ 3 ＝ <strong>2x² ＋ 3</strong> で完全一致！
-              </div>
-            </div>
+          <!-- Interactive Process Board -->
+          <div id="sum-steps-board" class="space-y-3 pt-2">
+            <!-- Dynamically populated via JS -->
           </div>
 
-          <div class="pt-4 flex justify-between items-center">
-            <button class="story-prev-btn text-xs text-slate-500 hover:text-slate-800 font-semibold" data-to="1">← 前のステップ</button>
-            <span class="text-xs text-slate-400 hidden sm:inline">生徒用ワークシート 1ページ目 3連動</span>
-            <button class="story-next-btn px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-bold shadow-md shadow-brand-500/20 transition flex items-center gap-1.5" data-to="3">
-              次へ: 分数式も見える形にする →
-            </button>
+          <!-- Reverse Differentiation Check Animation -->
+          <div id="sum-verif-card" class="p-4 rounded-xl border border-emerald-200 bg-emerald-50/60 space-y-2 text-xs">
+            <!-- Dynamically populated via JS -->
           </div>
         </div>
 
-        <!-- Visualizer for Step 2 -->
-        <div class="lg:col-span-7 bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex flex-col">
-          <div class="flex items-center justify-between mb-3 text-xs">
-            <span class="font-bold text-slate-700">各項の原始関数の合成アニメーション</span>
-            <span class="font-mono text-purple-600 font-bold bg-purple-50 px-2 py-0.5 rounded border border-purple-200">
-              F(x) ＝ (2/3)x³ ＋ 3x
-            </span>
-          </div>
-          <div class="relative w-full h-80 bg-slate-950 rounded-xl overflow-hidden shadow-inner flex items-center justify-center">
-            <canvas id="step2Canvas" class="w-full h-full block"></canvas>
-          </div>
-          <p class="text-xs text-slate-500 mt-3 text-center">
-            青い曲線 (2/3)x³ と 緑の直線 3x が足し合わされて、紫の三次関数が作られます！
-          </p>
-        </div>
-      </div>
-
-      <!-- Step 3: 分数式も見える形にする -->
-      <div id="story-step-3" class="story-step-container hidden grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <div class="lg:col-span-5 bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex flex-col justify-between">
-          <div class="space-y-4">
-            <div class="flex items-center gap-2">
-              <span class="w-7 h-7 rounded-full bg-brand-100 text-brand-700 font-bold flex items-center justify-center text-sm">4</span>
-              <h3 class="font-bold text-slate-900 text-lg">4. 分数式も見える形にする</h3>
-            </div>
-            <p class="text-sm text-slate-600 leading-relaxed">
-              一見難しそうに見える分数式 <strong class="font-mono text-brand-700">∫ ( (x² ＋ 2x) / x ) dx</strong>。<br>
-              分子全体を一度に考えず、分母の x で割って<strong>項ごとにバラバラに分ける</strong>のが最大の秘訣です！
-            </p>
-
-            <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3 text-xs">
-              <div class="p-3 bg-white rounded-lg border border-slate-200 space-y-1.5 font-mono">
-                <span class="text-slate-500 font-bold block text-[11px] font-sans">① 分母の x で分子をそれぞれ割る (x ≠ 0)：</span>
-                <div class="text-center text-sm font-bold text-brand-700">
-                  (x² ＋ 2x) / x ＝ (x² / x) ＋ (2x / x) ＝ <span class="bg-brand-50 px-2 py-0.5 rounded border border-brand-200">x ＋ 2</span>
-                </div>
-              </div>
-
-              <div class="p-3 bg-white rounded-lg border border-slate-200 space-y-1.5 font-mono">
-                <span class="text-slate-500 font-bold block text-[11px] font-sans">② あとはいつものように1項ずつ積分する：</span>
-                <div class="text-center text-sm font-bold text-purple-700">
-                  ∫ (x ＋ 2) dx ＝ <span class="bg-purple-50 px-2 py-0.5 rounded border border-purple-200">(1/2) x² ＋ 2x ＋ C</span>
-                </div>
-              </div>
-
-              <!-- Tip on Reverse multiplication -->
-              <div class="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-950 space-y-1">
-                <span class="font-bold block text-emerald-900">💡 迷ったら逆向きに掛けてみよう！</span>
-                <p>x(x ＋ 2) ＝ x² ＋ 2x と展開して元に戻るか確かめれば、割り算のミスは絶対に防げます！</p>
-              </div>
-            </div>
-          </div>
-
-          <div class="pt-4 flex justify-between items-center">
-            <button class="story-prev-btn text-xs text-slate-500 hover:text-slate-800 font-semibold" data-to="2">← 前のステップ</button>
-            <span class="text-xs text-slate-400 hidden sm:inline">生徒用ワークシート 1ページ目 4連動</span>
-            <button class="story-next-btn px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-bold shadow-md shadow-brand-500/20 transition flex items-center gap-1.5" data-to="4">
-              次へ: 特別な1/x と 出口課題 →
-            </button>
-          </div>
-        </div>
-
-        <!-- Visualizer for Step 3 -->
-        <div class="lg:col-span-7 bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex flex-col">
-          <div class="flex items-center justify-between mb-3 text-xs">
-            <span class="font-bold text-slate-700">分数式の分離ビジュアライザー（x ≠ 0）</span>
-            <span class="font-mono text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-              (x² ＋ 2x) / x ＝ x ＋ 2
-            </span>
-          </div>
-          <div class="relative w-full h-80 bg-slate-950 rounded-xl overflow-hidden shadow-inner flex items-center justify-center">
-            <canvas id="step3Canvas" class="w-full h-full block"></canvas>
-            <div class="absolute bottom-3 left-4 bg-slate-900/90 backdrop-blur border border-slate-700 text-white text-xs px-3.5 py-1.5 rounded-lg shadow-lg font-mono">
-              ⚠️ x ＝ 0 では分母が0になるため白丸（定義されない）
-            </div>
-          </div>
-          <p class="text-xs text-slate-500 mt-3 text-center">
-            割ることで複雑な分数式が、見慣れた「直線 x ＋ 2」に姿を変える様子が分かります！
-          </p>
-        </div>
-      </div>
-
-      <!-- Step 4: 1/xだけは立ち止まる & 自分で組み立てる演習 & EXIT -->
-      <div id="story-step-4" class="story-step-container hidden space-y-6">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Right: Pitfalls and Concept Explanation (5 cols) -->
+        <div class="lg:col-span-5 space-y-4">
           
-          <!-- Special 1/x Exploration -->
-          <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-4">
-            <div class="flex items-center gap-2">
-              <span class="w-7 h-7 rounded-full bg-rose-100 text-rose-700 font-bold flex items-center justify-center text-sm">5</span>
-              <h3 class="font-bold text-slate-900">5. 1/x だけは立ち止まる（生徒用ワークシート 2ページ目）</h3>
+          <!-- The 2/3 Exponent Trap Card -->
+          <div class="glass-card rounded-2xl p-5 shadow-sm border-l-4 border-l-rose-500 space-y-3">
+            <div class="flex items-center gap-2 text-rose-800 font-bold text-sm">
+              <svg class="w-5 h-5 text-rose-600 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/></svg>
+              <span>よくある間違い：係数の調整忘れ！</span>
             </div>
-
-            <div class="space-y-3 text-xs">
-              <div class="p-3.5 bg-rose-50 rounded-xl border border-rose-200 space-y-1.5 text-rose-950">
-                <span class="font-bold text-rose-800 block text-xs">
-                  ⚠️ x⁻¹ ＝ 1/x をいつもの方法で戻そうとすると？
-                </span>
-                <p>指数を1増やすと <strong>x⁰ ＝ 1</strong>。しかし定数1を微分しても <strong>0</strong> になってしまい、1/x に戻りません！（分母も 1/(−1＋1) ＝ 1/0 で計算不能！）</p>
+            <p class="text-xs text-slate-600 leading-relaxed">
+              \(\int (2x^2 + 3) \, dx\) を解くとき、うっかり <strong>\(x^3 + 3x + C\)</strong> と答えてしまう人が非常に多いです！
+            </p>
+            <div class="p-3 bg-rose-50 border border-rose-200 rounded-xl space-y-1.5 text-xs">
+              <span class="font-bold text-rose-900">微分して確かめてみよう：</span>
+              <div class="font-mono text-rose-950 font-bold text-center">
+                \((x^3 + 3x + C)' = 3x^2 + 3\)
               </div>
-
-              <!-- Log connection -->
-              <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
-                <span class="font-bold text-slate-800 block">既習の対数微分を逆向きに読む！</span>
-                <div class="p-2 bg-white rounded border border-brand-200 font-mono text-center font-bold text-brand-700 text-sm">
-                  ∫ (1 / x) dx ＝ log |x| ＋ C （x ≠ 0）
-                </div>
-                <div class="space-y-1 text-slate-600">
-                  <p>・<strong>なぜ絶対値 |x| が付く？</strong>：x が負のときでも、対数の中身（真数）を正にするため！</p>
-                  <p>・<strong>x ＝ 0 は？</strong>：1/x も log|x| も定義されないため、範囲から除外する。</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Exercises 6 -->
-          <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-4">
-            <div class="flex items-center gap-2">
-              <span class="w-7 h-7 rounded-full bg-purple-100 text-purple-700 font-bold flex items-center justify-center text-sm">6</span>
-              <h3 class="font-bold text-slate-900">6. 自分で組み立てる（3色の項に分ける）</h3>
-            </div>
-
-            <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-3 text-xs">
-              <span class="font-bold text-slate-800 block font-mono text-sm">
-                ∫ ( 3x² ＋ 2 ＋ 1/x ) dx ＝ ？ (x ≠ 0)
-              </span>
-
-              <div class="space-y-2 font-mono">
-                <div class="flex items-center justify-between p-2 rounded bg-blue-50 border border-blue-200">
-                  <span class="text-blue-800 font-bold">3x² の元:</span>
-                  <span class="text-blue-700 font-bold">x³</span>
-                </div>
-                <div class="flex items-center justify-between p-2 rounded bg-emerald-50 border border-emerald-200">
-                  <span class="text-emerald-800 font-bold">2 の元:</span>
-                  <span class="text-emerald-700 font-bold">2x</span>
-                </div>
-                <div class="flex items-center justify-between p-2 rounded bg-rose-50 border border-rose-200">
-                  <span class="text-rose-800 font-bold">1/x の元:</span>
-                  <span class="text-rose-700 font-bold">log |x|</span>
-                </div>
-              </div>
-
-              <div class="p-2.5 bg-white rounded-lg border border-purple-200 text-center font-mono font-bold text-purple-800 text-sm">
-                全体の答え: x³ ＋ 2x ＋ log |x| ＋ C
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Exit and Challenge -->
-        <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-4">
-          <div class="flex items-center gap-2">
-            <span class="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-bold text-xs border border-emerald-200">EXIT</span>
-            <h3 class="font-bold text-slate-900">第2時 理解度確認（出口課題 & 発展）</h3>
-          </div>
-
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-            <!-- A -->
-            <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
-              <span class="font-bold text-slate-800 block">A. ∫ (4x³ ＋ 2) dx ＝</span>
-              <div class="p-2 bg-white rounded border border-slate-200 font-mono font-bold text-brand-700">
-                x⁴ ＋ 2x ＋ C
-              </div>
-              <p class="text-[11px] text-slate-600">※2をそのまま足してはいけない！2は増え方なので、元は「2x」！</p>
-            </div>
-
-            <!-- B -->
-            <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
-              <span class="font-bold text-slate-800 block">B. 1/x に指数＋1が使えない理由は？</span>
-              <p class="p-2 bg-white rounded border border-slate-200 text-slate-700 font-medium">
-                指数を増やすと x⁰ ＝ 1 となり微分が 0 になる上、公式の分母 n ＋ 1 ＝ −1 ＋ 1 ＝ 0 で 0 除算が生じるから。
+              <p class="text-rose-800 text-[11px]">
+                \(x^2\) の係数が \(3\) になってしまい、元の \(2x^2\) より大きくなってしまいます！
               </p>
             </div>
-
-            <!-- Challenge -->
-            <div class="p-3.5 bg-purple-50 rounded-xl border border-purple-200 space-y-2">
-              <span class="font-bold text-purple-900 block">発展: ∫ ( (2x² ＋ 3x ＋ 1) / x ) dx ＝</span>
-              <div class="p-2 bg-white rounded border border-purple-200 font-mono font-bold text-purple-700">
-                x² ＋ 3x ＋ log |x| ＋ C (x ≠ 0)
-              </div>
-              <p class="text-[11px] text-purple-800">各項をxで割って 2x ＋ 3 ＋ 1/x に分ければ完璧！</p>
-            </div>
-          </div>
-        </div>
-
-        <div class="text-center pt-2">
-          <button class="nav-tab inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-brand-600 via-indigo-600 to-purple-600 text-white font-bold text-sm shadow-lg shadow-brand-500/25 hover:shadow-brand-500/40 transition transform hover:-translate-y-0.5" data-tab="tab-ribbon-lab">
-            <span>🔬 続いて「動的リボン＆多項式ラボ」でパラメータを自由に変えて実験しよう！ →</span>
-          </button>
-        </div>
-      </div>
-    </section>
-
-    <!-- TAB 2: 動的リボン＆多項式ラボ（自由探究） -->
-    <section id="tab-ribbon-lab" class="tab-content hidden space-y-6">
-      <!-- Interactive Controls Panel -->
-      <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
-        
-        <!-- Controls: a, b, C, t -->
-        <div class="lg:col-span-4 space-y-3">
-          <div class="flex items-center justify-between">
-            <span class="text-xs font-bold text-slate-700">速さ関数 r(t) ＝ at ＋ b の係数</span>
-            <button id="lab-play-btn" class="px-2.5 py-1 text-xs font-bold rounded bg-brand-600 text-white hover:bg-brand-700 transition flex items-center gap-1 shadow-xs">
-              <span id="lab-play-icon">▶</span>
-              <span id="lab-play-text">リボン伸長</span>
-            </button>
-          </div>
-
-          <div class="grid grid-cols-2 gap-2 text-xs">
-            <div>
-              <div class="flex justify-between text-slate-600 mb-1">
-                <span>加速係数 a:</span>
-                <span id="lab-a-display" class="font-mono font-bold text-blue-600">2.0</span>
-              </div>
-              <input id="lab-a-slider" type="range" min="0" max="4" step="0.5" value="2" class="w-full accent-blue-600">
-            </div>
-
-            <div>
-              <div class="flex justify-between text-slate-600 mb-1">
-                <span>等速係数 b:</span>
-                <span id="lab-b-display" class="font-mono font-bold text-emerald-600">3.0</span>
-              </div>
-              <input id="lab-b-slider" type="range" min="0" max="6" step="0.5" value="3" class="w-full accent-emerald-600">
+            <div class="p-3 bg-emerald-50 border border-emerald-200 rounded-xl space-y-1 text-xs">
+              <span class="font-bold text-emerald-900">正しい係数の作り方：</span>
+              <p class="text-slate-700 font-mono">
+                \(x^2\) を積分すると \(\frac{x^3}{3}\)。これに係数 \(2\) が掛かるので、<br>
+                \(2 \cdot \frac{x^3}{3} = \mathbf{\frac{2}{3}x^3}\) となります。
+              </p>
             </div>
           </div>
 
-          <div>
-            <div class="flex justify-between text-xs text-slate-600 mb-1">
-              <span>時刻 t:</span>
-              <span class="font-mono font-bold text-brand-600"><span id="lab-t-display">2.0</span> 秒</span>
-            </div>
-            <input id="lab-t-slider" type="range" min="0" max="5.0" step="0.05" value="2.0" class="w-full accent-brand-600">
-          </div>
-        </div>
-
-        <!-- Initial Constant C Adjustment -->
-        <div class="lg:col-span-5 space-y-3 border-y lg:border-y-0 lg:border-x border-slate-200 py-4 lg:py-0 lg:px-6">
-          <div class="flex items-center justify-between">
-            <span class="text-xs font-bold text-slate-700">初期の長さ（積分定数 C）</span>
-            <span id="lab-equation-display" class="font-mono text-xs font-bold text-brand-700 bg-brand-50 px-2 py-0.5 rounded border border-brand-200">
-              R(t) ＝ t² ＋ 3t ＋ 5.0
-            </span>
-          </div>
-
-          <div>
-            <div class="flex justify-between text-xs text-slate-600 mb-1">
-              <span>初期長 R(0) ＝ C:</span>
-              <span id="lab-c-display" class="font-mono font-bold text-amber-600">5.0 cm</span>
-            </div>
-            <input id="lab-c-slider" type="range" min="0" max="15" step="1" value="5" class="w-full accent-amber-500">
-          </div>
-
-          <div class="flex items-center gap-4 pt-1 text-xs">
-            <label class="flex items-center gap-1 text-slate-600 cursor-pointer select-none">
-              <input id="lab-show-tangent" type="checkbox" checked class="rounded accent-brand-600">
-              <span class="font-semibold text-amber-700">接線の傾き（瞬間の速さ）を表示</span>
-            </label>
-            <label class="flex items-center gap-1 text-slate-600 cursor-pointer select-none">
-              <input id="lab-show-breakdown" type="checkbox" checked class="rounded accent-brand-600">
-              <span class="font-semibold text-purple-700">3色の内訳を表示</span>
-            </label>
-          </div>
-        </div>
-
-        <!-- Real-time Readouts -->
-        <div class="lg:col-span-3 bg-gradient-to-br from-slate-900 to-slate-800 text-white p-4 rounded-xl space-y-2 shadow-md text-xs">
-          <span class="text-[10px] uppercase tracking-wider font-bold text-slate-400 block">リアルタイム計測値</span>
-          <div class="space-y-1 font-mono">
-            <div class="flex justify-between">
-              <span class="text-slate-400 font-sans">瞬間の伸び速さ r(t):</span>
-              <span id="lab-readout-r" class="font-bold text-amber-400">7.00 cm/s</span>
-            </div>
-            <div class="flex justify-between">
-              <span class="text-slate-400 font-sans">現在の総長さ R(t):</span>
-              <span id="lab-readout-len" class="font-bold text-purple-400">15.00 cm</span>
-            </div>
-            <div class="border-t border-slate-700 pt-1 flex justify-between font-bold text-emerald-400">
-              <span class="font-sans">接線の傾き:</span>
-              <span id="lab-readout-slope" class="text-sm">7.00</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Visual Canvas: Dual View (Real Ribbon Extruder + Integrated Curve) -->
-      <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-3">
-        <div class="flex flex-wrap items-center justify-between gap-3 text-xs">
-          <div class="flex items-center gap-2">
-            <h3 class="font-bold text-slate-900 text-sm">リボン伸長＆積分同期キャンバス</h3>
-            <span class="text-slate-500">上：伸びるリボン（初期長＋等速分＋加速分） / 下：長さの累積グラフ R(t)</span>
-          </div>
-        </div>
-
-        <div class="relative w-full h-[430px] bg-slate-950 rounded-xl overflow-hidden shadow-inner cursor-crosshair">
-          <canvas id="labCanvas" class="w-full h-full block"></canvas>
-          <!-- HUD overlay -->
-          <div id="labHUD" class="absolute top-3 left-4 bg-slate-900/90 backdrop-blur border border-slate-700 text-white text-xs px-3.5 py-2 rounded-lg shadow-lg font-mono space-y-0.5 pointer-events-none">
-            <div>総長さ: R ＝ <span id="lab-hud-len" class="text-purple-400 font-bold">15.00</span> cm</div>
-            <div>伸びる速さ（傾き）: r ＝ <span id="lab-hud-speed" class="text-amber-400 font-bold">7.00</span> cm/s</div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- TAB 3: 分数式＆対数 log|x| 完全解剖ナビ -->
-    <section id="tab-fraction-log" class="tab-content hidden space-y-6">
-      <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-6">
-        <div>
-          <div class="flex items-center gap-2">
-            <span class="w-8 h-8 rounded-xl bg-brand-100 text-brand-700 flex items-center justify-center font-bold text-sm">📐</span>
-            <h2 class="text-lg font-bold text-slate-900">分数式の分離 ＆ log|x| の特異点完全ナビ</h2>
-          </div>
-          <p class="text-xs text-slate-500 mt-1">
-            分子を分母で割るテクニックと、なぜ 1/x の積分だけに対数 log|x| が現れ、絶対値が必要なのかを視覚的に解明します。
-          </p>
-        </div>
-
-        <!-- Section A: Rational function split interactive cards -->
-        <div class="space-y-3">
-          <span class="text-xs font-bold text-slate-700 uppercase tracking-wider block">1. 分数式をバラバラに割るテクニック（タップして展開）</span>
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
-            <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1.5 hover:border-brand-500 transition cursor-pointer split-card active-split" data-num="1">
-              <span class="font-bold text-slate-800 block text-sm">例題: (x² ＋ 2x) / x</span>
-              <p class="font-mono text-brand-700 font-bold">＝ x ＋ 2</p>
-              <p class="text-slate-500 text-[11px]">積分: (1/2)x² ＋ 2x ＋ C (x ≠ 0)</p>
-            </div>
-
-            <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1.5 hover:border-brand-500 transition cursor-pointer split-card" data-num="2">
-              <span class="font-bold text-slate-800 block text-sm">発展: (2x² ＋ 3x ＋ 1) / x</span>
-              <p class="font-mono text-purple-700 font-bold">＝ 2x ＋ 3 ＋ 1/x</p>
-              <p class="text-slate-500 text-[11px]">積分: x² ＋ 3x ＋ log|x| ＋ C (x ≠ 0)</p>
-            </div>
-
-            <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1.5 hover:border-brand-500 transition cursor-pointer split-card" data-num="3">
-              <span class="font-bold text-slate-800 block text-sm">高次: (x³ − 4x) / x</span>
-              <p class="font-mono text-emerald-700 font-bold">＝ x² − 4</p>
-              <p class="text-slate-500 text-[11px]">積分: (1/3)x³ − 4x ＋ C (x ≠ 0)</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Section B: Why log|x| has absolute value and graph -->
-        <div class="p-4 bg-rose-50/60 rounded-xl border border-rose-200 space-y-2 text-xs text-rose-950">
-          <div class="flex items-center gap-1.5 font-bold text-rose-900 text-sm">
-            <span>💡</span>
-            <span>なぜ log|x| に絶対値が付くのか？（負の側の微分検証）</span>
-          </div>
-          <p class="leading-relaxed">
-            ・x &gt; 0 のとき: ( log x )' ＝ <strong>1/x</strong><br>
-            ・x &lt; 0 のとき: 真数を正にするため log(−x) を合成微分すると、( log(−x) )' ＝ ( 1 / (−x) ) × (−1) ＝ <strong>1/x</strong>！<br>
-            👉 正でも負でも、まとめて <strong class="text-brand-700 font-mono">log |x|</strong> と書けば、x ≠ 0 のすべての範囲で微分すると <strong>1/x</strong> に完全一致します！
-          </p>
-        </div>
-
-        <!-- Canvas for 1/x and log|x| -->
-        <div class="bg-slate-900 rounded-xl p-4 space-y-2">
-          <div class="flex items-center justify-between text-xs text-white">
-            <span class="font-bold">被積分関数 f(x) ＝ 1/x（白破線）と その原始関数 F(x) ＝ log|x|（ピンク実線）</span>
-            <span class="font-mono text-rose-400 font-bold">左右両側で接線の傾きが 1/x</span>
-          </div>
-          <div class="h-64 relative overflow-hidden">
-            <canvas id="logCanvas" class="w-full h-full block"></canvas>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- TAB 4: 自作問題・理解度チェック -->
-    <section id="tab-quiz" class="tab-content hidden space-y-6">
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <!-- Problem Generator -->
-        <div class="lg:col-span-6 bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-4">
-          <div class="flex items-center gap-2">
-            <span class="w-8 h-8 rounded-xl bg-brand-50 text-brand-600 flex items-center justify-center font-bold text-sm">🎯</span>
-            <h2 class="text-lg font-bold text-slate-900">多項式・分数式 不定積分クリエイター</h2>
-          </div>
-          <p class="text-xs text-slate-500">
-            自分で各項の係数や 1/x の有無を決めて、友だちに出題する問題カードを生成してみよう！
-          </p>
-
-          <div class="space-y-3 text-xs">
-            <div class="grid grid-cols-3 gap-2">
-              <div>
-                <label class="block text-slate-600 mb-1 font-bold">x² の係数 a:</label>
-                <input id="create-a" type="number" step="1" value="6" class="w-full p-2 border rounded-lg font-mono font-bold">
-              </div>
-              <div>
-                <label class="block text-slate-600 mb-1 font-bold">x の係数 b:</label>
-                <input id="create-b" type="number" step="1" value="4" class="w-full p-2 border rounded-lg font-mono font-bold">
-              </div>
-              <div>
-                <label class="block text-slate-600 mb-1 font-bold">定数項 c:</label>
-                <input id="create-c" type="number" step="1" value="2" class="w-full p-2 border rounded-lg font-mono font-bold">
-              </div>
-            </div>
-
-            <div class="flex items-center gap-3">
-              <label class="flex items-center gap-1.5 text-slate-700 cursor-pointer select-none">
-                <input id="create-has-log" type="checkbox" checked class="rounded accent-brand-600">
-                <span class="font-bold">1/x の項を含める</span>
-              </label>
-              <label class="flex items-center gap-1.5 text-slate-700 cursor-pointer select-none">
-                <input id="create-is-fraction" type="checkbox" class="rounded accent-brand-600">
-                <span class="font-bold">分数式の形にする（分母 x）</span>
-              </label>
-            </div>
-
-            <button id="generate-card-btn" class="w-full py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-bold shadow-md shadow-brand-500/20 transition flex items-center justify-center gap-1.5">
-              <span>🚀 問題カードと3色検算付き解答を生成</span>
-            </button>
-          </div>
-
-          <!-- Generated Card -->
-          <div id="generatedProblemCard" class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
-            <span class="text-xs font-bold text-slate-500 uppercase tracking-wider block">生成された問題カード</span>
-            <p id="generatedProblemText" class="text-sm text-slate-800 leading-relaxed font-medium">
-              不定積分 ∫ ( 6x² ＋ 4x ＋ 2 ＋ 1/x ) dx を求めよ (x ≠ 0)。
+          <!-- Why only one +C is needed -->
+          <div class="glass-card rounded-2xl p-5 shadow-sm space-y-2.5">
+            <h4 class="font-bold text-slate-900 text-xs uppercase tracking-wider text-slate-500">なぜ +C は 1つだけでよいの？</h4>
+            <p class="text-xs text-slate-600 leading-relaxed">
+              「第1項の積分で \(+C_1\)、第2項の積分で \(+C_2\) と別々に付けなくていいの？」と思うかもしれません。
             </p>
-            <div class="pt-2 border-t border-slate-200 flex justify-between items-center">
-              <button id="toggleProblemAnsBtn" class="text-xs font-bold text-brand-600 hover:text-brand-800">
-                👁 3色分解模範解答を表示
-              </button>
-              <button id="copyProblemBtn" class="text-xs px-2.5 py-1 bg-white hover:bg-slate-100 border border-slate-200 rounded font-semibold text-slate-700">
-                問題をコピー
-              </button>
+            <div class="p-2.5 bg-slate-50 rounded-lg border border-slate-200 font-mono text-xs text-slate-800 text-center">
+              \(( \dots + C_1 ) + ( \dots + C_2 ) = \dots + (C_1 + C_2)\)
             </div>
-            <div id="generatedProblemSolution" class="hidden p-3 bg-white rounded-lg border border-brand-200 text-xs space-y-1 text-slate-700 font-mono">
-              <!-- Injected by JS -->
-            </div>
+            <p class="text-xs text-slate-600 leading-relaxed">
+              定数と定数を足しても「また別の1つの定数」になるため、最初からまとめて末尾に <strong>\(+C\) を1つだけ</strong> 添えれば十分です。
+            </p>
           </div>
+
         </div>
 
-        <!-- Rapid Self-Assessment Quiz -->
-        <div class="lg:col-span-6 bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-4">
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-2">
-              <span class="w-8 h-8 rounded-xl bg-brand-100 text-brand-700 flex items-center justify-center font-bold text-sm">💡</span>
-              <h2 class="text-lg font-bold text-slate-900">概念理解クイズ（第2時）</h2>
-            </div>
-            <span id="quizScoreBadge" class="text-xs font-mono font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-700">スコア: 0/3</span>
-          </div>
+      </div>
 
-          <div class="space-y-3 text-xs">
-            <!-- Q1 -->
-            <div class="quiz-item p-3.5 rounded-xl border border-slate-200 space-y-2">
-              <p class="font-bold text-slate-800">Q1. 定数 3 を不定積分するとき、答えが「3」ではなく「3x ＋ C」になる理由は？</p>
-              <div class="space-y-1">
-                <button class="quiz-opt w-full text-left p-2 rounded-lg border border-slate-200 hover:bg-slate-50" data-q="0" data-opt="0">A. 3は「増え方（速さ）」なので、時間xが経つにつれて3xずつ累積して増えるから</button>
-                <button class="quiz-opt w-full text-left p-2 rounded-lg border border-slate-200 hover:bg-slate-50" data-q="0" data-opt="1">B. 積分記号の横にある文字 x をとりあえず後ろにつけるルールだから</button>
-              </div>
-              <div class="quiz-feedback hidden text-[11px] font-bold p-2 rounded"></div>
-            </div>
+    </section>
 
-            <!-- Q2 -->
-            <div class="quiz-item p-3.5 rounded-xl border border-slate-200 space-y-2">
-              <p class="font-bold text-slate-800">Q2. ∫ (1/x) dx ＝ log |x| ＋ C で、対数に絶対値 |x| を付ける最大の理由は？</p>
-              <div class="space-y-1">
-                <button class="quiz-opt w-full text-left p-2 rounded-lg border border-slate-200 hover:bg-slate-50" data-q="1" data-opt="0">A. x が負の値のときでも、対数の真数（中身）を正にして式を成り立たせるため</button>
-                <button class="quiz-opt w-full text-left p-2 rounded-lg border border-slate-200 hover:bg-slate-50" data-q="1" data-opt="1">B. 面積の計算では必ず答えがプラスになるから</button>
-              </div>
-              <div class="quiz-feedback hidden text-[11px] font-bold p-2 rounded"></div>
-            </div>
-
-            <!-- Q3 -->
-            <div class="quiz-item p-3.5 rounded-xl border border-slate-200 space-y-2">
-              <p class="font-bold text-slate-800">Q3. 分数式 ∫ ( (x² ＋ 2x) / x ) dx を解くとき、最初にやるべき最善の手は？</p>
-              <div class="space-y-1">
-                <button class="quiz-opt w-full text-left p-2 rounded-lg border border-slate-200 hover:bg-slate-50" data-q="2" data-opt="0">A. 分母の x で分子の各項をそれぞれ割って、x ＋ 2 という多項式にバラす</button>
-                <button class="quiz-opt w-full text-left p-2 rounded-lg border border-slate-200 hover:bg-slate-50" data-q="2" data-opt="1">B. 分子と分母を別々に積分して割り算する</button>
-              </div>
-              <div class="quiz-feedback hidden text-[11px] font-bold p-2 rounded"></div>
-            </div>
-          </div>
+    <!-- ==========================================
+         TAB 3: 分数式の分割ラボ (先に整理してから積分)
+         ========================================== -->
+    <section id="panel-tab-3" class="tab-panel hidden space-y-6">
+      
+      <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div>
+          <span class="text-xs font-bold text-emerald-600 uppercase tracking-wider">分数式の攻略法</span>
+          <h2 class="text-xl sm:text-2xl font-bold text-slate-900 mt-1">「分数は、項ごとに分けてから積分する！」</h2>
+          <p class="text-sm text-slate-600 mt-1">分数の形のまま積分できる魔法の公式はありません。まず割り算を実行して整式に直します。</p>
+        </div>
+        <div class="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-center font-mono text-xs sm:text-sm font-bold text-emerald-950 shrink-0">
+          $$\frac{x^2+2x}{x} = \frac{x^2}{x} + \frac{2x}{x} = x + 2 \quad (x \neq 0)$$
         </div>
       </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- Left: Interactive Splitting Sandbox (7 cols) -->
+        <div class="lg:col-span-7 glass-card rounded-2xl p-6 shadow-sm space-y-5">
+          <div class="flex items-center justify-between">
+            <h3 class="font-bold text-slate-900 text-base">分数式の「ハート形分割」ビジュアライザー</h3>
+            <span class="text-xs text-slate-500 font-mono">分子を分母で割る</span>
+          </div>
+
+          <!-- Selector -->
+          <div class="space-y-1.5">
+            <label class="text-xs font-semibold text-slate-600">調べる分数式を選択:</label>
+            <select id="fraction-preset-select" onchange="onFractionPresetChange()" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-medium text-slate-800 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+              <option value="frac1">【ワーク問4】 ∫ ((x² + 2x) / x) dx</option>
+              <option value="frac2">【発展】 ∫ ((3x³ + x) / x) dx</option>
+              <option value="frac3">【練習】 ∫ ((x² - 4x) / x) dx</option>
+              <option value="frac4">【2次で割る】 ∫ ((2x⁴ + 5x²) / x²) dx</option>
+            </select>
+          </div>
+
+          <!-- Animated Heart Division Card -->
+          <div class="p-5 bg-gradient-to-br from-slate-900 to-indigo-950 text-white rounded-2xl shadow-inner space-y-4">
+            <span class="text-xs font-bold uppercase tracking-wider text-indigo-300">分子の項をそれぞれ分母で割る変形</span>
+            
+            <div id="fraction-split-display" class="flex flex-col items-center justify-center py-2 space-y-3">
+              <!-- Dynamically populated via JS -->
+            </div>
+          </div>
+
+          <!-- Step by Step Integration Output -->
+          <div id="fraction-integration-flow" class="space-y-3">
+            <!-- Dynamically populated via JS -->
+          </div>
+
+        </div>
+
+        <!-- Right: Why x != 0 & Domain Hole Graph (5 cols) -->
+        <div class="lg:col-span-5 space-y-4">
+          
+          <!-- Punctured Graph Card -->
+          <div class="glass-card rounded-2xl p-5 shadow-sm space-y-3 border-l-4 border-l-emerald-500">
+            <div class="flex items-center justify-between">
+              <h4 class="font-bold text-slate-900 text-sm">なぜ「\(x \neq 0\)」と書く必要があるの？</h4>
+              <span class="text-xs bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded">定義域の穴</span>
+            </div>
+            
+            <p class="text-xs text-slate-600 leading-relaxed">
+              式を約分して \(x+2\) に変形したとしても、<strong>元の式には分母に \(x\) がありました</strong>。
+              数学では「\(0\) で割ること」が禁止されているため、\(x=0\) は最初から存在してはいけない値（穴）になります！
+            </p>
+
+            <div class="h-44 bg-white rounded-xl border border-slate-200 relative overflow-hidden">
+              <canvas id="puncturedCanvas" class="w-full h-full block"></canvas>
+            </div>
+
+            <div class="text-[11px] text-slate-500 bg-slate-50 p-2.5 rounded-lg border border-slate-200">
+              グラフ上では、直線 \(y = x+2\) の \(x=0\) の地点 \((0, 2)\) に <strong>白抜きの穴（未定義点）</strong> が空いています。そのため、答えには必ず「\((x \neq 0)\)」という注意書きを添えます。
+            </div>
+          </div>
+
+          <!-- Common Mistake Warning -->
+          <div class="glass-card rounded-2xl p-4 shadow-sm border border-slate-200 text-xs space-y-2">
+            <span class="font-bold text-rose-700 block">やってはいけない大間違い！</span>
+            <p class="text-slate-600 leading-relaxed">
+              「分子を積分して \(\frac{x^3}{3} + x^2\)、分母を積分して \(\frac{x^2}{2}\) として割り算する」<br>
+              という計算は <strong>完全に誤り</strong> です！（微分の割り算も単純に分母分子を微分できなかったのと同じです）
+            </p>
+          </div>
+
+        </div>
+
+      </div>
+
     </section>
+
+    <!-- ==========================================
+         TAB 4: 1/x と log|x| の秘密 (べき公式の唯一の例外)
+         ========================================== -->
+    <section id="panel-tab-4" class="tab-panel hidden space-y-6">
+      
+      <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div>
+          <span class="text-xs font-bold text-rose-600 uppercase tracking-wider">べき公式が使えない唯一の例外</span>
+          <h2 class="text-xl sm:text-2xl font-bold text-slate-900 mt-1">「なぜ \(1/x\) の積分だけは \(\log|x|\) になるのか？」</h2>
+          <p class="text-sm text-slate-600 mt-1">「指数を1増やす」と \(0\) になってしまう壁を、対数関数の微分で乗り越えます。</p>
+        </div>
+        <div class="p-3 bg-rose-50 border border-rose-200 rounded-xl text-center font-mono text-xs sm:text-sm font-bold text-rose-950 shrink-0">
+          $$\int \frac{1}{x} \, dx = \log |x| + C \quad (x \neq 0)$$
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- Left: Dual Graph Interactivity (8 cols) -->
+        <div class="lg:col-span-8 glass-card rounded-2xl p-5 shadow-sm space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-2">
+            <div>
+              <h3 class="font-bold text-slate-900 text-sm sm:text-base">導関数 \(y = \frac{1}{x}\) と 原始関数 \(y = \log|x| + C\) の連動</h3>
+              <p class="text-xs text-slate-500">下のスライダーで \(x\) を動かすと、接線の傾きが常に \(\frac{1}{x}\) に一致することが分かります。</p>
+            </div>
+            <div class="flex items-center gap-2 text-xs font-mono bg-indigo-50 text-indigo-800 px-3 py-1 rounded-lg">
+              現在: \(x = \) <span id="log-x-disp" class="font-bold">2.0</span>
+            </div>
+          </div>
+
+          <!-- Dual Canvas Layout -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            
+            <!-- Graph 1: Derivative 1/x -->
+            <div class="space-y-1.5">
+              <div class="flex justify-between text-xs">
+                <span class="font-bold text-slate-800">増え方（導関数）: \(y = \frac{1}{x}\)</span>
+                <span class="text-slate-500 font-mono" id="val-inv-x">y = 0.50</span>
+              </div>
+              <div class="h-60 bg-white rounded-xl border border-slate-200 relative overflow-hidden">
+                <canvas id="hyperbolaCanvas" class="w-full h-full block"></canvas>
+              </div>
+            </div>
+
+            <!-- Graph 2: Original log|x| -->
+            <div class="space-y-1.5">
+              <div class="flex justify-between text-xs">
+                <span class="font-bold text-slate-800">元の式（原始関数）: \(y = \log|x|\)</span>
+                <span class="text-slate-500 font-mono" id="val-log-x">y = 0.69</span>
+              </div>
+              <div class="h-60 bg-white rounded-xl border border-slate-200 relative overflow-hidden">
+                <canvas id="logCanvas" class="w-full h-full block"></canvas>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Slider for X (Supports positive and negative) -->
+          <div class="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3 bg-slate-50 p-3 rounded-xl border border-slate-200">
+            <span class="text-xs font-bold text-slate-700 shrink-0">調べたい \(x\) の値（マイナスも試してみよう）：</span>
+            <div class="flex-1 w-full flex items-center gap-2">
+              <span class="text-xs font-mono text-slate-500">-3.0</span>
+              <input id="slider-log-x" type="range" min="-3" max="3" step="0.1" value="2" oninput="onLogXSliderInput(this.value)" class="w-full h-2 bg-slate-200 rounded-lg cursor-pointer">
+              <span class="text-xs font-mono text-slate-500">+3.0</span>
+            </div>
+            <button onclick="setLogX(-2)" class="px-2.5 py-1 text-xs bg-rose-100 hover:bg-rose-200 text-rose-800 rounded-lg font-semibold transition shrink-0">
+              負の数 (x = -2) を試す
+            </button>
+          </div>
+        </div>
+
+        <!-- Right: Why Absolute Value & Deep Math Insights (4 cols) -->
+        <div class="lg:col-span-4 space-y-4">
+          
+          <!-- Why Absolute Value Card -->
+          <div class="glass-card rounded-2xl p-5 shadow-sm border-l-4 border-l-rose-500 space-y-3">
+            <h4 class="font-bold text-slate-900 text-sm flex items-center gap-2 text-rose-900">
+              <span class="w-2.5 h-2.5 rounded-full bg-rose-600"></span>
+              なぜ絶対値 \(|x|\) がつくの？
+            </h4>
+            <div class="text-xs text-slate-600 space-y-2 leading-relaxed">
+              <p>
+                対数の真数は「正の数」でなければなりません（\(\log(-2)\) などは存在しない）。
+                しかし導関数 \(\frac{1}{x}\) は \(x < 0\) の世界でも存在します！
+              </p>
+              <div class="p-2.5 bg-rose-50 rounded-lg border border-rose-200 font-mono text-slate-900 text-[11px] space-y-1">
+                <div><strong>\(x < 0\) のとき：</strong> \(-x > 0\) なので \(\log(-x)\) を微分すると、</div>
+                <div class="text-center font-bold text-rose-800">
+                  \(\{\log(-x)\}' = \frac{1}{-x} \cdot (-1) = \mathbf{\frac{1}{x}}\)
+                </div>
+              </div>
+              <p>
+                マイナス同士が打ち消し合って、なんと \(x < 0\) でも微分結果は \(\frac{1}{x}\) に戻ります！
+                正の世界（\(\log x\)）と負の世界（\(\log(-x)\)）を1本の式でまとめるために <strong>\(\log |x|\)</strong> と書きます。
+              </p>
+            </div>
+          </div>
+
+          <!-- Why x = 0 is excluded -->
+          <div class="glass-card rounded-2xl p-4 shadow-sm border border-slate-200 space-y-2 text-xs">
+            <span class="font-bold text-slate-800 block">\(x=0\) を除く2つの決定的な理由</span>
+            <ul class="list-disc list-inside text-slate-600 space-y-1 leading-relaxed">
+              <li>\(\frac{1}{x}\) 自体に \(x=0\) を代入できない（分母が0）。</li>
+              <li>対数関数 \(\log |0|\) も定義されない（\(-\infty\) に発散）。</li>
+            </ul>
+          </div>
+
+          <!-- Deep Column: Connected Components -->
+          <div class="p-3.5 bg-slate-100 rounded-xl border border-slate-200 text-[11px] text-slate-600 space-y-1">
+            <span class="font-bold text-slate-700 block">💡 ちょっと深い話（定数の独立性）</span>
+            <p>
+              \(x>0\) と \(x<0\) は \(x=0\) で完全に分断されているため、厳密には正の側の定数 \(C_1\) と負の側の定数 \(C_2\) を別々に選ぶことができます。
+            </p>
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ==========================================
+         TAB 5: 微分検算ラボ＆出口課題
+         ========================================== -->
+    <section id="panel-tab-5" class="tab-panel hidden space-y-6">
+      
+      <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div>
+          <span class="text-xs font-bold text-purple-600 uppercase tracking-wider">本時の総まとめ＆自己点検</span>
+          <h2 class="text-xl sm:text-2xl font-bold text-slate-900 mt-1">微分検算ラボ</h2>
+          <p class="text-sm text-slate-600 mt-1">「自分の答えを微分して、元の式にぴったり戻るか？」を自分で判定できます。</p>
+        </div>
+        <div class="p-3 bg-purple-50 border border-purple-200 rounded-xl text-center text-purple-950 font-bold shrink-0 text-xs sm:text-sm">
+          微分検算の鉄則: \(\left( F(x) + C \right)' = f(x)\)
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- Left: Interactive Problem Checker (7 cols) -->
+        <div class="lg:col-span-7 glass-card rounded-2xl p-6 shadow-sm space-y-5">
+          <div class="flex items-center justify-between">
+            <h3 class="font-bold text-slate-900 text-base">問題を選んで検算しよう</h3>
+            <span class="text-xs text-slate-500 font-mono">第2時 ワーク完全対応</span>
+          </div>
+
+          <!-- Selector -->
+          <div class="space-y-1.5">
+            <label class="text-xs font-semibold text-slate-600">問題を選択:</label>
+            <select id="lab-prob-select" onchange="loadLabProblem()" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-medium text-slate-800 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+              <option value="exA">【出口課題 A】 ∫ (4x³ + 2) dx</option>
+              <option value="exB">【出口課題 B】 ∫ (1/x) dx (x ≠ 0)</option>
+              <option value="p3">【ワーク問3】 ∫ (2x² + 3) dx</option>
+              <option value="p4">【ワーク問4】 ∫ ((x² + 2x) / x) dx (x ≠ 0)</option>
+              <option value="p6">【ワーク問6 発展】 ∫ (3x² + 2 + 1/x) dx (x ≠ 0)</option>
+            </select>
+          </div>
+
+          <!-- Question Display Card -->
+          <div class="p-4 bg-slate-900 text-white rounded-xl shadow-inner text-center space-y-1">
+            <div id="lab-prob-title" class="text-xs text-slate-400 font-medium">【出口課題 A】</div>
+            <div id="lab-prob-latex" class="text-xl font-bold font-mono">$$\int (4x^3 + 2) \, dx$$</div>
+          </div>
+
+          <!-- Dynamic Input Fields Container -->
+          <div id="lab-inputs-container" class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-4">
+            <!-- Dynamically populated via JS depending on problem structure -->
+          </div>
+
+          <!-- Verification Trigger Button -->
+          <button onclick="verifyLabAnswer()" class="w-full py-3 bg-purple-600 hover:bg-purple-700 active:scale-[0.99] text-white rounded-xl font-bold text-sm shadow-md shadow-purple-600/20 transition flex items-center justify-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <span>微分して検算を実行する</span>
+          </button>
+
+          <!-- Feedback Box -->
+          <div id="lab-feedback-box" class="hidden">
+            <!-- Populated via JS -->
+          </div>
+
+        </div>
+
+        <!-- Right: Exit Task C, Model Explanation & Self Evaluation (5 cols) -->
+        <div class="lg:col-span-5 space-y-4">
+          
+          <!-- Exit Task C: Why +C? -->
+          <div class="glass-card rounded-2xl p-5 shadow-sm border-l-4 border-l-purple-500 space-y-3">
+            <div class="flex items-center justify-between">
+              <h4 class="font-bold text-slate-900 text-sm flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-purple-600"></span>
+                出口課題 C: 「なぜ答えに +C を付けるの？」
+              </h4>
+              <span class="text-[10px] bg-purple-100 text-purple-800 font-bold px-2 py-0.5 rounded">記述練習</span>
+            </div>
+            
+            <p class="text-xs text-slate-600 leading-relaxed">
+              リボンの長さや台車の例を思い出しながら、一文で説明してみましょう。
+            </p>
+
+            <textarea id="exit-c-text" rows="3" placeholder="（例）定数は微分すると消えてしまうため、最初の長さ（初期位置）が分からないから…" class="w-full p-2.5 text-xs bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-purple-400 focus:outline-none"></textarea>
+
+            <button onclick="toggleModelExplain()" class="text-xs text-purple-700 hover:text-purple-800 font-bold flex items-center gap-1">
+              <span>模範解答・解説を確認する</span>
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </button>
+
+            <!-- Accordion -->
+            <div id="model-explain-content" class="hidden p-3 bg-purple-50 rounded-xl border border-purple-200 text-xs text-purple-950 space-y-1.5 leading-relaxed">
+              <div class="font-bold text-purple-900">【模範解答のポイント】</div>
+              <p>
+                「定数は微分すると \(0\) になって消えてしまうため、増え方（導関数）だけでは最初の長さ（出発点）が特定できず、すべての可能性を表現するために任意の定数 \(+C\) を添える必要がある。」
+              </p>
+            </div>
+          </div>
+
+          <!-- Self Evaluation Card -->
+          <div class="glass-card rounded-2xl p-5 shadow-sm space-y-3">
+            <h4 class="font-bold text-slate-900 text-xs uppercase tracking-wider text-slate-500">本時の自己評価</h4>
+            
+            <div class="space-y-2 text-xs">
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input type="radio" name="eval2" value="term" checked class="text-indigo-600">
+                <span>項ごとに分けて戻すことができた</span>
+              </label>
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input type="radio" name="eval2" value="diff" class="text-indigo-600">
+                <span>答えを微分して検算できた</span>
+              </label>
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input type="radio" name="eval2" value="log" class="text-indigo-600">
+                <span>\(1/x\) が \(\log|x|\) になる理由が分かった</span>
+              </label>
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input type="radio" name="eval2" value="more" class="text-indigo-600">
+                <span>もう一度説明を聞いて練習したい</span>
+              </label>
+            </div>
+
+            <button onclick="recordSelfEval()" class="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold transition">
+              自己評価を記録する
+            </button>
+            <div id="eval-toast-msg" class="hidden text-center text-xs text-emerald-700 font-bold pt-1">
+              ✓ 記録しました！次の単元（三角関数や指数関数の積分）へ自信を持って進みましょう。
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
   </main>
 
-  <!-- 分解の3ステップ Modal Dialog (No alerts) -->
-  <div id="guideModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 space-y-4">
-      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-        <h3 class="font-bold text-slate-900 text-lg flex items-center gap-2">
-          <span>🧭</span> 足し算の不定積分を解く「分解の3ステップ」
-        </h3>
-        <button id="closeGuideModalBtn" class="text-slate-400 hover:text-slate-600 p-1">
-          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
-      </div>
-
-      <div class="space-y-3 text-xs leading-relaxed text-slate-700">
-        <div class="p-3 rounded-xl bg-blue-50/70 border border-blue-200">
-          <span class="font-bold text-blue-900 text-sm block">STEP 1: 項ごとにバラバラに色分けする</span>
-          <p class="text-blue-800 mt-0.5">足し算や引き算は、焦らず項ごとに分離。分数式なら分母で割って単項式の和にします。</p>
-        </div>
-        <div class="p-3 rounded-xl bg-emerald-50/70 border border-emerald-200">
-          <span class="font-bold text-emerald-900 text-sm block">STEP 2: 1/x だけは絶対に立ち止まる！</span>
-          <p class="text-emerald-800 mt-0.5">普通のべき関数は「指数を1上げて割る」、定数は「xを添える」。しかし 1/x だけは対数「log|x|」を使います。</p>
-        </div>
-        <div class="p-3 rounded-xl bg-purple-50/70 border border-purple-200">
-          <span class="font-bold text-purple-900 text-sm block">STEP 3: ＋ C を添えて微分で検算する</span>
-          <p class="text-purple-800 mt-0.5">積分定数 C を最後に1つ添え、求めた式を微分してインテグラルの中身と一致するか確認します。</p>
-        </div>
-      </div>
-
-      <div class="pt-2 text-right">
-        <button id="guideModalConfirmBtn" class="px-5 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-bold transition">
-          理解できた！
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Toast Notification Message -->
-  <div id="toastMessage" class="fixed bottom-5 right-5 z-50 bg-slate-900/90 backdrop-blur text-white text-xs px-4 py-2.5 rounded-xl shadow-xl border border-slate-700 flex items-center gap-2 transform translate-y-16 opacity-0 transition duration-300 pointer-events-none">
-    <span id="toastIcon">ℹ️</span>
-    <span id="toastText">通知メッセージ</span>
-  </div>
-
-  <!-- Footer -->
-  <footer class="bg-white border-t border-slate-200 py-4 mt-auto">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-500">
-      <p>高校数学III「不定積分」第2時・45分アクティブラーニング完全連動教材</p>
-      <p class="font-mono text-slate-400">Indefinite Integral Studio (Lesson 2)</p>
-    </div>
-  </footer>
-
   <script>
-    /* Audio setup with Tone.js */
-    let soundEnabled = true;
-    let synth = null;
+    // Global State for Lesson 2
+    const appState = {
+      activeTab: 1,
+      // Tab 1: Ribbon State
+      ribbonTime: 0,
+      ribbonMaxTime: 4.0,
+      ribbonIsPlaying: false,
+      ribbonAnimId: null,
+      ribbonLastTimestamp: 0,
+      ribbonC: 5.0, // initial length in cm
+      // Tab 2: Sum Decomposition State
+      currentSumProbKey: 'prob1',
+      // Tab 3: Fraction State
+      currentFracKey: 'frac1',
+      // Tab 4: 1/x and log|x| State
+      logX: 2.0,
+      // Tab 5: Lab State
+      labKey: 'exA'
+    };
 
-    function initAudio() {
-      if (!synth && typeof Tone !== 'undefined') {
+    function triggerMathRender() {
+      if (window.renderMathInElement) {
         try {
-          synth = new Tone.PolySynth(Tone.Synth, {
-            oscillator: { type: "sine" },
-            envelope: { attack: 0.01, decay: 0.1, sustain: 0.05, release: 0.1 }
-          }).toDestination();
-          synth.volume.value = -12;
-        } catch(e) {
-          console.log("Audio not available", e);
+          renderMathInElement(document.body, {
+            delimiters: [
+              { left: '$$', right: '$$', display: true },
+              { left: '\\[', right: '\\]', display: true },
+              { left: '\\(', right: '\\)', display: false },
+              { left: '$', right: '$', display: false }
+            ],
+            throwOnError: false
+          });
+        } catch (e) {
+          console.warn('KaTeX rendering error', e);
         }
       }
     }
 
-    function playSound(type) {
-      if (!soundEnabled) return;
-      try {
-        initAudio();
-        if (Tone.context.state !== 'running') {
-          Tone.context.resume();
+    function switchTab(tabIndex) {
+      appState.activeTab = tabIndex;
+      
+      document.querySelectorAll('.tab-btn').forEach((btn, idx) => {
+        if (idx + 1 === tabIndex) {
+          btn.className = 'tab-btn px-3 py-1.5 rounded-lg bg-white text-indigo-700 shadow-sm transition font-bold shrink-0';
+        } else {
+          btn.className = 'tab-btn px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 transition font-medium shrink-0';
         }
-        if (synth) {
-          if (type === 'click') {
-            synth.triggerAttackRelease("C5", "32n");
-          } else if (type === 'success') {
-            synth.triggerAttackRelease(["E5", "G5", "C6"], "16n");
-          } else if (type === 'step') {
-            synth.triggerAttackRelease("A4", "24n");
+      });
+
+      for (let i = 1; i <= 5; i++) {
+        const panel = document.getElementById(`panel-tab-${i}`);
+        if (panel) {
+          if (i === tabIndex) {
+            panel.classList.remove('hidden');
+          } else {
+            panel.classList.add('hidden');
           }
         }
-      } catch(e) {}
-    }
-
-    const soundToggleBtn = document.getElementById('soundToggleBtn');
-    const soundOnIcon = document.getElementById('soundOnIcon');
-    const soundOffIcon = document.getElementById('soundOffIcon');
-    soundToggleBtn.addEventListener('click', () => {
-      soundEnabled = !soundEnabled;
-      if (soundEnabled) {
-        soundOnIcon.classList.remove('hidden');
-        soundOffIcon.classList.add('hidden');
-        showToast('効果音をONにしました', '🔊');
-        playSound('click');
-      } else {
-        soundOnIcon.classList.add('hidden');
-        soundOffIcon.classList.remove('hidden');
-        showToast('効果音をOFFにしました', '🔇');
       }
-    });
 
-    function showToast(text, icon = 'ℹ️') {
-      const toast = document.getElementById('toastMessage');
-      const toastText = document.getElementById('toastText');
-      const toastIcon = document.getElementById('toastIcon');
-      toastText.textContent = text;
-      toastIcon.textContent = icon;
-      toast.classList.remove('translate-y-16', 'opacity-0');
       setTimeout(() => {
-        toast.classList.add('translate-y-16', 'opacity-0');
-      }, 3000);
-    }
-
-    // Modal
-    const quickGuideBtn = document.getElementById('quickGuideBtn');
-    const guideModal = document.getElementById('guideModal');
-    const closeGuideModalBtn = document.getElementById('closeGuideModalBtn');
-    const guideModalConfirmBtn = document.getElementById('guideModalConfirmBtn');
-
-    quickGuideBtn.addEventListener('click', () => {
-      guideModal.classList.remove('hidden');
-      playSound('step');
-    });
-    [closeGuideModalBtn, guideModalConfirmBtn].forEach(b => {
-      b.addEventListener('click', () => {
-        guideModal.classList.add('hidden');
-        playSound('click');
-      });
-    });
-
-    // Main Tab Navigation
-    document.querySelectorAll('.nav-tab').forEach(btn => {
-      btn.addEventListener('click', () => {
-        playSound('click');
-        const tabId = btn.getAttribute('data-tab');
-
-        document.querySelectorAll('.nav-tab').forEach(b => {
-          b.classList.remove('text-brand-700', 'bg-brand-50');
-          b.classList.add('text-slate-600');
-        });
-        btn.classList.add('text-brand-700', 'bg-brand-50');
-        btn.classList.remove('text-slate-600');
-
-        document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
-        document.getElementById(tabId).classList.remove('hidden');
-
-        window.dispatchEvent(new Event('resize'));
-      });
-    });
-
-    /* --- STORY STEP CONTROLLER --- */
-    let currentStoryStep = 0;
-    const storyContainers = [
-      document.getElementById('story-step-0'),
-      document.getElementById('story-step-1'),
-      document.getElementById('story-step-2'),
-      document.getElementById('story-step-3'),
-      document.getElementById('story-step-4')
-    ];
-    const storyStepBtns = document.querySelectorAll('.story-step-btn');
-
-    function switchStoryStep(stepIdx) {
-      currentStoryStep = parseInt(stepIdx);
-      storyContainers.forEach((c, idx) => {
-        if (idx === currentStoryStep) c.classList.remove('hidden');
-        else c.classList.add('hidden');
-      });
-
-      storyStepBtns.forEach((b, idx) => {
-        if (idx === currentStoryStep) {
-          b.classList.add('bg-white', 'text-brand-700', 'shadow-sm');
-          b.classList.remove('text-slate-600');
-        } else {
-          b.classList.remove('bg-white', 'text-brand-700', 'shadow-sm');
-          b.classList.add('text-slate-600');
+        if (tabIndex === 1) {
+          drawRibbonAll();
+        } else if (tabIndex === 2) {
+          renderSumSteps();
+        } else if (tabIndex === 3) {
+          renderFractionView();
+          drawPuncturedCanvas();
+        } else if (tabIndex === 4) {
+          drawLogVisuals();
+        } else if (tabIndex === 5) {
+          loadLabProblem();
         }
-      });
-
-      playSound('step');
-      setTimeout(() => {
-        if (currentStoryStep === 0) drawStep0Canvas();
-        else if (currentStoryStep === 1) drawStep1Canvas();
-        else if (currentStoryStep === 2) drawStep2Canvas();
-        else if (currentStoryStep === 3) drawStep3Canvas();
-      }, 50);
+        triggerMathRender();
+      }, 40);
     }
 
-    storyStepBtns.forEach(btn => btn.addEventListener('click', () => switchStoryStep(btn.getAttribute('data-step'))));
-    document.querySelectorAll('.story-next-btn').forEach(btn => btn.addEventListener('click', () => switchStoryStep(btn.getAttribute('data-to'))));
-    document.querySelectorAll('.story-prev-btn').forEach(btn => btn.addEventListener('click', () => switchStoryStep(btn.getAttribute('data-to'))));
+    // ==========================================
+    // TAB 1: Ribbon Stretching Simulation Engine
+    // ==========================================
+    
+    function toggleRibbonPlay() {
+      appState.ribbonIsPlaying = !appState.ribbonIsPlaying;
+      const btn = document.getElementById('btn-play-ribbon');
+      const text = document.getElementById('ribbon-play-text');
+      const icon = document.getElementById('ribbon-play-icon');
 
-    /* --- STEP 0: 前時を思い出す --- */
-    const step0AnsPos = document.getElementById('step0-ans-pos');
-    const step0CheckBtn = document.getElementById('step0-check-btn');
-    const step0CheckFb = document.getElementById('step0-check-fb');
-
-    // キーボード入力時の自動変換（t^2 -> t², + -> ＋）
-    step0AnsPos.addEventListener('input', () => {
-      let val = step0AnsPos.value;
-      val = val.replace(/\^2/g, '²')
-               .replace(/\^3/g, '³')
-               .replace(/\^4/g, '⁴')
-               .replace(/\+/g, ' ＋ ');
-      step0AnsPos.value = val;
-    });
-
-    // パレットボタンのタップ処理
-    document.querySelectorAll('.math-insert-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const insertText = btn.getAttribute('data-insert');
-        step0AnsPos.value += insertText;
-        step0AnsPos.focus();
-        playSound('click');
-      });
-    });
-
-    const mathBsBtn = document.getElementById('math-bs-btn');
-    if (mathBsBtn) {
-      mathBsBtn.addEventListener('click', () => {
-        let v = step0AnsPos.value;
-        if (v.endsWith(' ＋ ') || v.endsWith(' － ')) {
-          step0AnsPos.value = v.slice(0, -3);
-        } else {
-          step0AnsPos.value = v.slice(0, -1);
-        }
-        step0AnsPos.focus();
-        playSound('click');
-      });
-    }
-
-    const mathClearBtn = document.getElementById('math-clear-btn');
-    if (mathClearBtn) {
-      mathClearBtn.addEventListener('click', () => {
-        step0AnsPos.value = '';
-        step0AnsPos.focus();
-        playSound('click');
-      });
-    }
-
-    step0CheckBtn.addEventListener('click', () => {
-      const raw = step0AnsPos.value.trim().toLowerCase().replace(/\s+/g, '');
-      const hasTSquare = (raw.includes('t²') || raw.includes('t^2') || raw.includes('t**2') || raw.includes('t2')) && !raw.includes('t³') && !raw.includes('t^3');
-
-      if (raw.includes('2t') && !raw.includes('t²')) {
-        playSound('click');
-        step0CheckFb.className = 'mt-2 p-2.5 rounded bg-rose-50 text-rose-800 font-bold text-[11px] block';
-        step0CheckFb.innerHTML = '⚠️ <strong>2t</strong> を微分すると定数 <strong>2</strong> になってしまいます！微分して 2t になる次数を考えてみよう。';
-      } else if (raw.includes('t³') || raw.includes('t^3')) {
-        playSound('click');
-        step0CheckFb.className = 'mt-2 p-2.5 rounded bg-rose-50 text-rose-800 font-bold text-[11px] block';
-        step0CheckFb.innerHTML = '⚠️ <strong>t³</strong> を微分すると <strong>3t²</strong> になってしまいます！指数を1つ下げて考えてみよう。';
-      } else if (hasTSquare) {
-        playSound('success');
-        step0CheckFb.className = 'mt-2 p-2.5 rounded bg-emerald-50 text-emerald-800 font-bold text-[11px] block';
-        step0CheckFb.innerHTML = '🎉 大正解！元の位置は <strong>t² ＋ C</strong> です！定数Cは初期位置を表します。';
+      if (appState.ribbonIsPlaying) {
+        text.textContent = '一時停止';
+        btn.classList.replace('bg-indigo-600', 'bg-amber-600');
+        btn.classList.replace('hover:bg-indigo-700', 'hover:bg-amber-700');
+        icon.innerHTML = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
+        appState.ribbonLastTimestamp = performance.now();
+        requestAnimationFrame(ribbonAnimationLoop);
       } else {
-        playSound('click');
-        step0CheckFb.className = 'mt-2 p-2.5 rounded bg-amber-50 text-amber-900 font-bold text-[11px] block';
-        step0CheckFb.innerHTML = 'ヒント: 微分して 2t になる式をパーツパレットから選んで組み立ててみよう！';
+        text.textContent = '伸びるアニメーション開始';
+        btn.classList.replace('bg-amber-600', 'bg-indigo-600');
+        btn.classList.replace('hover:bg-amber-700', 'hover:bg-indigo-700');
+        icon.innerHTML = '<path d="M8 5v14l11-7z"/>';
+        if (appState.ribbonAnimId) {
+          cancelAnimationFrame(appState.ribbonAnimId);
+        }
       }
-    });
+    }
 
-    function drawStep0Canvas() {
-      const canvas = document.getElementById('step0Canvas');
-      if (!canvas || canvas.offsetParent === null) return;
+    function resetRibbonTime() {
+      appState.ribbonTime = 0;
+      if (appState.ribbonIsPlaying) toggleRibbonPlay();
+      syncRibbonTime();
+      drawRibbonAll();
+    }
+
+    function onRibbonSliderInput(val) {
+      appState.ribbonTime = parseFloat(val);
+      syncRibbonTime();
+      drawRibbonAll();
+    }
+
+    function syncRibbonTime() {
+      const slider = document.getElementById('slider-ribbon-t');
+      const disp = document.getElementById('ribbon-time-disp');
+      if (slider) slider.value = appState.ribbonTime;
+      if (disp) disp.textContent = appState.ribbonTime.toFixed(2);
+      updateRibbonBreakdownTable();
+    }
+
+    function updateRibbonBreakdownTable() {
+      const t = appState.ribbonTime;
+      const c = appState.ribbonC;
+      const threeT = 3 * t;
+      const tSq = t * t;
+      const total = c + threeT + tSq;
+
+      const cEl = document.getElementById('calc-c-val');
+      const threeTEl = document.getElementById('calc-3t-val');
+      const threeTDet = document.getElementById('calc-3t-detail');
+      const tSqEl = document.getElementById('calc-tsq-val');
+      const tSqDet = document.getElementById('calc-tsq-detail');
+      const totalEl = document.getElementById('calc-total-val');
+
+      if (cEl) cEl.textContent = `${c.toFixed(1)} cm`;
+      if (threeTEl) threeTEl.textContent = `${threeT.toFixed(1)} cm`;
+      if (threeTDet) threeTDet.textContent = `3 × ${t.toFixed(2)}s`;
+      if (tSqEl) tSqEl.textContent = `${tSq.toFixed(1)} cm`;
+      if (tSqDet) tSqDet.textContent = `${t.toFixed(2)}²`;
+      if (totalEl) totalEl.textContent = `${total.toFixed(1)} cm`;
+    }
+
+    function ribbonAnimationLoop(ts) {
+      if (!appState.ribbonIsPlaying) return;
+      const delta = (ts - appState.ribbonLastTimestamp) / 1000;
+      appState.ribbonLastTimestamp = ts;
+
+      appState.ribbonTime += delta * 0.75;
+      if (appState.ribbonTime >= appState.ribbonMaxTime) {
+        appState.ribbonTime = appState.ribbonMaxTime;
+        syncRibbonTime();
+        drawRibbonAll();
+        toggleRibbonPlay();
+        return;
+      }
+
+      syncRibbonTime();
+      drawRibbonAll();
+      appState.ribbonAnimId = requestAnimationFrame(ribbonAnimationLoop);
+    }
+
+    function updateRibbonC(val) {
+      appState.ribbonC = parseFloat(val);
+      const cDisp = document.getElementById('ribbon-c-val');
+      if (cDisp) cDisp.textContent = `${appState.ribbonC.toFixed(1)} cm`;
+      
+      const fBox = document.getElementById('ribbon-formula-box');
+      if (fBox) {
+        fBox.textContent = `$$L(t) = t^2 + 3t + ${appState.ribbonC}$$`;
+      }
+      triggerMathRender();
+      updateRibbonBreakdownTable();
+      drawRibbonAll();
+    }
+
+    function drawRibbonStrip() {
+      const canvas = document.getElementById('ribbonCanvas');
+      if (!canvas) return;
       const ctx = canvas.getContext('2d');
       const dpr = window.devicePixelRatio || 1;
       const rect = canvas.getBoundingClientRect();
+      if (rect.width === 0 || rect.height === 0) return;
+
       canvas.width = rect.width * dpr;
       canvas.height = rect.height * dpr;
       ctx.scale(dpr, dpr);
 
-      const w = rect.width, h = rect.height;
-      ctx.clearRect(0, 0, w, h);
+      const W = rect.width;
+      const H = rect.height;
+      ctx.clearRect(0, 0, W, H);
 
-      const ox = 70;
-      const oy = h * 0.75;
-      const scaleX = (w - 120) / 4.5;
-      const scaleY = 16;
+      const t = appState.ribbonTime;
+      const c = appState.ribbonC;
+      const tSq = t * t;       // from 2t term
+      const threeT = 3 * t;    // from 3 term
+      const totalLen = c + threeT + tSq; // max around 10 + 12 + 16 = 38cm
 
-      // Axes
-      ctx.strokeStyle = '#334155';
-      ctx.lineWidth = 1.5;
-      ctx.beginPath();
-      ctx.moveTo(ox, 20); ctx.lineTo(ox, h - 20);
-      ctx.moveTo(30, oy); ctx.lineTo(w - 30, oy);
-      ctx.stroke();
-
-      // Parallel curves: C = 0, 3, -4
-      const curves = [
-        { c: 0, color: '#38bdf8', label: 's ＝ t² (C＝0)' },
-        { c: 3, color: '#818cf8', label: 's ＝ t² ＋ 3 (C＝3)' },
-        { c: -4, color: '#34d399', label: 's ＝ t² − 4 (C＝−4)' }
-      ];
-
-      curves.forEach(item => {
-        ctx.strokeStyle = item.color;
-        ctx.lineWidth = 2.5;
-        ctx.beginPath();
-        for (let t = 0; t <= 4.0; t += 0.05) {
-          const s = t * t + item.c;
-          const px = ox + t * scaleX;
-          const py = oy - s * scaleY;
-          if (t === 0) ctx.moveTo(px, py);
-          else ctx.lineTo(px, py);
-        }
-        ctx.stroke();
-
-        const endT = 3.6;
-        const endS = endT * endT + item.c;
-        ctx.fillStyle = item.color;
-        ctx.font = 'bold 11px sans-serif';
-        ctx.fillText(item.label, ox + endT * scaleX + 8, oy - endS * scaleY);
-      });
-    }
-
-    /* --- STEP 1: リボンの伸びアニメーション (r(t) = 2t + 3, R(t) = t^2 + 3t + 5) --- */
-    let step1Time = 0.0;
-    let step1IsPlaying = false;
-    let step1AnimFrame = null;
-
-    const step1PlayBtn = document.getElementById('step1-play-btn');
-    const step1PlayIcon = document.getElementById('step1-play-icon');
-    const step1PlayText = document.getElementById('step1-play-text');
-    const step1ResetBtn = document.getElementById('step1-reset-btn');
-    const step1TimeVal = document.getElementById('step1-time-val');
-    const step1LenVal = document.getElementById('step1-len-val');
-
-    step1PlayBtn.addEventListener('click', () => {
-      step1IsPlaying = !step1IsPlaying;
-      if (step1IsPlaying) {
-        step1PlayIcon.textContent = '⏸';
-        step1PlayText.textContent = '一時停止';
-        playSound('click');
-        runStep1Animation();
-      } else {
-        step1PlayIcon.textContent = '▶';
-        step1PlayText.textContent = '再開';
-        cancelAnimationFrame(step1AnimFrame);
-      }
-    });
-
-    step1ResetBtn.addEventListener('click', () => {
-      step1IsPlaying = false;
-      cancelAnimationFrame(step1AnimFrame);
-      step1PlayIcon.textContent = '▶';
-      step1PlayText.textContent = 'リボンを伸ばす';
-      step1Time = 0.0;
-      step1TimeVal.textContent = '0.0';
-      step1LenVal.textContent = '5.0';
-      drawStep1Canvas();
-    });
-
-    function runStep1Animation() {
-      if (!step1IsPlaying) return;
-      step1Time += 0.025;
-      if (step1Time >= 4.0) {
-        step1Time = 4.0;
-        step1IsPlaying = false;
-        step1PlayIcon.textContent = '▶';
-        step1PlayText.textContent = '再伸長';
-        playSound('success');
-        showToast('リボン伸長完了！4秒で 33cm に到達！', '🎀');
-      }
-
-      // R(t) = t^2 + 3t + 5
-      const totalLen = step1Time * step1Time + 3 * step1Time + 5.0;
-      step1TimeVal.textContent = step1Time.toFixed(1);
-      step1LenVal.textContent = totalLen.toFixed(1);
-
-      drawStep1Canvas();
-      if (step1IsPlaying) {
-        step1AnimFrame = requestAnimationFrame(runStep1Animation);
-      }
-    }
-
-    function drawStep1Canvas() {
-      const canvas = document.getElementById('step1Canvas');
-      if (!canvas || canvas.offsetParent === null) return;
-      const ctx = canvas.getContext('2d');
-      const dpr = window.devicePixelRatio || 1;
-      const rect = canvas.getBoundingClientRect();
-      canvas.width = rect.width * dpr;
-      canvas.height = rect.height * dpr;
-      ctx.scale(dpr, dpr);
-
-      const w = rect.width, h = rect.height;
-      ctx.clearRect(0, 0, w, h);
-
-      // Ribbon max length = 38cm
-      const maxCm = 38;
-      const startX = 60, endX = w - 60;
-      const trackW = endX - startX;
-      const mapX = (cm) => startX + (cm / maxCm) * trackW;
-
-      // Ribbon track area (Middle of canvas)
-      const ribbonY = h * 0.45;
-      const ribbonH = 34;
+      const maxScaleCm = 40;
+      const leftPad = 40;
+      const rightPad = 30;
+      const usableW = W - leftPad - rightPad;
+      const cmToPx = (cm) => leftPad + (cm / maxScaleCm) * usableW;
 
       // Ruler markings
       ctx.strokeStyle = '#334155';
-      ctx.lineWidth = 1.5;
-      ctx.beginPath();
-      ctx.moveTo(startX, ribbonY + ribbonH + 25);
-      ctx.lineTo(endX, ribbonY + ribbonH + 25);
-      ctx.stroke();
-
+      ctx.lineWidth = 1;
       ctx.fillStyle = '#64748b';
       ctx.font = '10px monospace';
-      for (let cm = 0; cm <= maxCm; cm += 5) {
-        const mx = mapX(cm);
+      ctx.textAlign = 'center';
+
+      for (let cm = 0; cm <= maxScaleCm; cm += 5) {
+        const x = cmToPx(cm);
         ctx.beginPath();
-        ctx.moveTo(mx, ribbonY + ribbonH + 25);
-        ctx.lineTo(mx, ribbonY + ribbonH + 30);
+        ctx.moveTo(x, H - 35);
+        ctx.lineTo(x, H - 20);
         ctx.stroke();
-        ctx.fillText(cm + 'cm', mx - 10, ribbonY + ribbonH + 42);
+        ctx.fillText(`${cm}cm`, x, H - 8);
       }
 
-      // Segments:
-      // 1. Initial C = 5cm (Amber)
-      // 2. Uniform 3t (Emerald)
-      // 3. Acceleration t^2 (Blue)
-      const lenC = 5.0;
-      const lenLinear = 3.0 * step1Time;
-      const lenAccel = step1Time * step1Time;
+      // Ribbon segments
+      const ribbonY = 32;
+      const ribbonH = 34;
 
-      const p0 = mapX(0);
-      const pC = mapX(lenC);
-      const pLin = mapX(lenC + lenLinear);
-      const pTotal = mapX(lenC + lenLinear + lenAccel);
+      const x0 = cmToPx(0);
+      const xC = cmToPx(c);
+      const x3T = cmToPx(c + threeT);
+      const xTotal = cmToPx(totalLen);
 
-      // Machine dispenser head
-      ctx.fillStyle = '#1e293b';
-      ctx.beginPath();
-      ctx.roundRect(startX - 30, ribbonY - 10, 30, ribbonH + 20, 6);
-      ctx.fill();
-      ctx.strokeStyle = '#475569';
-      ctx.stroke();
-
-      // Segment 1: C (Amber)
-      ctx.fillStyle = '#f59e0b';
-      ctx.fillRect(p0, ribbonY, pC - p0, ribbonH);
-
-      // Segment 2: 3t (Emerald)
-      if (lenLinear > 0) {
+      // 1. Initial C part (Emerald)
+      if (c > 0) {
         ctx.fillStyle = '#10b981';
-        ctx.fillRect(pC, ribbonY, pLin - pC, ribbonH);
+        ctx.beginPath();
+        ctx.roundRect(x0, ribbonY, xC - x0, ribbonH, [6, 0, 0, 6]);
+        ctx.fill();
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 10px sans-serif';
+        ctx.textAlign = 'center';
+        if (xC - x0 > 24) ctx.fillText(`C:${c}cm`, (x0 + xC) / 2, ribbonY + 21);
       }
 
-      // Segment 3: t^2 (Blue)
-      if (lenAccel > 0) {
-        ctx.fillStyle = '#2563eb';
-        ctx.fillRect(pLin, ribbonY, pTotal - pLin, ribbonH);
+      // 2. Linear 3t part (Amber)
+      if (threeT > 0) {
+        ctx.fillStyle = '#f59e0b';
+        ctx.beginPath();
+        ctx.roundRect(xC, ribbonY, x3T - xC, ribbonH, c === 0 ? [6, 0, 0, 6] : 0);
+        ctx.fill();
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 10px sans-serif';
+        ctx.textAlign = 'center';
+        if (x3T - xC > 28) ctx.fillText(`3t:${threeT.toFixed(1)}`, (xC + x3T) / 2, ribbonY + 21);
       }
 
-      // Ribbon tip
-      ctx.fillStyle = '#cbd5e1';
-      ctx.beginPath();
-      ctx.roundRect(pTotal, ribbonY - 2, 4, ribbonH + 4, 2);
-      ctx.fill();
+      // 3. Quadratic t^2 part (Blue)
+      if (tSq > 0) {
+        ctx.fillStyle = '#3b82f6';
+        ctx.beginPath();
+        ctx.roundRect(x3T, ribbonY, xTotal - x3T, ribbonH, [0, 6, 6, 0]);
+        ctx.fill();
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 10px sans-serif';
+        ctx.textAlign = 'center';
+        if (xTotal - x3T > 28) ctx.fillText(`t²:${tSq.toFixed(1)}`, (x3T + xTotal) / 2, ribbonY + 21);
+      }
 
-      // Segment labels
-      ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 11px sans-serif';
-      if (pC - p0 > 30) ctx.fillText('C=5cm', p0 + 6, ribbonY + 21);
-      if (pLin - pC > 30) ctx.fillText(`3t=${lenLinear.toFixed(1)}`, pC + 6, ribbonY + 21);
-      if (pTotal - pLin > 30) ctx.fillText(`t²=${lenAccel.toFixed(1)}`, pLin + 6, ribbonY + 21);
-
-      // Speed indicator at top
-      const curSpeed = 2 * step1Time + 3.0;
-      ctx.fillStyle = '#38bdf8';
-      ctx.font = 'bold 12px monospace';
-      ctx.fillText(`現在の伸び速さ r(t) ＝ 2t ＋ 3 ＝ ${curSpeed.toFixed(1)} cm/s`, startX, 30);
+      // Header Total Length & Speed
+      ctx.fillStyle = '#f8fafc';
+      ctx.font = '11px sans-serif';
+      ctx.textAlign = 'right';
+      const curSpeed = (2 * t + 3).toFixed(1);
+      ctx.fillText(`現在の長さ L(t) = ${totalLen.toFixed(1)} cm | 伸びる速さ r(t) = 2t+3 = ${curSpeed} cm/s`, W - rightPad, 20);
     }
 
-    /* --- STEP 2: 項ごとの合成グラフ --- */
-    function drawStep2Canvas() {
-      const canvas = document.getElementById('step2Canvas');
-      if (!canvas || canvas.offsetParent === null) return;
+    function drawRibbonGraph() {
+      const canvas = document.getElementById('ribbonGraphCanvas');
+      if (!canvas) return;
       const ctx = canvas.getContext('2d');
       const dpr = window.devicePixelRatio || 1;
       const rect = canvas.getBoundingClientRect();
+      if (rect.width === 0 || rect.height === 0) return;
+
       canvas.width = rect.width * dpr;
       canvas.height = rect.height * dpr;
       ctx.scale(dpr, dpr);
 
-      const w = rect.width, h = rect.height;
-      ctx.clearRect(0, 0, w, h);
+      const W = rect.width;
+      const H = rect.height;
+      const pad = { left: 45, right: 30, top: 25, bottom: 30 };
 
-      const cx = w * 0.45;
-      const cy = h * 0.55;
-      const scaleX = 65;
-      const scaleY = 16;
+      ctx.clearRect(0, 0, W, H);
 
-      // Axes
-      ctx.strokeStyle = '#334155';
+      const tMax = 4.2;
+      const lMax = 42;
+
+      const toX = (t) => pad.left + (t / tMax) * (W - pad.left - pad.right);
+      const toY = (l) => H - pad.bottom - (l / lMax) * (H - pad.top - pad.bottom);
+
+      // Grid
+      ctx.strokeStyle = '#f1f5f9';
+      ctx.lineWidth = 1;
+      for (let l = 0; l <= 40; l += 10) {
+        ctx.beginPath();
+        ctx.moveTo(pad.left, toY(l));
+        ctx.lineTo(W - pad.right, toY(l));
+        ctx.stroke();
+      }
+
+      ctx.strokeStyle = '#94a3b8';
       ctx.lineWidth = 1.5;
       ctx.beginPath();
-      ctx.moveTo(cx, 15); ctx.lineTo(cx, h - 15);
-      ctx.moveTo(25, cy); ctx.lineTo(w - 25, cy);
+      ctx.moveTo(pad.left, toY(0));
+      ctx.lineTo(W - pad.right, toY(0));
+      ctx.moveTo(toX(0), toY(0));
+      ctx.lineTo(toX(0), toY(lMax));
       ctx.stroke();
 
-      // Curve 1: y = (2/3)x^3 (Blue dashed)
-      ctx.strokeStyle = '#2563eb';
-      ctx.lineWidth = 2;
+      // Axis labels
+      ctx.fillStyle = '#64748b';
+      ctx.font = '10px sans-serif';
+      ctx.textAlign = 'right';
+      for (let l = 0; l <= 40; l += 10) {
+        ctx.fillText(`${l}cm`, pad.left - 6, toY(l) + 3);
+      }
+      ctx.textAlign = 'center';
+      for (let t = 1; t <= 4; t++) {
+        ctx.fillText(`${t}s`, toX(t), H - 10);
+      }
+
+      // Comparison curves (C=0, C=5, C=10)
+      const presets = [
+        { c: 0, color: 'rgba(99, 102, 241, 0.35)', label: 'C=0' },
+        { c: 5, color: '#f59e0b', label: 'C=5' },
+        { c: 10, color: 'rgba(16, 185, 129, 0.4)', label: 'C=10' }
+      ];
+
+      presets.forEach(p => {
+        ctx.strokeStyle = p.color;
+        ctx.lineWidth = p.c === appState.ribbonC ? 3 : 1.5;
+        ctx.beginPath();
+        let first = true;
+        for (let t = 0; t <= 4.0; t += 0.05) {
+          const l = t * t + 3 * t + p.c;
+          const x = toX(t);
+          const y = toY(l);
+          if (first) { ctx.moveTo(x, y); first = false; } else { ctx.lineTo(x, y); }
+        }
+        ctx.stroke();
+      });
+
+      // Active curve dot and tangent
+      const curT = appState.ribbonTime;
+      const curL = curT * curT + 3 * curT + appState.ribbonC;
+      const curX = toX(curT);
+      const curY = toY(curL);
+
+      ctx.fillStyle = '#4f46e5';
+      ctx.beginPath();
+      ctx.arc(curX, curY, 6, 0, Math.PI * 2);
+      ctx.fill();
+
+      const showTangent = document.getElementById('show-ribbon-tangent')?.checked;
+      if (showTangent) {
+        const slope = 2 * curT + 3;
+        const dtSpan = 0.6;
+        const t1 = Math.max(0, curT - dtSpan);
+        const t2 = Math.min(4.1, curT + dtSpan);
+        const l1 = curL + slope * (t1 - curT);
+        const l2 = curL + slope * (t2 - curT);
+
+        ctx.strokeStyle = '#ef4444';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([4, 4]);
+        ctx.beginPath();
+        ctx.moveTo(toX(t1), toY(l1));
+        ctx.lineTo(toX(t2), toY(l2));
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        ctx.fillStyle = '#dc2626';
+        ctx.font = 'bold 11px sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText(`接線の傾き (増え方) = 2t + 3 = ${slope.toFixed(1)} cm/s`, pad.left + 10, pad.top + 10);
+      }
+    }
+
+    function drawRibbonAll() {
+      drawRibbonStrip();
+      drawRibbonGraph();
+    }
+
+    // ==========================================
+    // TAB 2: Sum Decomposition Logic
+    // ==========================================
+    const sumProblems = {
+      'prob1': {
+        title: '【ワーク問3】 ∫ (2x² + 3) dx',
+        integral: '\\int (2x^2 + 3) \\, dx',
+        t1Orig: '2x^2', t1Frac: '\\frac{2}{3}x^3',
+        t2Orig: '3', t2Int: '3x',
+        fullAns: '\\frac{2}{3}x^3 + 3x + C',
+        diffCheck: '\\left( \\frac{2}{3}x^3 + 3x + C \\right)\' = \\frac{2}{3}(3x^2) + 3 + 0 = 2x^2 + 3',
+        tip: '3乗を微分すると3倍されるため、相殺するためにあらかじめ 2/3 を掛けておきます。'
+      },
+      'prob2': {
+        title: '【例題】 ∫ (6x² + 4) dx',
+        integral: '\\int (6x^2 + 4) \\, dx',
+        t1Orig: '6x^2', t1Frac: '2x^3',
+        t2Orig: '4', t2Int: '4x',
+        fullAns: '2x^3 + 4x + C',
+        diffCheck: '\\left( 2x^3 + 4x + C \\right)\' = 2(3x^2) + 4 + 0 = 6x^2 + 4',
+        tip: '6 × (x³/3) = 2x³ と綺麗に約分されます。'
+      },
+      'prob3': {
+        title: '【応用】 ∫ (4x³ + 2) dx',
+        integral: '\\int (4x^3 + 2) \\, dx',
+        t1Orig: '4x^3', t1Frac: 'x^4',
+        t2Orig: '2', t2Int: '2x',
+        fullAns: 'x^4 + 2x + C',
+        diffCheck: '\\left( x^4 + 2x + C \\right)\' = 4x^3 + 2 + 0 = 4x^3 + 2',
+        tip: '4 × (x⁴/4) = x⁴ と係数が 1 になります。'
+      }
+    };
+
+    function selectSumProblem(key) {
+      appState.currentSumProbKey = key;
+      document.querySelectorAll('.sum-prob-btn').forEach(b => {
+        b.className = 'sum-prob-btn px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 transition';
+      });
+      const activeBtn = document.getElementById(`sum-btn-${key}`);
+      if (activeBtn) {
+        activeBtn.className = 'sum-prob-btn px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold border border-indigo-600 bg-indigo-600 text-white shadow-sm transition';
+      }
+      renderSumSteps();
+    }
+
+    function renderSumSteps() {
+      const data = sumProblems[appState.currentSumProbKey];
+      const container = document.getElementById('sum-steps-board');
+      const verifCard = document.getElementById('sum-verif-card');
+      if (!container || !verifCard) return;
+
+      container.innerHTML = `
+        <div class="p-3 bg-slate-900 text-white rounded-xl text-center font-mono font-bold text-base shadow-inner">
+          $$${data.integral}$$
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">
+          <!-- Step 1 -->
+          <div class="p-3 bg-blue-50/70 border border-blue-200 rounded-xl space-y-1">
+            <span class="text-[10px] font-bold uppercase text-blue-700">STEP 1: 項を分解</span>
+            <div class="font-mono text-xs text-blue-950 font-semibold pt-1">
+              $$\\int ${data.t1Orig} \\, dx + \\int ${data.t2Orig} \\, dx$$
+            </div>
+            <p class="text-[10px] text-slate-500">足し算は項ごとに別々に考える</p>
+          </div>
+
+          <!-- Step 2 -->
+          <div class="p-3 bg-amber-50/70 border border-amber-200 rounded-xl space-y-1">
+            <span class="text-[10px] font-bold uppercase text-amber-700">STEP 2: それぞれ戻す</span>
+            <div class="font-mono text-xs text-amber-950 font-semibold pt-1">
+              $$${data.t1Frac} + ${data.t2Int}$$
+            </div>
+            <p class="text-[10px] text-slate-500">${data.tip}</p>
+          </div>
+
+          <!-- Step 3 -->
+          <div class="p-3 bg-emerald-50/70 border border-emerald-200 rounded-xl space-y-1">
+            <span class="text-[10px] font-bold uppercase text-emerald-700">STEP 3: 最後に +C</span>
+            <div class="font-mono text-xs text-emerald-950 font-semibold pt-1">
+              $$${data.fullAns}$$
+            </div>
+            <p class="text-[10px] text-slate-500">定数はまとめて1つでOK</p>
+          </div>
+        </div>
+      `;
+
+      verifCard.innerHTML = `
+        <div class="flex items-center justify-between">
+          <span class="font-bold text-emerald-900 flex items-center gap-1.5">
+            <svg class="w-4 h-4 text-emerald-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+            微分による逆再生（検算）
+          </span>
+          <span class="text-[10px] bg-emerald-200 text-emerald-800 font-bold px-2 py-0.5 rounded font-mono">一致確認</span>
+        </div>
+        <div class="font-mono text-slate-800 pt-1 text-center sm:text-left">
+          $$${data.diffCheck}$$
+        </div>
+        <p class="text-slate-600 text-[11px]">
+          微分すると各項の指数が降りてきて、定数 \(C\) は \(0\) に消滅し、元の被積分関数に完全に一致します。
+        </p>
+      `;
+
+      triggerMathRender();
+    }
+
+    // ==========================================
+    // TAB 3: Fraction Splitting Logic
+    // ==========================================
+    const fractionData = {
+      'frac1': {
+        formula: '\\frac{x^2 + 2x}{x}',
+        split1: '\\frac{x^2}{x}',
+        split2: '\\frac{2x}{x}',
+        simplified: 'x + 2',
+        integrated: '\\frac{x^2}{2} + 2x + C \\quad (x \\neq 0)',
+        diff: '\\left( \\frac{x^2}{2} + 2x + C \\right)\' = x + 2',
+        holeAt: { x: 0, y: 2 }
+      },
+      'frac2': {
+        formula: '\\frac{3x^3 + x}{x}',
+        split1: '\\frac{3x^3}{x}',
+        split2: '\\frac{x}{x}',
+        simplified: '3x^2 + 1',
+        integrated: 'x^3 + x + C \\quad (x \\neq 0)',
+        diff: '\\left( x^3 + x + C \\right)\' = 3x^2 + 1',
+        holeAt: { x: 0, y: 1 }
+      },
+      'frac3': {
+        formula: '\\frac{x^2 - 4x}{x}',
+        split1: '\\frac{x^2}{x}',
+        split2: '-\\frac{4x}{x}',
+        simplified: 'x - 4',
+        integrated: '\\frac{x^2}{2} - 4x + C \\quad (x \\neq 0)',
+        diff: '\\left( \\frac{x^2}{2} - 4x + C \\right)\' = x - 4',
+        holeAt: { x: 0, y: -4 }
+      },
+      'frac4': {
+        formula: '\\frac{2x^4 + 5x^2}{x^2}',
+        split1: '\\frac{2x^4}{x^2}',
+        split2: '\\frac{5x^2}{x^2}',
+        simplified: '2x^2 + 5',
+        integrated: '\\frac{2}{3}x^3 + 5x + C \\quad (x \\neq 0)',
+        diff: '\\left( \\frac{2}{3}x^3 + 5x + C \\right)\' = 2x^2 + 5',
+        holeAt: { x: 0, y: 5 }
+      }
+    };
+
+    function onFractionPresetChange() {
+      const sel = document.getElementById('fraction-preset-select');
+      appState.currentFracKey = sel.value;
+      renderFractionView();
+      drawPuncturedCanvas();
+    }
+
+    function renderFractionView() {
+      const item = fractionData[appState.currentFracKey];
+      const splitDisplay = document.getElementById('fraction-split-display');
+      const flow = document.getElementById('fraction-integration-flow');
+      if (!splitDisplay || !flow) return;
+
+      splitDisplay.innerHTML = `
+        <div class="text-xl sm:text-2xl font-bold font-mono">
+          $$${item.formula} = ${item.split1} + ${item.split2}$$
+        </div>
+        <div class="text-xs text-indigo-200">各項を約分すると：</div>
+        <div class="text-lg sm:text-xl font-bold font-mono text-amber-300">
+          $$= ${item.simplified} \\quad (x \\neq 0)$$
+        </div>
+      `;
+
+      flow.innerHTML = `
+        <div class="p-4 bg-emerald-50 rounded-xl border border-emerald-200 space-y-2 text-xs">
+          <div class="font-bold text-emerald-900 flex items-center gap-1.5">
+            <svg class="w-4 h-4 text-emerald-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+            整式に直してから不定積分を実行：
+          </div>
+          <div class="font-mono text-center text-sm font-bold text-slate-800 py-1">
+            $$\\int \\left( ${item.simplified} \\right) \\, dx = ${item.integrated}$$
+          </div>
+          <div class="text-slate-600 pt-1 border-t border-emerald-150">
+            検算: $$${item.diff}$$ （約分した式と完全に一致！）
+          </div>
+        </div>
+      `;
+
+      triggerMathRender();
+    }
+
+    function drawPuncturedCanvas() {
+      const canvas = document.getElementById('puncturedCanvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const dpr = window.devicePixelRatio || 1;
+      const rect = canvas.getBoundingClientRect();
+      if (rect.width === 0 || rect.height === 0) return;
+
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.scale(dpr, dpr);
+
+      const W = rect.width;
+      const H = rect.height;
+      const pad = { left: 35, right: 20, top: 20, bottom: 25 };
+      ctx.clearRect(0, 0, W, H);
+
+      const xMin = -3, xMax = 3;
+      const yMin = -2, yMax = 6;
+
+      const toX = (x) => pad.left + ((x - xMin) / (xMax - xMin)) * (W - pad.left - pad.right);
+      const toY = (y) => H - pad.bottom - ((y - yMin) / (yMax - yMin)) * (H - pad.top - pad.bottom);
+
+      // Axes
+      ctx.strokeStyle = '#cbd5e1';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(pad.left, toY(0));
+      ctx.lineTo(W - pad.right, toY(0));
+      ctx.moveTo(toX(0), toY(yMin));
+      ctx.lineTo(toX(0), toY(yMax));
+      ctx.stroke();
+
+      // Axis Numbers
+      ctx.fillStyle = '#64748b';
+      ctx.font = '9px sans-serif';
+      ctx.textAlign = 'right';
+      ctx.fillText('0', toX(0) - 3, toY(0) + 10);
+      ctx.fillText('x', W - pad.right + 12, toY(0) + 3);
+      ctx.fillText('y', toX(0) - 3, pad.top - 5);
+
+      // Draw line y = x + 2
+      ctx.strokeStyle = '#10b981';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.moveTo(toX(-3), toY(-1));
+      ctx.lineTo(toX(3), toY(5));
+      ctx.stroke();
+
+      // Hole at (0, 2)
+      const hX = toX(0);
+      const hY = toY(2);
+
+      // Dotted drop lines
+      ctx.strokeStyle = '#f43f5e';
       ctx.setLineDash([3, 3]);
       ctx.beginPath();
-      for (let x = -2.2; x <= 2.2; x += 0.05) {
-        const y = (2 / 3) * Math.pow(x, 3);
-        const px = cx + x * scaleX;
-        const py = cy - y * scaleY;
-        if (x === -2.2) ctx.moveTo(px, py);
-        else ctx.lineTo(px, py);
-      }
-      ctx.stroke();
-
-      // Curve 2: y = 3x (Emerald dashed)
-      ctx.strokeStyle = '#10b981';
-      ctx.beginPath();
-      for (let x = -2.2; x <= 2.2; x += 0.05) {
-        const y = 3 * x;
-        const px = cx + x * scaleX;
-        const py = cy - y * scaleY;
-        if (x === -2.2) ctx.moveTo(px, py);
-        else ctx.lineTo(px, py);
-      }
+      ctx.moveTo(hX, toY(0));
+      ctx.lineTo(hX, hY);
       ctx.stroke();
       ctx.setLineDash([]);
 
-      // Curve 3: y = (2/3)x^3 + 3x (Purple solid)
-      ctx.strokeStyle = '#a855f7';
-      ctx.lineWidth = 3.5;
+      // Hollow circle
+      ctx.fillStyle = '#ffffff';
       ctx.beginPath();
-      for (let x = -2.2; x <= 2.2; x += 0.05) {
-        const y = (2 / 3) * Math.pow(x, 3) + 3 * x;
-        const px = cx + x * scaleX;
-        const py = cy - y * scaleY;
-        if (x === -2.2) ctx.moveTo(px, py);
-        else ctx.lineTo(px, py);
-      }
+      ctx.arc(hX, hY, 5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#e11d48';
+      ctx.lineWidth = 2.5;
       ctx.stroke();
 
-      // Labels
-      ctx.font = 'bold 11px sans-serif';
-      ctx.fillStyle = '#3b82f6';
-      ctx.fillText('(2/3)x³', cx + 70, cy - 80);
-
-      ctx.fillStyle = '#10b981';
-      ctx.fillText('3x', cx + 110, cy - 50);
-
-      ctx.fillStyle = '#c084fc';
-      ctx.fillText('全体: (2/3)x³ ＋ 3x', cx + 50, cy - 110);
+      ctx.fillStyle = '#e11d48';
+      ctx.font = 'bold 10px sans-serif';
+      ctx.textAlign = 'left';
+      ctx.fillText('未定義の穴 (x=0)', hX + 8, hY + 3);
     }
 
-    /* --- STEP 3: 分数式の分解 (x^2 + 2x)/x = x + 2 (x ≠ 0) --- */
-    function drawStep3Canvas() {
-      const canvas = document.getElementById('step3Canvas');
-      if (!canvas || canvas.offsetParent === null) return;
+    // ==========================================
+    // TAB 4: 1/x and log|x| Visualizer
+    // ==========================================
+    
+    function onLogXSliderInput(val) {
+      let x = parseFloat(val);
+      if (Math.abs(x) < 0.2) {
+        x = x >= 0 ? 0.2 : -0.2; // avoid x = 0 exact
+      }
+      setLogX(x);
+    }
+
+    function setLogX(x) {
+      appState.logX = x;
+      const slider = document.getElementById('slider-log-x');
+      const disp = document.getElementById('log-x-disp');
+      if (slider) slider.value = x;
+      if (disp) disp.textContent = x.toFixed(1);
+
+      const invVal = (1 / x).toFixed(2);
+      const logVal = Math.log(Math.abs(x)).toFixed(2);
+      document.getElementById('val-inv-x').textContent = `y = 1/(${x.toFixed(1)}) = ${invVal}`;
+      document.getElementById('val-log-x').textContent = `y = log|${x.toFixed(1)}| = ${logVal}`;
+
+      drawLogVisuals();
+    }
+
+    function drawLogVisuals() {
+      drawHyperbolaCanvas();
+      drawLogCurveCanvas();
+    }
+
+    function drawHyperbolaCanvas() {
+      const canvas = document.getElementById('hyperbolaCanvas');
+      if (!canvas) return;
       const ctx = canvas.getContext('2d');
       const dpr = window.devicePixelRatio || 1;
       const rect = canvas.getBoundingClientRect();
+      if (rect.width === 0 || rect.height === 0) return;
+
       canvas.width = rect.width * dpr;
       canvas.height = rect.height * dpr;
       ctx.scale(dpr, dpr);
 
-      const w = rect.width, h = rect.height;
-      ctx.clearRect(0, 0, w, h);
+      const W = rect.width;
+      const H = rect.height;
+      const pad = { left: 35, right: 20, top: 20, bottom: 25 };
+      ctx.clearRect(0, 0, W, H);
 
-      const cx = w * 0.45;
-      const cy = h * 0.65;
-      const scaleX = 45;
-      const scaleY = 32;
+      const xMin = -3.5, xMax = 3.5;
+      const yMin = -3.5, yMax = 3.5;
+
+      const toX = (x) => pad.left + ((x - xMin) / (xMax - xMin)) * (W - pad.left - pad.right);
+      const toY = (y) => H - pad.bottom - ((y - yMin) / (yMax - yMin)) * (H - pad.top - pad.bottom);
 
       // Axes
-      ctx.strokeStyle = '#334155';
-      ctx.lineWidth = 1.5;
+      ctx.strokeStyle = '#cbd5e1';
+      ctx.lineWidth = 1.2;
       ctx.beginPath();
-      ctx.moveTo(cx, 15); ctx.lineTo(cx, h - 15);
-      ctx.moveTo(25, cy); ctx.lineTo(w - 25, cy);
+      ctx.moveTo(pad.left, toY(0));
+      ctx.lineTo(W - pad.right, toY(0));
+      ctx.moveTo(toX(0), toY(yMin));
+      ctx.lineTo(toX(0), toY(yMax));
       ctx.stroke();
 
-      // Straight line y = x + 2
-      ctx.strokeStyle = '#10b981';
-      ctx.lineWidth = 3;
+      // Plot y = 1/x
+      ctx.strokeStyle = '#0284c7';
+      ctx.lineWidth = 2.5;
 
-      // Right part x > 0
+      // Positive branch (x > 0.2)
       ctx.beginPath();
-      for (let x = 0.05; x <= 4.0; x += 0.1) {
-        const y = x + 2;
-        const px = cx + x * scaleX;
-        const py = cy - y * scaleY;
-        if (x === 0.05) ctx.moveTo(px, py);
-        else ctx.lineTo(px, py);
+      let first = true;
+      for (let x = 0.25; x <= 3.3; x += 0.05) {
+        const y = 1 / x;
+        const px = toX(x);
+        const py = toY(y);
+        if (first) { ctx.moveTo(px, py); first = false; } else { ctx.lineTo(px, py); }
       }
       ctx.stroke();
 
-      // Left part x < 0
+      // Negative branch (x < -0.2)
       ctx.beginPath();
-      for (let x = -4.0; x <= -0.05; x += 0.1) {
-        const y = x + 2;
-        const px = cx + x * scaleX;
-        const py = cy - y * scaleY;
-        if (x === -4.0) ctx.moveTo(px, py);
-        else ctx.lineTo(px, py);
+      first = true;
+      for (let x = -3.3; x <= -0.25; x += 0.05) {
+        const y = 1 / x;
+        const px = toX(x);
+        const py = toY(y);
+        if (first) { ctx.moveTo(px, py); first = false; } else { ctx.lineTo(px, py); }
       }
       ctx.stroke();
 
-      // Hole at x = 0 (y = 2)
-      const holeX = cx;
-      const holeY = cy - 2 * scaleY;
-      ctx.fillStyle = '#020617';
+      // Current point on y = 1/x
+      const curX = appState.logX;
+      const curY = 1 / curX;
+      const ptX = toX(curX);
+      const ptY = toY(curY);
+
+      ctx.fillStyle = '#dc2626';
       ctx.beginPath();
-      ctx.arc(holeX, holeY, 5.5, 0, Math.PI * 2);
+      ctx.arc(ptX, ptY, 5.5, 0, Math.PI * 2);
       ctx.fill();
+
+      // Drop lines
+      ctx.strokeStyle = '#dc2626';
+      ctx.setLineDash([3, 3]);
+      ctx.beginPath();
+      ctx.moveTo(ptX, toY(0));
+      ctx.lineTo(ptX, ptY);
+      ctx.lineTo(toX(0), ptY);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    function drawLogCurveCanvas() {
+      const canvas = document.getElementById('logCanvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const dpr = window.devicePixelRatio || 1;
+      const rect = canvas.getBoundingClientRect();
+      if (rect.width === 0 || rect.height === 0) return;
+
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.scale(dpr, dpr);
+
+      const W = rect.width;
+      const H = rect.height;
+      const pad = { left: 35, right: 20, top: 20, bottom: 25 };
+      ctx.clearRect(0, 0, W, H);
+
+      const xMin = -3.5, xMax = 3.5;
+      const yMin = -2.5, yMax = 2.5;
+
+      const toX = (x) => pad.left + ((x - xMin) / (xMax - xMin)) * (W - pad.left - pad.right);
+      const toY = (y) => H - pad.bottom - ((y - yMin) / (yMax - yMin)) * (H - pad.top - pad.bottom);
+
+      // Axes
+      ctx.strokeStyle = '#cbd5e1';
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.moveTo(pad.left, toY(0));
+      ctx.lineTo(W - pad.right, toY(0));
+      ctx.moveTo(toX(0), toY(yMin));
+      ctx.lineTo(toX(0), toY(yMax));
+      ctx.stroke();
+
+      // Plot y = log|x|
+      ctx.strokeStyle = '#7c3aed';
+      ctx.lineWidth = 2.5;
+
+      // Positive side
+      ctx.beginPath();
+      let first = true;
+      for (let x = 0.15; x <= 3.3; x += 0.05) {
+        const y = Math.log(x);
+        const px = toX(x);
+        const py = toY(y);
+        if (first) { ctx.moveTo(px, py); first = false; } else { ctx.lineTo(px, py); }
+      }
+      ctx.stroke();
+
+      // Negative side (absolute value)
+      ctx.beginPath();
+      first = true;
+      for (let x = -3.3; x <= -0.15; x += 0.05) {
+        const y = Math.log(-x);
+        const px = toX(x);
+        const py = toY(y);
+        if (first) { ctx.moveTo(px, py); first = false; } else { ctx.lineTo(px, py); }
+      }
+      ctx.stroke();
+
+      // Point and Tangent Line
+      const curX = appState.logX;
+      const curY = Math.log(Math.abs(curX));
+      const ptX = toX(curX);
+      const ptY = toY(curY);
+
+      // Tangent slope = 1/curX
+      const slope = 1 / curX;
+      const dxSpan = 0.8;
+      const x1 = curX - dxSpan;
+      const x2 = curX + dxSpan;
+      const y1 = curY + slope * (x1 - curX);
+      const y2 = curY + slope * (x2 - curX);
+
       ctx.strokeStyle = '#ef4444';
       ctx.lineWidth = 2;
-      ctx.stroke();
-
-      ctx.fillStyle = '#ef4444';
-      ctx.font = 'bold 11px sans-serif';
-      ctx.fillText('(0, 2) は白丸（除外）', holeX + 12, holeY + 4);
-
-      ctx.fillStyle = '#34d399';
-      ctx.fillText('y ＝ (x² ＋ 2x) / x ＝ x ＋ 2', cx + 40, cy - 110);
-    }
-
-    /* --- TAB 2: 動的リボン＆多項式ラボ --- */
-    let labA = 2.0;
-    let labB = 3.0;
-    let labC = 5.0;
-    let labT = 2.0;
-    let labIsPlaying = false;
-    let labAnimFrame = null;
-
-    const labASlider = document.getElementById('lab-a-slider');
-    const labBSlider = document.getElementById('lab-b-slider');
-    const labCSlider = document.getElementById('lab-c-slider');
-    const labTSlider = document.getElementById('lab-t-slider');
-    const labADisplay = document.getElementById('lab-a-display');
-    const labBDisplay = document.getElementById('lab-b-display');
-    const labCDisplay = document.getElementById('lab-c-display');
-    const labTDisplay = document.getElementById('lab-t-display');
-    const labEqDisplay = document.getElementById('lab-equation-display');
-    const labReadoutR = document.getElementById('lab-readout-r');
-    const labReadoutLen = document.getElementById('lab-readout-len');
-    const labReadoutSlope = document.getElementById('lab-readout-slope');
-    const labHudLen = document.getElementById('lab-hud-len');
-    const labHudSpeed = document.getElementById('lab-hud-speed');
-    const labPlayBtn = document.getElementById('lab-play-btn');
-    const labPlayIcon = document.getElementById('lab-play-icon');
-    const labPlayText = document.getElementById('lab-play-text');
-
-    function updateLabMath() {
-      // r(t) = a*t + b
-      // R(t) = (a/2)*t^2 + b*t + C
-      const curSpeed = labA * labT + labB;
-      const curLen = 0.5 * labA * labT * labT + labB * labT + labC;
-
-      labADisplay.textContent = labA.toFixed(1);
-      labBDisplay.textContent = labB.toFixed(1);
-      labCDisplay.textContent = labC.toFixed(1) + ' cm';
-      labTDisplay.textContent = labT.toFixed(2);
-
-      const aFrac = (labA === 2) ? 't²' : `${(labA / 2).toFixed(1)}t²`;
-      labEqDisplay.textContent = `R(t) ＝ ${aFrac} ＋ ${labB.toFixed(1)}t ＋ ${labC.toFixed(1)}`;
-
-      labReadoutR.textContent = `${curSpeed.toFixed(2)} cm/s`;
-      labReadoutLen.textContent = `${curLen.toFixed(2)} cm`;
-      labReadoutSlope.textContent = curSpeed.toFixed(2);
-      labHudLen.textContent = curLen.toFixed(2);
-      labHudSpeed.textContent = curSpeed.toFixed(2);
-
-      drawLabCanvas();
-    }
-
-    labASlider.addEventListener('input', () => { labA = parseFloat(labASlider.value); updateLabMath(); });
-    labBSlider.addEventListener('input', () => { labB = parseFloat(labBSlider.value); updateLabMath(); });
-    labCSlider.addEventListener('input', () => { labC = parseFloat(labCSlider.value); updateLabMath(); });
-    labTSlider.addEventListener('input', () => { labT = parseFloat(labTSlider.value); updateLabMath(); });
-
-    document.getElementById('lab-show-tangent').addEventListener('change', drawLabCanvas);
-    document.getElementById('lab-show-breakdown').addEventListener('change', drawLabCanvas);
-
-    labPlayBtn.addEventListener('click', () => {
-      labIsPlaying = !labIsPlaying;
-      if (labIsPlaying) {
-        labPlayIcon.textContent = '⏸';
-        labPlayText.textContent = '一時停止';
-        playSound('click');
-        runLabAnimation();
-      } else {
-        labPlayIcon.textContent = '▶';
-        labPlayText.textContent = 'リボン伸長';
-        cancelAnimationFrame(labAnimFrame);
-      }
-    });
-
-    function runLabAnimation() {
-      if (!labIsPlaying) return;
-      labT += 0.02;
-      if (labT > 5.0) labT = 0.0;
-      labTSlider.value = labT;
-      updateLabMath();
-      labAnimFrame = requestAnimationFrame(runLabAnimation);
-    }
-
-    function drawLabCanvas() {
-      const canvas = document.getElementById('labCanvas');
-      if (!canvas || canvas.offsetParent === null) return;
-      const ctx = canvas.getContext('2d');
-      const dpr = window.devicePixelRatio || 1;
-      const rect = canvas.getBoundingClientRect();
-      canvas.width = rect.width * dpr;
-      canvas.height = rect.height * dpr;
-      ctx.scale(dpr, dpr);
-
-      const w = rect.width, h = rect.height;
-      ctx.clearRect(0, 0, w, h);
-
-      // Top: Ribbon Extruder
-      const trackTop = 15;
-      const trackH = 75;
-      const ribbonY = trackTop + 20;
-      const ribbonH = 30;
-
-      const startX = 60, endX = w - 60;
-      const trackW = endX - startX;
-      const maxCm = 55;
-      const mapTrackX = (cm) => startX + (Math.max(0, Math.min(maxCm, cm)) / maxCm) * trackW;
-
-      ctx.fillStyle = 'rgba(15, 23, 42, 0.6)';
-      ctx.fillRect(startX - 20, trackTop, trackW + 40, trackH);
-      ctx.strokeStyle = '#334155';
-      ctx.lineWidth = 1.5;
-      ctx.strokeRect(startX - 20, trackTop, trackW + 40, trackH);
-
-      // Ticks on track
-      ctx.strokeStyle = '#475569';
-      ctx.lineWidth = 1;
-      ctx.fillStyle = '#94a3b8';
-      ctx.font = '10px monospace';
-      for (let cm = 0; cm <= maxCm; cm += 10) {
-        const mx = mapTrackX(cm);
-        ctx.beginPath();
-        ctx.moveTo(mx, ribbonY + ribbonH + 8); ctx.lineTo(mx, ribbonY + ribbonH + 13);
-        ctx.stroke();
-        ctx.fillText(cm + 'cm', mx - 10, ribbonY + ribbonH + 23);
-      }
-
-      // Ribbon parts
-      const lenC = labC;
-      const lenLin = labB * labT;
-      const lenAccel = 0.5 * labA * labT * labT;
-      const showBreakdown = document.getElementById('lab-show-breakdown').checked;
-
-      const p0 = mapTrackX(0);
-      const pC = mapTrackX(lenC);
-      const pLin = mapTrackX(lenC + lenLin);
-      const pTotal = mapTrackX(lenC + lenLin + lenAccel);
-
-      if (showBreakdown) {
-        ctx.fillStyle = '#f59e0b';
-        ctx.fillRect(p0, ribbonY, pC - p0, ribbonH);
-        ctx.fillStyle = '#10b981';
-        ctx.fillRect(pC, ribbonY, pLin - pC, ribbonH);
-        ctx.fillStyle = '#2563eb';
-        ctx.fillRect(pLin, ribbonY, pTotal - pLin, ribbonH);
-      } else {
-        ctx.fillStyle = '#8b5cf6';
-        ctx.fillRect(p0, ribbonY, pTotal - p0, ribbonH);
-      }
-
-      // Bottom Graph: R(t)
-      const graphTop = 105;
-      const ox = 70;
-      const oy = h - 40;
-      const scaleX = (w - 130) / 5.2;
-      const scaleY = 4.8; // px per cm
-
-      ctx.strokeStyle = '#334155';
-      ctx.lineWidth = 1.5;
+      ctx.setLineDash([4, 3]);
       ctx.beginPath();
-      ctx.moveTo(ox, graphTop + 20); ctx.lineTo(ox, oy + 25);
-      ctx.moveTo(40, oy); ctx.lineTo(w - 40, oy);
+      ctx.moveTo(toX(x1), toY(y1));
+      ctx.lineTo(toX(x2), toY(y2));
       ctx.stroke();
+      ctx.setLineDash([]);
 
-      ctx.fillStyle = '#64748b';
-      ctx.font = '10px monospace';
-      ctx.fillText('時刻 t (秒)', w - 65, oy + 16);
-      ctx.fillText('長さ R (cm)', ox - 50, graphTop + 25);
-
-      // Curve R(t)
-      ctx.strokeStyle = '#a855f7';
-      ctx.lineWidth = 3.5;
+      ctx.fillStyle = '#7c3aed';
       ctx.beginPath();
-      for (let t = 0; t <= 5.0; t += 0.05) {
-        const len = 0.5 * labA * t * t + labB * t + labC;
-        const px = ox + t * scaleX;
-        const py = oy - len * scaleY;
-        if (t === 0) ctx.moveTo(px, py);
-        else ctx.lineTo(px, py);
-      }
-      ctx.stroke();
-
-      // Current Point and Tangent
-      const curLen = 0.5 * labA * labT * labT + labB * labT + labC;
-      const curSpeed = labA * labT + labB;
-      const ptX = ox + labT * scaleX;
-      const ptY = oy - curLen * scaleY;
-
-      const showTangent = document.getElementById('lab-show-tangent').checked;
-      if (showTangent) {
-        const tw = 0.8;
-        const t1 = labT - tw;
-        const s1 = curLen - curSpeed * tw;
-        const t2 = labT + tw;
-        const s2 = curLen + curSpeed * tw;
-
-        ctx.strokeStyle = '#f59e0b';
-        ctx.lineWidth = 2.5;
-        ctx.beginPath();
-        ctx.moveTo(ox + t1 * scaleX, oy - s1 * scaleY);
-        ctx.lineTo(ox + t2 * scaleX, oy - s2 * scaleY);
-        ctx.stroke();
-      }
-
-      ctx.fillStyle = '#ef4444';
-      ctx.beginPath();
-      ctx.arc(ptX, ptY, 6, 0, Math.PI * 2);
+      ctx.arc(ptX, ptY, 5.5, 0, Math.PI * 2);
       ctx.fill();
 
-      // Guideline
-      ctx.strokeStyle = '#cbd5e1';
-      ctx.setLineDash([3, 3]);
-      ctx.beginPath();
-      ctx.moveTo(ptX, graphTop + 20); ctx.lineTo(ptX, oy);
-      ctx.stroke();
-      ctx.setLineDash([]);
+      ctx.fillStyle = '#dc2626';
+      ctx.font = 'bold 10px sans-serif';
+      ctx.textAlign = 'left';
+      ctx.fillText(`傾き = 1/x = ${slope.toFixed(2)}`, ptX + 8, ptY - 8);
     }
 
-    /* --- TAB 3: 1/x と log|x| の描画 --- */
-    function drawLogCanvas() {
-      const canvas = document.getElementById('logCanvas');
-      if (!canvas || canvas.offsetParent === null) return;
-      const ctx = canvas.getContext('2d');
-      const dpr = window.devicePixelRatio || 1;
-      const rect = canvas.getBoundingClientRect();
-      canvas.width = rect.width * dpr;
-      canvas.height = rect.height * dpr;
-      ctx.scale(dpr, dpr);
-
-      const w = rect.width, h = rect.height;
-      ctx.clearRect(0, 0, w, h);
-
-      const cx = w * 0.5;
-      const cy = h * 0.5;
-      const scaleX = 45;
-      const scaleY = 32;
-
-      // Axes
-      ctx.strokeStyle = '#334155';
-      ctx.lineWidth = 1.5;
-      ctx.beginPath();
-      ctx.moveTo(cx, 10); ctx.lineTo(cx, h - 10);
-      ctx.moveTo(20, cy); ctx.lineTo(w - 20, cy);
-      ctx.stroke();
-
-      // 1. Curve f(x) = 1/x (White dashed hyperbola)
-      ctx.strokeStyle = '#f8fafc';
-      ctx.lineWidth = 2;
-      ctx.setLineDash([3, 3]);
-
-      // Right branch x > 0
-      ctx.beginPath();
-      for (let x = 0.2; x <= 4.0; x += 0.05) {
-        const y = 1 / x;
-        const px = cx + x * scaleX;
-        const py = cy - y * scaleY;
-        if (x === 0.2) ctx.moveTo(px, py);
-        else ctx.lineTo(px, py);
+    // ==========================================
+    // TAB 5: Differentiation Lab Engine
+    // ==========================================
+    const labProblems = {
+      'exA': {
+        title: '【出口課題 A】',
+        latex: '\\int (4x^3 + 2) \\, dx',
+        fields: [
+          { id: 'f1', label: '第1項の元 (4x³)', target: 'x^4', hint: '4 × (x⁴/4) = x⁴' },
+          { id: 'f2', label: '第2項の元 (2)', target: '2x', hint: '定数2を積分すると 2x' }
+        ],
+        integrand: '4x^3 + 2',
+        requiresC: true
+      },
+      'exB': {
+        title: '【出口課題 B】',
+        latex: '\\int \\frac{1}{x} \\, dx \\quad (x \\neq 0)',
+        fields: [
+          { id: 'f1', label: '元の関数', target: 'log|x|', altTarget: 'ln|x|', hint: 'x⁻¹ の特別ルール: log|x|' }
+        ],
+        integrand: '\\frac{1}{x}',
+        requiresC: true
+      },
+      'p3': {
+        title: '【ワーク問3】',
+        latex: '\\int (2x^2 + 3) \\, dx',
+        fields: [
+          { id: 'f1', label: '第1項の元 (2x²)', target: '2/3x^3', altTarget: '(2/3)x^3', hint: '2 × (x³/3) = 2/3 x³' },
+          { id: 'f2', label: '第2項の元 (3)', target: '3x', hint: '定数3を積分すると 3x' }
+        ],
+        integrand: '2x^2 + 3',
+        requiresC: true
+      },
+      'p4': {
+        title: '【ワーク問4】',
+        latex: '\\int \\frac{x^2+2x}{x} \\, dx \\quad (x \\neq 0)',
+        fields: [
+          { id: 'f1', label: '先に約分した式', target: 'x+2', hint: 'x²/x + 2x/x = x+2' },
+          { id: 'f2', label: 'x の積分', target: 'x^2/2', altTarget: '1/2x^2', hint: 'x¹ を積分すると x²/2' },
+          { id: 'f3', label: '2 の積分', target: '2x', hint: '定数2を積分すると 2x' }
+        ],
+        integrand: 'x + 2',
+        requiresC: true
+      },
+      'p6': {
+        title: '【ワーク問6 発展】',
+        latex: '\\int \\left( 3x^2 + 2 + \\frac{1}{x} \\right) \\, dx \\quad (x \\neq 0)',
+        fields: [
+          { id: 'f1', label: '3x² の元', target: 'x^3', hint: '3 × (x³/3) = x³' },
+          { id: 'f2', label: '2 の元', target: '2x', hint: '2x' },
+          { id: 'f3', label: '1/x の元', target: 'log|x|', altTarget: 'ln|x|', hint: 'log|x|' }
+        ],
+        integrand: '3x^2 + 2 + \\frac{1}{x}',
+        requiresC: true
       }
-      ctx.stroke();
+    };
 
-      // Left branch x < 0
-      ctx.beginPath();
-      for (let x = -4.0; x <= -0.2; x += 0.05) {
-        const y = 1 / x;
-        const px = cx + x * scaleX;
-        const py = cy - y * scaleY;
-        if (x === -4.0) ctx.moveTo(px, py);
-        else ctx.lineTo(px, py);
-      }
-      ctx.stroke();
-      ctx.setLineDash([]);
+    function loadLabProblem() {
+      const select = document.getElementById('lab-prob-select');
+      const key = select.value;
+      appState.labKey = key;
+      const prob = labProblems[key];
 
-      // 2. Antiderivative F(x) = log |x| (Rose solid)
-      ctx.strokeStyle = '#fb7185';
-      ctx.lineWidth = 3;
+      document.getElementById('lab-prob-title').textContent = prob.title;
+      document.getElementById('lab-prob-latex').innerHTML = `$$${prob.latex}$$`;
 
-      // Right branch x > 0
-      ctx.beginPath();
-      for (let x = 0.1; x <= 4.0; x += 0.05) {
-        const y = Math.log(x);
-        const px = cx + x * scaleX;
-        const py = cy - y * scaleY;
-        if (x === 0.1) ctx.moveTo(px, py);
-        else ctx.lineTo(px, py);
-      }
-      ctx.stroke();
+      const container = document.getElementById('lab-inputs-container');
+      if (!container) return;
 
-      // Left branch x < 0
-      ctx.beginPath();
-      for (let x = -4.0; x <= -0.1; x += 0.05) {
-        const y = Math.log(-x); // |x|
-        const px = cx + x * scaleX;
-        const py = cy - y * scaleY;
-        if (x === -4.0) ctx.moveTo(px, py);
-        else ctx.lineTo(px, py);
-      }
-      ctx.stroke();
+      let inputsHtml = `<div class="text-xs font-bold text-slate-700">あなたの解答を入力してください:</div><div class="grid grid-cols-1 sm:grid-cols-2 gap-3">`;
 
-      // Labels
-      ctx.font = 'bold 11px sans-serif';
-      ctx.fillStyle = '#f8fafc';
-      ctx.fillText('f(x) ＝ 1/x', cx + 70, cy - 50);
-
-      ctx.fillStyle = '#fda4af';
-      ctx.fillText('F(x) ＝ log |x|', cx + 70, cy - 20);
-      ctx.fillText('F(x) ＝ log |x| (x<0側)', cx - 140, cy - 20);
-    }
-
-    // Split Cards interaction
-    document.querySelectorAll('.split-card').forEach(card => {
-      card.addEventListener('click', () => {
-        playSound('click');
-        document.querySelectorAll('.split-card').forEach(c => c.classList.remove('ring-2', 'ring-brand-500'));
-        card.classList.add('ring-2', 'ring-brand-500');
-        showToast('カードの分解を確認しました', '✨');
+      prob.fields.forEach(f => {
+        inputsHtml += `
+          <div>
+            <label class="text-[11px] font-semibold text-slate-600 block mb-1">${f.label}:</label>
+            <input id="input-${f.id}" type="text" placeholder="例: ${f.target}" class="w-full p-2 bg-white border border-slate-300 rounded-lg text-sm font-mono text-center">
+          </div>
+        `;
       });
-    });
 
-    /* --- TAB 4: 自作問題・理解度チェック --- */
-    const createA = document.getElementById('create-a');
-    const createB = document.getElementById('create-b');
-    const createC = document.getElementById('create-c');
-    const createHasLog = document.getElementById('create-has-log');
-    const createIsFraction = document.getElementById('create-is-fraction');
-    const generateCardBtn = document.getElementById('generate-card-btn');
-    const generatedProblemText = document.getElementById('generatedProblemText');
-    const generatedProblemSolution = document.getElementById('generatedProblemSolution');
-    const toggleProblemAnsBtn = document.getElementById('toggleProblemAnsBtn');
-    const copyProblemBtn = document.getElementById('copyProblemBtn');
+      inputsHtml += `</div>
+        <label class="flex items-center gap-2 p-2 bg-white rounded-lg border border-slate-200 cursor-pointer select-none mt-2">
+          <input type="checkbox" id="lab-check-c" checked class="w-4 h-4 text-indigo-600 rounded">
+          <span class="text-xs font-semibold text-slate-800">末尾に積分定数 <span class="text-indigo-600 font-mono font-bold">+ C</span> をつける</span>
+        </label>
+      `;
 
-    generateCardBtn.addEventListener('click', () => {
-      playSound('success');
-      const a = parseInt(createA.value) || 0;
-      const b = parseInt(createB.value) || 0;
-      const c = parseInt(createC.value) || 0;
-      const hasLog = createHasLog.checked;
-      const isFrac = createIsFraction.checked;
+      container.innerHTML = inputsHtml;
 
-      let probStr = '';
-      let solStr = '';
+      const fb = document.getElementById('lab-feedback-box');
+      if (fb) fb.classList.add('hidden');
 
-      if (isFrac) {
-        // numerator: a*x^3 + b*x^2 + c*x + (hasLog ? 1 : 0)
-        const numPart = `${a}x³ ＋ ${b}x² ＋ ${c}x ${hasLog ? '＋ 1' : ''}`;
-        probStr = `不定積分 ∫ ( (${numPart}) / x ) dx を求めよ (x ≠ 0)。`;
+      triggerMathRender();
+    }
 
-        const aInt = (a % 3 === 0) ? `${a / 3}x³` : `(${a}/3)x³`;
-        const bInt = (b % 2 === 0) ? `${b / 2}x²` : `(${b}/2)x²`;
+    function cleanMathInput(str) {
+      return (str || '').toLowerCase().replace(/\s+/g, '').replace(/（/g, '(').replace(/）/g, ')');
+    }
 
-        solStr = `
-          <div class="space-y-1">
-            <div>① <strong>分母の x で各項を割る</strong>: (${numPart}) / x ＝ ${a}x² ＋ ${b}x ＋ ${c} ${hasLog ? '＋ 1/x' : ''}</div>
-            <div>② <strong>各項を別々に積分する</strong>:</div>
-            <div class="pl-3 text-blue-600">・ ${a}x² の元: ${aInt}</div>
-            <div class="pl-3 text-emerald-600">・ ${b}x の元: ${bInt}</div>
-            <div class="pl-3 text-emerald-700">・ ${c} の元: ${c}x</div>
-            ${hasLog ? '<div class="pl-3 text-rose-600">・ 1/x の元: log |x|</div>' : ''}
-            <div class="pt-1 text-purple-700 font-bold">③ 全体の答え: ${aInt} ＋ ${bInt} ＋ ${c}x ${hasLog ? '＋ log |x|' : ''} ＋ C (x ≠ 0)</div>
+    function verifyLabAnswer() {
+      const prob = labProblems[appState.labKey];
+      const fb = document.getElementById('lab-feedback-box');
+      if (!fb) return;
+      fb.classList.remove('hidden');
+
+      const hasC = document.getElementById('lab-check-c')?.checked;
+      if (!hasC) {
+        fb.className = 'p-4 rounded-xl border border-amber-300 bg-amber-50 space-y-2 text-xs';
+        fb.innerHTML = `
+          <div class="flex items-center gap-2 text-amber-800 font-bold text-sm">
+            <svg class="w-4 h-4 text-amber-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+            <span>おしい！ 積分定数 +C が抜けています</span>
           </div>
+          <p class="text-slate-700 leading-relaxed">
+            定数は微分すると \(0\) になって消えてしまうため、元の式の出発点（初期の長さなど）を表すために必ず末尾に \\(+C\\) を添えましょう。
+          </p>
         `;
-      } else {
-        const polyPart = `${a}x² ＋ ${b}x ＋ ${c} ${hasLog ? '＋ 1/x' : ''}`;
-        probStr = `不定積分 ∫ ( ${polyPart} ) dx を求めよ ${hasLog ? '(x ≠ 0)' : ''}。`;
-
-        const aInt = (a % 3 === 0) ? `${a / 3}x³` : `(${a}/3)x³`;
-        const bInt = (b % 2 === 0) ? `${b / 2}x²` : `(${b}/2)x²`;
-
-        solStr = `
-          <div class="space-y-1">
-            <div>① <strong>足し算の各項を別々に考える</strong>:</div>
-            <div class="pl-3 text-blue-600">・ ${a}x² の元: ${aInt}</div>
-            <div class="pl-3 text-emerald-600">・ ${b}x の元: ${bInt}</div>
-            <div class="pl-3 text-emerald-700">・ ${c} の元: ${c}x</div>
-            ${hasLog ? '<div class="pl-3 text-rose-600">・ 1/x の元: log |x|</div>' : ''}
-            <div class="pt-1 text-purple-700 font-bold">② 全体の答え: ${aInt} ＋ ${bInt} ＋ ${c}x ${hasLog ? '＋ log |x|' : ''} ＋ C ${hasLog ? '(x ≠ 0)' : ''}</div>
-          </div>
-        `;
+        triggerMathRender();
+        return;
       }
 
-      generatedProblemText.textContent = probStr;
-      generatedProblemSolution.innerHTML = solStr;
-      generatedProblemSolution.classList.remove('hidden');
-      showToast('オリジナル問題を生成しました！', '✨');
-    });
+      let allCorrect = true;
+      let wrongFieldHint = '';
 
-    toggleProblemAnsBtn.addEventListener('click', () => {
-      generatedProblemSolution.classList.toggle('hidden');
-    });
+      prob.fields.forEach(f => {
+        const val = cleanMathInput(document.getElementById(`input-${f.id}`)?.value);
+        const target = cleanMathInput(f.target);
+        const alt = cleanMathInput(f.altTarget || '');
 
-    copyProblemBtn.addEventListener('click', () => {
-      const text = generatedProblemText.textContent;
-      const tempInput = document.createElement('textarea');
-      tempInput.value = text;
-      document.body.appendChild(tempInput);
-      tempInput.select();
-      document.execCommand('copy');
-      document.body.removeChild(tempInput);
-      showToast('問題文をコピーしました！', '📋');
-      playSound('click');
-    });
-
-    // Quiz evaluation
-    const quizAnswers = [0, 0, 0];
-    const quizExplanations = [
-      "大正解！定数3は「増え方（速さ）」なので、時間xが経つにつれて3xずつ累積して増えます。定数の積分は3xです！",
-      "大正解！xがマイナスのときでも真数をプラスにして対数を定義できるようにするため、絶対値 |x| を付けます！",
-      "大正解！分数式は分母で分子の各項をそれぞれ割って、見慣れた多項式の和にバラすのが最強の鉄則です！"
-    ];
-    let quizScore = 0;
-    const answered = [false, false, false];
-
-    document.querySelectorAll('.quiz-opt').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const qIdx = parseInt(btn.getAttribute('data-q'));
-        const optIdx = parseInt(btn.getAttribute('data-opt'));
-        const quizItem = btn.closest('.quiz-item');
-        const feedback = quizItem.querySelector('.quiz-feedback');
-
-        if (answered[qIdx]) return;
-        answered[qIdx] = true;
-
-        if (optIdx === quizAnswers[qIdx]) {
-          playSound('success');
-          btn.classList.add('bg-emerald-100', 'border-emerald-500', 'text-emerald-800', 'font-bold');
-          feedback.classList.remove('hidden');
-          feedback.classList.add('bg-emerald-50', 'text-emerald-800');
-          feedback.textContent = `⭕ ` + quizExplanations[qIdx];
-          quizScore++;
-        } else {
-          playSound('click');
-          btn.classList.add('bg-rose-100', 'border-rose-500', 'text-rose-800', 'font-bold');
-          feedback.classList.remove('hidden');
-          feedback.classList.add('bg-rose-50', 'text-rose-800');
-          feedback.textContent = `❌ ` + quizExplanations[qIdx];
+        if (val !== target && (alt === '' || val !== alt)) {
+          allCorrect = false;
+          wrongFieldHint = f.hint;
         }
-
-        document.getElementById('quizScoreBadge').textContent = `スコア: ${quizScore}/3`;
       });
-    });
 
-    // Resize & Window Init
+      if (!allCorrect) {
+        fb.className = 'p-4 rounded-xl border border-rose-300 bg-rose-50 space-y-2 text-xs';
+        fb.innerHTML = `
+          <div class="flex items-center gap-2 text-rose-800 font-bold text-sm">
+            <span class="w-3 h-3 rounded-full bg-rose-600"></span>
+            <span>項の係数または式を見直してみよう（微分して検算）</span>
+          </div>
+          <p class="text-slate-700 leading-relaxed">
+            微分して元の式に戻るか確認してみましょう。<br>
+            <strong>ヒント:</strong> ${wrongFieldHint}
+          </p>
+        `;
+        triggerMathRender();
+        return;
+      }
+
+      // Success
+      fb.className = 'p-4 rounded-xl border border-emerald-300 bg-emerald-50 space-y-2 text-xs';
+      fb.innerHTML = `
+        <div class="flex items-center justify-between">
+          <span class="font-bold text-emerald-800 text-sm flex items-center gap-1.5">
+            <svg class="w-4 h-4 text-emerald-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+            完璧です！微分検算で完全に一致しました
+          </span>
+          <span class="px-2 py-0.5 rounded bg-emerald-200 text-emerald-900 font-bold font-mono">Verified</span>
+        </div>
+        <p class="text-slate-700 leading-relaxed">
+          あなたの求めた答えを微分すると、元の被積分関数 \\(${prob.integrand}\\) に正確に戻ります！
+        </p>
+      `;
+      triggerMathRender();
+    }
+
+    function toggleModelExplain() {
+      const box = document.getElementById('model-explain-content');
+      if (box) box.classList.toggle('hidden');
+    }
+
+    function recordSelfEval() {
+      const msg = document.getElementById('eval-toast-msg');
+      if (msg) {
+        msg.classList.remove('hidden');
+        setTimeout(() => msg.classList.add('hidden'), 4000);
+      }
+    }
+
     window.addEventListener('resize', () => {
-      drawStep0Canvas();
-      drawStep1Canvas();
-      drawStep2Canvas();
-      drawStep3Canvas();
-      drawLabCanvas();
-      drawLogCanvas();
+      if (appState.activeTab === 1) {
+        drawRibbonAll();
+      } else if (appState.activeTab === 3) {
+        drawPuncturedCanvas();
+      } else if (appState.activeTab === 4) {
+        drawLogVisuals();
+      }
     });
 
-    window.onload = function() {
-      drawStep0Canvas();
-      updateLabMath();
-      drawLogCanvas();
+    window.onload = function () {
+      drawRibbonAll();
+      updateRibbonBreakdownTable();
+      renderSumSteps();
+      renderFractionView();
+      drawPuncturedCanvas();
+      drawLogVisuals();
+      loadLabProblem();
+      triggerMathRender();
     };
   </script>
 </body>

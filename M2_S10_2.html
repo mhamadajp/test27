@@ -3,585 +3,512 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>数学II 三角関数 第2回：グラフ導入と読み取り</title>
+  <title>三角関数 グラフ探究スタジオ</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://unpkg.com/lucide@latest"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script>
+  
+  <!-- KaTeX for High Quality Mathematical Typesetting -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;600;700;900&family=JetBrains+Mono:wght@600;800&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;500;700;800&family=JetBrains+Mono:wght@600;800&display=swap');
+    
     body {
-      font-family: 'Noto Sans JP', sans-serif;
+      /* 数学が苦手な子でも親しみやすい、丸みのあるフォント */
+      font-family: 'M PLUS Rounded 1c', sans-serif;
     }
     .font-mono-math {
       font-family: 'JetBrains Mono', monospace;
     }
     input[type=range] {
-      accent-color: #0ea5e9;
+      accent-color: #3b82f6;
     }
-    /* Whiteboard grid pattern */
-    .svg-grid-pattern {
+    /* ホワイトボード風のドット方眼背景 */
+    .bg-dot-pattern {
       background-color: #ffffff;
+      background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
       background-size: 20px 20px;
-      background-image: 
-        linear-gradient(to right, #f1f5f9 1px, transparent 1px),
-        linear-gradient(to bottom, #f1f5f9 1px, transparent 1px);
     }
-    .katex { font-size: 1.15em; }
-    /* Hide scrollbar for clean UI in tabs */
-    ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 4px; }
+    .katex { font-size: 1.1em; }
+    
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-thumb { background-color: #94a3b8; border-radius: 4px; }
   </style>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
 
-  <header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-xs">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between py-3 gap-3">
-        <div class="flex items-center space-x-3">
-          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-sky-200 shrink-0">
-            <i data-lucide="line-chart" class="w-6 h-6"></i>
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div class="flex items-center space-x-3 w-full sm:w-auto">
+          <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-2xl shadow-lg">
+            🌊
           </div>
           <div>
             <div class="flex items-center space-x-2">
-              <span class="text-[10px] sm:text-xs font-bold uppercase px-2 py-0.5 bg-sky-100 text-sky-800 rounded-full">高校数学II</span>
-              <span class="text-[10px] sm:text-xs text-slate-500 font-bold">第2回 グラフ導入</span>
+              <span class="text-[11px] font-bold px-2 py-0.5 bg-blue-100 text-blue-800 rounded-md">高校数学 II</span>
+              <span class="text-[11px] text-slate-500 font-bold">第2回：グラフ導入と読み取り</span>
             </div>
-            <h1 class="text-sm sm:text-lg font-black text-slate-900 tracking-tight leading-tight mt-0.5">
-              三角関数：グラフの意味と読み取り
+            <h1 class="text-lg font-extrabold text-slate-900 tracking-tight mt-0.5">
+              動く！三角関数グラフスタジオ
             </h1>
           </div>
         </div>
 
-        <nav class="flex items-center space-x-1 bg-slate-100 p-1 rounded-xl self-start sm:self-auto overflow-x-auto w-full sm:w-auto">
-          <button id="tabBtn-interactive" onclick="switchTab('interactive')" class="whitespace-nowrap px-3 py-1.5 rounded-lg text-xs font-bold flex items-center space-x-1.5 transition-all bg-white text-sky-600 shadow-sm border border-slate-200/50">
-            <i data-lucide="play-circle" class="w-4 h-4"></i><span>動く単位円とグラフ</span>
+        <nav class="flex w-full sm:w-auto bg-slate-100 p-1.5 rounded-xl overflow-x-auto gap-1">
+          <button id="tabBtn-interactive" onclick="switchTab('interactive')" class="flex-1 sm:flex-none px-4 py-2 rounded-lg text-sm font-bold transition-all bg-white text-blue-700 shadow-sm border border-slate-200 whitespace-nowrap">
+            1. 動くグラフ実験
           </button>
-          <button id="tabBtn-practice" onclick="switchTab('practice')" class="whitespace-nowrap px-3 py-1.5 rounded-lg text-xs font-bold flex items-center space-x-1.5 text-slate-500 hover:text-slate-900 transition-all">
-            <i data-lucide="pen-tool" class="w-4 h-4"></i><span>ワーク復習</span>
+          <button id="tabBtn-practice" onclick="switchTab('practice')" class="flex-1 sm:flex-none px-4 py-2 rounded-lg text-sm font-bold transition-all text-slate-500 hover:text-slate-800 whitespace-nowrap">
+            2. 意味から解くクイズ
           </button>
-          <button id="tabBtn-support" onclick="switchTab('support')" class="whitespace-nowrap px-3 py-1.5 rounded-lg text-xs font-bold flex items-center space-x-1.5 text-slate-500 hover:text-slate-900 transition-all">
-            <i data-lucide="lightbulb" class="w-4 h-4"></i><span>つまずき解決ヒント</span>
+          <button id="tabBtn-support" onclick="switchTab('support')" class="flex-1 sm:flex-none px-4 py-2 rounded-lg text-sm font-bold transition-all text-slate-500 hover:text-slate-800 whitespace-nowrap">
+            3. つまずきレスキュー
           </button>
         </nav>
       </div>
     </div>
   </header>
 
-  <main class="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-5">
+  <main class="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6">
     
     <!-- ========================================== -->
-    <!-- TAB 1: グラフシミュレータ -->
+    <!-- TAB 1: インタラクティブ・シミュレータ -->
     <!-- ========================================== -->
-    <div id="tabContent-interactive" class="space-y-4">
+    <div id="tabContent-interactive" class="space-y-6 animate-fade-in">
       
-      <!-- Function Selection -->
-      <div class="flex flex-wrap gap-2">
-        <button onclick="setFunction('sin')" id="btn-func-sin" class="func-btn px-4 py-2 rounded-xl text-sm font-black transition-all bg-rose-600 text-white shadow-md border-2 border-rose-700 flex items-center gap-2">
-          <i data-lucide="arrow-up-down" class="w-4 h-4"></i> sin は縦座標
+      <!-- 関数の切り替え -->
+      <div class="flex flex-wrap gap-3">
+        <button onclick="setFunction('sin')" id="btn-func-sin" class="func-btn flex-1 sm:flex-none px-5 py-3 rounded-2xl text-sm font-extrabold transition-all border-2 flex items-center justify-center gap-2 shadow-sm bg-rose-500 text-white border-rose-600">
+          <span class="text-xl">↕️</span> \(\sin\theta\)（縦の動き）
         </button>
-        <button onclick="setFunction('cos')" id="btn-func-cos" class="func-btn px-4 py-2 rounded-xl text-sm font-black transition-all bg-white text-slate-600 border-2 border-slate-200 hover:bg-slate-50 flex items-center gap-2">
-          <i data-lucide="arrow-left-right" class="w-4 h-4"></i> cos は横座標
+        <button onclick="setFunction('cos')" id="btn-func-cos" class="func-btn flex-1 sm:flex-none px-5 py-3 rounded-2xl text-sm font-extrabold transition-all border-2 flex items-center justify-center gap-2 bg-white text-slate-600 border-slate-200 hover:bg-slate-50">
+          <span class="text-xl">↔️</span> \(\cos\theta\)（横の動き）
         </button>
-        <button onclick="setFunction('tan')" id="btn-func-tan" class="func-btn px-4 py-2 rounded-xl text-sm font-black transition-all bg-white text-slate-600 border-2 border-slate-200 hover:bg-slate-50 flex items-center gap-2">
-          <i data-lucide="trending-up" class="w-4 h-4"></i> tan は直線の傾き
+        <button onclick="setFunction('tan')" id="btn-func-tan" class="func-btn flex-1 sm:flex-none px-5 py-3 rounded-2xl text-sm font-extrabold transition-all border-2 flex items-center justify-center gap-2 bg-white text-slate-600 border-slate-200 hover:bg-slate-50">
+          <span class="text-xl">📈</span> \(\tan\theta\)（直線の傾き）
         </button>
       </div>
 
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
-        <!-- Interactive Canvas Area -->
-        <div class="lg:col-span-8 bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-sm space-y-4">
+        <!-- 左側：メインキャンバス領域 -->
+        <div class="lg:col-span-8 bg-white rounded-3xl p-5 border border-slate-200 shadow-md space-y-4">
           
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
-            <div class="flex items-center space-x-2">
-              <span id="funcTitle" class="text-sm font-black text-slate-800">基本のグラフ： y = sin θ</span>
+            <h3 id="funcTitle" class="text-lg font-extrabold text-slate-800">
+              基本のグラフ： \(y = \sin\theta\)
+            </h3>
+            
+            <!-- 変化の魔法（Mod）ボタン - sin用 -->
+            <div id="transformToggles-sin" class="flex flex-wrap gap-2">
+              <button onclick="setMod('none')" id="mod-sin-none" class="mod-btn px-3 py-1.5 text-xs font-bold rounded-lg bg-slate-800 text-white shadow-sm transition">普通</button>
+              <button onclick="setMod('amp')" id="mod-sin-amp" class="mod-btn px-3 py-1.5 text-xs font-bold rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition">\(2\sin\theta\)</button>
+              <button onclick="setMod('shift')" id="mod-sin-shift" class="mod-btn px-3 py-1.5 text-xs font-bold rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition">\(\sin\theta + 2\)</button>
+              <button onclick="setMod('freq')" id="mod-sin-freq" class="mod-btn px-3 py-1.5 text-xs font-bold rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition">\(\sin(2\theta)\)</button>
             </div>
             
-            <!-- Quick Transform Toggles (Visible only for sin initially) -->
-            <div id="transformToggles-sin" class="flex flex-wrap gap-1.5">
-              <button onclick="setMod('none')" id="mod-sin-none" class="mod-btn px-2.5 py-1 text-xs font-bold rounded-lg bg-slate-800 text-white shadow-sm border border-slate-700 transition-colors">通常</button>
-              <button onclick="setMod('amp')" id="mod-sin-amp" class="mod-btn px-2.5 py-1 text-xs font-bold rounded-lg bg-white text-slate-600 hover:bg-slate-50 border border-slate-200 transition-colors">振幅 2sinθ</button>
-              <button onclick="setMod('shift')" id="mod-sin-shift" class="mod-btn px-2.5 py-1 text-xs font-bold rounded-lg bg-white text-slate-600 hover:bg-slate-50 border border-slate-200 transition-colors">移動 sinθ+2</button>
-              <button onclick="setMod('freq')" id="mod-sin-freq" class="mod-btn px-2.5 py-1 text-xs font-bold rounded-lg bg-white text-slate-600 hover:bg-slate-50 border border-slate-200 transition-colors">周期 sin(2θ)</button>
-            </div>
-            
-            <!-- Quick Transform Toggles for cos -->
-            <div id="transformToggles-cos" class="hidden flex-wrap gap-1.5">
-              <button onclick="setMod('none')" id="mod-cos-none" class="mod-btn px-2.5 py-1 text-xs font-bold rounded-lg bg-blue-700 text-white shadow-sm border border-blue-800 transition-colors">通常</button>
-              <button onclick="setMod('compare')" id="mod-cos-compare" class="mod-btn px-2.5 py-1 text-xs font-bold rounded-lg bg-white text-blue-600 hover:bg-blue-50 border border-blue-200 transition-colors flex items-center gap-1"><i data-lucide="layers" class="w-3.5 h-3.5"></i>sinと重ねる</button>
+            <!-- 変化の魔法（Mod）ボタン - cos用 -->
+            <div id="transformToggles-cos" class="hidden flex-wrap gap-2">
+              <button onclick="setMod('none')" id="mod-cos-none" class="mod-btn px-3 py-1.5 text-xs font-bold rounded-lg bg-blue-700 text-white shadow-sm transition">普通</button>
+              <button onclick="setMod('compare')" id="mod-cos-compare" class="mod-btn px-3 py-1.5 text-xs font-bold rounded-lg bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 transition">🌊 sinと重ねる</button>
             </div>
           </div>
 
-          <!-- SVG Visualizer -->
-          <div class="relative w-full aspect-[2/1] sm:aspect-[2.2/1] bg-white rounded-xl overflow-hidden border-2 border-slate-300 shadow-inner svg-grid-pattern touch-none select-none" id="graphContainer">
-            <svg id="mainSvg" viewBox="0 0 800 340" class="w-full h-full cursor-crosshair">
+          <!-- SVGキャンバス -->
+          <div class="relative w-full aspect-[2/1] sm:aspect-[2.2/1] bg-dot-pattern rounded-2xl overflow-hidden border border-slate-300 shadow-inner select-none touch-none" id="graphContainer">
+            <svg id="mainSvg" viewBox="0 0 800 340" class="w-full h-full cursor-pointer">
+              <!-- 矢印定義 -->
               <defs>
                 <marker id="arrowHead" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-                  <path d="M 0 1.5 L 9 5 L 0 8.5 z" fill="#1e293b"/>
+                  <path d="M 0 1.5 L 9 5 L 0 8.5 z" fill="#475569"/>
                 </marker>
               </defs>
 
-              <!-- Base Guidelines & Graph Axes (Cx=100, Cy=180, R=60) -->
-              <!-- y=0 line (Center horizontal) -->
+              <!-- 中心線 (y=0) -->
               <line x1="0" y1="180" x2="800" y2="180" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrowHead)"/>
               
-              <!-- Left Side: Unit Circle (Cx=100) -->
+              <!-- 【左側】 単位円エリア -->
               <g id="unitCircleGroup">
-                <!-- y axis for circle -->
                 <line x1="100" y1="320" x2="100" y2="40" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrowHead)" />
-                <circle cx="100" cy="180" r="60" fill="none" stroke="#334155" stroke-width="2" />
-                <text x="170" y="195" fill="#334155" font-size="12" font-weight="bold" font-family="math">x</text>
-                <text x="85" y="45" fill="#334155" font-size="12" font-weight="bold" font-family="math">y</text>
-                <!-- Scale labels -->
-                <text x="105" y="115" fill="#64748b" font-size="10">1</text>
-                <text x="105" y="245" fill="#64748b" font-size="10">-1</text>
-                <text x="35" y="195" fill="#64748b" font-size="10">-1</text>
+                <circle cx="100" cy="180" r="60" fill="rgba(255,255,255,0.8)" stroke="#334155" stroke-width="2.5" />
+                <text x="170" y="195" fill="#334155" font-size="14" font-weight="bold">x</text>
+                <text x="85" y="45" fill="#334155" font-size="14" font-weight="bold">y</text>
                 
-                <!-- Dynamic Radius & Angle indicators -->
-                <path id="angleArc" d="" fill="rgba(2, 132, 199, 0.2)" stroke="none" />
-                <line id="circleRadius" x1="100" y1="180" x2="160" y2="180" stroke="#475569" stroke-width="2" />
-                <circle id="circlePointP" cx="160" cy="180" r="5" fill="#fff" stroke="#1e293b" stroke-width="3" class="cursor-pointer" />
+                <text x="106" y="115" fill="#64748b" font-size="12" font-weight="bold">1</text>
+                <text x="106" y="250" fill="#64748b" font-size="12" font-weight="bold">-1</text>
                 
-                <!-- Indicators for sin, cos, tan -->
-                <!-- sin (Red vertical) -->
-                <line id="indSin" x1="160" y1="180" x2="160" y2="180" stroke="#e11d48" stroke-width="4" stroke-linecap="round" />
-                <!-- cos (Blue horizontal) -->
-                <line id="indCos" x1="100" y1="180" x2="160" y2="180" stroke="#2563eb" stroke-width="4" stroke-linecap="round" />
-                <!-- tan (Green tangent line) -->
-                <line id="tanAxis" x1="160" y1="40" x2="160" y2="320" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="4 4" class="hidden" />
-                <line id="indTanLine" x1="100" y1="180" x2="160" y2="180" stroke="#059669" stroke-width="1.5" class="hidden" />
-                <line id="indTanVal" x1="160" y1="180" x2="160" y2="180" stroke="#059669" stroke-width="4" stroke-linecap="round" class="hidden" />
-                <circle id="tanPoint" cx="160" cy="180" r="4" fill="#059669" class="hidden" />
+                <!-- 角度の扇形 -->
+                <path id="angleArc" d="" fill="rgba(59, 130, 246, 0.2)" stroke="none" />
+                <line id="circleRadius" x1="100" y1="180" x2="160" y2="180" stroke="#475569" stroke-width="2.5" />
+                
+                <!-- インジケーター（赤、青、緑） -->
+                <line id="indSin" x1="160" y1="180" x2="160" y2="180" stroke="#f43f5e" stroke-width="5" stroke-linecap="round" />
+                <line id="indCos" x1="100" y1="180" x2="160" y2="180" stroke="#3b82f6" stroke-width="5" stroke-linecap="round" />
+                
+                <line id="tanAxis" x1="160" y1="40" x2="160" y2="320" stroke="#cbd5e1" stroke-width="2" stroke-dasharray="4 4" class="hidden" />
+                <line id="indTanLine" x1="100" y1="180" x2="160" y2="180" stroke="#10b981" stroke-width="2" class="hidden" />
+                <line id="indTanVal" x1="160" y1="180" x2="160" y2="180" stroke="#10b981" stroke-width="5" stroke-linecap="round" class="hidden" />
+                <circle id="tanPoint" cx="160" cy="180" r="4.5" fill="#10b981" class="hidden" />
+
+                <!-- 動点P -->
+                <circle id="circlePointP" cx="160" cy="180" r="6" fill="#ffffff" stroke="#1e293b" stroke-width="3" />
               </g>
 
-              <!-- Right Side: Wave Graph (Gx=220 to 760 -> width 540 for 360deg. 1deg = 1.5px) -->
+              <!-- 【右側】 グラフエリア -->
               <g id="waveGraphGroup">
-                <!-- Vertical axis for graph -->
                 <line x1="220" y1="320" x2="220" y2="40" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrowHead)" />
-                <text x="765" y="170" fill="#334155" font-size="12" font-weight="bold">角θ</text>
-                <text id="graphYLabel" x="200" y="45" fill="#334155" font-size="12" font-weight="bold">値</text>
+                <text x="750" y="170" fill="#334155" font-size="14" font-weight="bold">角度 θ</text>
+                
+                <!-- ガイドライン -->
+                <line x1="215" y1="120" x2="760" y2="120" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="4 4"/>
+                <text x="200" y="124" fill="#64748b" font-size="12" font-weight="bold">1</text>
+                
+                <line x1="215" y1="240" x2="760" y2="240" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="4 4"/>
+                <text x="194" y="244" fill="#64748b" font-size="12" font-weight="bold">-1</text>
+                
+                <line id="guideY2" x1="215" y1="60" x2="760" y2="60" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="4 4" class="hidden"/>
+                <text id="labelY2" x="200" y="64" fill="#64748b" font-size="12" font-weight="bold" class="hidden">2</text>
+                
+                <line id="guideYMin2" x1="215" y1="300" x2="760" y2="300" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="4 4" class="hidden"/>
+                <text id="labelYMin2" x="194" y="304" fill="#64748b" font-size="12" font-weight="bold" class="hidden">-2</text>
 
-                <!-- Horizontal guides for 1, -1, 2, 3 (R=60px) -->
-                <!-- y=1 (120) -->
-                <line x1="215" y1="120" x2="760" y2="120" stroke="#e2e8f0" stroke-width="1.5" />
-                <text x="205" y="124" fill="#64748b" font-size="10">1</text>
-                <!-- y=-1 (240) -->
-                <line x1="215" y1="240" x2="760" y2="240" stroke="#e2e8f0" stroke-width="1.5" />
-                <text x="198" y="244" fill="#64748b" font-size="10">-1</text>
-                <!-- y=2 (60) -->
-                <line id="guideY2" x1="215" y1="60" x2="760" y2="60" stroke="#e2e8f0" stroke-width="1.5" class="hidden"/>
-                <text id="labelY2" x="205" y="64" fill="#64748b" font-size="10" class="hidden">2</text>
-                <!-- y=3 (0) -> Actually 180 - 180 = 0, keep it inside view slightly -->
-                <line id="guideY3" x1="215" y1="20" x2="760" y2="20" stroke="#e2e8f0" stroke-width="1.5" class="hidden"/>
-                <text id="labelY3" x="205" y="24" fill="#64748b" font-size="10" class="hidden">3</text>
-                <!-- y=-2 (300) -->
-                <line id="guideYMin2" x1="215" y1="300" x2="760" y2="300" stroke="#e2e8f0" stroke-width="1.5" class="hidden"/>
-                <text id="labelYMin2" x="198" y="304" fill="#64748b" font-size="10" class="hidden">-2</text>
-
-                <!-- Theta Landmarks (0 to 360: 220 to 760. 90deg=135px step) -->
-                <g fill="#475569" font-size="11" font-weight="bold" font-family="math" text-anchor="middle">
-                  <text x="220" y="195">0</text>
-                  <line x1="355" y1="178" x2="355" y2="182" stroke="#475569" stroke-width="1.5" />
-                  <text x="355" y="195">90°</text>
-                  <line x1="490" y1="178" x2="490" y2="182" stroke="#475569" stroke-width="1.5" />
-                  <text x="490" y="195">180°</text>
-                  <line x1="625" y1="178" x2="625" y2="182" stroke="#475569" stroke-width="1.5" />
-                  <text x="625" y="195">270°</text>
-                  <line x1="760" y1="178" x2="760" y2="182" stroke="#475569" stroke-width="1.5" />
-                  <text x="760" y="195">360°</text>
+                <!-- 横軸（角度）目盛り -->
+                <g fill="#475569" font-size="12" font-weight="bold" text-anchor="middle">
+                  <text x="220" y="198">0</text>
+                  <line x1="355" y1="176" x2="355" y2="184" stroke="#475569" stroke-width="2" />
+                  <text x="355" y="198">π/2 (90°)</text>
+                  <line x1="490" y1="176" x2="490" y2="184" stroke="#475569" stroke-width="2" />
+                  <text x="490" y="198">π (180°)</text>
+                  <line x1="625" y1="176" x2="625" y2="184" stroke="#475569" stroke-width="2" />
+                  <text x="625" y="198">3π/2</text>
+                  <line x1="760" y1="176" x2="760" y2="184" stroke="#475569" stroke-width="2" />
+                  <text x="760" y="198">2π (360°)</text>
                 </g>
 
-                <!-- Tan Asymptotes -->
-                <g id="tanAsymptotes" class="hidden" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="4 4">
+                <!-- tan漸近線 -->
+                <g id="tanAsymptotes" class="hidden" stroke="#94a3b8" stroke-width="2" stroke-dasharray="4 4">
                   <line x1="355" y1="40" x2="355" y2="320" />
                   <line x1="625" y1="40" x2="625" y2="320" />
                 </g>
 
-                <!-- Full Base Curve (Ghost) -->
-                <path id="ghostWave" d="" fill="none" stroke="#cbd5e1" stroke-width="2" stroke-dasharray="5 3" class="hidden" />
+                <!-- 比較用ゴースト波 -->
+                <path id="ghostWave" d="" fill="none" stroke="#cbd5e1" stroke-width="2.5" stroke-dasharray="6 4" class="hidden" />
                 
-                <!-- Main Highlighted Wave -->
-                <!-- Use multiple paths for Tan to handle asymptotes cleanly -->
-                <path id="mainWave1" d="" fill="none" stroke="#e11d48" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" />
-                <path id="mainWave2" d="" fill="none" stroke="#e11d48" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" />
-                <path id="mainWave3" d="" fill="none" stroke="#e11d48" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" />
+                <!-- メイン波 -->
+                <path id="mainWave1" d="" fill="none" stroke="#f43f5e" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" />
+                <path id="mainWave2" d="" fill="none" stroke="#f43f5e" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" />
+                <path id="mainWave3" d="" fill="none" stroke="#f43f5e" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" />
 
-                <!-- Dynamic Connection Line (Height/Value correspondence) -->
-                <line id="heightSyncLine" x1="160" y1="180" x2="220" y2="180" stroke="#0ea5e9" stroke-width="1.5" stroke-dasharray="4 4" />
+                <!-- 単位円とグラフを結ぶガイドライン -->
+                <line id="heightSyncLine" x1="160" y1="180" x2="220" y2="180" stroke="#f43f5e" stroke-width="1.5" stroke-dasharray="4 4" opacity="0.6"/>
                 
-                <!-- Dynamic Point on Wave -->
-                <circle id="wavePointG" cx="220" cy="180" r="5" fill="#fff" stroke="#e11d48" stroke-width="3" />
+                <!-- グラフ上の現在点 -->
+                <circle id="wavePointG" cx="220" cy="180" r="6.5" fill="#ffffff" stroke="#f43f5e" stroke-width="3" />
               </g>
             </svg>
 
-            <!-- Guide overlay -->
-            <div class="absolute bottom-2 left-2 bg-white/90 backdrop-blur px-2.5 py-1 rounded-lg text-[10px] font-bold text-slate-600 shadow-sm border border-slate-200">
-              円の点をドラッグ、または下のスライダーで回転
+            <!-- オーバーレイガイド -->
+            <div class="absolute bottom-3 left-3 bg-white/90 px-3 py-1.5 rounded-lg text-xs font-bold text-slate-600 shadow-sm border border-slate-200">
+              🖱️ 円の上の点をドラッグしてみてね！
             </div>
           </div>
 
-          <!-- Controls -->
-          <div class="space-y-3 pt-2">
+          <!-- スライダー操作群 -->
+          <div class="space-y-4 pt-2">
             
-            <!-- Phase Shift Slider (Only for compare mode) -->
-            <div id="phaseSliderContainer" class="hidden flex-col space-y-1.5 pb-3 border-b border-slate-100">
-               <label class="text-xs font-bold text-slate-700 flex items-center justify-between">
-                 <span class="flex items-center text-blue-700"><i data-lucide="move-horizontal" class="w-4 h-4 mr-1.5"></i>cos の波を左右にずらす</span>
-                 <span id="phaseValText" class="text-blue-700 font-mono font-bold text-sm">0°</span>
+            <!-- 位相シフトスライダー (cos比較モード時のみ) -->
+            <div id="phaseSliderContainer" class="hidden flex-col bg-blue-50 p-3 rounded-xl border border-blue-200">
+               <label class="text-xs font-bold text-blue-900 flex items-center justify-between mb-2">
+                 <span class="flex items-center gap-1.5">🌊 青い波（cos）を左右にずらしてみよう</span>
+                 <span id="phaseValText" class="font-mono text-sm bg-white px-2 py-0.5 rounded border border-blue-200">0°</span>
                </label>
-               <input type="range" id="phaseRange" min="-180" max="180" value="0" step="1" class="w-full h-2.5 bg-blue-200 rounded-lg appearance-none cursor-pointer">
-               <div class="flex justify-between text-[10px] text-slate-400 font-bold px-1">
-                 <span>-180°</span>
-                 <span>0°</span>
-                 <span>+180°</span>
+               <input type="range" id="phaseRange" min="-180" max="180" value="0" step="1" class="w-full h-2 bg-blue-300 rounded-lg appearance-none cursor-pointer accent-blue-600">
+               <div class="flex justify-between text-[11px] text-blue-700 font-bold mt-1">
+                 <span>左へ -180°</span>
+                 <span>ぴったり重なる場所を探そう！</span>
+                 <span>右へ +180°</span>
                </div>
             </div>
 
-            <div class="flex items-center justify-between">
-              <label for="angleRange" class="text-xs font-bold text-slate-700 flex items-center">
-                <i data-lucide="settings-2" class="w-4 h-4 mr-1.5 text-sky-600"></i>
-                角 θ (0° 〜 360°)
-              </label>
-              
-              <div class="flex items-center space-x-1">
-                <button onclick="stepLandmark(-1)" class="px-2 py-1 text-xs font-bold rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 border border-slate-200">◀ 前の有名角</button>
-                <button onclick="stepLandmark(1)" class="px-2 py-1 text-xs font-bold rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 border border-slate-200">次の有名角 ▶</button>
+            <!-- メイン角度スライダー -->
+            <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+              <div class="flex items-center justify-between mb-2">
+                <label class="text-sm font-bold text-slate-800 flex items-center gap-1.5">
+                  <span class="text-lg">⚙️</span> 角度 \(\theta\) を進める (\(0^\circ\) 〜 \(360^\circ\))
+                </label>
+                <div class="flex items-center gap-1.5">
+                  <button onclick="stepLandmark(-1)" class="px-3 py-1 text-xs font-bold rounded-lg bg-white shadow-sm border border-slate-300 hover:bg-slate-100 transition">◀ 前のキリ良い角</button>
+                  <button onclick="stepLandmark(1)" class="px-3 py-1 text-xs font-bold rounded-lg bg-white shadow-sm border border-slate-300 hover:bg-slate-100 transition">次のキリ良い角 ▶</button>
+                </div>
               </div>
+              <input type="range" id="angleRange" min="0" max="360" value="30" step="1" class="w-full h-3 bg-slate-300 rounded-lg appearance-none cursor-pointer">
             </div>
-            
-            <input type="range" id="angleRange" min="0" max="360" value="30" step="1" class="w-full h-2.5 bg-slate-200 rounded-lg appearance-none cursor-pointer">
           </div>
         </div>
 
-        <!-- Values Output Panel -->
+        <!-- 右側：値・解説パネル -->
         <div class="lg:col-span-4 space-y-4">
-          
-          <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex flex-col h-full space-y-4">
-            <h3 class="text-sm font-black text-slate-800 border-b border-slate-100 pb-2 flex items-center justify-between">
-              <span>正確な値（分数・根号）</span>
-              <span id="degBadge" class="bg-slate-100 text-slate-600 px-2.5 py-1 rounded-md text-xs font-mono font-bold">30°</span>
+          <div class="bg-white rounded-3xl p-5 border border-slate-200 shadow-md flex flex-col h-full space-y-4">
+            
+            <h3 class="text-sm font-extrabold text-slate-800 border-b border-slate-100 pb-2 flex items-center justify-between">
+              <span>正確な値（分数・ルート）</span>
+              <span id="degBadge" class="bg-indigo-100 text-indigo-800 px-3 py-1 rounded-lg text-sm font-mono font-bold">30°</span>
             </h3>
 
             <div class="flex-1 space-y-4">
-              <!-- Radian -->
-              <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 text-center">
-                <div class="text-[10px] font-bold text-slate-500 mb-1">ラジアン (弧度法)</div>
-                <div id="valTheta" class="text-slate-900 font-bold min-h-[30px] flex items-center justify-center text-lg"></div>
+              <!-- ラジアン表示 -->
+              <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 text-center flex flex-col items-center">
+                <span class="text-xs font-bold text-slate-500 mb-1">ラジアン（弧度法）では</span>
+                <span id="valTheta" class="text-slate-900 font-bold text-lg"></span>
               </div>
 
-              <!-- Main Output Box (Dynamic color based on function) -->
-              <div id="mainValBox" class="p-4 bg-rose-50 rounded-xl border-2 border-rose-200 shadow-sm text-center relative overflow-hidden">
-                <div id="valIcon" class="absolute -right-2 -bottom-4 opacity-10 text-rose-500">
-                  <i data-lucide="arrow-up-down" class="w-20 h-20"></i>
+              <!-- メイン出力エリア -->
+              <div id="mainValBox" class="p-5 rounded-xl border-2 shadow-sm text-center relative overflow-hidden transition-colors bg-rose-50 border-rose-200">
+                <div id="valLabel" class="text-xs font-extrabold mb-3 relative z-10 text-rose-700">sin は円の「縦」の動き</div>
+                <div id="valMath" class="font-extrabold flex items-center justify-center text-3xl relative z-10 text-rose-900 min-h-[60px]">
+                  <!-- KaTeX Rendered Math Here -->
                 </div>
-                <div id="valLabel" class="text-[10px] font-bold text-rose-700 mb-2 relative z-10">sin は縦座標</div>
-                <div id="valMath" class="text-rose-900 font-black min-h-[50px] flex items-center justify-center text-2xl relative z-10"></div>
               </div>
             </div>
 
-            <!-- Explainer Box -->
-            <div id="condExplainer" class="p-3 bg-slate-800 text-slate-100 rounded-xl text-xs leading-relaxed font-medium mt-auto">
-              円の点を動かして、縦座標の変化が波の形になることを確認しましょう。
+            <!-- 解説ボックス（魔法の言葉） -->
+            <div id="condExplainer" class="p-4 bg-slate-800 text-slate-100 rounded-xl text-sm leading-relaxed font-medium mt-auto shadow-inner">
+              円の点を動かして、<strong class="text-rose-300">縦座標</strong>の変化が波の形になることを確認しましょう。
             </div>
           </div>
-
         </div>
       </div>
     </div>
 
     <!-- ========================================== -->
-    <!-- TAB 2: ワーク復習 -->
+    <!-- TAB 2: 意味から解くクイズ -->
     <!-- ========================================== -->
-    <div id="tabContent-practice" class="hidden space-y-5">
-      <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex items-center justify-between">
+    <div id="tabContent-practice" class="hidden space-y-6 animate-fade-in">
+      <div class="bg-indigo-900 text-white rounded-3xl p-6 shadow-lg flex flex-col md:flex-row items-center justify-between gap-4">
         <div>
-          <h2 class="text-base font-black text-slate-900">ワーク「自分で確認」 インタラクティブ演習</h2>
-          <p class="text-xs text-slate-500 mt-1">グラフの意味と変更（振幅・周期）を正しく読み取れるかチェックします。</p>
+          <h2 class="text-xl font-extrabold">暗記は不要！意味から解くクイズ</h2>
+          <p class="text-sm text-indigo-200 mt-1">シミュレータの動きを思い出せば、公式を忘れても解けるようになります。</p>
         </div>
-        <div id="quizScore" class="px-3 py-1 bg-sky-100 text-sky-800 font-bold text-xs rounded-full whitespace-nowrap">
-          達成: 0 / 5
+        <div id="quizScore" class="px-4 py-2 bg-indigo-800 border border-indigo-700 text-white font-bold text-sm rounded-xl">
+          クリア状況: 0 / 5
         </div>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
         
         <!-- Q1 -->
-        <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-sm">
-          <div class="flex justify-between items-center mb-2">
-            <span class="text-xs font-bold bg-slate-100 px-2 py-0.5 rounded text-slate-600">グラフの増減</span>
-            <span id="q1Status" class="text-[10px] font-bold text-slate-400">未回答</span>
+        <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex flex-col h-full">
+          <div class="flex justify-between items-center mb-3">
+            <span class="text-xs font-bold bg-slate-100 px-2 py-1 rounded text-slate-600">Q1. グラフの増減</span>
+            <span id="q1Status" class="text-[11px] font-bold text-slate-400">未回答</span>
           </div>
-          <h3 class="text-sm font-bold text-slate-800 mb-2">角が 90° から 180° へ進むとき、sin の値（グラフの縦位置）はどうなりますか？</h3>
-          <div class="space-y-1.5">
-            <button onclick="checkQuiz(1, false, this)" class="w-full text-left p-2 rounded-lg border border-slate-200 text-xs hover:bg-slate-50 transition">A. 左へ進むので減る</button>
-            <button onclick="checkQuiz(1, true, this)" class="w-full text-left p-2 rounded-lg border border-slate-200 text-xs hover:bg-slate-50 transition">B. 1から0へ減る</button>
-            <button onclick="checkQuiz(1, false, this)" class="w-full text-left p-2 rounded-lg border border-slate-200 text-xs hover:bg-slate-50 transition">C. 0から-1へ減る</button>
+          <h3 class="text-sm font-bold text-slate-800 mb-4 leading-relaxed">
+            角度が \(90^\circ\) から \(180^\circ\) へ進むとき、\(\sin\) の値（グラフの縦位置）はどうなる？
+          </h3>
+          <div class="space-y-2 mt-auto">
+            <button onclick="checkQuiz(1, false, this)" class="w-full text-left p-3 rounded-xl border-2 border-slate-100 hover:border-blue-200 hover:bg-blue-50 text-sm font-medium transition">A. 左へ進むから、マイナスになる</button>
+            <button onclick="checkQuiz(1, true, this)" class="w-full text-left p-3 rounded-xl border-2 border-slate-100 hover:border-blue-200 hover:bg-blue-50 text-sm font-medium transition">B. 円の頂上から下るから、\(1\) から \(0\) に減る</button>
+            <button onclick="checkQuiz(1, false, this)" class="w-full text-left p-3 rounded-xl border-2 border-slate-100 hover:border-blue-200 hover:bg-blue-50 text-sm font-medium transition">C. \(0\) から \(-1\) へ減る</button>
           </div>
-          <div id="q1Fb" class="hidden mt-2 p-2 rounded-lg text-[10px] bg-slate-50"></div>
+          <div id="q1Fb" class="hidden mt-3 p-3 rounded-xl text-xs font-bold"></div>
         </div>
 
         <!-- Q2 -->
-        <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-sm">
-          <div class="flex justify-between items-center mb-2">
-            <span class="text-xs font-bold bg-slate-100 px-2 py-0.5 rounded text-slate-600">cos の始まり</span>
-            <span id="q2Status" class="text-[10px] font-bold text-slate-400">未回答</span>
+        <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex flex-col h-full">
+          <div class="flex justify-between items-center mb-3">
+            <span class="text-xs font-bold bg-slate-100 px-2 py-1 rounded text-slate-600">Q2. コサインのスタート</span>
+            <span id="q2Status" class="text-[11px] font-bold text-slate-400">未回答</span>
           </div>
-          <h3 class="text-sm font-bold text-slate-800 mb-2">cos のグラフはなぜ角 0° で「1」から始まるのですか？</h3>
-          <div class="space-y-1.5">
-            <button onclick="checkQuiz(2, false, this)" class="w-full text-left p-2 rounded-lg border border-slate-200 text-xs hover:bg-slate-50 transition">A. そういう公式として暗記するものだから</button>
-            <button onclick="checkQuiz(2, false, this)" class="w-full text-left p-2 rounded-lg border border-slate-200 text-xs hover:bg-slate-50 transition">B. 円の右端（0°）の縦座標が 1 だから</button>
-            <button onclick="checkQuiz(2, true, this)" class="w-full text-left p-2 rounded-lg border border-slate-200 text-xs hover:bg-slate-50 transition">C. 円の右端（0°）の横座標が 1 だから</button>
+          <h3 class="text-sm font-bold text-slate-800 mb-4 leading-relaxed">
+            \(\cos\) のグラフは、なぜ角度 \(0^\circ\) のときに「\(1\)」からスタートするの？
+          </h3>
+          <div class="space-y-2 mt-auto">
+            <button onclick="checkQuiz(2, false, this)" class="w-full text-left p-3 rounded-xl border-2 border-slate-100 hover:border-blue-200 hover:bg-blue-50 text-sm font-medium transition">A. そういう公式として暗記するものだから</button>
+            <button onclick="checkQuiz(2, false, this)" class="w-full text-left p-3 rounded-xl border-2 border-slate-100 hover:border-blue-200 hover:bg-blue-50 text-sm font-medium transition">B. 円の右端の「縦の高さ」が \(1\) だから</button>
+            <button onclick="checkQuiz(2, true, this)" class="w-full text-left p-3 rounded-xl border-2 border-slate-100 hover:border-blue-200 hover:bg-blue-50 text-sm font-medium transition">C. \(\cos\) は横の長さ。スタートの右端は「横に \(1\)」進んだ場所だから</button>
           </div>
-          <div id="q2Fb" class="hidden mt-2 p-2 rounded-lg text-[10px] bg-slate-50"></div>
+          <div id="q2Fb" class="hidden mt-3 p-3 rounded-xl text-xs font-bold"></div>
         </div>
 
         <!-- Q3 -->
-        <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-sm">
-          <div class="flex justify-between items-center mb-2">
-            <span class="text-xs font-bold bg-slate-100 px-2 py-0.5 rounded text-slate-600">tan の漸近線</span>
-            <span id="q3Status" class="text-[10px] font-bold text-slate-400">未回答</span>
+        <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex flex-col h-full">
+          <div class="flex justify-between items-center mb-3">
+            <span class="text-xs font-bold bg-slate-100 px-2 py-1 rounded text-slate-600">Q3. タンジェントの壁</span>
+            <span id="q3Status" class="text-[11px] font-bold text-slate-400">未回答</span>
           </div>
-          <h3 class="text-sm font-bold text-slate-800 mb-2">tan が 90° のときに「定義されない（値がない）」理由は何ですか？</h3>
-          <div class="space-y-1.5">
-            <button onclick="checkQuiz(3, true, this)" class="w-full text-left p-2 rounded-lg border border-slate-200 text-xs hover:bg-slate-50 transition">A. 直線が垂直になり、横の変化が 0 になって割り算できないから</button>
-            <button onclick="checkQuiz(3, false, this)" class="w-full text-left p-2 rounded-lg border border-slate-200 text-xs hover:bg-slate-50 transition">B. グラフが無限大まで突き抜けてしまうから</button>
-            <button onclick="checkQuiz(3, false, this)" class="w-full text-left p-2 rounded-lg border border-slate-200 text-xs hover:bg-slate-50 transition">C. 90°のときの sin が 0 になるから</button>
+          <h3 class="text-sm font-bold text-slate-800 mb-4 leading-relaxed">
+            \(\tan\) が \(90^\circ\) のときに「値がない（エラー）」になるのはなぜ？
+          </h3>
+          <div class="space-y-2 mt-auto">
+            <button onclick="checkQuiz(3, true, this)" class="w-full text-left p-3 rounded-xl border-2 border-slate-100 hover:border-blue-200 hover:bg-blue-50 text-sm font-medium transition">A. 直線が真上を向き「横に全く進まない」ため、傾きが計算できないから</button>
+            <button onclick="checkQuiz(3, false, this)" class="w-full text-left p-3 rounded-xl border-2 border-slate-100 hover:border-blue-200 hover:bg-blue-50 text-sm font-medium transition">B. グラフが画面を突き抜けて壊れてしまうから</button>
+            <button onclick="checkQuiz(3, false, this)" class="w-full text-left p-3 rounded-xl border-2 border-slate-100 hover:border-blue-200 hover:bg-blue-50 text-sm font-medium transition">C. \(90^\circ\) のときの \(\sin\) が \(0\) になるから</button>
           </div>
-          <div id="q3Fb" class="hidden mt-2 p-2 rounded-lg text-[10px] bg-slate-50"></div>
+          <div id="q3Fb" class="hidden mt-3 p-3 rounded-xl text-xs font-bold"></div>
         </div>
 
         <!-- Q4 -->
-        <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-sm">
-          <div class="flex justify-between items-center mb-2">
-            <span class="text-xs font-bold bg-slate-100 px-2 py-0.5 rounded text-slate-600">振幅と上下移動</span>
-            <span id="q4Status" class="text-[10px] font-bold text-slate-400">未回答</span>
+        <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex flex-col h-full">
+          <div class="flex justify-between items-center mb-3">
+            <span class="text-xs font-bold bg-slate-100 px-2 py-1 rounded text-slate-600">Q4. 数式の魔法</span>
+            <span id="q4Status" class="text-[11px] font-bold text-slate-400">未回答</span>
           </div>
-          <h3 class="text-sm font-bold text-slate-800 mb-2">「2 sin θ」と「sin θ + 2」の違いとして正しいのは？</h3>
-          <div class="space-y-1.5">
-            <button onclick="checkQuiz(4, false, this)" class="w-full text-left p-2 rounded-lg border border-slate-200 text-xs hover:bg-slate-50 transition">A. どちらもグラフ全体が上に 2 持ち上がる</button>
-            <button onclick="checkQuiz(4, true, this)" class="w-full text-left p-2 rounded-lg border border-slate-200 text-xs hover:bg-slate-50 transition">B. 前者は振幅（山の高さ）が 2 倍になり、後者は中心が上に 2 移動する</button>
-            <button onclick="checkQuiz(4, false, this)" class="w-full text-left p-2 rounded-lg border border-slate-200 text-xs hover:bg-slate-50 transition">C. 前者は周期が 2 倍になり、後者は振幅が 2 倍になる</button>
+          <h3 class="text-sm font-bold text-slate-800 mb-4 leading-relaxed">
+            「\(2\sin\theta\)」 と 「\(\sin\theta + 2\)」 のグラフの違いとして正しいのは？
+          </h3>
+          <div class="space-y-2 mt-auto">
+            <button onclick="checkQuiz(4, false, this)" class="w-full text-left p-3 rounded-xl border-2 border-slate-100 hover:border-blue-200 hover:bg-blue-50 text-sm font-medium transition">A. どちらもグラフ全体が上に \(2\) 持ち上がる</button>
+            <button onclick="checkQuiz(4, true, this)" class="w-full text-left p-3 rounded-xl border-2 border-slate-100 hover:border-blue-200 hover:bg-blue-50 text-sm font-medium transition">B. \(2\sin\) は出た値を後から2倍するので「山が高く」なり、\(+2\) は「グラフ全体が上に」持ち上がる</button>
+            <button onclick="checkQuiz(4, false, this)" class="w-full text-left p-3 rounded-xl border-2 border-slate-100 hover:border-blue-200 hover:bg-blue-50 text-sm font-medium transition">C. \(2\sin\) は周期が2倍になり、\(+2\) は振幅が2倍になる</button>
           </div>
-          <div id="q4Fb" class="hidden mt-2 p-2 rounded-lg text-[10px] bg-slate-50"></div>
+          <div id="q4Fb" class="hidden mt-3 p-3 rounded-xl text-xs font-bold"></div>
         </div>
 
         <!-- Q5 -->
-        <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-sm md:col-span-2">
-          <div class="flex justify-between items-center mb-2">
-            <span class="text-xs font-bold bg-slate-100 px-2 py-0.5 rounded text-slate-600">周期の変更</span>
-            <span id="q5Status" class="text-[10px] font-bold text-slate-400">未回答</span>
+        <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm md:col-span-2 flex flex-col">
+          <div class="flex justify-between items-center mb-3">
+            <span class="text-xs font-bold bg-slate-100 px-2 py-1 rounded text-slate-600">Q5. 周期の変更</span>
+            <span id="q5Status" class="text-[11px] font-bold text-slate-400">未回答</span>
           </div>
-          <h3 class="text-sm font-bold text-slate-800 mb-2">「sin 2θ」のグラフの周期が 180° になる（半分になる）理由は？</h3>
-          <div class="space-y-1.5">
-            <button onclick="checkQuiz(5, false, this)" class="w-full text-left p-2 rounded-lg border border-slate-200 text-xs hover:bg-slate-50 transition">A. 式の先頭に 2 が付いているから、波が 2 倍早く進むから</button>
-            <button onclick="checkQuiz(5, true, this)" class="w-full text-left p-2 rounded-lg border border-slate-200 text-xs hover:bg-slate-50 transition">B. 角を 2 倍にしてから円を読むため、実際の角が 180° 進むだけで円を一周する(360°に達する)から</button>
+          <h3 class="text-sm font-bold text-slate-800 mb-4 leading-relaxed">
+            「\(\sin(2\theta)\)」 のグラフの周期が、普通の半分の \(180^\circ\)（\(\pi\)）で終わってしまう理由は？
+          </h3>
+          <div class="space-y-2 mt-auto">
+            <button onclick="checkQuiz(5, false, this)" class="w-full text-left p-3 rounded-xl border-2 border-slate-100 hover:border-blue-200 hover:bg-blue-50 text-sm font-medium transition">A. 式の先頭に \(2\) が付いているから波が小さく圧縮されるため</button>
+            <button onclick="checkQuiz(5, true, this)" class="w-full text-left p-3 rounded-xl border-2 border-slate-100 hover:border-blue-200 hover:bg-blue-50 text-sm font-medium transition">B. 角度を先に2倍のスピードで進めるため、時間が \(180^\circ\) 経過しただけで円を1周（\(360^\circ\)分）してしまうから</button>
           </div>
-          <div id="q5Fb" class="hidden mt-2 p-2 rounded-lg text-[10px] bg-slate-50"></div>
-        </div>
-      </div>
-
-      <!-- Self Check -->
-      <div class="bg-slate-800 rounded-2xl p-5 border border-slate-700 text-white space-y-4 mt-6">
-        <h3 class="text-sm font-black flex items-center">
-          <i data-lucide="check-square" class="w-4 h-4 mr-2 text-sky-400"></i>解答を閉じて自力説明チェック
-        </h3>
-        <p class="text-[10px] text-slate-300">グラフの形を丸暗記するのではなく、意味から説明できたらチェックを入れましょう。</p>
-        
-        <label class="flex items-start space-x-3 cursor-pointer p-2 hover:bg-slate-700 rounded-lg transition">
-          <input type="checkbox" id="sc1" onchange="checkAllChecks()" class="mt-0.5 rounded bg-slate-600 border-slate-500 text-sky-500 focus:ring-sky-500 focus:ring-offset-slate-800">
-          <div class="text-xs">
-            <span class="font-bold">① sin のグラフが波を描く理由を「円の縦座標の変化」という言葉を使って説明できる。</span>
-          </div>
-        </label>
-        
-        <label class="flex items-start space-x-3 cursor-pointer p-2 hover:bg-slate-700 rounded-lg transition">
-          <input type="checkbox" id="sc2" onchange="checkAllChecks()" class="mt-0.5 rounded bg-slate-600 border-slate-500 text-sky-500 focus:ring-sky-500 focus:ring-offset-slate-800">
-          <div class="text-xs">
-            <span class="font-bold">②「山が高いから周期が短い(早く終わる)」という勘違いを、振幅と周期の違いから否定できる。</span>
-          </div>
-        </label>
-        
-        <label class="flex items-start space-x-3 cursor-pointer p-2 hover:bg-slate-700 rounded-lg transition">
-          <input type="checkbox" id="sc3" onchange="checkAllChecks()" class="mt-0.5 rounded bg-slate-600 border-slate-500 text-sky-500 focus:ring-sky-500 focus:ring-offset-slate-800">
-          <div class="text-xs">
-            <span class="font-bold">③ tan のグラフが半周(180°)で同じ形を繰り返す理由を、円を通る直線の傾きから説明できる。</span>
-          </div>
-        </label>
-        
-        <div id="selfCheckResult" class="hidden mt-3 p-3 bg-sky-900/50 border border-sky-500/50 text-sky-200 rounded-lg text-xs font-bold flex items-center justify-center">
-          🎉 全ての目標をクリア！グラフの「意味の読み取り」はバッチリです！
+          <div id="q5Fb" class="hidden mt-3 p-3 rounded-xl text-xs font-bold"></div>
         </div>
       </div>
     </div>
 
     <!-- ========================================== -->
-    <!-- TAB 3: つまずき解決ヒント -->
+    <!-- TAB 3: つまずきレスキュー -->
     <!-- ========================================== -->
-    <div id="tabContent-support" class="hidden space-y-5">
-      <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-6">
-        <div>
-          <span class="text-[10px] font-bold text-indigo-600 uppercase tracking-wider">Self-Study Hints</span>
-          <h2 class="text-lg font-black text-slate-900">つまずき解決ヒント：迷ったときのチェックポイント</h2>
-          <p class="text-xs text-slate-500 mt-1">グラフを描くときや、変形の式で迷いやすいポイントとその解決法です。</p>
+    <div id="tabContent-support" class="hidden space-y-6 animate-fade-in">
+      <div class="bg-amber-100 rounded-3xl p-6 shadow-sm border border-amber-200">
+        <h2 class="text-lg font-extrabold text-amber-900">🚑 つまずきレスキュー</h2>
+        <p class="text-sm text-amber-800 mt-1">みんながよく迷うポイントを、暗記を使わずに解決します。</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <!-- Hint 1 -->
+        <div class="p-5 rounded-2xl bg-white border-2 border-sky-100 shadow-sm">
+          <h3 class="text-sm font-bold text-sky-900 mb-3 flex items-center gap-2">
+            <span class="bg-sky-500 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs">1</span>
+            「\(\cos\) は横」なのに、グラフの横軸に値を書くの？
+          </h3>
+          <p class="text-sm text-slate-700 bg-sky-50 p-3 rounded-xl border border-sky-100 font-bold mb-3">
+            グラフの横軸は「時間（回した角度）」だよ。
+          </p>
+          <p class="text-xs text-slate-600 leading-relaxed">
+            円の「横の長さ（\(\cos\)）」を、右側のグラフでは「縦の高さ」として録画しているんだ。どんなグラフでも、横軸には進んだ時間（角度）、縦軸にはその結果（値）を記録するというルールがあるよ。
+          </p>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <!-- Hint 1 -->
-          <div class="p-4 rounded-xl bg-sky-50 border border-sky-100">
-            <h3 class="text-sm font-bold text-sky-900 mb-2 flex items-center">
-              <span class="bg-sky-200 text-sky-800 w-5 h-5 rounded-full flex items-center justify-center text-[10px] mr-2">1</span>
-              「cos は横」なのに、グラフの横軸に値を書くの？
-            </h3>
-            <p class="text-xs text-slate-600 bg-white p-2.5 rounded-lg border border-sky-100 shadow-sm mb-2 font-medium">
-              グラフの横軸は「回した角」です。座標ではありません。
-            </p>
-            <p class="text-[10px] text-slate-500">
-              「円のどの量を見るか（cosなら横）」と、「グラフのどちらの軸に記録するか」は別です。どんな関数でも、横軸には進んだ角度（時間のようなもの）、縦軸にその結果の値を記録します。
-            </p>
-          </div>
+        <!-- Hint 2 -->
+        <div class="p-5 rounded-2xl bg-white border-2 border-amber-100 shadow-sm">
+          <h3 class="text-sm font-bold text-amber-900 mb-3 flex items-center gap-2">
+            <span class="bg-amber-500 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs">2</span>
+            \(-1\) から \(0\) に変わるとき「減る」と勘違いしちゃう
+          </h3>
+          <p class="text-sm text-slate-700 bg-amber-50 p-3 rounded-xl border border-amber-100 font-bold mb-3">
+            マイナスの世界では、\(0\) に近づくのは「増える」こと！
+          </p>
+          <p class="text-xs text-slate-600 leading-relaxed">
+            温度計を想像してみて。\(-1\) 度から \(0\) 度になるときは、気温が「上がって」いるよね。\(\cos\) が \(180^\circ\) (\(-1\)) から \(270^\circ\) (\(0\)) に向かうときは、グラフは右上に登っている（増加している）んだ。
+          </p>
+        </div>
 
-          <!-- Hint 2 -->
-          <div class="p-4 rounded-xl bg-amber-50 border border-amber-100">
-            <h3 class="text-sm font-bold text-amber-900 mb-2 flex items-center">
-              <span class="bg-amber-200 text-amber-800 w-5 h-5 rounded-full flex items-center justify-center text-[10px] mr-2">2</span>
-              -1 から 0 へ変わるとき「減る」と勘違いしちゃう
-            </h3>
-            <p class="text-xs text-slate-600 bg-white p-2.5 rounded-lg border border-amber-100 shadow-sm mb-2 font-medium">
-              マイナスの世界では、0に近づくことは「増える」です。
-            </p>
-            <p class="text-[10px] text-slate-500">
-              数直線をイメージしましょう。-1 よりも 0 の方が右（上）にあります。cos が 180°(-1) から 270°(0) に向かうときは、値は「増加」しています。
-            </p>
-          </div>
+        <!-- Hint 3 -->
+        <div class="p-5 rounded-2xl bg-white border-2 border-emerald-100 shadow-sm">
+          <h3 class="text-sm font-bold text-emerald-900 mb-3 flex items-center gap-2">
+            <span class="bg-emerald-500 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs">3</span>
+            \(\tan 90^\circ\) は \(0\)？ それとも無限大？
+          </h3>
+          <p class="text-sm text-slate-700 bg-emerald-50 p-3 rounded-xl border border-emerald-100 font-bold mb-3">
+            正解は「値がない（エラー）」。
+          </p>
+          <p class="text-xs text-slate-600 leading-relaxed">
+            \(\tan\) は直線の傾き（横に1進んだら縦にどれくらい進むか）です。直角（\(90^\circ\)）の壁を登ろうとすると、横には1ミリも進みません。「横の変化が \(0\)」になるため、数学では割り算ができず「値がない」となります。
+          </p>
+        </div>
 
-          <!-- Hint 3 -->
-          <div class="p-4 rounded-xl bg-emerald-50 border border-emerald-100">
-            <h3 class="text-sm font-bold text-emerald-900 mb-2 flex items-center">
-              <span class="bg-emerald-200 text-emerald-800 w-5 h-5 rounded-full flex items-center justify-center text-[10px] mr-2">3</span>
-              tan 90° は 0？ 無限大？
-            </h3>
-            <p class="text-xs text-slate-600 bg-white p-2.5 rounded-lg border border-emerald-100 shadow-sm mb-2 font-medium">
-              90° ちょうどには「値がない（定義されない）」が正解。
-            </p>
-            <p class="text-[10px] text-slate-500">
-              傾きは（縦の変化）÷（横の変化）です。垂直な直線は横の変化が 0 になるため、割り算ができません。「90°に近づくほど値は無限に大きくなる」ことと、「90°ちょうどに値がある」ことは全く別です。
-            </p>
-          </div>
-
-          <!-- Hint 4 -->
-          <div class="p-4 rounded-xl bg-rose-50 border border-rose-100">
-            <h3 class="text-sm font-bold text-rose-900 mb-2 flex items-center">
-              <span class="bg-rose-200 text-rose-800 w-5 h-5 rounded-full flex items-center justify-center text-[10px] mr-2">4</span>
-              グラフの破線（目印）もなぞってしまう
-            </h3>
-            <p class="text-xs text-slate-600 bg-white p-2.5 rounded-lg border border-rose-100 shadow-sm mb-2 font-medium">
-              破線は「ここには値がないよ」という透明の壁です。
-            </p>
-            <p class="text-[10px] text-slate-500">
-              tan のグラフで 90° や 270° にある破線（漸近線）を、縦に繋いで波のようにしてはいけません。そこでグラフは一度完全に途切れます。
-            </p>
-          </div>
+        <!-- Hint 4 -->
+        <div class="p-5 rounded-2xl bg-white border-2 border-rose-100 shadow-sm">
+          <h3 class="text-sm font-bold text-rose-900 mb-3 flex items-center gap-2">
+            <span class="bg-rose-500 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs">4</span>
+            \(\tan\) のグラフの点線（漸近線）もなぞってしまう
+          </h3>
+          <p class="text-sm text-slate-700 bg-rose-50 p-3 rounded-xl border border-rose-100 font-bold mb-3">
+            点線は見えない壁。「波」のようにつないではダメ！
+          </p>
+          <p class="text-xs text-slate-600 leading-relaxed">
+            \(\tan\) のグラフで \(90^\circ\) や \(270^\circ\) にある点線は、「これ以上先には行けないよ」というマークです。ここでグラフの線は一度完全にちぎれて、また下から新しくスタートします。
+          </p>
         </div>
       </div>
     </div>
 
   </main>
 
-  <footer class="bg-slate-800 text-slate-400 py-4 text-center text-[10px] mt-auto">
-    <div class="max-w-7xl mx-auto px-4 flex justify-between items-center">
-      <span>数学II 三角関数 第2回：グラフ導入と読み取り</span>
-      <button onclick="toggleAudio()" id="audioBtn" class="flex items-center space-x-1 hover:text-white transition">
-        <i data-lucide="volume-2" class="w-3.5 h-3.5" id="audioIcon"></i><span>Sound ON</span>
-      </button>
-    </div>
-  </footer>
-
   <script>
-    // Audio Context
-    let audioEnabled = true;
-    let synth = null;
-    function initAudio() {
-      if (!synth && typeof Tone !== 'undefined') {
-        synth = new Tone.PolySynth(Tone.Synth, {
-          oscillator: { type: "sine" },
-          envelope: { attack: 0.01, decay: 0.1, sustain: 0.1, release: 0.4 }
-        }).toDestination();
-        synth.volume.value = -15;
-      }
-    }
-    function playTone(type) {
-      if (!audioEnabled) return;
-      try {
-        initAudio();
-        if (Tone.context.state !== 'running') Tone.start();
-        if (type === 'click') synth.triggerAttackRelease("C5", "32n");
-        if (type === 'correct') synth.triggerAttackRelease(["C5", "E5", "G5"], "8n");
-        if (type === 'wrong') synth.triggerAttackRelease(["C4", "Eb4"], "8n");
-        if (type === 'snap') synth.triggerAttackRelease("G5", "32n");
-      } catch(e) {}
-    }
-    function toggleAudio() {
-      audioEnabled = !audioEnabled;
-      document.getElementById('audioIcon').setAttribute('data-lucide', audioEnabled ? 'volume-2' : 'volume-x');
-      document.getElementById('audioBtn').querySelector('span').innerText = audioEnabled ? 'Sound ON' : 'Sound OFF';
-      lucide.createIcons();
-    }
-
-    // KaTeX Helper
-    function renderMath(elId, tex) {
-      const el = document.getElementById(elId);
-      if(!el) return;
-      if(window.katex) {
-        katex.render(tex, el, { throwOnError: false });
-      } else {
-        el.innerText = tex;
-      }
-    }
-
-    // Mathematical Data Dictionary (Exact fractions and roots)
+    // ==========================================
+    // データ定義
+    // ==========================================
+    
+    // スライダーの目盛りにスナップさせるためのキリの良い角度（度数法）
     const LANDMARKS = [
       0, 30, 45, 60, 90, 120, 135, 150, 180, 210, 225, 240, 270, 300, 315, 330, 360
     ];
     
+    // 小数を一切排除した、綺麗な分数・ルートによる数学的定義
     const MATH_DICT = {
       0:   { rad: "0", sin: "0", cos: "1", tan: "0" },
-      30:  { rad: "\\frac{\\pi}{6}", sin: "\\frac{1}{2}", cos: "\\frac{\\sqrt{3}}{2}", tan: "\\frac{\\sqrt{3}}{3}" },
+      30:  { rad: "\\frac{\\pi}{6}", sin: "\\frac{1}{2}", cos: "\\frac{\\sqrt{3}}{2}", tan: "\\frac{1}{\\sqrt{3}}" },
       45:  { rad: "\\frac{\\pi}{4}", sin: "\\frac{\\sqrt{2}}{2}", cos: "\\frac{\\sqrt{2}}{2}", tan: "1" },
       60:  { rad: "\\frac{\\pi}{3}", sin: "\\frac{\\sqrt{3}}{2}", cos: "\\frac{1}{2}", tan: "\\sqrt{3}" },
-      90:  { rad: "\\frac{\\pi}{2}", sin: "1", cos: "0", tan: "\\text{定義されない}" },
+      90:  { rad: "\\frac{\\pi}{2}", sin: "1", cos: "0", tan: "\\text{なし}" },
       120: { rad: "\\frac{2\\pi}{3}", sin: "\\frac{\\sqrt{3}}{2}", cos: "-\\frac{1}{2}", tan: "-\\sqrt{3}" },
       135: { rad: "\\frac{3\\pi}{4}", sin: "\\frac{\\sqrt{2}}{2}", cos: "-\\frac{\\sqrt{2}}{2}", tan: "-1" },
-      150: { rad: "\\frac{5\\pi}{6}", sin: "\\frac{1}{2}", cos: "-\\frac{\\sqrt{3}}{2}", tan: "-\\frac{\\sqrt{3}}{3}" },
+      150: { rad: "\\frac{5\\pi}{6}", sin: "\\frac{1}{2}", cos: "-\\frac{\\sqrt{3}}{2}", tan: "-\\frac{1}{\\sqrt{3}}" },
       180: { rad: "\\pi", sin: "0", cos: "-1", tan: "0" },
-      210: { rad: "\\frac{7\\pi}{6}", sin: "-\\frac{1}{2}", cos: "-\\frac{\\sqrt{3}}{2}", tan: "\\frac{\\sqrt{3}}{3}" },
+      210: { rad: "\\frac{7\\pi}{6}", sin: "-\\frac{1}{2}", cos: "-\\frac{\\sqrt{3}}{2}", tan: "\\frac{1}{\\sqrt{3}}" },
       225: { rad: "\\frac{5\\pi}{4}", sin: "-\\frac{\\sqrt{2}}{2}", cos: "-\\frac{\\sqrt{2}}{2}", tan: "1" },
       240: { rad: "\\frac{4\\pi}{3}", sin: "-\\frac{\\sqrt{3}}{2}", cos: "-\\frac{1}{2}", tan: "\\sqrt{3}" },
-      270: { rad: "\\frac{3\\pi}{2}", sin: "-1", cos: "0", tan: "\\text{定義されない}" },
+      270: { rad: "\\frac{3\\pi}{2}", sin: "-1", cos: "0", tan: "\\text{なし}" },
       300: { rad: "\\frac{5\\pi}{3}", sin: "-\\frac{\\sqrt{3}}{2}", cos: "\\frac{1}{2}", tan: "-\\sqrt{3}" },
       315: { rad: "\\frac{7\\pi}{4}", sin: "-\\frac{\\sqrt{2}}{2}", cos: "\\frac{\\sqrt{2}}{2}", tan: "-1" },
-      330: { rad: "\\frac{11\\pi}{6}", sin: "-\\frac{1}{2}", cos: "\\frac{\\sqrt{3}}{2}", tan: "-\\frac{\\sqrt{3}}{3}" },
+      330: { rad: "\\frac{11\\pi}{6}", sin: "-\\frac{1}{2}", cos: "\\frac{\\sqrt{3}}{2}", tan: "-\\frac{1}{\\sqrt{3}}" },
       360: { rad: "2\\pi", sin: "0", cos: "1", tan: "0" }
     };
 
-    // State Variables
+    // アプリケーション状態
     let currentDeg = 30;
     let currentFunc = 'sin'; // 'sin', 'cos', 'tan'
-    let currentMod = 'none'; // 'none', 'amp', 'shift', 'freq', 'compare'
-    let phaseOffset = 0; // -180 to 180 (for cos compare mode)
+    let currentMod = 'none'; // 'none', 'amp'(振幅), 'shift'(平行移動), 'freq'(周期), 'compare'(比較)
+    let phaseOffset = 0;     // -180 to 180 (cos比較モード用)
 
-    // Constants for SVG mapping (ViewBox 800x340)
-    const Cx = 100; // Circle center X
-    const Cy = 180; // Circle center Y
-    const R = 60;   // Circle Radius (1 unit = 60px)
-    const Gx = 220; // Graph origin X
-    const GWidth = 540; // Graph width for 360 degrees (1.5px per degree)
+    // SVGキャンバスの定数 (ViewBox 800x340)
+    const Cx = 100; // 単位円の中心 X
+    const Cy = 180; // 単位円の中心 Y
+    const R = 60;   // 単位円の半径 (1 = 60px)
+    const Gx = 220; // グラフの原点 X
+    const GWidth = 540; // 360度の幅 (1度 = 1.5px)
 
-    function degToRad(deg) { return deg * Math.PI / 180; }
+    // ==========================================
+    // ヘルパー関数
+    // ==========================================
 
+    // 度をラジアンに変換
+    function degToRad(deg) { 
+      return deg * Math.PI / 180; 
+    }
+
+    // 小数になる角を一番近い「キリの良い角（LANDMARKS）」に吸着させる
     function snapToLandmark(deg) {
-      // 常時有名角にスナップし、小数を完全に排除する
       let closest = LANDMARKS[0];
       let minDiff = 360;
       for (let lm of LANDMARKS) {
@@ -593,66 +520,95 @@
       return closest;
     }
 
-    function stepLandmark(dir) {
-      playTone('click');
-      let idx = LANDMARKS.indexOf(currentDeg);
-      if (idx === -1) {
-        currentDeg = snapToLandmark(currentDeg);
-        idx = LANDMARKS.indexOf(currentDeg);
+    // KaTeXの安全なレンダリング
+    function renderKaTeX(elId, tex, display = false) {
+      const el = document.getElementById(elId);
+      if (!el) return;
+      if (window.katex) {
+        try {
+          katex.render(tex, el, { throwOnError: false, displayMode: display });
+        } catch (e) {
+          el.textContent = display ? `$$${tex}$$` : `\\(${tex}\\)`;
+        }
+      } else {
+        el.textContent = display ? `$$${tex}$$` : `\\(${tex}\\)`;
       }
-      idx += dir;
-      if (idx < 0) idx = 0;
-      if (idx >= LANDMARKS.length) idx = LANDMARKS.length - 1;
-      document.getElementById('angleRange').value = LANDMARKS[idx];
-      updateVisuals(LANDMARKS[idx]);
+    }
+
+    // 初回ロード時などに、静的なテキストに含まれる数式をレンダリングする
+    function renderStaticMath() {
+      if (window.renderMathInElement) {
+        try {
+          renderMathInElement(document.body, {
+            delimiters: [
+              { left: '$$', right: '$$', display: true },
+              { left: '\\(', right: '\\)', display: false }
+            ],
+            throwOnError: false
+          });
+        } catch(e) {
+          console.warn("KaTeX rendering error", e);
+        }
+      }
+    }
+
+    // ==========================================
+    // タブ＆機能の切り替え
+    // ==========================================
+
+    function switchTab(tab) {
+      // コンテンツの非表示
+      ['interactive', 'practice', 'support'].forEach(t => {
+        document.getElementById(`tabContent-${t}`).classList.add('hidden');
+        const btn = document.getElementById(`tabBtn-${t}`);
+        btn.classList.remove('bg-white', 'text-blue-700', 'shadow-sm', 'border', 'border-slate-200');
+        btn.classList.add('text-slate-500');
+      });
+      // コンテンツの表示
+      document.getElementById(`tabContent-${tab}`).classList.remove('hidden');
+      const activeBtn = document.getElementById(`tabBtn-${tab}`);
+      activeBtn.classList.remove('text-slate-500');
+      activeBtn.classList.add('bg-white', 'text-blue-700', 'shadow-sm', 'border', 'border-slate-200');
     }
 
     function setFunction(func) {
-      playTone('click');
       currentFunc = func;
       
-      // Update Buttons UI
+      // ボタンデザインの更新
       const colors = {
-        'sin': { bg: 'bg-rose-600', text: 'text-white', border: 'border-rose-700' },
-        'cos': { bg: 'bg-blue-600', text: 'text-white', border: 'border-blue-700' },
-        'tan': { bg: 'bg-emerald-600', text: 'text-white', border: 'border-emerald-700' }
+        'sin': { bg: 'bg-rose-500', text: 'text-white', border: 'border-rose-600' },
+        'cos': { bg: 'bg-blue-500', text: 'text-white', border: 'border-blue-600' },
+        'tan': { bg: 'bg-emerald-500', text: 'text-white', border: 'border-emerald-600' }
       };
 
       ['sin', 'cos', 'tan'].forEach(f => {
         const btn = document.getElementById(`btn-func-${f}`);
         if (f === func) {
-          btn.className = `func-btn px-4 py-2 rounded-xl text-sm font-black transition-all shadow-md flex items-center gap-2 border-2 ${colors[f].bg} ${colors[f].text} ${colors[f].border}`;
+          btn.className = `func-btn flex-1 sm:flex-none px-5 py-3 rounded-2xl text-sm font-extrabold transition-all border-2 flex items-center justify-center gap-2 shadow-sm ${colors[f].bg} ${colors[f].text} ${colors[f].border}`;
         } else {
-          btn.className = `func-btn px-4 py-2 rounded-xl text-sm font-black transition-all bg-white text-slate-600 border-2 border-slate-200 hover:bg-slate-50 flex items-center gap-2`;
+          btn.className = `func-btn flex-1 sm:flex-none px-5 py-3 rounded-2xl text-sm font-extrabold transition-all border-2 flex items-center justify-center gap-2 bg-white text-slate-600 border-slate-200 hover:bg-slate-50`;
         }
       });
 
-      // Show/Hide transform toggles
+      // Modパネルの表示切り替え
       const tGrpSin = document.getElementById('transformToggles-sin');
       const tGrpCos = document.getElementById('transformToggles-cos');
       
       if (func === 'sin') {
         tGrpSin.classList.remove('hidden'); tGrpSin.classList.add('flex');
         tGrpCos.classList.add('hidden'); tGrpCos.classList.remove('flex');
-        setMod('none', false);
+        setMod('none');
       } else if (func === 'cos') {
         tGrpSin.classList.add('hidden'); tGrpSin.classList.remove('flex');
         tGrpCos.classList.remove('hidden'); tGrpCos.classList.add('flex');
-        setMod('none', false);
+        setMod('none');
       } else {
         tGrpSin.classList.add('hidden'); tGrpSin.classList.remove('flex');
         tGrpCos.classList.add('hidden'); tGrpCos.classList.remove('flex');
-        setMod('none', false);
+        setMod('none');
       }
 
-      // Update Title & Explainer
-      const title = document.getElementById('funcTitle');
-      const box = document.getElementById('mainValBox');
-      const icon = document.getElementById('valIcon');
-      const label = document.getElementById('valLabel');
-      const explainer = document.getElementById('condExplainer');
-      
-      // Toggle specific SVG elements
+      // SVG内のインジケーター表示切り替え
       document.getElementById('indSin').classList.add('hidden');
       document.getElementById('indCos').classList.add('hidden');
       document.getElementById('tanAxis').classList.add('hidden');
@@ -661,37 +617,36 @@
       document.getElementById('tanPoint').classList.add('hidden');
       document.getElementById('tanAsymptotes').classList.add('hidden');
 
+      const title = document.getElementById('funcTitle');
+      const box = document.getElementById('mainValBox');
+      const label = document.getElementById('valLabel');
+      const explainer = document.getElementById('condExplainer');
+
       if (func === 'sin') {
-        title.innerText = '基本のグラフ： y = sin θ';
-        box.className = 'p-4 bg-rose-50 rounded-xl border-2 border-rose-200 shadow-sm text-center relative overflow-hidden transition-colors';
-        icon.className = 'absolute -right-2 -bottom-4 opacity-10 text-rose-500 transition-colors';
-        icon.innerHTML = '<i data-lucide="arrow-up-down" class="w-20 h-20"></i>';
-        label.className = 'text-[10px] font-bold text-rose-700 mb-2 relative z-10 transition-colors';
-        label.innerText = 'sin は縦座標';
-        document.getElementById('valMath').className = 'text-rose-900 font-black min-h-[50px] flex items-center justify-center text-2xl relative z-10 transition-colors';
-        explainer.innerHTML = '円の上の点を動かして、<strong class="text-rose-300">縦座標</strong>の変化が波の形になることを確認しましょう。';
+        renderKaTeX('funcTitle', '基本のグラフ： y = \\sin\\theta');
+        box.className = 'p-5 rounded-xl border-2 shadow-sm text-center relative overflow-hidden transition-colors bg-rose-50 border-rose-200';
+        label.className = 'text-xs font-extrabold mb-3 relative z-10 text-rose-700';
+        label.innerText = 'sin は円の「縦」の動き';
+        document.getElementById('valMath').className = 'font-extrabold flex items-center justify-center text-3xl relative z-10 text-rose-900 min-h-[60px]';
+        explainer.innerHTML = '円の上の点を動かして、<strong class="text-rose-300">縦座標</strong>の変化が右の波になることを確認しよう！';
         document.getElementById('indSin').classList.remove('hidden');
       } 
       else if (func === 'cos') {
-        title.innerText = '基本のグラフ： y = cos θ';
-        box.className = 'p-4 bg-blue-50 rounded-xl border-2 border-blue-200 shadow-sm text-center relative overflow-hidden transition-colors';
-        icon.className = 'absolute -right-2 -bottom-4 opacity-10 text-blue-500 transition-colors';
-        icon.innerHTML = '<i data-lucide="arrow-left-right" class="w-20 h-20"></i>';
-        label.className = 'text-[10px] font-bold text-blue-700 mb-2 relative z-10 transition-colors';
-        label.innerText = 'cos は横座標';
-        document.getElementById('valMath').className = 'text-blue-900 font-black min-h-[50px] flex items-center justify-center text-2xl relative z-10 transition-colors';
-        explainer.innerHTML = '今度は円の<strong class="text-blue-300">横座標</strong>を、グラフでは「縦の高さ」として記録します。<br>0°で1から始まる理由を確認しましょう。';
+        renderKaTeX('funcTitle', '基本のグラフ： y = \\cos\\theta');
+        box.className = 'p-5 rounded-xl border-2 shadow-sm text-center relative overflow-hidden transition-colors bg-blue-50 border-blue-200';
+        label.className = 'text-xs font-extrabold mb-3 relative z-10 text-blue-700';
+        label.innerText = 'cos は円の「横」の動き';
+        document.getElementById('valMath').className = 'font-extrabold flex items-center justify-center text-3xl relative z-10 text-blue-900 min-h-[60px]';
+        explainer.innerHTML = '円の<strong class="text-blue-300">横の長さ</strong>を、右のグラフでは「縦の高さ」として録画しているよ。<br>スタート地点（\(0^\circ\)）でグラフが1から始まる理由を確かめよう！';
         document.getElementById('indCos').classList.remove('hidden');
       }
       else if (func === 'tan') {
-        title.innerText = '基本のグラフ： y = tan θ';
-        box.className = 'p-4 bg-emerald-50 rounded-xl border-2 border-emerald-200 shadow-sm text-center relative overflow-hidden transition-colors';
-        icon.className = 'absolute -right-2 -bottom-4 opacity-10 text-emerald-500 transition-colors';
-        icon.innerHTML = '<i data-lucide="trending-up" class="w-20 h-20"></i>';
-        label.className = 'text-[10px] font-bold text-emerald-700 mb-2 relative z-10 transition-colors';
+        renderKaTeX('funcTitle', '基本のグラフ： y = \\tan\\theta');
+        box.className = 'p-5 rounded-xl border-2 shadow-sm text-center relative overflow-hidden transition-colors bg-emerald-50 border-emerald-200';
+        label.className = 'text-xs font-extrabold mb-3 relative z-10 text-emerald-700';
         label.innerText = 'tan は直線の傾き';
-        document.getElementById('valMath').className = 'text-emerald-900 font-black min-h-[50px] flex items-center justify-center text-2xl relative z-10 transition-colors';
-        explainer.innerHTML = '原点からの<strong class="text-emerald-300">直線の傾き</strong>を記録します。90°や270°で直線が垂直になり、値が「定義されない」ことに注目してください。';
+        document.getElementById('valMath').className = 'font-extrabold flex items-center justify-center text-3xl relative z-10 text-emerald-900 min-h-[60px]';
+        explainer.innerHTML = '直線の<strong class="text-emerald-300">傾き（横に1進んだときの高さ）</strong>を記録します。\(90^\circ\) などの真上を向く場所では「値がない（エラー）」になることに注目してね。';
         
         document.getElementById('tanAxis').classList.remove('hidden');
         document.getElementById('indTanLine').classList.remove('hidden');
@@ -700,44 +655,42 @@
         document.getElementById('tanAsymptotes').classList.remove('hidden');
       }
 
-      lucide.createIcons();
       drawBaseWaves();
       updateVisuals(currentDeg);
     }
 
-    function setMod(mod, playSnd = true) {
-      if(playSnd) playTone('click');
+    function setMod(mod) {
       currentMod = mod;
       
-      // Reset phase
+      // 位相（ズレ）のリセット
       phaseOffset = 0;
       document.getElementById('phaseRange').value = 0;
       document.getElementById('phaseValText').innerText = '0°';
-      document.getElementById('mainValBox').classList.remove('ring-4', 'ring-emerald-400');
+      document.getElementById('mainValBox').classList.remove('ring-4', 'ring-blue-400', 'bg-blue-100');
       
-      // Update toggle buttons for sin
+      // Modボタンのスタイル更新 (sin)
       if (currentFunc === 'sin') {
         ['none', 'amp', 'shift', 'freq'].forEach(m => {
           const btn = document.getElementById(`mod-sin-${m}`);
           if(btn) {
-            if(m === mod) btn.className = `mod-btn px-2.5 py-1 text-xs font-bold rounded-lg bg-slate-800 text-white shadow-sm border border-slate-700 transition-colors`;
-            else btn.className = `mod-btn px-2.5 py-1 text-xs font-bold rounded-lg bg-white text-slate-600 hover:bg-slate-50 border border-slate-200 transition-colors`;
+            if(m === mod) btn.className = `mod-btn px-3 py-1.5 text-xs font-bold rounded-lg bg-slate-800 text-white shadow-sm transition`;
+            else btn.className = `mod-btn px-3 py-1.5 text-xs font-bold rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition`;
           }
         });
       }
 
-      // Update toggle buttons for cos
+      // Modボタンのスタイル更新 (cos)
       if (currentFunc === 'cos') {
         ['none', 'compare'].forEach(m => {
           const btn = document.getElementById(`mod-cos-${m}`);
           if(btn) {
-            if(m === mod) btn.className = `mod-btn px-2.5 py-1 text-xs font-bold rounded-lg bg-blue-700 text-white shadow-sm border border-blue-800 transition-colors`;
-            else btn.className = `mod-btn px-2.5 py-1 text-xs font-bold rounded-lg bg-white text-blue-600 hover:bg-blue-50 border border-blue-200 transition-colors`;
+            if(m === mod) btn.className = `mod-btn px-3 py-1.5 text-xs font-bold rounded-lg bg-blue-700 text-white shadow-sm transition`;
+            else btn.className = `mod-btn px-3 py-1.5 text-xs font-bold rounded-lg bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 transition`;
           }
         });
       }
       
-      // Toggle phase slider
+      // cos比較用スライダーの表示/非表示
       const phaseContainer = document.getElementById('phaseSliderContainer');
       if (mod === 'compare') {
           phaseContainer.classList.remove('hidden');
@@ -747,47 +700,57 @@
           phaseContainer.classList.remove('flex');
       }
 
-      // Update Title & Guide lines based on Mod
-      const title = document.getElementById('funcTitle');
+      // ガイドラインの表示/非表示リセット
       document.getElementById('guideY2').classList.add('hidden');
       document.getElementById('labelY2').classList.add('hidden');
-      document.getElementById('guideY3').classList.add('hidden');
-      document.getElementById('labelY3').classList.add('hidden');
       document.getElementById('guideYMin2').classList.add('hidden');
       document.getElementById('labelYMin2').classList.add('hidden');
 
+      const explainer = document.getElementById('condExplainer');
+
+      // 数式ごとの意味解説
       if (currentFunc === 'sin') {
         if (mod === 'none') {
-          title.innerText = '基本のグラフ： y = sin θ';
+          renderKaTeX('funcTitle', '基本のグラフ： y = \\sin\\theta');
+          explainer.innerHTML = '円の上の点を動かして、<strong class="text-rose-300">縦座標</strong>の変化が波の形になることを確認しよう！';
         } else if (mod === 'amp') {
-          title.innerText = '振幅の変更： y = 2sin θ';
+          renderKaTeX('funcTitle', '振幅の変更： y = 2\\sin\\theta');
+          explainer.innerHTML = '魔法の言葉：<strong class="text-rose-300">「出た値を後から2倍に引き伸ばす！」</strong><br>だから山の高さ（振幅）が2倍になります。横幅（周期）は変わりません。';
           document.getElementById('guideY2').classList.remove('hidden');
           document.getElementById('labelY2').classList.remove('hidden');
           document.getElementById('guideYMin2').classList.remove('hidden');
           document.getElementById('labelYMin2').classList.remove('hidden');
         } else if (mod === 'shift') {
-          title.innerText = '上下の移動： y = sin θ + 2';
+          renderKaTeX('funcTitle', '上下の移動： y = \\sin\\theta + 2');
+          explainer.innerHTML = '魔法の言葉：<strong class="text-rose-300">「すべての結果に2を足し上げる！」</strong><br>波の形そのものは変わらず、グラフ全体が上に+2だけ持ち上がります。';
           document.getElementById('guideY2').classList.remove('hidden');
           document.getElementById('labelY2').classList.remove('hidden');
-          document.getElementById('guideY3').classList.remove('hidden');
-          document.getElementById('labelY3').classList.remove('hidden');
         } else if (mod === 'freq') {
-          title.innerText = '周期の変更： y = sin (2θ)';
+          renderKaTeX('funcTitle', '周期の変更： y = \\sin(2\\theta)');
+          explainer.innerHTML = '魔法の言葉：<strong class="text-rose-300">「角度を2倍のスピードで進める！」</strong><br>スライダーが \(180^\circ\) の時点で円はすでに \(360^\circ\) 回ってしまうため、半分の時間で波が完成します。';
         }
       } else if (currentFunc === 'cos') {
-        if (mod === 'none') title.innerText = '基本のグラフ： y = cos θ';
-        else if (mod === 'compare') title.innerText = '波の比較： cos波を横にずらす';
+        if (mod === 'none') {
+          renderKaTeX('funcTitle', '基本のグラフ： y = \\cos\\theta');
+          explainer.innerHTML = '円の<strong class="text-blue-300">横の長さ</strong>を、右のグラフでは「縦の高さ」として録画しているよ。<br>スタート地点（\(0^\circ\)）でグラフが1から始まる理由を確かめよう！';
+        } else if (mod === 'compare') {
+          renderKaTeX('funcTitle', '波の比較： cos波を横にずらすと…？');
+        }
       }
 
       drawBaseWaves();
       updateVisuals(currentDeg);
-      updateCompareMessage();
+      if (currentFunc === 'cos' && mod === 'compare') updateCompareMessage();
     }
+
+    // ==========================================
+    // グラフの計算と描画
+    // ==========================================
 
     function getWaveY(deg) {
       let offsetDeg = 0;
       if (currentFunc === 'cos' && currentMod === 'compare') {
-          offsetDeg = -phaseOffset;
+          offsetDeg = -phaseOffset; // 式としては \cos(\theta - offset) になる
       }
       const rad = degToRad(deg + offsetDeg);
       let yval = 0;
@@ -809,9 +772,10 @@
     }
 
     function drawBaseWaves() {
-      // Draw Ghost
+      // 比較用ゴースト（点線）の描画
       const ghost = document.getElementById('ghostWave');
       if (currentFunc === 'sin' && currentMod !== 'none') {
+        // sinの変更モード時：元の \sin\theta をグレーで表示
         let gd = `M ${Gx} ${Cy} `;
         for(let i=0; i<=360; i+=2) {
           gd += `L ${Gx + i*1.5} ${Cy - Math.sin(degToRad(i))*R} `;
@@ -820,26 +784,26 @@
         ghost.setAttribute('stroke', '#cbd5e1'); // gray
         ghost.classList.remove('hidden');
       } else if (currentFunc === 'cos' && currentMod === 'compare') {
-        // sin ghost in compare mode
+        // cos比較モード時：\sin\theta を赤色で表示
         let gd = `M ${Gx} ${Cy} `;
         for(let i=0; i<=360; i+=2) {
           gd += `L ${Gx + i*1.5} ${Cy - Math.sin(degToRad(i))*R} `;
         }
         ghost.setAttribute('d', gd);
-        ghost.setAttribute('stroke', '#fda4af'); // light rose
+        ghost.setAttribute('stroke', '#f43f5e'); // rose
         ghost.classList.remove('hidden');
       } else {
         ghost.classList.add('hidden');
       }
 
-      // Draw Main Wave Paths
+      // メイン波の描画
       const mw1 = document.getElementById('mainWave1');
       const mw2 = document.getElementById('mainWave2');
       const mw3 = document.getElementById('mainWave3');
       
       mw1.setAttribute('d', ''); mw2.setAttribute('d', ''); mw3.setAttribute('d', '');
       
-      let color = currentFunc === 'sin' ? '#e11d48' : currentFunc === 'cos' ? '#2563eb' : '#059669';
+      let color = currentFunc === 'sin' ? '#f43f5e' : currentFunc === 'cos' ? '#3b82f6' : '#10b981';
       mw1.setAttribute('stroke', color); mw2.setAttribute('stroke', color); mw3.setAttribute('stroke', color);
 
       if (currentFunc !== 'tan') {
@@ -847,7 +811,7 @@
         for(let i=0; i<=360; i+=2) { d += `L ${Gx + i*1.5} ${getWaveY(i)} `; }
         mw1.setAttribute('d', d);
       } else {
-        // Tan requires breaking the path at asymptotes (90, 270)
+        // tanは漸近線でパスを分ける
         let d1 = `M ${Gx} ${Cy} `;
         for(let i=0; i<=88; i+=2) { d1 += `L ${Gx + i*1.5} ${getWaveY(i)} `; }
         mw1.setAttribute('d', d1);
@@ -866,7 +830,7 @@
       currentDeg = deg;
       const rad = degToRad(deg);
       
-      // Update Circle Elements
+      // 円周上の点と半径の更新
       const px = Cx + Math.cos(rad) * R;
       const py = Cy - Math.sin(rad) * R;
       
@@ -875,34 +839,33 @@
       document.getElementById('circleRadius').setAttribute('x2', px);
       document.getElementById('circleRadius').setAttribute('y2', py);
 
-      // Angle Arc
+      // 角度の扇形
       let arcD = `M ${Cx + R*0.3} ${Cy} A ${R*0.3} ${R*0.3} 0 ${deg>180?1:0} 0 ${Cx + Math.cos(rad)*R*0.3} ${Cy - Math.sin(rad)*R*0.3} L ${Cx} ${Cy} Z`;
       if(deg===0 || deg===360) arcD = "";
       document.getElementById('angleArc').setAttribute('d', arcD);
 
-      // Indicators
+      // sin(赤縦線) と cos(青横線) のインジケーター
       const indSin = document.getElementById('indSin');
       indSin.setAttribute('x1', px); indSin.setAttribute('x2', px);
       indSin.setAttribute('y1', Cy); indSin.setAttribute('y2', py);
 
       const indCos = document.getElementById('indCos');
       indCos.setAttribute('x1', Cx); indCos.setAttribute('x2', px);
-      indCos.setAttribute('y1', Cy); indCos.setAttribute('y2', Cy); // Draw on x-axis
+      indCos.setAttribute('y1', Cy); indCos.setAttribute('y2', Cy); 
 
-      // Tan visual
+      // tan(緑接線)のビジュアル
       const isTanUndef = (deg === 90 || deg === 270);
       if (currentFunc === 'tan') {
         const tLine = document.getElementById('indTanLine');
         const tVal = document.getElementById('indTanVal');
         const tPt = document.getElementById('tanPoint');
         if (isTanUndef) {
-          tLine.setAttribute('x2', Cx); tLine.setAttribute('y2', deg===90?40:320); // shoot straight up/down
+          tLine.setAttribute('x2', Cx); tLine.setAttribute('y2', deg===90?40:320);
           tVal.classList.add('hidden');
           tPt.classList.add('hidden');
         } else {
-          // Extend line to x=1 axis (which is at Cx + R)
+          // 接線は x=1 (すなわち Cx + R) 上に描画
           const ty = Cy - Math.tan(rad) * R;
-          // limit visual length for aesthetics
           let displayTy = ty;
           if(displayTy < 40) displayTy = 40;
           if(displayTy > 320) displayTy = 320;
@@ -917,15 +880,14 @@
         }
       }
 
-      // Graph Point and Sync Line
+      // グラフ上の現在点と連動線
       const gx = Gx + deg * 1.5;
       const gy = getWaveY(deg);
       
       const ptG = document.getElementById('wavePointG');
       const syncLine = document.getElementById('heightSyncLine');
       
-      // Update Color based on function
-      let color = currentFunc === 'sin' ? '#e11d48' : currentFunc === 'cos' ? '#2563eb' : '#059669';
+      let color = currentFunc === 'sin' ? '#f43f5e' : currentFunc === 'cos' ? '#3b82f6' : '#10b981';
       ptG.setAttribute('stroke', color);
       syncLine.setAttribute('stroke', color);
 
@@ -938,15 +900,13 @@
         ptG.setAttribute('cx', gx);
         ptG.setAttribute('cy', gy);
         
-        // Sync Line Logic
         syncLine.setAttribute('x2', gx);
         syncLine.setAttribute('y2', gy);
         if (currentFunc === 'sin') {
           syncLine.setAttribute('x1', px);
-          syncLine.setAttribute('y1', currentMod === 'none' ? py : gy); // If modified, line comes from calculated height on y-axis logic, but visually simplest to just connect from circle center/edge. Let's just draw from circle center vertical for mod.
+          syncLine.setAttribute('y1', currentMod === 'none' ? py : gy); 
           if(currentMod !== 'none') { syncLine.setAttribute('x1', Cx); }
         } else if (currentFunc === 'cos') {
-          // For cos, height comes from x-coordinate.
           syncLine.setAttribute('x1', px);
           syncLine.setAttribute('y1', Cy);
         } else if (currentFunc === 'tan') {
@@ -955,18 +915,19 @@
         }
       }
 
-      // Math Texts Update
+      // 数値表示の更新
       document.getElementById('degBadge').innerText = `${deg}°`;
       
       let mathVal = "";
       if (MATH_DICT[deg]) {
-        renderMath('valTheta', MATH_DICT[deg].rad);
+        renderKaTeX('valTheta', MATH_DICT[deg].rad, true);
         
         if (currentFunc === 'sin') {
           if (currentMod === 'none') {
              mathVal = `\\sin\\theta = ${MATH_DICT[deg].sin}`;
           }
           else if (currentMod === 'amp') {
+             // 辞書の値をもとに手動で2倍の綺麗な文字列を生成
              const ampMap = {
                "0": "0", "1": "2", "-1": "-2", 
                "\\frac{1}{2}": "1", "-\\frac{1}{2}": "-1",
@@ -993,11 +954,11 @@
         else if (currentFunc === 'cos') {
           if (currentMod === 'compare') {
             let shiftStr = "";
-            if (phaseOffset > 0) shiftStr = `- ${phaseOffset}^{\\circ}`;
-            else if (phaseOffset < 0) shiftStr = `+ ${-phaseOffset}^{\\circ}`;
+            if (phaseOffset > 0) shiftStr = `- ${phaseOffset}^\\circ`;
+            else if (phaseOffset < 0) shiftStr = `+ ${-phaseOffset}^\\circ`;
             
             if (phaseOffset === 90) {
-               mathVal = `\\cos(\\theta - 90^{\\circ}) = \\sin\\theta`;
+               mathVal = `\\cos(\\theta - 90^\\circ) = \\sin\\theta`;
             } else {
                mathVal = `y = \\cos(\\theta ${shiftStr})`;
             }
@@ -1010,34 +971,45 @@
         }
       }
       
-      renderMath('valMath', mathVal);
+      // KaTeXレンダリング実行（innerHTMLへの代入は避ける）
+      renderKaTeX('valMath', mathVal, true);
     }
     
-    let hasPlayedBingo = false;
     function updateCompareMessage() {
-      if (currentFunc !== 'cos' || currentMod !== 'compare') {
-         hasPlayedBingo = false;
-         return;
-      }
+      if (currentFunc !== 'cos' || currentMod !== 'compare') return;
       
       const explainer = document.getElementById('condExplainer');
       const box = document.getElementById('mainValBox');
       
       if (phaseOffset === 90) {
-         explainer.innerHTML = '<span class="text-emerald-300 font-bold">🎉 ピタリと重なりました！</span><br>cos の波を右に 90° ずらすと sin の波と完全に一致します。<strong class="text-white">「cos(θ - 90°) = sin θ」</strong>という重要な関係が成り立っています。';
-         box.classList.add('ring-4', 'ring-emerald-400');
-         if(!hasPlayedBingo) {
-             playTone('correct');
-             hasPlayedBingo = true;
-         }
+         explainer.innerHTML = '<span class="text-blue-300 font-extrabold text-base">🎉 ピタリと重なりました！</span><br>cos の波を右に 90° ずらすと sin の波と完全に一致します。これは、円を回る角度が <strong class="text-white">90°（1/4周）だけ遅れて同じ動きをしている</strong> からです。';
+         box.classList.add('ring-4', 'ring-blue-400', 'bg-blue-100');
       } else {
-         explainer.innerHTML = 'スライダーを動かして、青い <strong class="text-blue-300">cos の波</strong> を左右にずらし、赤い <strong class="text-rose-300">sin の波</strong>（破線）に重ねてみましょう。ずらすだけで全く同じ波形になることが分かります。';
-         box.classList.remove('ring-4', 'ring-emerald-400');
-         hasPlayedBingo = false;
+         explainer.innerHTML = 'スライダーを動かして、青い <strong class="text-blue-300">cos の波</strong> を左右にずらし、赤い <strong class="text-rose-300">sin の波</strong>（破線）に重ねてみましょう。';
+         box.classList.remove('ring-4', 'ring-blue-400', 'bg-blue-100');
       }
     }
 
-    // Drag Interaction
+    // ==========================================
+    // UI イベント処理
+    // ==========================================
+
+    function stepLandmark(dir) {
+      let idx = LANDMARKS.indexOf(currentDeg);
+      if (idx === -1) {
+        currentDeg = snapToLandmark(currentDeg);
+        idx = LANDMARKS.indexOf(currentDeg);
+      }
+      idx += dir;
+      if (idx < 0) idx = 0;
+      if (idx >= LANDMARKS.length) idx = LANDMARKS.length - 1;
+      
+      const newDeg = LANDMARKS[idx];
+      document.getElementById('angleRange').value = newDeg;
+      updateVisuals(newDeg);
+    }
+
+    // ドラッグ操作
     const svgArea = document.getElementById('mainSvg');
     let isDragging = false;
     
@@ -1052,7 +1024,6 @@
       const svgX = (clientX - rect.left) * scaleX;
       const svgY = (clientY - rect.top) * scaleY;
 
-      // Calculate based on unit circle center
       let dx = svgX - Cx;
       let dy = Cy - svgY;
       let rad = Math.atan2(dy, dx);
@@ -1073,6 +1044,7 @@
     window.addEventListener('touchmove', (e) => { if(isDragging) {handleDrag(e); e.preventDefault();} }, {passive:false});
     window.addEventListener('touchend', () => isDragging=false);
 
+    // スライダー操作
     document.getElementById('angleRange').addEventListener('input', (e) => {
       let val = parseInt(e.target.value);
       val = snapToLandmark(val);
@@ -1082,7 +1054,6 @@
     
     document.getElementById('phaseRange').addEventListener('input', (e) => {
       let val = parseInt(e.target.value);
-      // Snap to important phase offsets
       if (Math.abs(val - 90) < 10) val = 90;
       if (Math.abs(val - (-90)) < 10) val = -90;
       if (Math.abs(val - 0) < 10) val = 0;
@@ -1098,76 +1069,67 @@
       updateCompareMessage();
     });
 
-    function switchTab(tab) {
-      playTone('click');
-      ['interactive', 'practice', 'support'].forEach(t => {
-        document.getElementById(`tabContent-${t}`).classList.add('hidden');
-        const btn = document.getElementById(`tabBtn-${t}`);
-        btn.classList.remove('bg-white', 'text-sky-600', 'shadow-sm', 'border', 'border-slate-200/50');
-        btn.classList.add('text-slate-500');
-      });
-      document.getElementById(`tabContent-${tab}`).classList.remove('hidden');
-      const activeBtn = document.getElementById(`tabBtn-${tab}`);
-      activeBtn.classList.remove('text-slate-500');
-      activeBtn.classList.add('bg-white', 'text-sky-600', 'shadow-sm', 'border', 'border-slate-200/50');
-    }
-
+    // ==========================================
+    // TAB 2: クイズシステム
+    // ==========================================
     let quizState = [false, false, false, false, false];
+
     function checkQuiz(qNum, isCorrect, btn) {
       const fb = document.getElementById(`q${qNum}Fb`);
       const status = document.getElementById(`q${qNum}Status`);
       
+      // ボタンのリセット
       Array.from(btn.parentElement.children).forEach(b => {
-        b.classList.remove('ring-2', 'ring-emerald-500', 'ring-rose-500', 'bg-emerald-50', 'bg-rose-50');
+        b.classList.remove('ring-4', 'ring-blue-400', 'bg-blue-100', 'ring-rose-400', 'bg-rose-100');
       });
 
       fb.classList.remove('hidden');
       if (isCorrect) {
-        playTone('correct');
         quizState[qNum-1] = true;
-        btn.classList.add('ring-2', 'ring-emerald-500', 'bg-emerald-50');
-        status.innerHTML = `<span class="text-emerald-600 font-bold">正解 ◎</span>`;
-        fb.className = "mt-2 p-3 rounded-lg text-xs bg-emerald-50 border border-emerald-200 text-emerald-900 font-medium";
+        btn.classList.add('ring-4', 'ring-blue-400', 'bg-blue-100');
+        status.innerHTML = `<span class="text-blue-600 font-bold">正解 ◎</span>`;
+        fb.className = "mt-3 p-4 rounded-xl text-sm bg-blue-50 border border-blue-200 text-blue-900 font-bold leading-relaxed";
         
-        if(qNum===1) fb.innerHTML = `正解！ 円の縦座標を見ると、上端(1)から左端(0)へ下がっていきます。左へ進むことではなく、縦の値に注目します。`;
-        if(qNum===2) fb.innerHTML = `正解！ cos は「円の横座標」を記録する関数です。0°の点は円の右端にあり、横座標が1だからグラフも1からスタートします。`;
-        if(qNum===3) fb.innerHTML = `正解！ tan は「(縦の変化)÷(横の変化)」です。垂直な直線は横の変化が0になるため、割り算自体が数学的にできず「値がない」となります。`;
-        if(qNum===4) fb.innerHTML = `正解！ 「2 sin θ」は計算結果（値）を2倍にするので振幅が広がり、「sin θ + 2」はすべての結果に2を足すので中心が上にずれます。`;
-        if(qNum===5) fb.innerHTML = `正解！ 角を2倍にする「2θ」の場合、スライダー(θ)が180°進むだけで、円で読む角は360°に達するため、波が早く終わります。`;
-
+        let expl = "";
+        if(qNum===1) expl = `大正解！ $\\sin$ は円の「縦」の動きだったね。$90^\\circ$ の頂上から下へ向かうので、$1$ から $0$ に減ります。`;
+        if(qNum===2) expl = `大正解！ $\\cos$ は「横」の動き。スタート地点（右端）は原点から右に $1$ 進んでいるから、値は $1$ になるんだね。`;
+        if(qNum===3) expl = `大正解！ $\\tan$ は傾き。真上を向いた壁を登ろうとすると横に全く進めず、数学では「$0$ で割る」ことができないからエラーになります。`;
+        if(qNum===4) expl = `大正解！ $2\\sin$ は出てきた波の「高さ」を後から2倍に引き伸ばす魔法。$+2$ はグラフを台座ごと上に持ち上げる魔法です。`;
+        if(qNum===5) expl = `大正解！ $\\theta$ に $2$ を掛けるということは、時間が経つスピード（回転スピード）が2倍になるということ。だから半分の時間で波が完成するんだ！`;
+        
+        // KaTeXでレンダリング
+        fb.innerHTML = expl;
       } else {
-        playTone('wrong');
-        btn.classList.add('ring-2', 'ring-rose-500', 'bg-rose-50');
-        status.innerHTML = `<span class="text-rose-600 font-bold">不正解 ×</span>`;
-        fb.className = "mt-2 p-3 rounded-lg text-xs bg-rose-50 border border-rose-200 text-rose-900 font-medium";
-        fb.innerHTML = `惜しい！もう一度シミュレータの図や動きを確認してみましょう。`;
+        btn.classList.add('ring-4', 'ring-rose-400', 'bg-rose-100');
+        status.innerHTML = `<span class="text-rose-600 font-bold">ちがうかも ×</span>`;
+        fb.className = "mt-3 p-4 rounded-xl text-sm bg-rose-50 border border-rose-200 text-rose-900 font-bold leading-relaxed";
+        fb.innerHTML = `惜しい！もう一度シミュレータを動かして、どういう意味だったか振り返ってみよう。`;
       }
       
-      updateScore();
-    }
-
-    function checkAllChecks() {
-      const c1 = document.getElementById('sc1').checked;
-      const c2 = document.getElementById('sc2').checked;
-      const c3 = document.getElementById('sc3').checked;
-      if(c1 && c2 && c3) {
-        playTone('correct');
-        document.getElementById('selfCheckResult').classList.remove('hidden');
-      } else {
-        document.getElementById('selfCheckResult').classList.add('hidden');
+      if (window.renderMathInElement) {
+        renderMathInElement(fb, { throwOnError: false });
       }
+
+      updateScore();
     }
 
     function updateScore() {
       const score = quizState.filter(Boolean).length;
-      document.getElementById('quizScore').innerText = `達成: ${score} / 5`;
+      document.getElementById('quizScore').innerText = `クリア状況: ${score} / 5`;
+      if (score === 5) {
+        document.getElementById('quizScore').classList.replace('bg-indigo-800', 'bg-blue-600');
+        document.getElementById('quizScore').classList.replace('border-indigo-700', 'border-blue-500');
+        document.getElementById('quizScore').innerText = `🎉 全問クリア！素晴らしい！`;
+      }
     }
 
-    window.onload = () => {
-      lucide.createIcons();
+    // 初期化
+    window.addEventListener('DOMContentLoaded', () => {
+      renderStaticMath();
       drawBaseWaves();
-      setFunction('sin'); // Initialize
-    };
+      setFunction('sin');
+    });
+
   </script>
 </body>
 </html>

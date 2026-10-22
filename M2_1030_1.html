@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>三角方程式 探究スタジオ | 単位円とグラフで解を探そう</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- KaTeX for High Quality Mathematical Typesetting -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;500;700;800&family=JetBrains+Mono:wght@600;800&display=swap');
+    
+    body {
+      font-family: 'M PLUS Rounded 1c', sans-serif;
+    }
+    .font-mono-math {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    input[type=range] {
+      accent-color: #2563eb;
+    }
+    .bg-dot-pattern {
+      background-color: #ffffff;
+      background-image: radial-gradient(#cbd5e1 1.2px, transparent 1.2px);
+      background-size: 24px 24px;
+    }
+    .katex { font-size: 1.1em; }
+    .katex-display { margin: 0.25em 0; }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+
+  <!-- ========================================== -->
+  <!-- HEADER & NAVIGATION -->
+  <!-- ========================================== -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div class="flex items-center space-x-3 w-full sm:w-auto">
+          <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center text-white text-2xl shadow-lg">
+            🎯
+          </div>
+          <div>
+            <div class="flex items-center space-x-2">
+              <span class="text-[11px] font-bold px-2 py-0.5 bg-blue-100 text-blue-800 rounded-md border border-blue-200">高校数学 II</span>
+              <span class="text-[11px] text-slate-500 font-bold">三角方程式の導入</span>
+            </div>
+            <h1 class="text-lg font-extrabold text-slate-900 tracking-tight mt-0.5">
+              三角方程式 探究スタジオ（\(0 \leqq \theta < 2\pi\)）
+            </h1>
+          </div>
+        </div>
+
+        <nav class="flex w-full sm:w-auto bg-slate-100 p-1.5 rounded-xl overflow-x-auto gap-1">
+          <button id="tabBtn-explorer" onclick="switchTab('explorer')" class="flex-1 sm:flex-none px-4 py-2 rounded-lg text-sm font-bold transition-all bg-white text-blue-700 shadow-sm border border-slate-200 whitespace-nowrap">
+            1. 高さを指定して角を探すラボ
+          </button>
+          <button id="tabBtn-workshop" onclick="switchTab('workshop')" class="flex-1 sm:flex-none px-4 py-2 rounded-lg text-sm font-bold transition-all text-slate-500 hover:text-slate-800 whitespace-nowrap">
+            2. 5ステップ方程式工房
+          </button>
+          <button id="tabBtn-summary" onclick="switchTab('summary')" class="flex-1 sm:flex-none px-4 py-2 rounded-lg text-sm font-bold transition-all text-slate-500 hover:text-slate-800 whitespace-nowrap">
+            3. まとめ＆出口課題
+          </button>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <!-- ========================================== -->
+  <!-- MAIN CONTENT CONTAINER -->
+  <!-- ========================================== -->
+  <main class="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+    <!-- ========================================== -->
+    <!-- TAB 1: 高さを指定して角を探すラボ -->
+    <!-- ========================================== -->
+    <div id="tabContent-explorer" class="space-y-6 block">
+      
+      <!-- Guiding Banner -->
+      <div class="bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 rounded-2xl p-5 text-white shadow-md space-y-2">
+        <span class="text-xs font-bold px-2.5 py-1 rounded bg-blue-500/30 text-blue-300 uppercase tracking-wider">💡 本時の中心メッセージ</span>
+        <h2 class="text-base sm:text-lg font-bold">「三角方程式を解くとは、条件に合う角度をすべて探し出すこと！」</h2>
+        <p class="text-xs text-blue-200 leading-relaxed">
+          前時は「角度を入れて値を出しました」。本時はその逆で、<strong>「値（高さや横位置）を指定されたとき、ぐるっと1周（\(0 \leqq \theta < 2\pi\)）の中でどこにその角があるか」</strong>を単位円とグラフの両方から見つけます。なぜ答えが「2つ」出てくるのか、視覚的に確かめましょう！
+        </p>
+      </div>
+
+      <!-- Mode Selector -->
+      <div class="flex flex-wrap gap-3">
+        <button onclick="setEqType('sin')" id="btn-eq-sin" class="eq-type-btn flex-1 sm:flex-none px-5 py-3 rounded-2xl text-sm font-extrabold transition-all border-2 shadow-sm bg-rose-600 text-white border-rose-700">
+          $\sin\theta = k$ （縦の高さで探す）
+        </button>
+        <button onclick="setEqType('cos')" id="btn-eq-cos" class="eq-type-btn flex-1 sm:flex-none px-5 py-3 rounded-2xl text-sm font-extrabold transition-all border-2 bg-white text-slate-600 border-slate-200 hover:bg-slate-50">
+          $\cos\theta = k$ （横の位置で探す）
+        </button>
+        <button onclick="setEqType('tan')" id="btn-eq-tan" class="eq-type-btn flex-1 sm:flex-none px-5 py-3 rounded-2xl text-sm font-extrabold transition-all border-2 bg-white text-slate-600 border-slate-200 hover:bg-slate-50">
+          $\tan\theta = k$ （直線の傾きで探す）
+        </button>
+      </div>
+
+      <div class="bg-white rounded-3xl p-5 border border-slate-200 shadow-md space-y-5">
+        
+        <!-- Controls & Target Value Slider -->
+        <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-3">
+          <div class="flex flex-wrap justify-between items-center gap-3">
+            <div class="flex items-center space-x-2">
+              <span id="eqDisplayTitle" class="text-base font-extrabold text-slate-900">方程式： \(\sin\theta = \dfrac{1}{2}\)</span>
+            </div>
+            <div class="flex items-center space-x-2">
+              <button onclick="presetTargetValue(0.5)" id="btnPre1" class="px-3 py-1 rounded-lg text-xs font-bold bg-white border border-slate-300 shadow-xs hover:bg-slate-100">\(k = \dfrac{1}{2}\)</button>
+              <button onclick="presetTargetValue(0.707)" id="btnPre2" class="px-3 py-1 rounded-lg text-xs font-bold bg-white border border-slate-300 shadow-xs hover:bg-slate-100">\(k = \dfrac{\sqrt{2}}{2}\)</button>
+              <button onclick="presetTargetValue(0.866)" id="btnPre3" class="px-3 py-1 rounded-lg text-xs font-bold bg-white border border-slate-300 shadow-xs hover:bg-slate-100">\(k = \dfrac{\sqrt{3}}{2}\)</button>
+              <button onclick="presetTargetValue(0)" id="btnPre4" class="px-3 py-1 rounded-lg text-xs font-bold bg-white border border-slate-300 shadow-xs hover:bg-slate-100">\(k = 0\)</button>
+            </div>
+          </div>
+
+          <div class="space-y-1">
+            <div class="flex justify-between items-center text-xs font-bold text-slate-600">
+              <span>指定する値 \(k\) を動かす:</span>
+              <span id="targetValBadge" class="font-mono text-blue-700 text-sm font-black">\(k = 0.50\)</span>
+            </div>
+            <input type="range" id="targetSlider" min="-1" max="1" value="0.5" step="0.05" oninput="onTargetSliderInput(this.value)" class="w-full h-3 bg-slate-200 rounded-lg appearance-none cursor-pointer">
+          </div>
+        </div>
+
+        <!-- Dual Visualizer (Unit Circle & Wave Graph) -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
+          
+          <!-- Left: Unit Circle with Target Line (5 cols) -->
+          <div class="lg:col-span-5 border-2 border-slate-300 rounded-2xl bg-dot-pattern p-4 flex flex-col justify-between shadow-inner">
+            <div class="text-xs font-bold text-slate-700 flex justify-between items-center border-b border-slate-200 pb-2">
+              <span>① 単位円での交点（解の候補）</span>
+              <span class="text-blue-600 font-mono">半径 \(r=1\)</span>
+            </div>
+            
+            <div class="h-[280px] w-full flex items-center justify-center my-2">
+              <svg id="circleSearchSvg" viewBox="0 0 280 280" class="w-full h-full select-none">
+                <!-- Axes -->
+                <line x1="20" y1="140" x2="260" y2="140" stroke="#94a3b8" stroke-width="2"/>
+                <line x1="140" y1="260" x2="140" y2="20" stroke="#94a3b8" stroke-width="2"/>
+                <text x="250" y="158" fill="#475569" font-size="12" font-weight="bold">x</text>
+                <text x="124" y="32" fill="#475569" font-size="12" font-weight="bold">y</text>
+
+                <!-- Circle -->
+                <circle cx="140" cy="140" r="90" fill="rgba(248, 250, 252, 0.8)" stroke="#334155" stroke-width="2.5"/>
+                <text x="146" y="45" fill="#64748b" font-size="10">1</text>
+                <text x="146" y="240" fill="#64748b" font-size="10">-1</text>
+                <text x="35" y="155" fill="#64748b" font-size="10">-1</text>
+                <text x="230" y="155" fill="#64748b" font-size="10">1</text>
+
+                <!-- Target Line (Movable horizontal/vertical) -->
+                <line id="searchTargetLine" x1="20" y1="95" x2="260" y2="95" stroke="#2563eb" stroke-width="3" stroke-dasharray="5 4"/>
+                <text id="searchTargetLineLabel" x="30" y="88" fill="#1d4ed8" font-size="11" font-weight="bold">y = 0.5</text>
+
+                <!-- Solution Radian Rays & Points -->
+                <g id="solutionRaysGroup"></g>
+              </svg>
+            </div>
+
+            <div class="text-[11px] text-slate-600 bg-white/90 p-2.5 rounded-xl border border-slate-200 text-center">
+              水平線（または垂直線）が単位円と交わる場所が、求める角度 \(\theta\) です！
+            </div>
+          </div>
+
+          <!-- Right: Wave Graph with Intersecting Line (7 cols) -->
+          <div class="lg:col-span-7 border-2 border-slate-300 rounded-2xl bg-dot-pattern p-4 flex flex-col justify-between shadow-inner">
+            <div class="text-xs font-bold text-slate-700 flex justify-between items-center border-b border-slate-200 pb-2">
+              <span>② グラフでの交点（\(0 \leqq \theta < 2\pi\) の範囲）</span>
+              <span class="text-indigo-600">横軸：角 \(\theta\) / 縦軸：値</span>
+            </div>
+
+            <div class="h-[280px] w-full flex items-center justify-center my-2">
+              <svg id="graphSearchSvg" viewBox="0 0 460 280" class="w-full h-full select-none">
+                <!-- Axes -->
+                <line x1="30" y1="140" x2="440" y2="140" stroke="#94a3b8" stroke-width="2"/>
+                <line x1="50" y1="250" x2="50" y2="30" stroke="#94a3b8" stroke-width="2"/>
+                
+                <text x="430" y="130" fill="#334155" font-size="11" font-weight="bold">θ</text>
+                <text x="35" y="40" fill="#334155" font-size="11" font-weight="bold">値</text>
+
+                <!-- Value Guides (1, -1) -->
+                <line x1="50" y1="50" x2="420" y2="50" stroke="#e2e8f0" stroke-width="1.5" stroke-dasharray="3 3"/>
+                <text x="36" y="54" fill="#64748b" font-size="10">1</text>
+                <line x1="50" y1="230" x2="420" y2="230" stroke="#e2e8f0" stroke-width="1.5" stroke-dasharray="3 3"/>
+                <text x="30" y="234" fill="#64748b" font-size="10">-1</text>
+
+                <!-- Radian ticks (0, pi/2, pi, 3pi/2, 2pi) -->
+                <g fill="#475569" font-size="11" font-weight="bold" text-anchor="middle">
+                  <text x="50" y="160">0</text>
+                  <text x="142.5" y="160">\(\frac{\pi}{2}\)</text>
+                  <text x="235" y="160">\(\pi\)</text>
+                  <text x="327.5" y="160">\(\frac{3\pi}{2}\)</text>
+                  <text x="420" y="160">\(2\pi\)</text>
+                  
+                  <line x1="142.5" y1="137" x2="142.5" y2="143" stroke="#475569" stroke-width="2"/>
+                  <line x1="235" y1="137" x2="235" y2="143" stroke="#475569" stroke-width="2"/>
+                  <line x1="327.5" y1="137" x2="327.5" y2="143" stroke="#475569" stroke-width="2"/>
+                  <line x1="420" y1="137" x2="420" y2="143" stroke="#475569" stroke-width="2"/>
+                </g>
+
+                <!-- Main Function Curve (0 to 2pi) -->
+                <path id="searchCurvePath" d="" fill="none" stroke="#e11d48" stroke-width="3.5"/>
+
+                <!-- Target Horizontal Line for Graph -->
+                <line id="graphTargetLine" x1="50" y1="95" x2="420" y2="95" stroke="#2563eb" stroke-width="2.5" stroke-dasharray="5 4"/>
+
+                <!-- Solution Intersect Dots -->
+                <g id="solutionGraphDotsGroup"></g>
+              </svg>
+            </div>
+
+            <div class="text-[11px] text-slate-600 bg-white/90 p-2.5 rounded-xl border border-slate-200 text-center">
+              波のグラフと水平線の「交点（黒丸）」の横座標が、方程式の解になります！
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Solution Result Box -->
+        <div class="bg-blue-50 border-2 border-blue-200 rounded-2xl p-5 space-y-3 shadow-sm">
+          <div class="flex items-center justify-between flex-wrap gap-2">
+            <h3 class="text-sm font-extrabold text-blue-950 flex items-center gap-2">
+              <span>🎯</span> 方程式の解（ \(0 \leqq \theta < 2\pi\) の範囲）:
+            </h3>
+            <span id="solutionCountBadge" class="bg-blue-600 text-white px-3 py-1 rounded-lg font-black text-xs">解は 2 個あります</span>
+          </div>
+
+          <div id="solutionMathBox" class="bg-white p-4 rounded-xl border border-blue-200 text-center font-bold text-blue-950 text-xl shadow-xs">
+            <!-- Populated via JS -->
+          </div>
+
+          <p id="solutionExplainText" class="text-xs text-blue-900 leading-relaxed font-medium">
+            <!-- Populated via JS -->
+          </p>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 2: 5ステップ方程式工房 (ワーク演習連動) -->
+    <!-- ========================================== -->
+    <div id="tabContent-workshop" class="hidden space-y-6">
+      
+      <div class="bg-indigo-50 border border-indigo-200 rounded-2xl p-5 shadow-sm">
+        <h2 class="text-base font-extrabold text-indigo-950 mb-1">ステップ式 三角方程式・不等式 工房</h2>
+        <p class="text-xs text-indigo-800 font-medium">指導案の「5つのステップ（①範囲確認・②種類と値・③位置と符号・④すべての解の列挙・⑤代入検算）」に沿って、確実に解を導く練習をしよう。</p>
+      </div>
+
+      <!-- Problem Selector -->
+      <div class="flex flex-wrap gap-2">
+        <button onclick="loadWorkshopProb('sin_pos')" id="ws-btn-sin_pos" class="ws-prob-btn px-4 py-2.5 rounded-xl text-xs font-bold transition-all bg-indigo-600 text-white shadow-md">
+          ① \(\sin\theta = \dfrac{1}{2}\)
+        </button>
+        <button onclick="loadWorkshopProb('cos_neg')" id="ws-btn-cos_neg" class="ws-prob-btn px-4 py-2.5 rounded-xl text-xs font-bold transition-all bg-white text-slate-600 border border-slate-200 hover:bg-slate-50">
+          ② \(\cos\theta = -\dfrac{1}{2}\)
+        </button>
+        <button onclick="loadWorkshopProb('tan_one')" id="ws-btn-tan_one" class="ws-prob-btn px-4 py-2.5 rounded-xl text-xs font-bold transition-all bg-white text-slate-600 border border-slate-200 hover:bg-slate-50">
+          ③ \(\tan\theta = 1\)
+        </button>
+        <button onclick="loadWorkshopProb('none_sol')" id="ws-btn-none_sol" class="ws-prob-btn px-4 py-2.5 rounded-xl text-xs font-bold transition-all bg-white text-slate-600 border border-slate-200 hover:bg-slate-50">
+          ④ \(\sin\theta = 2\) （発展・解なし）
+        </button>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- Left: Interactive 5-Step Process (7 cols) -->
+        <div class="lg:col-span-7 bg-white rounded-3xl p-6 border border-slate-200 shadow-md space-y-5">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+            <h3 id="wsProbTitle" class="font-extrabold text-slate-800 text-base">問題： \(\sin\theta = \dfrac{1}{2} \quad (0 \leqq \theta < 2\pi)\)</h3>
+            <span class="text-xs font-bold px-2.5 py-1 bg-slate-100 rounded-lg text-slate-600 font-mono">5ステップ思考法</span>
+          </div>
+
+          <div id="wsStepsContainer" class="space-y-4 text-xs">
+            <!-- Dynamically populated via JS -->
+          </div>
+        </div>
+
+        <!-- Right: Why 2 solutions & Pitfalls (5 cols) -->
+        <div class="lg:col-span-5 space-y-4">
+          
+          <div class="bg-amber-50 border-2 border-amber-200 rounded-3xl p-5 shadow-sm space-y-3">
+            <h4 class="font-extrabold text-amber-900 text-sm flex items-center gap-2">
+              <span>⚠️</span> よくあるつまずき・注意点
+            </h4>
+            <div class="space-y-2 text-xs text-amber-950 font-medium leading-relaxed">
+              <div class="bg-white p-3 rounded-2xl border border-amber-200 shadow-xs">
+                <strong class="text-rose-600 block mb-0.5">❌ 第一象限だけで安心して終わってしまう</strong>
+                \(\sin\theta = \dfrac{1}{2}\) のとき、つい \(\theta = \dfrac{\pi}{6}\) だけ書いて終わりにしてしまいます。単位円の「左側（第2象限）」にも同じ高さの点があることを必ず探そう！
+              </div>
+              <div class="bg-white p-3 rounded-2xl border border-amber-200 shadow-xs">
+                <strong class="text-rose-600 block mb-0.5">❌ 範囲 \(0 \leqq \theta < 2\pi\) を無視する</strong>
+                負の角 (\(-\dfrac{\pi}{6}\)) や一周を超えた角 (\(2\pi + \dots\)) は今回の指定範囲外です。必ず「0以上2π未満」のなかに収まっているか確認！
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm space-y-3">
+            <h4 class="font-extrabold text-slate-800 text-sm">💡 \(\cos\theta\) の符号の覚え方</h4>
+            <p class="text-xs text-slate-600 leading-relaxed font-medium">
+              \(\cos\) は<strong>「横座標」</strong>なので、原点から見て<strong>右側ならプラス、左側ならマイナス</strong>です。<br>
+              「\(\cos\theta = -\dfrac{1}{2}\)」なら、左半分の世界で横位置が \(-\dfrac{1}{2}\) になる上下2点を探せば一発で解けます！
+            </p>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div >
+
+    <!-- ========================================== -->
+    <!-- TAB 3: まとめ＆出口課題 -->
+    <!-- ========================================== -->
+    <div id="tabContent-summary" class="hidden space-y-6">
+      
+      <div class="bg-gradient-to-r from-purple-900 to-indigo-900 rounded-2xl p-6 text-white shadow-md space-y-3">
+        <span class="text-xs font-bold px-2.5 py-1 rounded bg-purple-500/30 text-purple-300 uppercase tracking-wider">📝 Exit Ticket（本時の出口課題）</span>
+        <h2 class="text-base sm:text-lg font-bold">「なぜ三角方程式の答えは、多くの場合『2つ』あるのですか？」</h2>
+        <p class="text-xs text-purple-200 leading-relaxed">
+          授業の締めくくりとして、単位円の性質を使って自分の言葉で説明してみましょう。
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <div class="lg:col-span-7 bg-white rounded-3xl p-6 border border-slate-200 shadow-md space-y-4">
+          <h3 class="font-extrabold text-slate-800 text-base">出口課題の答案を作成しよう</h3>
+          
+          <div class="space-y-2">
+            <label class="block text-xs font-bold text-slate-700">
+              Q. \(\sin\theta = \dfrac{1}{2}\) や \(\cos\theta = -\dfrac{1}{2}\) のように、方程式の解が \(0 \leqq \theta < 2\pi\) の範囲で「2つ」見つかる理由を、単位円の性質（縦・横座標）を使って一文で説明しよう:
+            </label>
+            <textarea id="exitTicketInput" rows="4" placeholder="（例）単位円に水平線を引いたとき、円の右側と左側の2箇所で同じ高さ（または横位置）になる交点が生まれるため、解が2つになる。" class="w-full p-4 text-xs border border-slate-300 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:outline-none font-medium text-slate-700"></textarea>
+          </div>
+
+          <div class="flex items-center justify-between pt-2">
+            <button onclick="copyExitTicket()" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition shadow-md flex items-center gap-2">
+              <span>📋</span> 答案をコピーする
+            </button>
+            <span id="copyToast" class="text-xs font-bold text-emerald-600 opacity-0 transition-opacity">コピーしました！</span>
+          </div>
+        </div>
+
+        <div class="lg:col-span-5 space-y-4">
+          <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-md space-y-3">
+            <h3 class="font-extrabold text-slate-800 text-base">📌 本時の要点チェックリスト</h3>
+            <div class="space-y-2 text-xs text-slate-700 font-medium">
+              <label class="flex items-center space-x-2.5 p-2 bg-slate-50 rounded-xl cursor-pointer">
+                <input type="checkbox" class="rounded text-blue-600 w-4 h-4">
+                <span>\(\sin\theta\) は「縦の高さ」、\(\cos\theta\) は「横の位置」として捉えられている</span>
+              </label>
+              <label class="flex items-center space-x-2.5 p-2 bg-slate-50 rounded-xl cursor-pointer">
+                <input type="checkbox" class="rounded text-blue-600 w-4 h-4">
+                <span>方程式を解くときは、単位円に水平線（または垂直線）を引いて交点を探せる</span>
+              </label>
+              <label class="flex items-center space-x-2.5 p-2 bg-slate-50 rounded-xl cursor-pointer">
+                <input type="checkbox" class="rounded text-blue-600 w-4 h-4">
+                <span>\(0 \leqq \theta < 2\pi\) の範囲で、漏れなくすべての解を列挙できる</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- ========================================== -->
+  <!-- JAVASCRIPT CORE LOGIC & RENDER ENGINE -->
+  <!-- ========================================== -->
+  <script>
+    // KaTeX Helper
+    function renderAllMath(container = document.body) {
+      if (window.renderMathInElement) {
+        try {
+          renderMathInElement(container, {
+            delimiters: [
+              { left: '$$', right: '$$', display: true },
+              { left: '$', right: '$', display: false },
+              { left: '\\(', right: '\\)', display: false },
+              { left: '\\[', right: '\\]', display: true }
+            ],
+            throwOnError: false
+          });
+        } catch (e) {
+          console.warn('KaTeX auto-render error:', e);
+        }
+      }
+    }
+
+    function updateMath(elementId, texString, isDisplay = false) {
+      const el = document.getElementById(elementId);
+      if (!el) return;
+      if (window.katex) {
+        try {
+          katex.render(texString, el, { throwOnError: false, displayMode: isDisplay });
+        } catch (e) {
+          el.textContent = texString;
+        }
+      } else {
+        el.textContent = texString;
+      }
+    }
+
+    // ==========================================
+    // TAB NAVIGATION
+    // ==========================================
+    let activeTab = 'explorer';
+
+    function switchTab(tabId) {
+      activeTab = tabId;
+      document.getElementById('tabContent-explorer').classList.toggle('hidden', tabId !== 'explorer');
+      document.getElementById('tabContent-workshop').classList.toggle('hidden', tabId !== 'workshop');
+      document.getElementById('tabContent-summary').classList.toggle('hidden', tabId !== 'summary');
+
+      const tabs = ['explorer', 'workshop', 'summary'];
+      tabs.forEach(t => {
+        const btn = document.getElementById(`tabBtn-${t}`);
+        if (t === tabId) {
+          btn.className = 'flex-1 sm:flex-none px-4 py-2 rounded-lg text-sm font-bold transition-all bg-white text-blue-700 shadow-sm border border-slate-200 whitespace-nowrap';
+        } else {
+          btn.className = 'flex-1 sm:flex-none px-4 py-2 rounded-lg text-sm font-bold transition-all text-slate-500 hover:text-slate-800 whitespace-nowrap';
+        }
+      });
+
+      if (tabId === 'explorer') {
+        drawExplorerVisuals();
+      } else if (tabId === 'workshop') {
+        renderWorkshopSteps();
+      }
+      renderAllMath();
+    }
+
+    // ==========================================
+    // TAB 1: EXPLORER LOGIC (Find Angles from Value k)
+    // ==========================================
+    let eqType = 'sin'; // 'sin', 'cos', 'tan'
+    let targetVal = 0.5; // -1 to 1
+
+    function setEqType(type) {
+      eqType = type;
+      ['sin', 'cos', 'tan'].forEach(t => {
+        const btn = document.getElementById(`btn-eq-${t}`);
+        if (t === type) {
+          btn.className = `eq-type-btn flex-1 sm:flex-none px-5 py-3 rounded-2xl text-sm font-extrabold transition-all border-2 shadow-sm ${t==='sin'?'bg-rose-600 border-rose-700 text-white':t==='cos'?'bg-blue-600 border-blue-700 text-white':'bg-emerald-600 border-emerald-700 text-white'}`;
+        } else {
+          btn.className = `eq-type-btn flex-1 sm:flex-none px-5 py-3 rounded-2xl text-sm font-extrabold transition-all border-2 bg-white text-slate-600 border-slate-200 hover:bg-slate-50`;
+        }
+      });
+
+      if (type === 'sin') targetVal = 0.5;
+      else if (type === 'cos') targetVal = 0.5;
+      else targetVal = 1.0;
+
+      document.getElementById('targetSlider').value = targetVal;
+      drawExplorerVisuals();
+    }
+
+    function presetTargetValue(val) {
+      targetVal = val;
+      document.getElementById('targetSlider').value = val;
+      drawExplorerVisuals();
+    }
+
+    function onTargetSliderInput(val) {
+      targetVal = parseFloat(val);
+      drawExplorerVisuals();
+    }
+
+    function drawExplorerVisuals() {
+      const k = targetVal;
+      document.getElementById('targetValBadge').innerHTML = `\\(k = ${k.toFixed(2)}\\)`;
+
+      // Update Title
+      const titleEl = document.getElementById('eqDisplayTitle');
+      let kTex = `${k.toFixed(2)}`;
+      if (Math.abs(k - 0.5) < 0.02) kTex = '\\dfrac{1}{2}';
+      else if (Math.abs(k - 0.707) < 0.02) kTex = '\\dfrac{\\sqrt{2}}{2}';
+      else if (Math.abs(k - 0.866) < 0.02) kTex = '\\dfrac{\\sqrt{3}}{2}';
+      else if (Math.abs(k - (-0.5)) < 0.02) kTex = '-\\dfrac{1}{2}';
+      else if (Math.abs(k - 0) < 0.02) kTex = '0';
+      else if (Math.abs(k - 1) < 0.02) kTex = '1';
+      else if (Math.abs(k - (-1)) < 0.02) kTex = '-1';
+
+      if (eqType === 'sin') {
+        titleEl.innerHTML = `方程式： \\(\\sin\\theta = ${kTex}\\) （\\(0 \\leqq \\theta < 2\\pi\\)）`;
+      } else if (eqType === 'cos') {
+        titleEl.innerHTML = `方程式： \\(\\cos\\theta = ${kTex}\\) （\\(0 \\leqq \\theta < 2\\pi\\)）`;
+      } else {
+        titleEl.innerHTML = `方程式： \\(\\tan\\theta = ${kTex}\\) （\\(0 \\leqq \\theta < 2\\pi\\)）`;
+      }
+
+      // 1. Draw Circle Search
+      const circleSvg = document.getElementById('circleSearchSvg');
+      const targetLine = document.getElementById('searchTargetLine');
+      const targetLabel = document.getElementById('searchTargetLineLabel');
+      const raysGroup = document.getElementById('solutionRaysGroup');
+      raysGroup.innerHTML = '';
+
+      const Cx = 140, Cy = 140, R = 90;
+      
+      if (eqType === 'sin') {
+        const py = Cy - k * R;
+        targetLine.setAttribute('x1', 20); targetLine.setAttribute('x2', 260);
+        targetLine.setAttribute('y1', py); targetLine.setAttribute('y2', py);
+        targetLabel.setAttribute('x', 30); targetLabel.setAttribute('y', py - 6);
+        targetLabel.innerHTML = `y = ${k.toFixed(2)}`;
+
+        // Find solutions in [0, 2pi)
+        if (k >= -1 && k <= 1) {
+          const asin = Math.asin(k);
+          let sol1 = asin >= 0 ? asin : 2 * Math.PI + asin;
+          let sol2 = Math.PI - asin;
+          if (sol2 < 0) sol2 += 2 * Math.PI;
+          if (sol2 >= 2 * Math.PI) sol2 -= 2 * Math.PI;
+
+          [sol1, sol2].forEach((rad, idx) => {
+            const rx = Cx + Math.cos(rad) * R;
+            const ry = Cy - Math.sin(rad) * R;
+            
+            // Ray from origin
+            const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+            line.setAttribute('x1', Cx); line.setAttribute('y1', Cy);
+            line.setAttribute('x2', rx); line.setAttribute('y2', ry);
+            line.setAttribute('stroke', '#2563eb'); line.setAttribute('stroke-width', '2'); line.setAttribute('stroke-dasharray', '3 3');
+            raysGroup.appendChild(line);
+
+            // Dot
+            const dot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+            dot.setAttribute('cx', rx); dot.setAttribute('cy', ry); dot.setAttribute('r', '6');
+            dot.setAttribute('fill', '#ffffff'); dot.setAttribute('stroke', '#e11d48'); dot.setAttribute('stroke-width', '3');
+            raysGroup.appendChild(dot);
+          });
+        }
+      } else if (eqType === 'cos') {
+        const px = Cx + k * R;
+        targetLine.setAttribute('x1', px); targetLine.setAttribute('x2', px);
+        targetLine.setAttribute('y1', 20); targetLine.setAttribute('y2', 260);
+        targetLabel.setAttribute('x', px + 6); targetLabel.setAttribute('y', 35);
+        targetLabel.innerHTML = `x = ${k.toFixed(2)}`;
+
+        if (k >= -1 && k <= 1) {
+          const acos = Math.acos(k);
+          let sol1 = acos;
+          let sol2 = 2 * Math.PI - acos;
+
+          [sol1, sol2].forEach((rad) => {
+            const rx = Cx + Math.cos(rad) * R;
+            const ry = Cy - Math.sin(rad) * R;
+
+            const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+            line.setAttribute('x1', Cx); line.setAttribute('y1', Cy);
+            line.setAttribute('x2', rx); line.setAttribute('y2', ry);
+            line.setAttribute('stroke', '#2563eb'); line.setAttribute('stroke-width', '2'); line.setAttribute('stroke-dasharray', '3 3');
+            raysGroup.appendChild(line);
+
+            const dot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+            dot.setAttribute('cx', rx); dot.setAttribute('cy', ry); dot.setAttribute('r', '6');
+            dot.setAttribute('fill', '#ffffff'); dot.setAttribute('stroke', '#2563eb'); dot.setAttribute('stroke-width', '3');
+            raysGroup.appendChild(dot);
+          });
+        }
+      } else {
+        // tan
+        targetLine.setAttribute('x1', 20); targetLine.setAttribute('x2', 260);
+        targetLine.setAttribute('y1', 140); targetLine.setAttribute('y2', 140);
+        targetLabel.innerHTML = `傾き k = ${k.toFixed(1)}`;
+
+        const atan = Math.atan(k);
+        let sol1 = atan >= 0 ? atan : Math.PI + atan;
+        let sol2 = sol1 + Math.PI;
+        if (sol2 >= 2 * Math.PI) sol2 -= 2 * Math.PI;
+
+        [sol1, sol2].forEach((rad) => {
+          const rx = Cx + Math.cos(rad) * R;
+          const ry = Cy - Math.sin(rad) * R;
+
+          const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+          line.setAttribute('x1', Cx); line.setAttribute('y1', Cy);
+          line.setAttribute('x2', rx); line.setAttribute('y2', ry);
+          line.setAttribute('stroke', '#059669'); line.setAttribute('stroke-width', '2'); line.setAttribute('stroke-dasharray', '3 3');
+          raysGroup.appendChild(line);
+
+          const dot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+          dot.setAttribute('cx', rx); dot.setAttribute('cy', ry); dot.setAttribute('r', '6');
+          dot.setAttribute('fill', '#ffffff'); dot.setAttribute('stroke', '#059669'); dot.setAttribute('stroke-width', '3');
+          raysGroup.appendChild(dot);
+        });
+      }
+
+      // 2. Draw Graph Search
+      const curvePath = document.getElementById('searchCurvePath');
+      const graphTargetLine = document.getElementById('graphTargetLine');
+      const dotsGroup = document.getElementById('solutionGraphDotsGroup');
+      dotsGroup.innerHTML = '';
+
+      const Gx0 = 50, Gy0 = 140, Gw = 370, Gr = 90;
+      let dCurve = `M ${Gx0} ${Gy0} `;
+      for (let i = 0; i <= 360; i += 2) {
+        let rad = i * Math.PI / 180;
+        let yval = 0;
+        if (eqType === 'sin') yval = Math.sin(rad);
+        else if (eqType === 'cos') yval = Math.cos(rad);
+        else yval = Math.tan(rad);
+
+        const gx = Gx0 + (rad / (2 * Math.PI)) * Gw;
+        const gy = Gy0 - yval * Gr;
+        if (eqType !== 'tan' || (gy >= 30 && gy <= 250)) {
+          dCurve += (i === 0 ? `M ${gx} ${gy} ` : `L ${gx} ${gy} `);
+        }
+      }
+      curvePath.setAttribute('d', dCurve);
+      curvePath.setAttribute('stroke', eqType==='sin'?'#e11d48':eqType==='cos'?'#2563eb':'#059669');
+
+      const gTy = Gy0 - k * Gr;
+      graphTargetLine.setAttribute('y1', gTy); graphTargetLine.setAttribute('y2', gTy);
+
+      // Calculate exact solutions for display box
+      let solutions = [];
+      if (eqType === 'sin' && k >= -1 && k <= 1) {
+        if (Math.abs(k - 0.5) < 0.05) solutions = ['\\dfrac{\\pi}{6}', '\\dfrac{5\\pi}{6}'];
+        else if (Math.abs(k - 0.707) < 0.05) solutions = ['\\dfrac{\\pi}{4}', '\\dfrac{3\\pi}{4}'];
+        else if (Math.abs(k - 0.866) < 0.05) solutions = ['\\dfrac{\\pi}{3}', '\\dfrac{2\\pi}{3}'];
+        else if (Math.abs(k - 0) < 0.05) solutions = ['0', '\\pi'];
+        else if (Math.abs(k - 1) < 0.05) solutions = ['\\dfrac{\\pi}{2}'];
+        else if (Math.abs(k - (-0.5)) < 0.05) solutions = ['\\dfrac{7\\pi}{6}', '\\dfrac{11\\pi}{6}'];
+        else if (Math.abs(k - (-1)) < 0.05) solutions = ['\\dfrac{3\\pi}{2}'];
+        else {
+          const asin = Math.asin(k);
+          let s1 = asin >= 0 ? asin : 2 * Math.PI + asin;
+          let s2 = Math.PI - asin;
+          solutions = [s1.toFixed(2), s2.toFixed(2)];
+        }
+      } else if (eqType === 'cos' && k >= -1 && k <= 1) {
+        if (Math.abs(k - 0.5) < 0.05) solutions = ['\\dfrac{\\pi}{3}', '\\dfrac{5\\pi}{3}'];
+        else if (Math.abs(k - 0.707) < 0.05) solutions = ['\\dfrac{\\pi}{4}', '\\dfrac{7\\pi}{4}'];
+        else if (Math.abs(k - 0.866) < 0.05) solutions = ['\\dfrac{\\pi}{6}', '\\dfrac{11\\pi}{6}'];
+        else if (Math.abs(k - 0) < 0.05) solutions = ['\\dfrac{\\pi}{2}', '\\dfrac{3\\pi}{2}'];
+        else if (Math.abs(k - 1) < 0.05) solutions = ['0'];
+        else if (Math.abs(k - (-0.5)) < 0.05) solutions = ['\\dfrac{2\\pi}{3}', '\\dfrac{4\\pi}{3}'];
+        else if (Math.abs(k - (-1)) < 0.05) solutions = ['\\pi'];
+        else {
+          const acos = Math.acos(k);
+          solutions = [acos.toFixed(2), (2*Math.PI - acos).toFixed(2)];
+        }
+      } else if (eqType === 'tan') {
+        if (Math.abs(k - 1) < 0.05) solutions = ['\\dfrac{\\pi}{4}', '\\dfrac{5\\pi}{4}'];
+        else if (Math.abs(k - 0) < 0.05) solutions = ['0', '\\pi'];
+        else if (Math.abs(k - 1.73) < 0.05) solutions = ['\\dfrac{\\pi}{3}', '\\dfrac{4\\pi}{3}'];
+        else {
+          const atan = Math.atan(k);
+          let s1 = atan >= 0 ? atan : Math.PI + atan;
+          let s2 = s1 + Math.PI;
+          solutions = [s1.toFixed(2), s2.toFixed(2)];
+        }
+      } else {
+        solutions = [];
+      }
+
+      // Render Graph intersection dots
+      solutions.forEach(sol => {
+        let rad = parseFloat(sol);
+        if (isNaN(rad)) {
+          if (sol.includes('pi/6')) rad = Math.PI / 6;
+          else if (sol.includes('pi/4')) rad = Math.PI / 4;
+          else if (sol.includes('pi/3')) rad = Math.PI / 3;
+          else if (sol.includes('pi/2')) rad = Math.PI / 2;
+          else if (sol.includes('pi')) rad = Math.PI;
+          else rad = 1;
+        }
+        const gx = Gx0 + (rad / (2 * Math.PI)) * Gw;
+        const dot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        dot.setAttribute('cx', gx); dot.setAttribute('cy', gTy); dot.setAttribute('r', '6');
+        dot.setAttribute('fill', '#ffffff'); dot.setAttribute('stroke', '#2563eb'); dot.setAttribute('stroke-width', '3');
+        dotsGroup.appendChild(dot);
+      });
+
+      // Update Solution Box
+      const mathBox = document.getElementById('solutionMathBox');
+      const countBadge = document.getElementById('solutionCountBadge');
+      const explainText = document.getElementById('solutionExplainText');
+
+      if (solutions.length === 0) {
+        countBadge.innerText = '解はありません';
+        mathBox.innerHTML = '$$\\text{解なし (実数の角はありません)}$$';
+        explainText.innerText = '単位円の範囲（半径1）を超える値（k > 1 や k < -1）を指定した場合、縦や横の座標がその値になるような角度は存在しません。';
+      } else {
+        countBadge.innerText = `解は ${solutions.length} 個あります`;
+        let mathStr = '\\theta = ';
+        if (solutions.length === 1) mathStr += solutions[0];
+        else mathStr += solutions.join(', \\quad ');
+        mathBox.innerHTML = `$$${mathStr}$$`;
+        explainText.innerHTML = `単位円に引いた水平線（またはグラフの交点）と円が<strong>「2箇所」</strong>で交わるため、0以上2π未満の範囲にちょうど2つの角度が存在します！`;
+      }
+      renderAllMath(document.getElementById('tabContent-explorer'));
+    }
+
+    // ==========================================
+    // TAB 2: WORKSHOP 5-STEP PROCESS
+    // ==========================================
+    const workshopProblems = {
+      'sin_pos': {
+        title: '問題： \\(\\sin\\theta = \\dfrac{1}{2} \\quad (0 \\leqq \\theta < 2\\pi)\\)',
+        steps: [
+          { num: '①', name: '範囲の確認', content: '角の範囲は \\(0 \\leqq \\theta < 2\\pi\\) （円を反時計回りにちょうど1周する間）' },
+          { num: '②', name: '種類と値の読み取り', content: '\\(\\sin\\theta\\) は単位円の <strong>「縦の高さ」</strong>。それが \\(\\dfrac{1}{2}\\)（真ん中より上）になる場所を探す。' },
+          { num: '③', name: '位置と符号の特定', content: '高さがプラスなので、単位円の <strong>「右上（第1象限）」</strong> と <strong>「左上（第2象限）」</strong> の2点に決まる。' },
+          { num: '④', name: 'すべての解を列挙', content: '右上の基本角は \\(\\theta = \\dfrac{\\pi}{6}\\)。左上の対称な角は \\(\\pi - \\dfrac{\\pi}{6} = \\dfrac{5\\pi}{6}\\)。' },
+          { num: '⑤', name: '代入検算', content: '\\(\\sin\\left(\\dfrac{\\pi}{6}\\right) = \\dfrac{1}{2}\\)、\\(\\sin\\left(\\dfrac{5\\pi}{6}\\right) = \\dfrac{1}{2}\\) となり両方正解！' }
+        ],
+        ansTex: '\\theta = \\dfrac{\\pi}{6}, \\; \\dfrac{5\\pi}{6}'
+      },
+      'cos_neg': {
+        title: '問題： \\(\\cos\\theta = -\\dfrac{1}{2} \\quad (0 \\leqq \\theta < 2\\pi)\\)',
+        steps: [
+          { num: '①', name: '範囲の確認', content: '角の範囲は \\(0 \\leqq \\theta < 2\\pi\\) （1周分）' },
+          { num: '②', name: '種類と値の読み取り', content: '\\(\\cos\\theta\\) は単位円の <strong>「横の位置」</strong>。それが \\(-\\dfrac{1}{2}\\)（左側）になる場所を探す。' },
+          { num: '③', name: '位置と符号の特定', content: '横位置がマイナスなので、単位円の <strong>「左上（第2象限）」</strong> と <strong>「左下（第3象限）」</strong> の2点に決まる。' },
+          { num: '④', name: 'すべての解を列挙', content: '基準の角は \\(\\dfrac{\\pi}{3}\\)。左上は \\(\\pi - \\dfrac{\\pi}{3} = \\dfrac{2\\pi}{3}\\)。左下は \\(\\pi + \\dfrac{\\pi}{3} = \\dfrac{4\\pi}{3}\\)。' },
+          { num: '⑤', name: '代入検算', content: 'どちらも横座標が \\(-\\dfrac{1}{2}\\) になり完璧に一致！' }
+        ],
+        ansTex: '\\theta = \\dfrac{2\\pi}{3}, \\; \\dfrac{4\\pi}{3}'
+      },
+      'tan_one': {
+        title: '問題： \\(\\tan\\theta = 1 \\quad (0 \\leqq \\theta < 2\\pi)\\)',
+        steps: [
+          { num: '①', name: '範囲の確認', content: '角の範囲は \\(0 \\leqq \\theta < 2\\pi\\)' },
+          { num: '②', name: '種類と値の読み取り', content: '\\(\\tan\\theta\\) は原点を通る <strong>「直線の傾き」</strong>。それが \\(1\\)（右上がり45°）になる場所を探す。' },
+          { num: '③', name: '位置と符号の特定', content: '傾きがプラスなので、第1象限（45°）と、その反対側の直線上の第3象限（225°）の2箇所。' },
+          { num: '④', name: 'すべての解を列挙', content: '1つ目は \\(\\theta = \\dfrac{\\pi}{4}\\)。反対側は半周（\\(\\pi\\)）進んだ \\(\\pi + \\dfrac{\\pi}{4} = \\dfrac{5\\pi}{4}\\)。' },
+          { num: '⑤', name: '代入検算', content: '\\(\\tan\\left(\\dfrac{\\pi}{4}\\right) = 1\\)、\\(\\tan\\left(\\dfrac{5\\pi}{4}\\right) = 1\\) で両方正解！' }
+        ],
+        ansTex: '\\theta = \\dfrac{\\pi}{4}, \\; \\dfrac{5\\pi}{4}'
+      },
+      'none_sol': {
+        title: '発展： \\(\\sin\\theta = 2 \\quad (0 \\leqq \\theta < 2\\pi)\\)',
+        steps: [
+          { num: '①', name: '範囲の確認', content: '角の範囲は \\(0 \\leqq \\theta < 2\\pi\\)' },
+          { num: '②', name: '種類と値の読み取り', content: '\\(\\sin\\theta\\) は単位円の縦の高さ。しかし半径1の円で高さが 2 になることはあり得ない！' },
+          { num: '③', name: '結論', content: '実数の角 \\(\\theta\\) でこの条件を満たすものは存在しない。' }
+        ],
+        ansTex: '\\text{解なし}'
+      }
+    };
+
+    let curWorkshopKey = 'sin_pos';
+
+    function loadWorkshopProb(key) {
+      curWorkshopKey = key;
+      ['sin_pos', 'cos_neg', 'tan_one', 'none_sol'].forEach(k => {
+        const btn = document.getElementById(`ws-btn-${k}`);
+        if (k === key) {
+          btn.className = 'ws-prob-btn px-4 py-2.5 rounded-xl text-xs font-bold transition-all bg-indigo-600 text-white shadow-md';
+        } else {
+          btn.className = 'ws-prob-btn px-4 py-2.5 rounded-xl text-xs font-bold transition-all bg-white text-slate-600 border border-slate-200 hover:bg-slate-50';
+        }
+      });
+      renderWorkshopSteps();
+    }
+
+    function renderWorkshopSteps() {
+      const data = workshopProblems[curWorkshopKey];
+      document.getElementById('wsProbTitle').innerHTML = data.title;
+      const container = document.getElementById('wsStepsContainer');
+      if (!container) return;
+
+      let html = '';
+      data.steps.forEach(s => {
+        html += `
+          <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 space-y-1">
+            <div class="font-extrabold text-indigo-900 flex items-center gap-2">
+              <span class="w-6 h-6 rounded-full bg-indigo-600 text-white flex items-center justify-center text-[11px]">${s.num}</span>
+              <span>${s.name}</span>
+            </div>
+            <div class="text-slate-700 pl-8 font-medium leading-relaxed">
+              ${s.content}
+            </div>
+          </div>
+        `;
+      });
+
+      html += `
+        <div class="p-4 bg-emerald-50 border-2 border-emerald-300 rounded-2xl text-center space-y-1 shadow-xs mt-4">
+          <span class="text-emerald-800 font-bold text-xs block">✨ 最終的な方程式の答え:</span>
+          <div class="font-mono text-emerald-950 text-xl font-black">
+            \$\$${data.ansTex}\$\$
+          </div>
+        </div>
+      `;
+
+      container.innerHTML = html;
+      renderAllMath(container);
+    }
+
+    // ==========================================
+    // TAB 3: EXIT TICKET & COPY
+    // ==========================================
+    function copyExitTicket() {
+      const text = document.getElementById('exitTicketInput').value.trim();
+      const copyStr = `【数学II 三角方程式 第3回 Exit Ticket 振り返り】\n● 説明:\n${text || '（未入力）'}`;
+
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(copyStr).then(showToast).catch(() => fallbackCopy(copyStr));
+      } else {
+        fallbackCopy(copyStr);
+      }
+    }
+
+    function fallbackCopy(str) {
+      const textArea = document.createElement("textarea");
+      textArea.value = str;
+      textArea.style.position = "fixed";
+      textArea.style.left = "-999999px";
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      try {
+        document.execCommand('copy');
+        showToast();
+      } catch (err) {}
+      document.body.removeChild(textArea);
+    }
+
+    function showToast() {
+      const toast = document.getElementById('copyToast');
+      toast.classList.remove('opacity-0');
+      setTimeout(() => {
+        toast.classList.add('opacity-0');
+      }, 2000);
+    }
+
+    // Initialize on Load
+    window.addEventListener('DOMContentLoaded', () => {
+      setTimeout(() => {
+        renderAllMath();
+        drawExplorerVisuals();
+      }, 100);
+    });
+  </script>
+</body>
+</html>

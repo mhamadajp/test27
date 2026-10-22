@@ -54,7 +54,7 @@
               <span class="text-[11px] text-slate-500 font-bold">三角関数のグラフ</span>
             </div>
             <h1 class="text-lg font-extrabold text-slate-900 tracking-tight mt-0.5">
-              三角関数のグラフと変形 探究スタジオ（ラジアン拡張版）
+              三角関数のグラフと変形 探究スタジオ
             </h1>
           </div>
         </div>
@@ -78,7 +78,6 @@
     <!-- ========================================== -->
     <div id="tabContent-interactive" class="space-y-6 block">
       
-      <!-- 関数の切り替えボタン -->
       <div class="flex flex-wrap gap-3">
         <button onclick="setBaseFunction('sin')" id="btn-base-sin" class="base-func-btn flex-1 sm:flex-none px-5 py-3 rounded-2xl text-sm font-extrabold transition-all border-2 shadow-sm bg-rose-500 text-white border-rose-600">
           $\sin\theta$（縦の動き）
@@ -89,6 +88,20 @@
         <button onclick="setBaseFunction('tan')" id="btn-base-tan" class="base-func-btn flex-1 sm:flex-none px-5 py-3 rounded-2xl text-sm font-extrabold transition-all border-2 bg-white text-slate-600 border-slate-200 hover:bg-slate-50">
           $\tan\theta$（直線の傾き）
         </button>
+      </div>
+
+      <!-- cosとsinを重ねてずらす特別な探究バナー（cos選択時のみ表示） -->
+      <div id="cosCompareBanner" class="hidden bg-gradient-to-r from-blue-900 to-indigo-900 rounded-2xl p-5 text-white shadow-md space-y-3">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div>
+            <span class="text-xs font-bold px-2.5 py-1 rounded bg-blue-500/30 text-blue-300 uppercase tracking-wider">🌟 超重要発見ラボ</span>
+            <h3 class="text-base sm:text-lg font-bold mt-1">「$\cos$ の波を右へ $90^\circ$（$\frac{\pi}{2}$）ずらすと、$\sin$ と完全に重なる！」</h3>
+            <p class="text-xs text-blue-200 mt-0.5">下のスライダーやボタンでずらすと、赤の $\sin$ と青の $\cos$ がぴったり重なり合う感動の瞬間を体験できます。</p>
+          </div>
+          <button onclick="setPhaseShiftToMatchSin()" class="px-4 py-2 bg-amber-400 hover:bg-amber-300 text-slate-900 rounded-xl font-black text-xs shadow transition whitespace-nowrap">
+            🎯 ピタリと重ねる (+90° / $+\frac{\pi}{2}$)
+          </button>
+        </div>
       </div>
 
       <div class="bg-white rounded-3xl p-5 border border-slate-200 shadow-md space-y-4">
@@ -124,7 +137,7 @@
                   </marker>
                 </defs>
 
-                <!-- 基準軸 (中心 cx=115, cy=160, R=80) -->
+                <!-- 基準軸 -->
                 <line x1="15" y1="160" x2="225" y2="160" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrowHeadCircle)"/>
                 <line x1="115" y1="300" x2="115" y2="20" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrowHeadCircle)" />
                 <text x="215" y="180" fill="#475569" font-size="13" font-weight="bold">x</text>
@@ -133,38 +146,30 @@
                 <!-- 単位円 -->
                 <circle cx="115" cy="160" r="80" fill="rgba(248, 250, 252, 0.7)" stroke="#334155" stroke-width="2.5" />
                 
-                <!-- 目盛りラベル -->
                 <text x="120" y="75" fill="#64748b" font-size="11" font-weight="bold">1</text>
                 <text x="120" y="254" fill="#64748b" font-size="11" font-weight="bold">-1</text>
                 <text x="22" y="176" fill="#64748b" font-size="11" font-weight="bold">-1</text>
 
                 <!-- 回転角の扇形 -->
                 <path id="spiralTrailBase" d="" fill="rgba(99, 102, 241, 0.18)" stroke="#6366f1" stroke-width="1.5" />
-                
-                <!-- 動径 -->
                 <line id="radiusBase" x1="115" y1="160" x2="195" y2="160" stroke="#475569" stroke-width="2.5" />
                 
-                <!-- sin / cos インジケーター -->
                 <line id="indSinBase" x1="195" y1="160" x2="195" y2="160" stroke="#f43f5e" stroke-width="5" stroke-linecap="round" />
                 <line id="indCosBase" x1="115" y1="160" x2="195" y2="160" stroke="#3b82f6" stroke-width="5" stroke-linecap="round" />
                 
-                <!-- tanの壁 (x=1 すなわち x=195) -->
+                <!-- tanの壁 -->
                 <line id="tanAxisBase" x1="195" y1="10" x2="195" y2="310" stroke="#94a3b8" stroke-width="2.5" stroke-dasharray="4 4" class="hidden" />
                 <text id="tanWallLabel" x="198" y="24" fill="#059669" font-size="10" font-weight="bold" class="hidden">x=1の壁</text>
                 <line id="indTanLineBase" x1="115" y1="160" x2="195" y2="160" stroke="#10b981" stroke-width="2" stroke-dasharray="3 3" class="hidden" />
                 <line id="indTanValBase" x1="195" y1="160" x2="195" y2="160" stroke="#10b981" stroke-width="6" stroke-linecap="round" class="hidden" />
                 <circle id="tanPointBase" cx="195" cy="160" r="5.5" fill="#10b981" class="hidden" />
 
-                <!-- ガイド水平線（右端へ伸びてグラフと繋がるイメージ線） -->
                 <line id="circleToEdgeLine" x1="195" y1="160" x2="240" y2="160" stroke="#f43f5e" stroke-width="2" stroke-dasharray="4 4" opacity="0.75" />
-
-                <!-- 円上の動点 P -->
                 <circle id="circlePointPBase" cx="195" cy="160" r="6.5" fill="#ffffff" stroke="#1e293b" stroke-width="3" />
               </svg>
             </div>
           </div>
 
-          <!-- 【右側】横スクロール可能な波グラフエリア (-2pi to 4pi) -->
           <div class="flex-1 flex flex-col min-w-0">
             <div class="text-[11px] font-bold text-slate-500 px-3 py-1.5 bg-slate-100/80 border-b border-slate-200 flex justify-between items-center">
               <span>② 波のグラフ（横軸：角度 $\theta$ ラジアン / 縦軸：値）</span>
@@ -180,13 +185,9 @@
                     </marker>
                   </defs>
 
-                  <!-- 水平ガイドライン y=1 (80), y=0 (160), y=-1 (240) -->
                   <line x1="20" y1="80" x2="1230" y2="80" stroke="#e2e8f0" stroke-width="1.5" stroke-dasharray="4 4"/>
                   <line x1="20" y1="240" x2="1230" y2="240" stroke="#e2e8f0" stroke-width="1.5" stroke-dasharray="4 4"/>
 
-                  <!-- 中心軸 (y=0) と 縦軸 (θ=0 は x=440) -->
-                  <!-- スケール: 1度 = 1px, θ=0 が x=440 -->
-                  <!-- -360度(-2π) = 80, -180度(-π) = 260, 0度 = 440, 180度(π) = 620, 360度(2π) = 800, 540度(3π) = 980, 720度(4π) = 1160 -->
                   <line x1="20" y1="160" x2="1240" y2="160" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrowHeadWave)"/>
                   <line x1="440" y1="305" x2="440" y2="15" stroke="#64748b" stroke-width="2" marker-end="url(#arrowHeadWave)" />
                   
@@ -194,7 +195,6 @@
                   <text x="424" y="84" fill="#64748b" font-size="12" font-weight="bold">1</text>
                   <text x="418" y="244" fill="#64748b" font-size="12" font-weight="bold">-1</text>
 
-                  <!-- 周期ごとの背景色分けバンド -->
                   <rect x="80" y="20" width="360" height="280" fill="rgba(241, 245, 249, 0.45)" />
                   <text x="260" y="36" fill="#94a3b8" font-size="11" font-weight="bold" text-anchor="middle">逆回転（-2π 〜 0）</text>
                   
@@ -238,8 +238,8 @@
 
                   <!-- 波のパス描画グループ -->
                   <g id="mainWaveGroupBase"></g>
+                  <g id="compareWaveGroupBase"></g>
 
-                  <!-- 左端からの水平同期ラインと現在点 -->
                   <line id="syncLineBase" x1="0" y1="160" x2="440" y2="160" stroke="#f43f5e" stroke-width="2" stroke-dasharray="4 4" opacity="0.75"/>
                   <line id="waveDropLineBase" x1="440" y1="160" x2="440" y2="160" stroke="#f43f5e" stroke-width="3" opacity="0.4"/>
                   <circle id="wavePointBase" cx="440" cy="160" r="7" fill="#ffffff" stroke="#f43f5e" stroke-width="3.5" />
@@ -250,6 +250,23 @@
         </div>
 
         <div class="space-y-4 pt-2">
+          <!-- cos比較モード時のスライダーコントロール（cos選択時のみ表示） -->
+          <div id="cosPhaseControlBox" class="hidden bg-blue-50 border-2 border-blue-200 p-4 rounded-2xl space-y-3">
+            <div class="flex flex-wrap justify-between items-center gap-2">
+              <label class="text-sm font-extrabold text-blue-900 flex items-center gap-1.5">
+                <span>🔄</span> $\cos\theta$ の波を横にずらす（位相シフト）:
+              </label>
+              <span id="phaseShiftBadge" class="bg-blue-600 text-white px-3 py-1 rounded-lg font-black text-sm shadow-sm">+0° (0 rad)</span>
+            </div>
+            <input type="range" id="phaseShiftSlider" min="-180" max="180" value="0" step="15" class="w-full h-3 bg-blue-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
+            <div class="flex justify-between text-xs font-bold text-blue-700 px-1">
+              <span>$-180^\circ$ ($-\pi$)</span>
+              <span>$0^\circ$ (重ね合わせ前)</span>
+              <span>$+90^\circ$ ($+\frac{\pi}{2}$ でsinと一致！)</span>
+              <span>$+180^\circ$ ($+\pi$)</span>
+            </div>
+          </div>
+
           <!-- スライダー -->
           <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
             <div class="flex flex-wrap justify-between items-center gap-2">
@@ -319,10 +336,9 @@
       
       <div class="bg-purple-50 border border-purple-200 p-5 rounded-2xl shadow-sm">
         <h2 class="text-lg font-extrabold text-purple-900 mb-1">波の形を改造しよう！</h2>
-        <p class="text-sm text-purple-800 font-medium">数式の「どこに数字をつけるか」で、波の高さ（振幅）やスピード（周期）、全体の位置が変わります。単位円とスクロールグラフを見比べて意味を納得しよう。</p>
+        <p class="text-sm text-purple-800 font-medium">数式の「どこに数字をつけるか」で、波の高さ（振幅）やスピード（周期）、全体の位置が変わります。</p>
       </div>
 
-      <!-- 変形メニュー -->
       <div class="flex flex-wrap gap-2">
         <button onclick="setTransform('amp')" id="btn-trans-amp" class="trans-btn px-4 py-2.5 rounded-xl text-sm font-bold transition-all bg-purple-600 text-white shadow-md">
           $y = 2\sin\theta$ （高さを2倍）
@@ -336,17 +352,13 @@
       </div>
 
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <!-- 改造シミュレータキャンバス (8 cols) -->
         <div class="lg:col-span-8 bg-white rounded-3xl p-5 border border-slate-200 shadow-md space-y-4">
           <div class="flex flex-wrap items-center justify-between border-b border-slate-100 pb-2 gap-2">
             <h3 id="transFuncTitle" class="text-lg font-extrabold text-purple-900"></h3>
             <span class="text-xs font-bold text-slate-500">点線：元の $\sin\theta$ ／ 実線：変形後</span>
           </div>
           
-          <!-- 分割レイアウト：左＝単位円＆変換器（固定） / 右＝変形グラフ（横スクロール） -->
           <div class="flex flex-col md:flex-row border-2 border-slate-300 rounded-2xl overflow-hidden bg-dot-pattern shadow-inner">
-            
-            <!-- 左：単位円と変換ボックス -->
             <div class="w-full md:w-[230px] shrink-0 border-b md:border-b-0 md:border-r-2 border-slate-200 bg-white/90 select-none touch-none flex flex-col">
               <div class="text-[11px] font-bold text-slate-500 px-3 py-1.5 bg-slate-100/80 border-b border-slate-200 flex justify-between">
                 <span>① 円の動き（ドラッグ可）</span>
@@ -361,7 +373,6 @@
                   <line id="indSinTrans" x1="150" y1="180" x2="150" y2="180" stroke="#f43f5e" stroke-width="5" stroke-linecap="round" />
                   <circle id="circlePointPTrans" cx="150" cy="180" r="6" fill="#ffffff" stroke="#1e293b" stroke-width="3" />
 
-                  <!-- 魔法のボックス（×2 や +1） -->
                   <g id="magicBoxGroup" transform="translate(168, 160)">
                     <rect x="0" y="0" width="48" height="36" rx="8" fill="#f3e8ff" stroke="#9333ea" stroke-width="2" />
                     <text id="magicBoxText" x="24" y="23" fill="#6b21a8" font-size="14" font-weight="bold" text-anchor="middle">×2</text>
@@ -370,7 +381,6 @@
               </div>
             </div>
 
-            <!-- 右：横スクロール可能な変形グラフ -->
             <div class="flex-1 flex flex-col min-w-0">
               <div class="text-[11px] font-bold text-slate-500 px-3 py-1.5 bg-slate-100/80 border-b border-slate-200 flex justify-between">
                 <span>② 変形された波のグラフ（$0 \sim 4\pi$）</span>
@@ -379,7 +389,6 @@
               <div id="transWaveScrollWrapper" class="graph-scroll overflow-x-auto w-full select-none">
                 <div class="h-[300px] min-w-[820px]">
                   <svg id="transWaveSvg" viewBox="0 0 820 320" class="w-full h-full cursor-pointer">
-                    <!-- ガイドライン (Cy=180, R=55 => y=1 は 125, y=2 は 70, y=-1 は 235, y=-2 は 290) -->
                     <line x1="20" y1="70" x2="790" y2="70" stroke="#e2e8f0" stroke-width="1.5" stroke-dasharray="4 4"/>
                     <text x="32" y="74" fill="#64748b" font-size="11" font-weight="bold">2</text>
                     <line x1="20" y1="125" x2="790" y2="125" stroke="#e2e8f0" stroke-width="1.5" stroke-dasharray="4 4"/>
@@ -389,11 +398,9 @@
                     <line x1="20" y1="290" x2="790" y2="290" stroke="#e2e8f0" stroke-width="1.5" stroke-dasharray="4 4"/>
                     <text x="26" y="294" fill="#64748b" font-size="11" font-weight="bold">-2</text>
 
-                    <!-- 軸 (θ=0 は x=50, 1度 = 1px) -->
                     <line x1="20" y1="180" x2="800" y2="180" stroke="#94a3b8" stroke-width="2" />
                     <line x1="50" y1="305" x2="50" y2="20" stroke="#64748b" stroke-width="2" />
 
-                    <!-- 目盛り (0, π, 2π, 3π, 4π) -->
                     <g fill="#475569" font-size="12" font-weight="bold" text-anchor="middle">
                       <text x="60" y="198">0</text>
                       <line x1="230" y1="176" x2="230" y2="184" stroke="#475569" stroke-width="2" />
@@ -406,9 +413,7 @@
                       <text x="770" y="198">4π</text>
                     </g>
 
-                    <!-- 比較用の元の波 (sin) -->
                     <path id="ghostWaveTrans" d="" fill="none" stroke="#cbd5e1" stroke-width="2.5" stroke-dasharray="5 4" />
-                    <!-- 改造された波 -->
                     <path id="mainWaveTrans" d="" fill="none" stroke="#9333ea" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
                     
                     <line id="syncLineTrans" x1="0" y1="180" x2="50" y2="180" stroke="#9333ea" stroke-width="2" stroke-dasharray="4 4" opacity="0.8"/>
@@ -431,11 +436,9 @@
         </div>
 
         <div class="lg:col-span-4 space-y-4">
-          <!-- メイン解説 -->
           <div id="transExplainer" class="bg-white rounded-2xl border-2 border-purple-200 p-5 shadow-sm space-y-4 text-sm text-slate-700 leading-relaxed font-medium">
           </div>
 
-          <!-- 数式と計算値のリアルタイム表示 -->
           <div class="bg-slate-800 text-white rounded-2xl p-5 shadow-inner space-y-3">
             <span class="text-xs font-bold text-slate-400 block">リアルタイム計算式（正確な分数・根号）</span>
             <div id="transCalcFormula" class="text-center font-bold text-base text-purple-200 py-2 overflow-x-auto">
@@ -452,14 +455,12 @@
     // 数学コアロジック＆KaTeXレンダリングユーティリティ
     // =========================================================================
 
-    // 有名角のリスト (-360 to 720)
     const landmarkAngles = [];
     for (let i = -360; i <= 720; i += 15) {
       if (i % 30 === 0 || i % 45 === 0) landmarkAngles.push(i);
     }
     const LANDMARKS = [...new Set(landmarkAngles)].sort((a, b) => a - b);
 
-    // コンテナ内の $...$ や $$...$$ をすべて確実に KaTeX で変換する関数
     function renderAllMath(container = document.body) {
       if (window.renderMathInElement) {
         try {
@@ -478,7 +479,6 @@
       }
     }
 
-    // 特定の要素に単一の LaTeX 式を描画するヘルパー
     function updateMath(elementId, texString, isDisplay = false) {
       const el = document.getElementById(elementId);
       if (!el) return;
@@ -493,7 +493,6 @@
       }
     }
 
-    // 角度(deg)からラジアンのLaTeX文字列を生成
     function degToRadTex(deg) {
       if (deg === 0) return "0";
       const sign = deg < 0 ? "-" : "";
@@ -512,7 +511,6 @@
       return `${sign}\\dfrac{${num}\\pi}{${den}}`;
     }
 
-    // 角度(deg)から正確な分数・根号の LaTeX を取得
     function getExactValues(deg) {
       let norm = deg % 360;
       if (norm < 0) norm += 360;
@@ -581,6 +579,7 @@
     let transMode = 'amp';
     let transAngle = 30;
     let autoScrollEnabled = true;
+    let phaseShiftDeg = 0; // cosをずらす角度（90°でsinに一致）
 
     function toggleAutoScroll(enabled) {
       autoScrollEnabled = enabled;
@@ -637,22 +636,48 @@
 
       const title = document.getElementById('baseFuncTitle');
       const explainer = document.getElementById('baseExplainer');
+      const cosBanner = document.getElementById('cosCompareBanner');
+      const cosPhaseBox = document.getElementById('cosPhaseControlBox');
       
       if (func === 'sin') {
         title.innerHTML = '基本のグラフ： $y = \\sin\\theta$ （周期 $2\\pi$）';
         explainer.innerHTML = '<strong>「縦の動き（高さ）」を表す $\\sin\\theta$</strong> です。単位円の上を点が回るとき、その <strong>縦の高さ（$y$ 座標）</strong> をそのまま右のグラフに移していくと、なめらかな波の形が生まれます。1周（$2\\pi$）ごとに同じ波が繰り返されます。';
+        cosBanner.classList.add('hidden');
+        cosPhaseBox.classList.add('hidden');
       } else if (func === 'cos') {
         title.innerHTML = '基本のグラフ： $y = \\cos\\theta$ （周期 $2\\pi$）';
-        explainer.innerHTML = '<strong>「横の動き」を表す $\\cos\\theta$</strong> です。単位円の上の点の <strong>横の位置（$x$ 座標）</strong> を測り、それをグラフの縦の高さとして記録します。角度 $0$ のとき右端（$x=1$）からスタートするため、グラフはてっぺんの $1$ から始まります。';
+        explainer.innerHTML = '<strong>「横の動き」を表す $\\cos\\theta$</strong> です。単位円の上の点の <strong>横の位置（$x$ 座標）</strong> を測り、それをグラフの縦の高さとして記録します。実はこの青い $\cos$ の波は、<strong>赤の $\sin$ の波を右へ $90^\circ$（$\frac{\pi}{2}$）平行移動したもの（ずらしたもの）</strong>になっています！';
+        cosBanner.classList.remove('hidden');
+        cosPhaseBox.classList.remove('hidden');
       } else if (func === 'tan') {
         title.innerHTML = '基本のグラフ： $y = \\tan\\theta$ （周期 $\\pi$）';
-        explainer.innerHTML = '<strong>「直線の傾き」を表す $\\tan\\theta = \\dfrac{y}{x}$</strong> です。原点から点Pへ伸ばした光線が <strong>右の壁（$x=1$）のどの高さに当たるか</strong> を表します。$\\dfrac{\\pi}{2}$（$90^\\circ$）や $\\dfrac{3\\pi}{2}$（$270^\\circ$）では光線が真上・真下を向いて壁と平行になるため、<strong>値が定義されず（漸近線）、グラフが途切れます</strong>。半周（$\\pi$）ごとに同じ形を繰り返します。';
+        explainer.innerHTML = '<strong>「直線の傾き」を表す $\\tan\\theta = \\dfrac{y}{x}$</strong> です。原点から点Pへ伸ばした光線が <strong>右の壁（$x=1$）のどの高さに当たるか</strong> を表します。$\\dfrac{\\pi}{2}$（$90^\\circ$）や $\\dfrac{3\\pi}{2}$（$270^\\circ$）では光線が真上・真下を向いて壁と平行になるため、<strong>値が定義されず（漸近線）、グラフが途切れます</strong>。';
+        cosBanner.classList.add('hidden');
+        cosPhaseBox.classList.add('hidden');
       }
 
       drawBaseWavePaths();
       updateBaseVisuals();
       renderAllMath(document.getElementById('tabContent-interactive'));
     }
+
+    function setPhaseShiftToMatchSin() {
+      phaseShiftDeg = 90;
+      document.getElementById('phaseShiftSlider').value = 90;
+      document.getElementById('phaseShiftBadge').innerHTML = `+90° (+\\dfrac{\\pi}{2} でsinと完全一致！)`.replace('+', '+');
+      drawBaseWavePaths();
+      updateBaseVisuals();
+      renderAllMath(document.getElementById('cosCompareBanner'));
+    }
+
+    document.getElementById('phaseShiftSlider').addEventListener('input', (e) => {
+      phaseShiftDeg = parseInt(e.target.value);
+      const radTex = degToRadTex(phaseShiftDeg);
+      const sign = phaseShiftDeg > 0 ? `+${phaseShiftDeg}°` : `${phaseShiftDeg}°`;
+      document.getElementById('phaseShiftBadge').textContent = `${sign} (${radTex})`;
+      drawBaseWavePaths();
+      updateBaseVisuals();
+    });
 
     function stepBaseLandmark(dir) {
       let idx = LANDMARKS.indexOf(baseAngle);
@@ -764,25 +789,32 @@
 
     function drawBaseWavePaths() {
       const g = document.getElementById('mainWaveGroupBase');
-      if (!g) return;
+      const gComp = document.getElementById('compareWaveGroupBase');
+      if (!g || !gComp) return;
       g.innerHTML = '';
+      gComp.innerHTML = '';
 
       const color = baseFunc === 'sin' ? '#f43f5e' : baseFunc === 'cos' ? '#3b82f6' : '#10b981';
       const Gx0 = 440; // θ=0 のX座標
       const Cy = 160;  // y=0 のY座標
       const R = 80;    // 1単位 = 80px
 
-      function getY(deg) {
+      function getY(deg, type) {
         const rad = deg * Math.PI / 180;
-        if (baseFunc === 'sin') return Cy - Math.sin(rad) * R;
-        if (baseFunc === 'cos') return Cy - Math.cos(rad) * R;
-        if (baseFunc === 'tan') return Cy - Math.tan(rad) * R;
+        if (type === 'sin') return Cy - Math.sin(rad) * R;
+        if (type === 'cos') return Cy - Math.cos(rad) * R;
+        if (type === 'cosShift') {
+          const shiftRad = (deg - phaseShiftDeg) * Math.PI / 180;
+          return Cy - Math.cos(shiftRad) * R;
+        }
+        if (type === 'tan') return Cy - Math.tan(rad) * R;
       }
 
+      // 1. メインの波を描画
       if (baseFunc !== 'tan') {
-        let d = `M ${Gx0 - 360} ${getY(-360)} `;
+        let d = `M ${Gx0 - 360} ${getY(-360, baseFunc)} `;
         for (let i = -358; i <= 720; i += 2) {
-          d += `L ${Gx0 + i} ${getY(i)} `;
+          d += `L ${Gx0 + i} ${getY(i, baseFunc)} `;
         }
         const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
         path.setAttribute('d', d);
@@ -791,6 +823,22 @@
         path.setAttribute('stroke-width', '3.5');
         path.setAttribute('stroke-linecap', 'round');
         g.appendChild(path);
+
+        // もしcosモードで位相シフトが動いている場合、赤色の「sinの波（ゴースト）」を薄く表示して重なりを視覚化
+        if (baseFunc === 'cos' && phaseShiftDeg !== 0) {
+          let dSin = `M ${Gx0 - 360} ${getY(-360, 'sin')} `;
+          for (let i = -358; i <= 720; i += 2) {
+            dSin += `L ${Gx0 + i} ${getY(i, 'sin')} `;
+          }
+          const pathSin = document.createElementNS("http://www.w3.org/2000/svg", "path");
+          pathSin.setAttribute('d', dSin);
+          pathSin.setAttribute('fill', 'none');
+          pathSin.setAttribute('stroke', '#f43f5e'); // sinの赤
+          pathSin.setAttribute('stroke-width', '2.5');
+          pathSin.setAttribute('stroke-dasharray', '6 4');
+          pathSin.setAttribute('opacity', '0.75');
+          gComp.appendChild(pathSin);
+        }
       } else {
         const breaks = [-270, -90, 90, 270, 450, 630];
         let start = -360;
@@ -798,7 +846,7 @@
         breaks.forEach(b => {
           let d = '';
           for (let i = start + 2; i <= b - 2; i += 2) {
-            const y = getY(i);
+            const y = getY(i, 'tan');
             if (y >= -40 && y <= 360) {
               d += (d === '' ? `M ${Gx0 + i} ${y} ` : `L ${Gx0 + i} ${y} `);
             }
@@ -810,7 +858,6 @@
           path.setAttribute('stroke-width', '3.5');
           g.appendChild(path);
 
-          // 漸近線
           const asym = document.createElementNS("http://www.w3.org/2000/svg", "line");
           asym.setAttribute('x1', Gx0 + b); asym.setAttribute('x2', Gx0 + b);
           asym.setAttribute('y1', 15); asym.setAttribute('y2', 305);
@@ -822,20 +869,6 @@
 
           start = b;
         });
-
-        let d = '';
-        for (let i = start + 2; i <= 720; i += 2) {
-          const y = getY(i);
-          if (y >= -40 && y <= 360) {
-            d += (d === '' ? `M ${Gx0 + i} ${y} ` : `L ${Gx0 + i} ${y} `);
-          }
-        }
-        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-        path.setAttribute('d', d);
-        path.setAttribute('fill', 'none');
-        path.setAttribute('stroke', color);
-        path.setAttribute('stroke-width', '3.5');
-        g.appendChild(path);
       }
     }
 
@@ -843,7 +876,6 @@
       const deg = baseAngle;
       const rad = deg * Math.PI / 180;
       
-      // 1. 左の単位円エリアの更新 (Cx=115, Cy=160, R=80)
       const Cx = 115, Cy = 160, R = 80;
       const px = Cx + Math.cos(rad) * R;
       const py = Cy - Math.sin(rad) * R;
@@ -853,7 +885,6 @@
       document.getElementById('radiusBase').setAttribute('x2', px);
       document.getElementById('radiusBase').setAttribute('y2', py);
 
-      // 角度の扇形
       let arcDeg = deg % 360;
       if (arcDeg < 0) arcDeg += 360;
       let arcD = "";
@@ -886,12 +917,14 @@
 
       const isTanUndef = (Math.abs(deg % 180) === 90);
 
-      // 2. 右の波グラフエリアの座標計算 (Gx0=440, Cy=160, R=80)
       const Gx0 = 440;
       const gx = Gx0 + deg;
       let gy = Cy;
       if (baseFunc === 'sin') gy = Cy - Math.sin(rad) * R;
-      if (baseFunc === 'cos') gy = Cy - Math.cos(rad) * R;
+      if (baseFunc === 'cos') {
+        const shiftedRad = (deg - phaseShiftDeg) * Math.PI / 180;
+        gy = Cy - Math.cos(shiftedRad) * R;
+      }
       if (baseFunc === 'tan') gy = Cy - Math.tan(rad) * R;
 
       if (baseFunc === 'sin') {
@@ -967,7 +1000,6 @@
         dropLine.setAttribute('y2', gy);
       }
 
-      // 3. 値の表とバッジを KaTeX で更新
       const exact = getExactValues(deg);
       if (exact) {
         updateMath('baseRadBadge', exact.rad, false);
@@ -1008,7 +1040,7 @@
 
       if (mode === 'amp') {
         title.innerHTML = '波の高さを変える： $y = 2\\sin\\theta$ （振幅 $2$・周期 $2\\pi$）';
-        explainer.innerHTML = '✨ <strong>ポイント：「出てきた縦座標 $\\sin\\theta$ を、後から $2$ 倍に引き伸ばす！」</strong><br><br>単位円から出てきた $\\sin\\theta$ の値が、変換ボックスを通ることで <strong>$\\times 2$</strong> されます。<br>円を回るスピードはそのままなので横幅（周期 $2\\pi$）は変わりませんが、山の高さ（振幅）が $2$ 倍の大きな波になります。';
+        explainer.innerHTML = '✨ <strong>ポイント：「出てきた縦座標 $\\sin\\theta$ を、後から $2$ 倍に引き伸ばす！」</strong><br><br>単位円から出てきた $\\sin\\theta$ の値が、変換ボックスを通ることで <strong>$\\times 2$</strong> されます。円を回るスピードはそのままなので横幅（周期 $2\\pi$）は変わりませんが、山の高さ（振幅）が $2$ 倍の大きな波になります。';
         magicText.textContent = '×2';
       } else if (mode === 'freq') {
         title.innerHTML = '波のスピードを変える： $y = \\sin(2\\theta)$ （振幅 $1$・周期 $\\pi$）';
@@ -1016,7 +1048,7 @@
         magicText.textContent = '2θ倍速';
       } else if (mode === 'shift') {
         title.innerHTML = '波の位置をずらす： $y = \\sin\\theta + 1$ （上下移動 $+1$）';
-        explainer.innerHTML = '✨ <strong>ポイント：「すべての結果に $+1$ の下駄を履かせる！」</strong><br><br>単位円から出てきた $\\sin\\theta$ の値に、後から <strong>$+1$</strong> を足します。<br>波の形や周期（$2\\pi$）は一切変わらず、グラフの中心線が $0$ から $1$ へそのまま上にスライドします。';
+        explainer.innerHTML = '✨ <strong>ポイント：「すべての結果に $+1$ の下駄を履かせる！」</strong><br><br>単位円から出てきた $\\sin\\theta$ の値に、後から <strong>$+1$</strong> を足します。波の形や周期（$2\\pi$）は一切変わらず、グラフの中心線が $0$ から $1$ へそのまま上にスライドします。';
         magicText.textContent = '+1';
       }
 
@@ -1033,7 +1065,6 @@
       if (autoScrollEnabled) scrollTransToCurrent(false);
     });
 
-    // TAB 2 の単位円ドラッグ操作と波形クリック操作
     const transCircleSvg = document.getElementById('transCircleSvg');
     let isTransCircleDragging = false;
 
@@ -1170,7 +1201,6 @@
       updateMath('transCalcFormula', calcFormula, true);
     }
 
-    // 初期化処理（確実に起動するよう即時チェックとイベントの両方で対応）
     let isInitialized = false;
     function initStudio() {
       if (isInitialized) return;

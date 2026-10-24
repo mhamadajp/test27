@@ -1,0 +1,484 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#eaf1f9">
+  <title>ハノイの塔｜動かして、見つける数学</title>
+  <style>
+    :root {--ink:#243653;--muted:#607189;--line:#dce5f1;--blue:#345db2;--accent:#256c8b;--bg:#f3f7fc;--panel:#fff;--soft:#eef4fc;--success:#167966;--orange:#a35c21;--disk-height:26px;--stage-height:270px;}
+    * {box-sizing:border-box}
+    html {font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, system-ui, sans-serif; -webkit-text-size-adjust:100%;}
+    body {margin:0;color:var(--ink);background:linear-gradient(160deg,#e9f2fa 0,#f9fbff 44%,#f2f5fb 100%);line-height:1.6;min-height:100vh}
+    button,input {font:inherit}
+    button {cursor:pointer; touch-action:manipulation}
+    button:focus-visible,input:focus-visible,.tower:focus-visible {outline:3px solid #5b9bed;outline-offset:4px}
+    .wrap {width:min(1120px,calc(100% - 36px));margin:0 auto;padding:34px 0 54px}
+    .header {display:flex;justify-content:space-between;align-items:center;gap:18px;margin-bottom:24px}
+    .eyebrow {font-size:12px;font-weight:800;letter-spacing:.14em;color:#4276a5}
+    h1 {font-size:clamp(29px,4vw,44px);line-height:1.18;margin:7px 0 8px;letter-spacing:.01em}
+    .lead {margin:0;color:var(--muted);font-size:15px}
+    .header-badge {background:#ffffffb8;border:1px solid #d8e5f1;border-radius:999px;padding:10px 16px;color:#4a688d;font-size:13px;font-weight:700;white-space:nowrap}
+    .card {background:var(--panel);border:1px solid var(--line);border-radius:19px;box-shadow:0 9px 29px #4b729217}
+    .topcard {padding:20px 24px;margin-bottom:17px}
+    .ruleheading {font-size:15px;font-weight:800;margin:0 0 10px}
+    .rules {display:flex;gap:10px;flex-wrap:wrap;margin:0;padding:0;list-style:none}
+    .rules li {background:#f0f6fa;color:#395575;padding:9px 13px;border-radius:11px;font-size:13px;flex:1 1 225px}
+    .rules strong {color:var(--ink)}
+    .workspace {padding:23px 24px 22px}
+    .controls {display:flex;gap:10px;justify-content:space-between;align-items:center;flex-wrap:wrap}
+    .control-group {display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+    .control-group label {font-size:14px;font-weight:800}
+    .num {width:74px;border:1px solid #b9cde3;border-radius:9px;background:#fff;color:var(--ink);padding:8px 7px;text-align:center;font-size:18px;font-weight:800}
+    .sub {color:var(--muted);font-size:12px}
+    .btn {min-height:42px;border:1px solid #c7d9ee;background:#fff;color:#355b86;padding:9px 15px;border-radius:10px;font-size:14px;font-weight:800;transition:background .15s,transform .15s;white-space:nowrap}
+    .btn:hover {background:#eef5fd}
+    .btn:active {transform:translateY(1px)}
+    .btn.primary {background:var(--blue);color:white;border-color:var(--blue)}
+    .btn.primary:hover {background:#274c96}
+    .btn:disabled {opacity:.42;cursor:not-allowed}
+    .divider {height:1px;background:var(--line);margin:20px 0 16px}
+    .metrics {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px}
+    .metric {border:1px solid #e2eaf4;border-radius:13px;background:#f8fafd;padding:10px 13px;min-height:75px}
+    .metric .metric-label {display:block;font-size:12px;color:#58708a;font-weight:750}
+    .metric .metric-value {display:block;font-size:26px;letter-spacing:.01em;font-weight:850;line-height:1.35;font-variant-numeric:tabular-nums}
+    .metric .metric-value.small-value {font-size:17px;padding-top:6px}
+    .board-scroll {overflow-x:auto;overflow-y:hidden;margin-top:13px;padding-bottom:4px}
+    .board {min-width:300px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px;user-select:none;-webkit-user-select:none}
+    .tower {position:relative;border-radius:17px;padding:8px 3px 11px;border:2px solid transparent;transition:background .13s,border-color .13s;outline:none;cursor:pointer;min-width:0}
+    .tower:hover {background:#f6f9fe}
+    .tower.selected {border-color:#88b1ef;background:#eaf3ff}
+    .tower.drop-target {border-color:#8dcdbd;background:#e9f8f4}
+    .tower.goal .tower-id {color:#237667}
+    .tower-name {display:flex;align-items:center;justify-content:center;gap:8px;margin:0 0 5px}
+    .tower-id {display:inline-flex;align-items:center;justify-content:center;background:#e8effa;color:#345f90;border-radius:9px;width:31px;height:31px;font-weight:900;font-size:16px}
+    .tower-label {color:var(--muted);font-size:13px;font-weight:700}
+    .stage {height:var(--stage-height);position:relative;overflow:hidden}
+    .pole {position:absolute;bottom:13px;width:14px;height:calc(100% - 37px);left:calc(50% - 7px);border-radius:8px 8px 3px 3px;background:linear-gradient(90deg,#d6aa73,#b6804c,#ecd0a5);box-shadow:0 2px 5px #74604727}
+    .base {position:absolute;height:14px;bottom:6px;width:92%;left:4%;border-radius:7px;background:linear-gradient(180deg,#d4ab77,#b48351)}
+    .disk-stack {position:absolute;bottom:19px;left:2%;width:96%;display:flex;flex-direction:column-reverse;align-items:center;gap:1px;z-index:2;pointer-events:none}
+    .disk {width:var(--width);height:var(--disk-height);border-radius:999px;display:flex;justify-content:center;align-items:center;font-weight:900;font-size:clamp(10px,1.4vw,13px);background:var(--fill);color:#273a50;border:1px solid #374a5930;box-shadow:inset 0 -3px #253d5013,0 2px 2px #23445e12;pointer-events:auto;touch-action:none;cursor:grab;position:relative;z-index:1}
+    .disk.top {box-shadow:inset 0 -3px #253d5013,0 2px 6px #23445e28}
+    .disk.drag-source {opacity:.45}
+    .disk.small-text {font-size:10px}
+    .tower-tip {text-align:center;color:#6b7e96;font-size:11px;padding:0 4px;min-height:21px}
+    .drag-ghost {position:fixed;z-index:9999;width:130px;height:30px;border-radius:100px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;box-shadow:0 12px 22px #263d5355;pointer-events:none;transform:translate(-50%,-50%);border:1px solid #345a7d55}
+    .status {display:flex;align-items:center;gap:10px;min-height:55px;border-radius:12px;background:#eff5fd;border:1px solid #dbe8f6;padding:12px 15px;margin-top:12px;color:#31587c;font-size:14px;font-weight:650}
+    .status:before {content:"●";font-size:11px;color:#678fc2}
+    .status.error {background:#fff6e9;border-color:#f3dec0;color:#855322}
+    .status.error:before {color:#cf8c3f}
+    .status.done {background:#e7f8f1;border-color:#bbebd9;color:#176e58}
+    .status.done:before {color:#29a67d}
+    .actions {display:flex;gap:9px;flex-wrap:wrap;margin-top:14px;align-items:center}
+    .actions .text-note {font-size:12px;color:var(--muted);margin-left:auto}
+    .insight-grid {display:grid;grid-template-columns:1fr 1fr;gap:17px;margin-top:17px}
+    .insight {padding:21px 23px}
+    h2 {font-size:18px;margin:0 0 9px}
+    .insight p {font-size:13px;color:var(--muted);margin:0 0 12px}
+    table {border-collapse:collapse;width:100%;font-size:13px}
+    th,td {text-align:center;padding:7px 9px;border-bottom:1px solid #e5ecf4;font-variant-numeric:tabular-nums}
+    th {font-weight:800;background:#f1f6fc;color:#425d7b}
+    td:first-child,th:first-child {text-align:left}
+    tr.active-row {background:#eef7fb;font-weight:800}
+    .table-scroll {max-height:285px;overflow:auto;border:1px solid #e0eaf4;border-radius:11px}
+    .reveal {background:#f0f7fa;color:#345776;border:1px solid #dceaf1;border-radius:11px;padding:14px;font-size:14px;margin-top:12px}
+    .reveal strong {color:#234970}
+    .reveal[hidden],.hidden[hidden] {display:none !important}
+    .formula {font-size:21px;text-align:center;font-weight:850;color:#365c9a;background:#f0f5fc;padding:15px;border-radius:12px;margin:12px 0}
+    .footer-note {font-size:12px;color:#718096;text-align:center;margin-top:17px}
+    .mini {color:#58738c;font-size:12px;font-weight:650}
+    @media(max-width:760px){.wrap {width:min(100% - 24px,700px);padding:17px 0 30px}.header {align-items:start}.header-badge {display:none}.topcard,.workspace,.insight{padding:17px}.insight-grid{grid-template-columns:1fr}.board{gap:6px}.metrics{gap:6px}.metric{padding:9px}.metric .metric-value{font-size:22px}.rules li{flex:1 1 100%}.actions .text-note{flex-basis:100%}}
+    @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+    @media print {.wrap{max-width:960px}.btn,.controls{display:none}.card{box-shadow:none}}
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <header class="header">
+      <div>
+        <div class="eyebrow">数学の探究・体験教材</div>
+        <h1>ハノイの塔</h1>
+        <p class="lead">円盤を動かして、少ない回数で運ぶ方法を見つけよう。</p>
+      </div>
+      <span class="header-badge">タップ・ドラッグ対応 ／ オフラインで利用可</span>
+    </header>
+    <section class="card topcard" aria-label="ゲームのルール">
+      <div class="ruleheading">まずは、3つのルール</div>
+      <ul class="rules">
+        <li><strong>①</strong> 円盤は、1回に<strong>1枚だけ</strong>移動できる。</li>
+        <li><strong>②</strong> 動かせるのは、それぞれの棒の<strong>いちばん上</strong>の円盤だけ。</li>
+        <li><strong>③</strong> <strong>大きい円盤を小さい円盤の上には置けない。</strong></li>
+      </ul>
+    </section>
+    <section class="card workspace" aria-label="ハノイの塔の操作画面">
+      <div class="controls">
+        <div class="control-group">
+          <label for="diskCount">円盤の枚数</label>
+          <input class="num" id="diskCount" type="number" inputmode="numeric" min="1" max="15" step="1" value="3" aria-describedby="countNote">
+          <span id="countNote" class="sub">1〜15枚</span>
+          <button class="btn primary" id="newGame" type="button">この枚数で始める</button>
+        </div>
+        <div class="control-group">
+          <button class="btn" id="reset" type="button">最初から</button>
+          <button class="btn" id="undo" type="button" disabled>1手戻す</button>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div class="metrics">
+        <div class="metric"><span class="metric-label">今回の移動回数</span><strong class="metric-value" id="moveCount">0 回</strong></div>
+        <div class="metric"><span class="metric-label">この枚数の最短回数</span><strong class="metric-value small-value" id="minimumDisplay">？ 回</strong></div>
+        <div class="metric"><span class="metric-label">この枚数の自己ベスト</span><strong class="metric-value small-value" id="personalBest">未記録</strong></div>
+      </div>
+      <div class="board-scroll" aria-label="左から右に3本の棒が並んでいます。狭い画面では横にスクロールできます。">
+        <div class="board" id="board">
+          <div class="tower" data-peg="0" role="button" tabindex="0" aria-label="棒A、スタート地点">
+            <div class="tower-name"><span class="tower-id">A</span><span class="tower-label">スタート</span></div>
+            <div class="stage"><div class="pole"></div><div class="base"></div><div class="disk-stack" id="stack0"></div></div>
+            <div class="tower-tip" id="tip0">ここから出発</div>
+          </div>
+          <div class="tower" data-peg="1" role="button" tabindex="0" aria-label="棒B、途中の棒">
+            <div class="tower-name"><span class="tower-id">B</span><span class="tower-label">途中の棒</span></div>
+            <div class="stage"><div class="pole"></div><div class="base"></div><div class="disk-stack" id="stack1"></div></div>
+            <div class="tower-tip" id="tip1">一時的に使える</div>
+          </div>
+          <div class="tower goal" data-peg="2" role="button" tabindex="0" aria-label="棒C、ゴール地点">
+            <div class="tower-name"><span class="tower-id">C</span><span class="tower-label">ゴール</span></div>
+            <div class="stage"><div class="pole"></div><div class="base"></div><div class="disk-stack" id="stack2"></div></div>
+            <div class="tower-tip" id="tip2">全部ここへ運ぼう</div>
+          </div>
+        </div>
+      </div>
+      <div class="status" id="status" role="status" aria-live="polite">棒をタップして円盤を選び、移動先の棒をタップしよう。いちばん上の円盤はドラッグしても動かせます。</div>
+      <div class="actions">
+        <button class="btn" id="hint" type="button">次の1手のヒント</button>
+        <button class="btn" id="revealMin" type="button" aria-pressed="false">最短回数を確かめる</button>
+        <button class="btn" id="demo" type="button">最短手順を自動再生</button>
+        <button class="btn" id="stopDemo" type="button" hidden>再生を停止</button>
+        <span class="text-note">※ 自動再生は1〜8枚に対応</span>
+      </div>
+    </section>
+    <div class="insight-grid">
+      <section class="card insight" aria-labelledby="resultsHeading">
+        <h2 id="resultsHeading">試した結果を比べよう</h2>
+        <p>まず1枚、2枚、3枚、4枚で試そう。何か規則が見えてくるだろうか？</p>
+        <div class="table-scroll"><table>
+          <thead><tr><th>枚数</th><th>自己ベスト</th><th id="theoryHeading">最短回数</th></tr></thead>
+          <tbody id="resultsRows"></tbody>
+        </table></div>
+        <p class="mini" style="margin-top:10px">自己ベストは、このブラウザーに保存されます。別の端末では引き継がれません。</p>
+      </section>
+      <section class="card insight" aria-labelledby="thinkingHeading">
+        <h2 id="thinkingHeading">数学の問いにつなげよう</h2>
+        <p>円盤が1枚増えると、必要な移動回数はどう変化するだろう？</p>
+        <button class="btn" type="button" id="showReason" aria-expanded="false">考え方を表示</button>
+        <div class="reveal" id="reason" hidden>
+          <strong>円盤が n 枚のときを考える</strong>
+          <p style="margin-top:8px">いちばん大きな円盤をAからCへ移すためには、まず上にある n−1 枚をBへ移さなければならない。</p>
+          <ol style="padding-left:22px;margin:8px 0;font-size:13px">
+            <li>上の n−1 枚をAからBへ運ぶ。</li>
+            <li>いちばん大きな1枚をAからCへ運ぶ。</li>
+            <li>n−1 枚をBからCへ運ぶ。</li>
+          </ol>
+          <div class="formula">T(n) = 2T(n−1) + 1</div>
+          <p>最短移動回数を T(n) とすると、T(1)=1、T(2)=3、T(3)=7、T(4)=15。一般には <strong>T(n)=2<sup>n</sup>−1</strong> と表せる。</p>
+          <p style="margin-bottom:0">なぜ「2倍して1を足す」ことになるのか、3枚の動かし方から説明してみよう。</p>
+        </div>
+      </section>
+    </div>
+    <p class="footer-note">学校で自由に使える単一HTML教材です。インターネット接続・ログインは不要です。</p>
+  </main>
+  <script>
+  (() => {
+    'use strict';
+    const MAX_DISKS = 15;
+    const PEG = ['A','B','C'];
+    const storageKey = 'hanoi-learning-best-v1';
+    const $ = (selector) => document.querySelector(selector);
+    const els = {
+      input: $('#diskCount'), newGame:$('#newGame'), reset:$('#reset'),undo:$('#undo'),
+      count:$('#moveCount'),min:$('#minimumDisplay'),best:$('#personalBest'),
+      board:$('#board'),towers:[...document.querySelectorAll('.tower')],
+      stacks:[0,1,2].map(i=>$('#stack'+i)),status:$('#status'),
+      hint:$('#hint'),reveal:$('#revealMin'),demo:$('#demo'),stop:$('#stopDemo'),
+      rows:$('#resultsRows'),theory:$('#theoryHeading'),reason:$('#reason'),showReason:$('#showReason')
+    };
+    let n=3, pegs=[[],[],[]], history=[], selected=null, showMin=false;
+    let demonstration=false, demoTimer=null, drag=null, suppressClickUntil=0;
+    let personalBests=readBests();
+
+    function readBests(){
+      try {const data=JSON.parse(localStorage.getItem(storageKey)||'{}');return data && typeof data==='object' ? data : {};} catch {return {};}
+    }
+    function saveBests(){try{localStorage.setItem(storageKey,JSON.stringify(personalBests));}catch{ /* Storage may be unavailable in private/file mode. */ }}
+    function minimum(count){return 2**count-1;}
+    function say(message,kind='normal'){
+      els.status.textContent=message;
+      els.status.className='status'+(kind==='normal'?'':' '+kind);
+    }
+    function readRequestedCount(){
+      const v=Number(els.input.value);
+      if(!Number.isInteger(v)||v<1||v>MAX_DISKS){
+        say('円盤の枚数は1〜15の整数で指定してください。','error');
+        els.input.focus();return null;
+      }
+      return v;
+    }
+    function stopDemo(silent=true){
+      if(demoTimer!==null){clearTimeout(demoTimer);demoTimer=null;}
+      if(demonstration && !silent){say('自動再生を停止しました。ここから自分で続けられます。');}
+      demonstration=false;
+      els.stop.hidden=true;
+      els.demo.hidden=false;
+      els.demo.disabled=n>8;
+    }
+    function restart(count=n){
+      stopDemo(); n=count;
+      pegs=[Array.from({length:n},(_,i)=>n-i),[],[]];
+      history=[];selected=null;showMin=false;
+      els.reveal.setAttribute('aria-pressed','false');
+      els.reveal.textContent='最短回数を確かめる';
+      els.input.value=n;
+      render();say('棒をタップして円盤を選び、移動先の棒をタップしよう。上の円盤をドラッグしても動かせます。');
+    }
+    function diskColor(size){
+      const hues=[205,190,165,145,34,26,285,260,225,180,90,12,320,55,240];
+      const hue=hues[(size-1)%hues.length];
+      return `hsl(${hue} 63% ${size>10?81:77}%)`;
+    }
+    function diskWidth(size){return `${29+size/n*65}%`;}
+    function render(){
+      const height=Math.min(28,Math.max(13,Math.floor(230/n)));
+      els.board.style.setProperty('--disk-height',height+'px');
+      els.board.style.setProperty('--stage-height',Math.max(268,n*(height+1)+43)+'px');
+      for(let i=0;i<3;i++){
+        const stack=els.stacks[i];stack.replaceChildren();
+        const top=pegs[i].at(-1);
+        for(const size of pegs[i]){
+          const disk=document.createElement('div');
+          disk.className='disk'+(size===top?' top':'')+(n>=13?' small-text':'');
+          disk.dataset.disk=String(size);disk.dataset.peg=String(i);
+          disk.style.setProperty('--width',diskWidth(size));
+          disk.style.setProperty('--fill',diskColor(size));
+          disk.textContent=String(size);
+          disk.title=`円盤${size}${size===top?'（いちばん上）':''}`;
+          stack.append(disk);
+        }
+        const tower=els.towers[i];
+        tower.classList.toggle('selected',selected===i);
+        tower.setAttribute('aria-label',`棒${PEG[i]}。${pegs[i].length?`${pegs[i].length}枚。最上段は円盤${top}`:'円盤なし'}。${i===2?'ゴール。':''}${selected===i?'選択中。':''}`);
+      }
+      els.count.textContent=history.length.toLocaleString('ja-JP')+' 回';
+      els.min.textContent=showMin?minimum(n).toLocaleString('ja-JP')+' 回':'？ 回';
+      const best=personalBests[n];
+      els.best.textContent=(Number.isInteger(best)&&best>=minimum(n)) ? best.toLocaleString('ja-JP')+' 回':'未記録';
+      els.undo.disabled=history.length===0||demonstration;
+      els.demo.disabled=n>8;
+      renderResults();
+    }
+    function renderResults(){
+      const counts=Array.from({length:Math.max(8,Math.min(n,15))},(_,i)=>i+1);
+      const frag=document.createDocumentFragment();
+      for(const k of counts){
+        const row=document.createElement('tr');
+        if(k===n)row.className='active-row';
+        const best=personalBests[k];
+        for(const value of [String(k),(Number.isInteger(best)&&best>=minimum(k))?best+' 回':'—',showMin?minimum(k)+' 回':'？']){
+          const cell=document.createElement('td');cell.textContent=value;row.append(cell);
+        }
+        frag.append(row);
+      }
+      els.rows.replaceChildren(frag);
+    }
+    function completed(){return pegs[2].length===n;}
+    function applyMove(from,to,viaDemo=false){
+      if(from===to)return false;
+      const source=pegs[from],dest=pegs[to];
+      if(!source.length){say(`棒${PEG[from]}には円盤がありません。`,'error');return false;}
+      const disk=source.at(-1);
+      if(dest.length && dest.at(-1)<disk){
+        say(`円盤${disk}は、より小さい円盤${dest.at(-1)}の上に置けません。別の棒を選びましょう。`,'error');return false;
+      }
+      dest.push(source.pop());
+      history.push({from,to,disk});
+      selected=null;
+      render();
+      if(completed()){
+        stopDemo();
+        const optimal=minimum(n);
+        if(!viaDemo && (!Number.isInteger(personalBests[n])||history.length<personalBests[n])){
+          personalBests[n]=history.length;saveBests();render();
+        }
+        showMin=true;els.reveal.setAttribute('aria-pressed','true');els.reveal.textContent='最短回数を隠す';
+        render();
+        if(viaDemo) say(`最短手順の再生が完了しました。${n}枚を${optimal}回で運べました。今度は自分でも試してみよう。`,'done');
+        else if(history.length===optimal) say(`成功！ ${n}枚を${history.length}回で移動しました。理論上の最短回数と同じです！`,'done');
+        else say(`完成！ ${n}枚を${history.length}回で移動しました。最短は${optimal}回です。次はもっと少ない回数に挑戦しよう。`,'done');
+      }else{
+        say(`棒${PEG[from]} → 棒${PEG[to]}：円盤${disk}を移動。現在${history.length}回。`);
+      }
+      return true;
+    }
+    function activatePeg(i){
+      if(demonstration){say('自動再生中です。「再生を停止」を押してから操作してください。');return;}
+      if(completed()){say('すでに完成しています。「最初から」で再挑戦できます。','done');return;}
+      if(selected===null){
+        if(pegs[i].length===0){say(`棒${PEG[i]}は空です。円盤がある棒を先に選んでください。`,'error');return;}
+        selected=i;render();say(`棒${PEG[i]}の円盤${pegs[i].at(-1)}を選びました。移動先の棒をタップしてください。`);
+        return;
+      }
+      if(selected===i){selected=null;render();say('選択を解除しました。移動する円盤がある棒を選んでください。');return;}
+      const from=selected;
+      if(!applyMove(from,i)){
+        // Retain selection after an invalid attempt to allow trying another destination.
+        selected=from;render();
+      }
+    }
+    function positionsOfDisks(){
+      const positions=Array(n+1).fill(-1);
+      pegs.forEach((stack,peg)=>stack.forEach(disk=>positions[disk]=peg));
+      return positions;
+    }
+    // A shortest move toward a fully assembled tower on 'target', even after non-optimal moves.
+    function nextOptimalMove(k,target,positions){
+      if(k===0)return null;
+      const from=positions[k];
+      if(from===target)return nextOptimalMove(k-1,target,positions);
+      const other=3-from-target;
+      let allSmallerOnOther=true;
+      for(let d=1;d<k;d++)if(positions[d]!==other){allSmallerOnOther=false;break;}
+      if(allSmallerOnOther)return {from,to:target,disk:k};
+      return nextOptimalMove(k-1,other,positions);
+    }
+    function remainingShortest(k,target,positions){
+      if(k===0)return 0;
+      const where=positions[k];
+      if(where===target)return remainingShortest(k-1,target,positions);
+      return remainingShortest(k-1,3-where-target,positions)+2**(k-1);
+    }
+    function onHint(){
+      if(demonstration){say('自動再生を停止してからヒントを確認してください。');return;}
+      if(completed()){say('すでに完成しています。','done');return;}
+      const positions=positionsOfDisks();
+      const next=nextOptimalMove(n,2,positions);
+      const remaining=remainingShortest(n,2,positions);
+      say(`ヒント：棒${PEG[next.from]}の円盤${next.disk}を棒${PEG[next.to]}へ動かそう。今の配置からは、あと最短${remaining}回で完成できます。`);
+    }
+    function toggleMin(){
+      showMin=!showMin;
+      els.reveal.setAttribute('aria-pressed',String(showMin));
+      els.reveal.textContent=showMin?'最短回数を隠す':'最短回数を確かめる';
+      render();
+      say(showMin?`${n}枚の最短回数は${minimum(n)}回。表の変化にも注目してみよう。`:'最短回数を隠しました。まずは自分で予想してみよう。');
+    }
+    function buildSolution(count,from,to,via,out){
+      if(count===0)return;
+      buildSolution(count-1,from,via,to,out);
+      out.push({from,to});
+      buildSolution(count-1,via,to,from,out);
+    }
+    function startDemo(){
+      if(n>8){say('自動再生は8枚までです。枚数を8以下にすると再生できます。','error');return;}
+      restart(n);
+      demonstration=true;
+      els.demo.hidden=true;els.stop.hidden=false;
+      const steps=[];buildSolution(n,0,2,1,steps);
+      let index=0;
+      els.undo.disabled=true;
+      say(`${n}枚の最短手順を再生中です。全${steps.length}回の移動を順に見てみよう。`);
+      const step=()=>{
+        if(!demonstration)return;
+        const move=steps[index++];
+        if(!move){stopDemo();return;}
+        applyMove(move.from,move.to,true);
+        if(demonstration)demoTimer=setTimeout(step,n>=7?390:700);
+      };
+      demoTimer=setTimeout(step,550);
+    }
+    // Tap selection works on iPad. Pointer dragging also works on touchscreens and mouse.
+    els.board.addEventListener('click',event=>{
+      if(Date.now()<suppressClickUntil)return;
+      const tower=event.target.closest('.tower');if(!tower)return;
+      const disk=event.target.closest('.disk');
+      const i=Number(tower.dataset.peg);
+      if(disk && Number(disk.dataset.disk)!==pegs[i].at(-1)){
+        say('動かせるのは棒のいちばん上の円盤だけです。','error');return;
+      }
+      activatePeg(i);
+    });
+    els.towers.forEach((tower,i)=>tower.addEventListener('keydown',event=>{
+      if(event.key==='Enter'||event.key===' '){event.preventDefault();activatePeg(i);}
+    }));
+    els.board.addEventListener('pointerdown',event=>{
+      const disk=event.target.closest('.disk');
+      if(!disk || demonstration || completed() || (event.pointerType==='mouse'&&event.button!==0))return;
+      const from=Number(disk.dataset.peg);
+      if(Number(disk.dataset.disk)!==pegs[from].at(-1))return;
+      drag={element:disk,from,disk:Number(disk.dataset.disk),startX:event.clientX,startY:event.clientY,active:false,ghost:null};
+      try{disk.setPointerCapture(event.pointerId);}catch{}
+    });
+    els.board.addEventListener('pointermove',event=>{
+      if(!drag)return;
+      const dx=event.clientX-drag.startX,dy=event.clientY-drag.startY;
+      if(!drag.active&&Math.hypot(dx,dy)>11){
+        drag.active=true;
+        drag.element.classList.add('drag-source');
+        const ghost=document.createElement('div');ghost.className='drag-ghost';
+        ghost.style.backgroundColor=diskColor(drag.disk);ghost.textContent=String(drag.disk);
+        document.body.append(ghost);drag.ghost=ghost;
+      }
+      if(drag.active){
+        event.preventDefault();
+        drag.ghost.style.left=event.clientX+'px';drag.ghost.style.top=event.clientY+'px';
+        const under=document.elementFromPoint(event.clientX,event.clientY);
+        const target=under?.closest('.tower');
+        els.towers.forEach(t=>t.classList.toggle('drop-target',t===target));
+      }
+    });
+    function finishDrag(event,cancelled=false){
+      if(!drag)return;
+      const data=drag;drag=null;
+      data.element.classList.remove('drag-source');
+      data.ghost?.remove();
+      els.towers.forEach(t=>t.classList.remove('drop-target'));
+      if(!data.active)return; // The normal click event handles a tap.
+      suppressClickUntil=Date.now()+350;
+      if(cancelled)return;
+      const target=document.elementFromPoint(event.clientX,event.clientY)?.closest('.tower');
+      if(!target){say('移動したい棒の上で円盤を離してください。');return;}
+      const to=Number(target.dataset.peg);
+      if(to===data.from){say('同じ棒のままです。移動先の棒を選んでください。');return;}
+      if(demonstration)return;
+      selected=null;
+      applyMove(data.from,to);
+    }
+    els.board.addEventListener('pointerup',event=>finishDrag(event));
+    els.board.addEventListener('pointercancel',event=>finishDrag(event,true));
+    els.newGame.addEventListener('click',()=>{const count=readRequestedCount();if(count!==null)restart(count);});
+    els.input.addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();els.newGame.click();}});
+    els.reset.addEventListener('click',()=>restart(n));
+    els.undo.addEventListener('click',()=>{
+      if(demonstration||!history.length)return;
+      const {from,to,disk}=history.pop();
+      const lifted=pegs[to].pop();
+      if(lifted!==disk)throw Error('History invariant violated');
+      pegs[from].push(lifted);selected=null;render();
+      say(`直前の1手（円盤${disk}）を戻しました。現在${history.length}回。`);
+    });
+    els.hint.addEventListener('click',onHint);
+    els.reveal.addEventListener('click',toggleMin);
+    els.demo.addEventListener('click',startDemo);
+    els.stop.addEventListener('click',()=>{stopDemo(false);render();});
+    els.showReason.addEventListener('click',()=>{
+      const expanded=els.showReason.getAttribute('aria-expanded')==='true';
+      els.showReason.setAttribute('aria-expanded',String(!expanded));
+      els.reason.hidden=expanded;
+      els.showReason.textContent=expanded?'考え方を表示':'考え方を隠す';
+    });
+    restart(3);
+    // Lightweight test hooks for automated classroom-device checks, no network dependency.
+    window.HanoiApp={getState:()=>({n,pegs:pegs.map(a=>a.slice()),moves:history.length,finished:completed()}),nextHint:()=>nextOptimalMove(n,2,positionsOfDisks())};
+  })();
+  </script>
+</body>
+</html>

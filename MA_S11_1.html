@@ -1,0 +1,1030 @@
+<!DOCTYPE html>
+<html lang="ja" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>接弦定理の直感理解アプリ</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- KaTeX -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-100 dark:bg-slate-900 text-slate-800 dark:text-slate-100 min-h-screen flex flex-col transition-colors duration-200">
+
+    <!-- ヘッダー -->
+    <header class="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 py-4 px-6 shadow-sm">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div class="flex items-center space-x-3">
+                <div class="bg-rose-600 text-white p-2.5 rounded-xl shadow-lg flex items-center justify-center">
+                    <i class="fa-solid fa-circle-dot text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold tracking-tight">接弦定理の直感理解アプリ</h1>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">「なぜ接線と弦の作る角が、反対側の円周角と等しくなるのか」を動かして納得しよう</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center space-x-4">
+                <!-- ナビゲーションタブ -->
+                <nav class="flex bg-slate-100 dark:bg-slate-900 p-1 rounded-xl border border-slate-200 dark:border-slate-700">
+                    <button onclick="switchTab('interactive')" id="btn-interactive" class="px-3 sm:px-4 py-2 text-sm font-medium rounded-lg transition-all bg-rose-600 text-white shadow">
+                        <i class="fa-solid fa-compass-drafting mr-1.5"></i> 動かして発見
+                    </button>
+                    <button onclick="switchTab('secret')" id="btn-secret" class="px-3 sm:px-4 py-2 text-sm font-medium rounded-lg transition-all text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white">
+                        <i class="fa-solid fa-key mr-1.5"></i> なぜ成り立つ？の秘密
+                    </button>
+                    <button onclick="switchTab('quiz')" id="btn-quiz" class="px-3 sm:px-4 py-2 text-sm font-medium rounded-lg transition-all text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white">
+                        <i class="fa-solid fa-puzzle-piece mr-1.5"></i> チャレンジ問題
+                    </button>
+                </nav>
+
+                <!-- テーマ切り替え -->
+                <button onclick="toggleTheme()" class="p-2.5 rounded-xl bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-300 dark:hover:bg-slate-600 transition" title="テーマ切り替え">
+                    <i id="themeIcon" class="fa-solid fa-moon"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- メインコンテンツ -->
+    <main class="flex-grow max-w-7xl w-full mx-auto p-4 sm:p-6">
+
+        <!-- ================= 1. 動かして発見タブ ================= -->
+        <section id="tab-interactive" class="space-y-6">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                
+                <!-- 操作＆解説パネル -->
+                <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xl flex flex-col justify-between space-y-6">
+                    <div class="space-y-5">
+                        <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 pb-3">
+                            <h2 class="text-lg font-bold text-rose-600 dark:text-rose-400 flex items-center gap-2">
+                                <i class="fa-solid fa-sliders"></i> 点を動かしてみよう
+                            </h2>
+                            <span class="text-xs bg-rose-50 dark:bg-rose-950 text-rose-600 dark:text-rose-300 px-2.5 py-1 rounded-full border border-rose-200 dark:border-rose-800">実感を掴む</span>
+                        </div>
+
+                        <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                            <strong>点 B</strong> を動かして弦の傾きを変えてみましょう。接線と作る角 \(\angle BAT\) の大きさが変わると同時に、向かい合う円周角 \(\angle ACB\) も<strong>全く同じ角度に連動して変化する</strong>ことが確かめられます！
+                        </p>
+
+                        <!-- 点Bの位置スライダー（弦ABの傾きを変更） -->
+                        <div class="space-y-3 pt-2">
+                            <div class="flex justify-between items-center">
+                                <label for="pointB" class="text-sm font-medium text-slate-700 dark:text-slate-300">
+                                    <span class="inline-block w-2.5 h-2.5 rounded-full bg-indigo-500 mr-1"></span>点 B の位置（角の大きさを変化）:
+                                </label>
+                                <span id="angleValueBadge" class="text-xs font-bold text-rose-600 dark:text-rose-400 bg-slate-100 dark:bg-slate-900 px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700">55°</span>
+                            </div>
+                            <input type="range" id="pointB" min="20" max="80" step="1" value="55" 
+                                class="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-rose-500">
+                            <div class="flex justify-between text-[11px] text-slate-400">
+                                <span>鋭角 (小: 20°)</span>
+                                <span>標準 (55°)</span>
+                                <span>直角寄り (大: 80°)</span>
+                            </div>
+                        </div>
+
+                        <!-- 点Cの移動スライダー（円周角の定理も同時に体感） -->
+                        <div class="space-y-2 pt-2 border-t border-slate-200 dark:border-slate-700">
+                            <div class="flex justify-between items-center">
+                                <label for="pointC" class="text-xs font-medium text-slate-600 dark:text-slate-400">
+                                    <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 mr-1"></span>点 C の位置（円周上を移動）:
+                                </label>
+                                <span class="text-[11px] text-slate-500">位置を変えても角は一定</span>
+                            </div>
+                            <input type="range" id="pointC" min="15" max="85" step="1" value="50" 
+                                class="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500">
+                        </div>
+
+                        <!-- プリセットボタン -->
+                        <div class="grid grid-cols-3 gap-2 pt-1">
+                            <button onclick="setAnglePreset(30)" class="text-xs py-2 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-lg font-medium text-slate-700 dark:text-slate-200 transition">30°（小さめ）</button>
+                            <button onclick="setAnglePreset(55)" class="text-xs py-2 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-lg font-medium text-slate-700 dark:text-slate-200 transition">55°（標準）</button>
+                            <button onclick="setAnglePreset(75)" class="text-xs py-2 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-lg font-medium text-slate-700 dark:text-slate-200 transition">75°（大きめ）</button>
+                        </div>
+                    </div>
+
+                    <!-- リアルタイム角度表示カード -->
+                    <div class="bg-slate-50 dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-700 space-y-3">
+                        <div class="text-xs text-slate-500 font-medium">現在の角の大きさ（実測値）:</div>
+                        <div class="grid grid-cols-2 gap-2 text-center">
+                            <div class="bg-white dark:bg-slate-800 p-2.5 rounded-lg border border-slate-200 dark:border-slate-700">
+                                <div class="text-xs text-slate-400 flex items-center justify-center gap-1">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block"></span> \(\angle BAT\)
+                                </div>
+                                <div id="angleTA" class="text-lg font-bold text-rose-600 dark:text-rose-400">--°</div>
+                            </div>
+                            <div class="bg-white dark:bg-slate-800 p-2.5 rounded-lg border border-slate-200 dark:border-slate-700">
+                                <div class="text-xs text-slate-400 flex items-center justify-center gap-1">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-indigo-500 inline-block"></span> \(\angle ACB\)
+                                </div>
+                                <div id="angleC" class="text-lg font-bold text-indigo-600 dark:text-indigo-400">--°</div>
+                            </div>
+                        </div>
+                        <div id="equalityBadge" class="text-center text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 py-1.5 rounded-lg border border-emerald-200 dark:border-emerald-800">
+                            ✨ \(\angle BAT = \angle ACB\)（常に一致！）
+                        </div>
+                    </div>
+                </div>
+
+                <!-- キャンバス描画エリア -->
+                <div class="lg:col-span-2 bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xl flex flex-col">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-lg font-bold flex items-center gap-2">
+                            <i class="fa-solid fa-shapes text-rose-600 dark:text-rose-400"></i> 接弦定理のビジュアルモデル
+                        </h2>
+                        <div class="flex items-center space-x-3 text-xs flex-wrap gap-y-1">
+                            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-rose-500 inline-block"></span> \(\angle BAT\)（接線ATと弦ABが作る角）</span>
+                            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-indigo-500 inline-block"></span> \(\angle ACB\)（弧ABの円周角）</span>
+                        </div>
+                    </div>
+
+                    <!-- キャンバス -->
+                    <div class="relative flex-grow bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden min-h-[380px] flex items-center justify-center">
+                        <canvas id="theoremCanvas" class="w-full h-full cursor-pointer"></canvas>
+                    </div>
+
+                    <div class="mt-4 bg-slate-50 dark:bg-slate-900/60 p-4 rounded-xl border border-slate-200 dark:border-slate-700 text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
+                        <span class="font-bold text-rose-600 dark:text-rose-400">【教科書の図と同じ配置】</span> 
+                        円の一番下の接点が <strong class="text-rose-600 dark:text-rose-400">A</strong>、右へ伸びる水平な接線上の点が <strong class="text-rose-600 dark:text-rose-400">T</strong> です。弦 <strong class="text-indigo-600 dark:text-indigo-400">AB</strong> と接線 AT が作る赤い角 <span class="font-mono font-bold">\(\angle BAT\)</span> と、その弦に対する青い円周角 <span class="font-mono font-bold">\(\angle ACB\)</span> が常に同じ大きさになります。
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ================= 2. なぜ成り立つ？の秘密タブ ================= -->
+        <section id="tab-secret" class="hidden space-y-6">
+            <div class="bg-white dark:bg-slate-800 p-6 sm:p-8 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xl space-y-6">
+                <div class="border-b border-slate-200 dark:border-slate-700 pb-4">
+                    <h2 class="text-xl font-bold flex items-center gap-2.5">
+                        <i class="fa-solid fa-lightbulb text-amber-500"></i> 図でわかる！なぜ接弦定理が成り立つのか？
+                    </h2>
+                    <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">下の「ステップ」ボタンを押すと、図が連動して変化します。順を追って納得してみよう！</p>
+                </div>
+
+                <!-- ステップナビゲーションボタン -->
+                <div class="grid grid-cols-3 gap-2 sm:gap-4">
+                    <button onclick="setProofStep(1)" id="stepBtn-1" class="py-2.5 px-3 rounded-xl border text-xs sm:text-sm font-semibold transition flex flex-col sm:flex-row items-center justify-center gap-1 bg-rose-600 text-white border-rose-600 shadow">
+                        <span class="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center text-[11px]">1</span>
+                        <span>直径を引く（直角）</span>
+                    </button>
+                    <button onclick="setProofStep(2)" id="stepBtn-2" class="py-2.5 px-3 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 text-xs sm:text-sm font-semibold transition flex flex-col sm:flex-row items-center justify-center gap-1">
+                        <span class="w-5 h-5 rounded-full bg-slate-200 dark:bg-slate-600 flex items-center justify-center text-[11px]">2</span>
+                        <span>残りの角に注目</span>
+                    </button>
+                    <button onclick="setProofStep(3)" id="stepBtn-3" class="py-2.5 px-3 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 text-xs sm:text-sm font-semibold transition flex flex-col sm:flex-row items-center justify-center gap-1">
+                        <span class="w-5 h-5 rounded-full bg-slate-200 dark:bg-slate-600 flex items-center justify-center text-[11px]">3</span>
+                        <span>円周角を動かす！</span>
+                    </button>
+                </div>
+
+                <!-- ステップ解説コンテンツ（図＋説明の2カラム） -->
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+                    <!-- 解説キャンバス -->
+                    <div class="lg:col-span-7 bg-slate-50 dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-4 flex flex-col items-center justify-center min-h-[340px] relative overflow-hidden">
+                        <canvas id="proofCanvas" class="w-full h-full max-h-[340px]"></canvas>
+                    </div>
+
+                    <!-- ステップ解説文 -->
+                    <div class="lg:col-span-5 bg-slate-50 dark:bg-slate-900/60 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 flex flex-col justify-between space-y-4">
+                        <div class="space-y-3">
+                            <div class="flex items-center gap-2">
+                                <span id="proofBadge" class="text-xs font-bold px-2.5 py-1 rounded-full bg-rose-100 dark:bg-rose-900 text-rose-700 dark:text-rose-300">
+                                    Step 1 の解説
+                                </span>
+                                <h3 id="proofHeading" class="font-bold text-base text-slate-800 dark:text-slate-100">
+                                    接点 A から真上に直径 AD を引く
+                                </h3>
+                            </div>
+                            <div id="proofBodyText" class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed space-y-2">
+                                <!-- JSで動的切り替え -->
+                            </div>
+                        </div>
+
+                        <!-- 補助式カード -->
+                        <div id="proofFormulaBox" class="p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 font-mono text-center text-xs sm:text-sm text-indigo-600 dark:text-indigo-400">
+                            <!-- JSで動的切り替え -->
+                        </div>
+
+                        <!-- 次へ/前へボタン -->
+                        <div class="flex items-center justify-between pt-2 border-t border-slate-200 dark:border-slate-700">
+                            <button id="prevStepBtn" onclick="prevProofStep()" class="text-xs px-3 py-1.5 rounded-lg bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 transition disabled:opacity-40 disabled:cursor-not-allowed">
+                                <i class="fa-solid fa-arrow-left mr-1"></i> 前のステップ
+                            </button>
+                            <button id="nextStepBtn" onclick="nextProofStep()" class="text-xs px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white font-medium transition shadow">
+                                次のステップ <i class="fa-solid fa-arrow-right ml-1"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ================= 3. チャレンジ問題タブ ================= -->
+        <section id="tab-quiz" class="hidden space-y-6">
+            <div class="bg-white dark:bg-slate-800 p-6 sm:p-8 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xl max-w-2xl mx-auto space-y-6">
+                <div class="flex justify-between items-center border-b border-slate-200 dark:border-slate-700 pb-4">
+                    <h2 class="text-xl font-bold flex items-center gap-2">
+                        <i class="fa-solid fa-puzzle-piece text-rose-600 dark:text-rose-400"></i> 接弦定理マスター小テスト
+                    </h2>
+                    <span id="quizProgress" class="text-xs bg-rose-100 dark:bg-rose-900 text-rose-700 dark:text-rose-200 px-3 py-1 rounded-full font-medium">問題 1 / 4</span>
+                </div>
+
+                <div id="quizContainer" class="space-y-6">
+                    <div id="questionText" class="text-lg font-semibold text-slate-800 dark:text-slate-200"></div>
+                    <div id="optionsContainer" class="grid grid-cols-1 gap-3"></div>
+                </div>
+
+                <div id="feedbackContainer" class="hidden bg-slate-50 dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-700 space-y-3">
+                    <div id="feedbackTitle" class="font-bold text-base"></div>
+                    <div id="feedbackDesc" class="text-sm text-slate-600 dark:text-slate-300"></div>
+                    <button onclick="nextQuiz()" class="w-full mt-2 py-2.5 bg-rose-600 hover:bg-rose-500 text-white rounded-lg font-medium transition shadow">
+                        次の問題へ <i class="fa-solid fa-arrow-right ml-1"></i>
+                    </button>
+                </div>
+
+                <div id="quizComplete" class="hidden text-center space-y-4 py-8">
+                    <div class="text-4xl">🎉</div>
+                    <h3 class="text-2xl font-bold">全問クリアおめでとう！</h3>
+                    <p id="scoreText" class="text-slate-600 dark:text-slate-300 text-lg"></p>
+                    <button onclick="restartQuiz()" class="px-6 py-2.5 bg-rose-600 hover:bg-rose-500 text-white rounded-lg font-medium transition shadow">
+                        もう一度挑戦する
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- フッター -->
+    <footer class="bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 py-4 text-center text-xs text-slate-500 dark:text-slate-400 mt-auto">
+        <p>接弦定理の直感理解アプリ &copy; 2026 - 苦手な数学も動きでスッキリ解決</p>
+    </footer>
+
+    <!-- スクリプト -->
+    <script>
+        function toggleTheme() {
+            const html = document.documentElement;
+            const themeIcon = document.getElementById('themeIcon');
+            if (html.classList.contains('dark')) {
+                html.classList.remove('dark');
+                themeIcon.className = "fa-solid fa-sun";
+            } else {
+                html.classList.add('dark');
+                themeIcon.className = "fa-solid fa-moon";
+            }
+            if(!document.getElementById('tab-interactive').classList.contains('hidden')) {
+                drawTheorem();
+            }
+        }
+
+        function switchTab(tabName) {
+            ['interactive', 'secret', 'quiz'].forEach(t => {
+                document.getElementById(`tab-${t}`).classList.add('hidden');
+                document.getElementById(`btn-${t}`).className = "px-3 sm:px-4 py-2 text-sm font-medium rounded-lg transition-all text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white";
+            });
+            document.getElementById(`tab-${tabName}`).classList.remove('hidden');
+            document.getElementById(`btn-${tabName}`).className = "px-3 sm:px-4 py-2 text-sm font-medium rounded-lg transition-all bg-rose-600 text-white shadow";
+            
+            if(tabName === 'interactive') {
+                resizeCanvas();
+                drawTheorem();
+            } else if(tabName === 'secret') {
+                resizeProofCanvas();
+                drawProofCanvas();
+            }
+        }
+
+        const canvas = document.getElementById('theoremCanvas');
+        const ctx = canvas.getContext('2d');
+        const pointBSlider = document.getElementById('pointB');
+        const pointCSlider = document.getElementById('pointC');
+        const angleValueBadge = document.getElementById('angleValueBadge');
+        const angleTAElem = document.getElementById('angleTA');
+        const angleCElem = document.getElementById('angleC');
+
+        let targetAngleDeg = 55; // ∠BAT の角度 (度数法)
+        // 点 C の円中心に対する独立した角度 (ラジアン)
+        // 円中心から見て左上〜真上付近の固定領域 (-0.9π 〜 -0.4π) を移動可能
+        let cAngleRad = -Math.PI * 0.65; 
+
+        function setAnglePreset(deg) {
+            pointBSlider.value = deg;
+            updateInteractive();
+        }
+
+        pointBSlider.addEventListener('input', updateInteractive);
+        pointCSlider.addEventListener('input', updateInteractive);
+
+        function updateInteractive() {
+            targetAngleDeg = parseFloat(pointBSlider.value);
+            // 点Cのスライダー(0〜100)は左上(-0.85π)〜上部(-0.35π)の独立した角度範囲を操作
+            const sliderRatio = parseFloat(pointCSlider.value) / 100;
+            const minAngleC = -Math.PI * 0.88; // 左上
+            const maxAngleC = -Math.PI * 0.38; // やや右上寄り
+            cAngleRad = minAngleC + (maxAngleC - minAngleC) * sliderRatio;
+
+            angleValueBadge.innerText = `${targetAngleDeg}°`;
+            drawTheorem();
+        }
+
+        function resizeCanvas() {
+            const container = canvas.parentElement;
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight || 380;
+        }
+
+        window.addEventListener('resize', () => {
+            if(!document.getElementById('tab-interactive').classList.contains('hidden')) {
+                resizeCanvas();
+                drawTheorem();
+            }
+        });
+
+        function drawTheorem() {
+            if(!ctx) return;
+            const width = canvas.width;
+            const height = canvas.height;
+
+            ctx.clearRect(0, 0, width, height);
+
+            const isDark = document.documentElement.classList.contains('dark');
+            const circleColor = isDark ? '#475569' : '#cbd5e1';
+            const textColor = isDark ? '#e2e8f0' : '#334155';
+
+            // 円の中心と半径
+            const radius = Math.min(width, height) * 0.35;
+            const cx = width / 2;
+            const cy = height * 0.44;
+
+            // 接点 A: 円の最下点 (角度 π/2)
+            const ax = cx;
+            const ay = cy + radius;
+
+            // 水平接線（点 T は A の右側）
+            const tangentHalfWidth = Math.min(width * 0.42, radius * 1.6);
+            const tx = ax + tangentHalfWidth;
+            const ty = ay;
+            const leftTanX = ax - tangentHalfWidth;
+            const leftTanY = ay;
+
+            // 接弦定理により、接線と弦ABのなす角 ∠BAT = targetAngleDeg
+            // 接線ATは右水平方向 (角度 0) なので、弦 AB の方向ベクトルは -targetAngleDeg (右上向き)
+            const angleBATRad = targetAngleDeg * (Math.PI / 180);
+            
+            // 円幾何から点 B の円上の極座標を決定:
+            // 接点 A は円中心から見て角度 π/2。
+            // 弦 AB と接線 AT のなす角が θ のとき、中心角 ∠AOB は 2θ になる。
+            // したがって、中心 O から点 B への角度は (π/2 - 2θ)
+            const centerAngleB = (Math.PI / 2) - (2 * angleBATRad);
+            const bx = cx + radius * Math.cos(centerAngleB);
+            const by = cy + radius * Math.sin(centerAngleB);
+
+            // 点 C: 点 B の位置に依存せず独立した角度で描画（Bを動かしてもCは動かない）
+            const cxPos = cx + radius * Math.cos(cAngleRad);
+            const cyPos = cy + radius * Math.sin(cAngleRad);
+
+            // 数値表示
+            angleTAElem.innerText = `${targetAngleDeg}°`;
+            angleCElem.innerText = `${targetAngleDeg}°`;
+
+            // --- 描画処理 ---
+
+            // 1. 円の描画
+            ctx.strokeStyle = circleColor;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // 中心 O
+            ctx.fillStyle = isDark ? '#94a3b8' : '#64748b';
+            ctx.beginPath();
+            ctx.arc(cx, cy, 3.5, 0, Math.PI * 2);
+            ctx.fill();
+
+            // 2. 接線（赤色）
+            ctx.strokeStyle = '#e11d48';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(leftTanX, ty);
+            ctx.lineTo(tx, ty);
+            ctx.stroke();
+
+            // 3. 三角形 ABC の辺
+            // 弦 AB (紫)
+            ctx.strokeStyle = '#6366f1';
+            ctx.lineWidth = 2.5;
+            ctx.beginPath();
+            ctx.moveTo(ax, ay);
+            ctx.lineTo(bx, by);
+            ctx.stroke();
+
+            // 弦 AC, BC (緑)
+            ctx.strokeStyle = '#10b981';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(ax, ay);
+            ctx.lineTo(cxPos, cyPos);
+            ctx.lineTo(bx, by);
+            ctx.stroke();
+
+            // --- 角度ハイライト ---
+
+            // ① 接線ATと弦ABが作る角 ∠BAT
+            const dirAB = -angleBATRad;
+            ctx.fillStyle = 'rgba(225, 29, 72, 0.25)';
+            ctx.beginPath();
+            ctx.moveTo(ax, ay);
+            ctx.arc(ax, ay, 38, dirAB, 0, false);
+            ctx.closePath();
+            ctx.fill();
+            ctx.strokeStyle = '#e11d48';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // 角度目印の2重線
+            ctx.strokeStyle = '#e11d48';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.arc(ax, ay, 26, dirAB, 0, false);
+            ctx.stroke();
+
+            // ② 円周角 ∠ACB
+            const vecCA = Math.atan2(ay - cyPos, ax - cxPos);
+            const vecCB = Math.atan2(by - cyPos, bx - cxPos);
+            const startArc = Math.min(vecCA, vecCB);
+            const endArc = Math.max(vecCA, vecCB);
+
+            ctx.fillStyle = 'rgba(99, 102, 241, 0.25)';
+            ctx.beginPath();
+            ctx.moveTo(cxPos, cyPos);
+            ctx.arc(cxPos, cyPos, 34, startArc, endArc, false);
+            ctx.closePath();
+            ctx.fill();
+            ctx.strokeStyle = '#6366f1';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            ctx.strokeStyle = '#6366f1';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.arc(cxPos, cyPos, 24, startArc, endArc, false);
+            ctx.stroke();
+
+            // 4. 各頂点とラベルの描画
+            const points = [
+                { x: ax, y: ay, label: 'A', sub: '（接点）', color: '#e11d48', offsetX: -8, offsetY: 24 },
+                { x: tx, y: ty, label: 'T', sub: '', color: '#e11d48', offsetX: 8, offsetY: 5 },
+                { x: bx, y: by, label: 'B', sub: '', color: '#6366f1', offsetX: 12, offsetY: 6 },
+                { x: cxPos, y: cyPos, label: 'C', sub: '', color: '#10b981', offsetX: -12, offsetY: -14 }
+            ];
+
+            points.forEach(p => {
+                ctx.fillStyle = p.color;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 6, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.strokeStyle = isDark ? '#0f172a' : '#ffffff';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                ctx.fillStyle = textColor;
+                ctx.font = 'bold 15px "Times New Roman", serif, Inter';
+                ctx.fillText(p.label, p.x + p.offsetX, p.y + p.offsetY);
+                if (p.sub) {
+                    ctx.font = '11px Inter, sans-serif';
+                    ctx.fillStyle = isDark ? '#94a3b8' : '#64748b';
+                    ctx.fillText(p.sub, p.x + p.offsetX + 14, p.y + p.offsetY);
+                }
+            });
+
+            // ラベル
+            ctx.font = 'bold 12px Inter, sans-serif';
+            ctx.fillStyle = '#e11d48';
+            ctx.fillText('∠BAT', ax + 44, ay - 12);
+            ctx.fillStyle = '#6366f1';
+            ctx.fillText('∠ACB', cxPos - 10, cyPos + 48);
+        }
+
+        // --- 「なぜ成り立つ？の秘密」ステップ図解ロジック ---
+        const proofCanvas = document.getElementById('proofCanvas');
+        const proofCtx = proofCanvas ? proofCanvas.getContext('2d') : null;
+        let currentProofStep = 1;
+
+        // 数式を確実にレンダリングする共通ヘルパー関数
+        function renderMath(targetElement) {
+            if (!targetElement) return;
+            if (window.renderMathInElement) {
+                renderMathInElement(targetElement, {
+                    delimiters: [
+                        { left: '$$', right: '$$', display: true },
+                        { left: '$', right: '$', display: false },
+                        { left: '\\(', right: '\\)', display: false },
+                        { left: '\\[', right: '\\]', display: true }
+                    ],
+                    throwOnError: false
+                });
+            }
+        }
+
+        const proofStepData = [
+            {
+                step: 1,
+                title: "接点 A から真上に直径 AD を引く",
+                badge: "Step 1: 直角を見つける",
+                body: `<p>円の中心を通る<strong>直径 AD</strong> を引いてみます。</p>
+                       <p class="mt-1">中学で習った重要ルールが2つ使えます：</p>
+                       <ul class="list-disc list-inside mt-2 space-y-1.5 text-slate-600 dark:text-slate-300">
+                           <li><strong>円の半径と接線は直角</strong> (90°) → $\\angle \\mathrm{DAT} = 90^\\circ$</li>
+                           <li><strong>直径に対する円周角は直角</strong> (90°) → $\\angle \\mathrm{ABD} = 90^\\circ$</li>
+                       </ul>`,
+                formula: "\\angle \\mathrm{DAT} = 90^\\circ, \\quad \\angle \\mathrm{ABD} = 90^\\circ"
+            },
+            {
+                step: 2,
+                title: "「足して90°」の関係から角度が一致！",
+                badge: "Step 2: 角度の足し引き",
+                body: `<p>直角三角形 $\\triangle \\mathrm{ABD}$ の内角の和は $180^\\circ$ なので：</p>
+                       <p class="font-semibold text-indigo-600 dark:text-indigo-400 my-1">$\\angle \\mathrm{ADB} + \\angle \\mathrm{BAD} = 90^\\circ$</p>
+                       <p>一方、接線との角全体も $90^\\circ$ なので：</p>
+                       <p class="font-semibold text-rose-600 dark:text-rose-400 my-1">$\\angle \\mathrm{BAT} + \\angle \\mathrm{BAD} = 90^\\circ$</p>
+                       <p class="mt-1">どちらも「$\\angle \\mathrm{BAD}$ を足すと $90^\\circ$」になるため、<strong class="text-emerald-500">$\\angle \\mathrm{BAT} = \\angle \\mathrm{ADB}$</strong> であることが確定します！</p>`,
+                formula: "\\angle \\mathrm{BAT} = 90^\\circ - \\angle \\mathrm{BAD} = \\angle \\mathrm{ADB}"
+            },
+            {
+                step: 3,
+                title: "円周角の定理で点 D を好きな場所へ移動！",
+                badge: "Step 3: どんな位置でも完成！",
+                body: `<p>最後に、円周角の定理を使います。</p>
+                       <p class="mt-1">同じ<strong>弧 AB に対する円周角</strong>は、円周上のどこに点を置いても大きさは同じです！</p>
+                       <p class="mt-1">直径上の点 $D$ を、円周上の好きな点 $C$ に動かしても：</p>
+                       <p class="font-semibold text-emerald-600 dark:text-emerald-400 my-1">$\\angle \\mathrm{ACB} = \\angle \\mathrm{ADB}$</p>
+                       <p class="mt-1">したがって、$\\angle \\mathrm{BAT} = \\angle \\mathrm{ACB}$ がどんな三角形でも成り立ちます！✨</p>`,
+                formula: "\\angle \\mathrm{BAT} = \\angle \\mathrm{ADB} = \\angle \\mathrm{ACB} \\quad (証明完了!)"
+            }
+        ];
+
+        function setProofStep(step) {
+            currentProofStep = step;
+            updateProofContent();
+            drawProofCanvas();
+        }
+
+        function nextProofStep() {
+            if(currentProofStep < 3) {
+                setProofStep(currentProofStep + 1);
+            }
+        }
+
+        function prevProofStep() {
+            if(currentProofStep > 1) {
+                setProofStep(currentProofStep - 1);
+            }
+        }
+
+        function updateProofContent() {
+            for(let i = 1; i <= 3; i++) {
+                const btn = document.getElementById(`stepBtn-${i}`);
+                if(btn) {
+                    if(i === currentProofStep) {
+                        btn.className = "py-2.5 px-3 rounded-xl border text-xs sm:text-sm font-semibold transition flex flex-col sm:flex-row items-center justify-center gap-1 bg-rose-600 text-white border-rose-600 shadow";
+                    } else {
+                        btn.className = "py-2.5 px-3 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 text-xs sm:text-sm font-semibold transition flex flex-col sm:flex-row items-center justify-center gap-1";
+                    }
+                }
+            }
+
+            const data = proofStepData[currentProofStep - 1];
+            document.getElementById('proofBadge').innerText = data.badge;
+            document.getElementById('proofHeading').innerText = data.title;
+            
+            const bodyElem = document.getElementById('proofBodyText');
+            bodyElem.innerHTML = data.body;
+            
+            const formulaElem = document.getElementById('proofFormulaBox');
+            formulaElem.innerHTML = `$$${data.formula}$$`;
+
+            document.getElementById('prevStepBtn').disabled = (currentProofStep === 1);
+            document.getElementById('nextStepBtn').disabled = (currentProofStep === 3);
+
+            // 即座に数式をレンダリング
+            renderMath(bodyElem);
+            renderMath(formulaElem);
+        }
+
+        function resizeProofCanvas() {
+            if(!proofCanvas) return;
+            const container = proofCanvas.parentElement;
+            proofCanvas.width = container.clientWidth;
+            proofCanvas.height = container.clientHeight || 340;
+        }
+
+        window.addEventListener('resize', () => {
+            if(!document.getElementById('tab-secret').classList.contains('hidden')) {
+                resizeProofCanvas();
+                drawProofCanvas();
+            }
+        });
+
+        function drawProofCanvas() {
+            if(!proofCtx) return;
+            const width = proofCanvas.width;
+            const height = proofCanvas.height;
+
+            proofCtx.clearRect(0, 0, width, height);
+
+            const isDark = document.documentElement.classList.contains('dark');
+            const circleColor = isDark ? '#475569' : '#cbd5e1';
+            const textColor = isDark ? '#e2e8f0' : '#334155';
+
+            const radius = Math.min(width, height) * 0.35;
+            const cx = width / 2;
+            const cy = height * 0.44;
+
+            // 接点 A (真下)
+            const ax = cx;
+            const ay = cy + radius;
+
+            // 直径のもう一端 D (真上)
+            const dx = cx;
+            const dy = cy - radius;
+
+            // 水平接線 AT
+            const tangentLength = radius * 1.5;
+            const tx = ax + tangentLength;
+            const ty = ay;
+            const leftTanX = ax - tangentLength * 0.6;
+
+            // 点 B: 弦 AB (右斜め上、角 BAT = 50度)
+            const angleBATRad = 50 * (Math.PI / 180);
+            const centerAngleB = (Math.PI / 2) - (2 * angleBATRad);
+            const bx = cx + radius * Math.cos(centerAngleB);
+            const by = cy + radius * Math.sin(centerAngleB);
+
+            // 点 C (左上の一般点)
+            const angleC = -Math.PI * 0.75;
+            const cxPos = cx + radius * Math.cos(angleC);
+            const cyPos = cy + radius * Math.sin(angleC);
+
+            // 1. 円の描画
+            proofCtx.strokeStyle = circleColor;
+            proofCtx.lineWidth = 2;
+            proofCtx.beginPath();
+            proofCtx.arc(cx, cy, radius, 0, Math.PI * 2);
+            proofCtx.stroke();
+
+            // 中心 O
+            proofCtx.fillStyle = isDark ? '#94a3b8' : '#64748b';
+            proofCtx.beginPath();
+            proofCtx.arc(cx, cy, 3.5, 0, Math.PI * 2);
+            proofCtx.fill();
+            proofCtx.font = '11px Inter, sans-serif';
+            proofCtx.fillText('O', cx + 7, cy + 4);
+
+            // 2. 接線
+            proofCtx.strokeStyle = '#e11d48';
+            proofCtx.lineWidth = 2.5;
+            proofCtx.beginPath();
+            proofCtx.moveTo(leftTanX, ty);
+            proofCtx.lineTo(tx, ty);
+            proofCtx.stroke();
+
+            // 3. 弦 AB
+            proofCtx.strokeStyle = '#6366f1';
+            proofCtx.lineWidth = 2;
+            proofCtx.beginPath();
+            proofCtx.moveTo(ax, ay);
+            proofCtx.lineTo(bx, by);
+            proofCtx.stroke();
+
+            // --- ステップごとの固有要素の描画 ---
+            if(currentProofStep === 1) {
+                // 直径 AD (破線オレンジ)
+                proofCtx.strokeStyle = '#f59e0b';
+                proofCtx.lineWidth = 2.5;
+                proofCtx.beginPath();
+                proofCtx.moveTo(ax, ay);
+                proofCtx.lineTo(dx, dy);
+                proofCtx.stroke();
+
+                // 直径に対する弦 BD
+                proofCtx.strokeStyle = '#94a3b8';
+                proofCtx.lineWidth = 1.5;
+                proofCtx.beginPath();
+                proofCtx.moveTo(bx, by);
+                proofCtx.lineTo(dx, dy);
+                proofCtx.stroke();
+
+                // 直角マーク ① 接点 A (AD と AT)
+                proofCtx.strokeStyle = '#e11d48';
+                proofCtx.lineWidth = 2;
+                proofCtx.strokeRect(ax, ay - 18, 18, 18);
+
+                // 直角マーク ② 点 B (ABD = 90度)
+                proofCtx.strokeStyle = '#f59e0b';
+                proofCtx.lineWidth = 1.5;
+                const vBA = { x: (ax - bx), y: (ay - by) };
+                const vBD = { x: (dx - bx), y: (dy - by) };
+                const lenBA = Math.hypot(vBA.x, vBA.y);
+                const lenBD = Math.hypot(vBD.x, vBD.y);
+                const uBA = { x: vBA.x / lenBA * 16, y: vBA.y / lenBA * 16 };
+                const uBD = { x: vBD.x / lenBD * 16, y: vBD.y / lenBD * 16 };
+                proofCtx.beginPath();
+                proofCtx.moveTo(bx + uBA.x, by + uBA.y);
+                proofCtx.lineTo(bx + uBA.x + uBD.x, by + uBA.y + uBD.y);
+                proofCtx.lineTo(bx + uBD.x, by + uBD.y);
+                proofCtx.stroke();
+
+                // ラベル D
+                drawPoint(proofCtx, dx, dy, 'D (直径の端)', '#f59e0b', -10, -12, textColor, isDark);
+            } 
+            else if(currentProofStep === 2) {
+                // 直径 AD
+                proofCtx.strokeStyle = '#f59e0b';
+                proofCtx.lineWidth = 2;
+                proofCtx.beginPath();
+                proofCtx.moveTo(ax, ay);
+                proofCtx.lineTo(dx, dy);
+                proofCtx.stroke();
+
+                // 弦 BD
+                proofCtx.strokeStyle = '#6366f1';
+                proofCtx.lineWidth = 2;
+                proofCtx.beginPath();
+                proofCtx.moveTo(bx, by);
+                proofCtx.lineTo(dx, dy);
+                proofCtx.stroke();
+
+                // 共通の角 ∠BAD (薄い灰色でハイライト)
+                const angleAB = Math.atan2(by - ay, bx - ax);
+                proofCtx.fillStyle = 'rgba(148, 163, 184, 0.25)';
+                proofCtx.beginPath();
+                proofCtx.moveTo(ax, ay);
+                proofCtx.arc(ax, ay, 40, -Math.PI / 2, angleAB, false);
+                proofCtx.closePath();
+                proofCtx.fill();
+
+                // 角 ①: ∠BAT (赤)
+                proofCtx.fillStyle = 'rgba(225, 29, 72, 0.3)';
+                proofCtx.beginPath();
+                proofCtx.moveTo(ax, ay);
+                proofCtx.arc(ax, ay, 34, angleAB, 0, false);
+                proofCtx.closePath();
+                proofCtx.fill();
+                proofCtx.strokeStyle = '#e11d48';
+                proofCtx.lineWidth = 1.5;
+                proofCtx.stroke();
+
+                // 角 ②: ∠ADB (緑)
+                const vecDA = Math.atan2(ay - dy, ax - dx);
+                const vecDB = Math.atan2(by - dy, bx - dx);
+                proofCtx.fillStyle = 'rgba(16, 185, 129, 0.3)';
+                proofCtx.beginPath();
+                proofCtx.moveTo(dx, dy);
+                proofCtx.arc(dx, dy, 32, vecDA, vecDB, false);
+                proofCtx.closePath();
+                proofCtx.fill();
+                proofCtx.strokeStyle = '#10b981';
+                proofCtx.lineWidth = 1.5;
+                proofCtx.stroke();
+
+                drawPoint(proofCtx, dx, dy, 'D', '#f59e0b', -6, -12, textColor, isDark);
+
+                // イコール関係の文字注釈
+                proofCtx.font = 'bold 12px Inter, sans-serif';
+                proofCtx.fillStyle = '#e11d48';
+                proofCtx.fillText('∠BAT (50°)', ax + 38, ay - 12);
+                proofCtx.fillStyle = '#10b981';
+                proofCtx.fillText('∠ADB = 50°', dx + 14, dy + 28);
+            } 
+            else if(currentProofStep === 3) {
+                // 点 D から点 C への移動アニメ矢印（円弧に沿ったイメージ）
+                proofCtx.strokeStyle = '#94a3b8';
+                proofCtx.lineWidth = 1.5;
+                proofCtx.setLineDash([3, 3]);
+                proofCtx.beginPath();
+                proofCtx.moveTo(ax, ay);
+                proofCtx.lineTo(dx, dy);
+                proofCtx.lineTo(bx, by);
+                proofCtx.stroke();
+                proofCtx.setLineDash([]);
+
+                // 点 C への三角形 ABC
+                proofCtx.strokeStyle = '#10b981';
+                proofCtx.lineWidth = 2.5;
+                proofCtx.beginPath();
+                proofCtx.moveTo(ax, ay);
+                proofCtx.lineTo(cxPos, cyPos);
+                proofCtx.lineTo(bx, by);
+                proofCtx.stroke();
+
+                // 点Dから点Cへの矢印
+                proofCtx.strokeStyle = '#f59e0b';
+                proofCtx.lineWidth = 2;
+                proofCtx.beginPath();
+                proofCtx.arc(cx, cy, radius + 14, -Math.PI / 2, angleC, true);
+                proofCtx.stroke();
+
+                // 角 ①: ∠BAT (赤)
+                const angleAB = Math.atan2(by - ay, bx - ax);
+                proofCtx.fillStyle = 'rgba(225, 29, 72, 0.3)';
+                proofCtx.beginPath();
+                proofCtx.moveTo(ax, ay);
+                proofCtx.arc(ax, ay, 34, angleAB, 0, false);
+                proofCtx.closePath();
+                proofCtx.fill();
+                proofCtx.strokeStyle = '#e11d48';
+                proofCtx.lineWidth = 1.5;
+                proofCtx.stroke();
+
+                // 角 ②: 円周角 ∠ACB (青)
+                const vecCA = Math.atan2(ay - cyPos, ax - cxPos);
+                const vecCB = Math.atan2(by - cyPos, bx - cxPos);
+                proofCtx.fillStyle = 'rgba(99, 102, 241, 0.3)';
+                proofCtx.beginPath();
+                proofCtx.moveTo(cxPos, cyPos);
+                proofCtx.arc(cxPos, cyPos, 30, Math.min(vecCA, vecCB), Math.max(vecCA, vecCB), false);
+                proofCtx.closePath();
+                proofCtx.fill();
+                proofCtx.strokeStyle = '#6366f1';
+                proofCtx.lineWidth = 1.5;
+                proofCtx.stroke();
+
+                drawPoint(proofCtx, dx, dy, 'D', '#94a3b8', -6, -10, textColor, isDark);
+                drawPoint(proofCtx, cxPos, cyPos, 'C (移動先)', '#10b981', -40, -14, textColor, isDark);
+
+                proofCtx.font = 'bold 12px Inter, sans-serif';
+                proofCtx.fillStyle = '#e11d48';
+                proofCtx.fillText('∠BAT', ax + 40, ay - 12);
+                proofCtx.fillStyle = '#6366f1';
+                proofCtx.fillText('∠ACB（円周角で常に等しい!）', cxPos - 20, cyPos + 45);
+            }
+
+            // 共通の点 A, B, T
+            drawPoint(proofCtx, ax, ay, 'A (接点)', '#e11d48', -8, 22, textColor, isDark);
+            drawPoint(proofCtx, bx, by, 'B', '#6366f1', 12, 6, textColor, isDark);
+            drawPoint(proofCtx, tx, ty, 'T', '#e11d48', 8, 5, textColor, isDark);
+        }
+
+        function drawPoint(ctx, x, y, label, color, offsetX, offsetY, textColor, isDark) {
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.arc(x, y, 5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = isDark ? '#0f172a' : '#ffffff';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            ctx.fillStyle = textColor;
+            ctx.font = 'bold 13px Inter, sans-serif';
+            ctx.fillText(label, x + offsetX, y + offsetY);
+        }
+
+        const quizData = [
+            {
+                question: "接弦定理において、円の接線と弦が作る角 \\(\\angle BAT\\) が等しくなるのは、その弦に対するどの角ですか？",
+                options: [
+                    "中心角",
+                    "反対側の円周角",
+                    "外角",
+                    "直角"
+                ],
+                answer: 1,
+                explanation: "接弦定理により、接線と弦が作る角は、その弦に対する円周角（反対側の円周上の点Cが作る角）と等しくなります。"
+            },
+            {
+                question: "右の図で、\\(\\angle BAT = 55^\\circ\\) のとき、対応する円周角 \\(\\angle BCA\\) の大きさは何度になりますか？",
+                options: ["35°", "55°", "110°", "90°"],
+                answer: 1,
+                explanation: "接弦定理より、\\(\\angle BAT = \\angle BCA\\) なので、そのまま \\(55^\\circ\\) になります。"
+            },
+            {
+                question: "接弦定理を証明する際、まず最初にとるべき「特別な場合」はどれですか？",
+                options: [
+                    "接線が円の中心を通る場合",
+                    "弦が円の中心（直径）を通る場合",
+                    "三角形が正三角形になる場合",
+                    "半径が0の場合"
+                ],
+                answer: 1,
+                explanation: "弦が円の中心（直径）を通る場合、半径と接線が垂直（90°）になり、円周角も90°になるため最も簡単に証明できます。"
+            }
+        ];
+
+        let currentQuizIndex = 0;
+        let score = 0;
+
+        function loadQuiz() {
+            const q = quizData[currentQuizIndex];
+            document.getElementById('quizProgress').innerText = `問題 ${currentQuizIndex + 1} / ${quizData.length}`;
+            const qText = document.getElementById('questionText');
+            qText.innerHTML = q.question;
+            
+            const optionsContainer = document.getElementById('optionsContainer');
+            optionsContainer.innerHTML = '';
+            
+            q.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = "w-full text-left p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:border-rose-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition font-medium flex items-center justify-between text-slate-700 dark:text-slate-200";
+                btn.innerHTML = `<span>${opt}</span><i class="fa-solid fa-chevron-right text-slate-400 text-xs"></i>`;
+                btn.onclick = () => selectAnswer(idx);
+                optionsContainer.appendChild(btn);
+            });
+
+            document.getElementById('feedbackContainer').classList.add('hidden');
+            document.getElementById('quizContainer').classList.remove('hidden');
+
+            renderMath(qText);
+            renderMath(optionsContainer);
+        }
+
+        function selectAnswer(selectedIndex) {
+            const q = quizData[currentQuizIndex];
+            const feedbackContainer = document.getElementById('feedbackContainer');
+            const feedbackTitle = document.getElementById('feedbackTitle');
+            const feedbackDesc = document.getElementById('feedbackDesc');
+
+            document.getElementById('quizContainer').classList.add('hidden');
+            feedbackContainer.classList.remove('hidden');
+
+            if (selectedIndex === q.answer) {
+                score++;
+                feedbackTitle.innerHTML = '<span class="text-emerald-500"><i class="fa-solid fa-circle-check mr-1"></i> 正解です！</span>';
+            } else {
+                feedbackTitle.innerHTML = '<span class="text-rose-500"><i class="fa-solid fa-circle-xmark mr-1"></i> 不正解...</span>';
+            }
+            feedbackDesc.innerHTML = q.explanation;
+
+            renderMath(feedbackDesc);
+
+            if (currentQuizIndex === quizData.length - 1) {
+                feedbackContainer.querySelector('button').innerHTML = '結果を見る <i class="fa-solid fa-flag-checkered ml-1"></i>';
+            } else {
+                feedbackContainer.querySelector('button').innerHTML = '次の問題へ <i class="fa-solid fa-arrow-right ml-1"></i>';
+            }
+        }
+
+        function nextQuiz() {
+            currentQuizIndex++;
+            if (currentQuizIndex < quizData.length) {
+                loadQuiz();
+            } else {
+                document.getElementById('feedbackContainer').classList.add('hidden');
+                document.getElementById('quizComplete').classList.remove('hidden');
+                document.getElementById('scoreText').innerText = `${quizData.length}問中 ${score}問正解しました！`;
+            }
+        }
+
+        function restartQuiz() {
+            currentQuizIndex = 0;
+            score = 0;
+            document.getElementById('quizComplete').classList.add('hidden');
+            loadQuiz();
+        }
+
+        window.onload = function() {
+            // KaTeX の全体自動レンダリング
+            if (window.renderMathInElement) {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        { left: '$$', right: '$$', display: true },
+                        { left: '$', right: '$', display: false },
+                        { left: '\\(', right: '\\)', display: false },
+                        { left: '\\[', right: '\\]', display: true }
+                    ],
+                    throwOnError: false
+                });
+            }
+            resizeCanvas();
+            drawTheorem();
+            resizeProofCanvas();
+            setProofStep(1);
+            loadQuiz();
+        };
+    </script>
+</body>
+</html>

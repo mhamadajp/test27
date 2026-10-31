@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="ja" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数Ⅱ 指数関数・指数法則学習アプリ</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- KaTeX for beautiful math rendering -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body);"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-100 dark:bg-slate-900 text-slate-800 dark:text-slate-100 min-h-screen flex flex-col transition-colors duration-200">
+
+    <!-- ヘッダー -->
+    <header class="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 py-4 px-6 shadow-sm">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div class="flex items-center space-x-3">
+                <div class="bg-indigo-600 text-white p-2.5 rounded-xl shadow-lg flex items-center justify-center">
+                    <i class="fa-solid fa-chart-line text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold tracking-tight">数Ⅱ 指数関数・指数法則学習アプリ</h1>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">グラフの動きや法則の裏側にある本質を体感的にマスターしよう</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center space-x-4">
+                <!-- ナビゲーションタブ -->
+                <nav class="flex bg-slate-100 dark:bg-slate-900 p-1 rounded-xl border border-slate-200 dark:border-slate-700">
+                    <button onclick="switchTab('graph')" id="btn-graph" class="px-3 sm:px-4 py-2 text-sm font-medium rounded-lg transition-all bg-indigo-600 text-white shadow">
+                        <i class="fa-solid fa-sliders mr-1.5"></i> グラフ描画
+                    </button>
+                    <button onclick="switchTab('laws')" id="btn-laws" class="px-3 sm:px-4 py-2 text-sm font-medium rounded-lg transition-all text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white">
+                        <i class="fa-solid fa-book-open mr-1.5"></i> 指数法則の本質
+                    </button>
+                    <button onclick="switchTab('quiz')" id="btn-quiz" class="px-3 sm:px-4 py-2 text-sm font-medium rounded-lg transition-all text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white">
+                        <i class="fa-solid fa-brain mr-1.5"></i> 理解度チェック
+                    </button>
+                </nav>
+
+                <!-- テーマ切り替えボタン -->
+                <button onclick="toggleTheme()" class="p-2.5 rounded-xl bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-300 dark:hover:bg-slate-600 transition" title="テーマ切り替え">
+                    <i id="themeIcon" class="fa-solid fa-moon"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- メインコンテンツエリア -->
+    <main class="flex-grow max-w-7xl w-full mx-auto p-4 sm:p-6">
+
+        <!-- ================= 1. グラフ描画ツールタブ ================= -->
+        <section id="tab-graph" class="space-y-6">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                
+                <!-- コントロールパネル -->
+                <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xl flex flex-col justify-between space-y-6">
+                    <div class="space-y-6">
+                        <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 pb-3">
+                            <h2 class="text-lg font-bold text-indigo-600 dark:text-indigo-400 flex items-center gap-2">
+                                <i class="fa-solid fa-sliders"></i> パラメータ設定
+                            </h2>
+                            <span class="text-xs bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-300 px-2.5 py-1 rounded-full border border-indigo-200 dark:border-indigo-800">関数: \(y = a^x\)</span>
+                        </div>
+
+                        <!-- 底 a の設定 -->
+                        <div class="space-y-3">
+                            <div class="flex justify-between items-center">
+                                <label for="baseA" class="text-sm font-medium text-slate-700 dark:text-slate-300">底 \(a\) の値:</label>
+                                <span id="valA" class="text-lg font-bold text-indigo-600 dark:text-indigo-400 bg-slate-100 dark:bg-slate-900 px-3 py-1 rounded-lg border border-slate-200 dark:border-slate-700">2.0</span>
+                            </div>
+                            <input type="range" id="baseA" min="0.1" max="4.0" step="0.1" value="2.0" 
+                                class="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-indigo-500">
+                            <div class="flex justify-between text-xs text-slate-500">
+                               <span>0 (減少 \(a < 1\))</span>
+                               <span>1 (定数 \(a=1\))</span>
+                               <span>4 (増加 \(a > 1\))</span>
+                            </div>
+                            <!-- プリセットボタン -->
+                            <div class="grid grid-cols-4 gap-2 pt-1">
+                                <button onclick="setBase(0.5)" class="text-xs py-1.5 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-lg font-medium text-slate-700 dark:text-slate-200 transition">0.5 (\(\frac{1}{2}\))</button>
+                                <button onclick="setBase(1.0)" class="text-xs py-1.5 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-lg font-medium text-slate-700 dark:text-slate-200 transition">1.0</button>
+                                <button onclick="setBase(2.0)" class="text-xs py-1.5 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-lg font-medium text-slate-700 dark:text-slate-200 transition">2.0</button>
+                                <button onclick="setBase(3.0)" class="text-xs py-1.5 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-lg font-medium text-slate-700 dark:text-slate-200 transition">3.0</button>
+                            </div>
+                        </div>
+
+                        <!-- x の動点設定 -->
+                        <div class="space-y-3 pt-2 border-t border-slate-200 dark:border-slate-700">
+                            <div class="flex justify-between items-center">
+                                <label for="valX" class="text-sm font-medium text-slate-700 dark:text-slate-300">変数 \(x\) の値:</label>
+                                <span id="displayX" class="text-lg font-bold text-emerald-600 dark:text-emerald-400 bg-slate-100 dark:bg-slate-900 px-3 py-1 rounded-lg border border-slate-200 dark:border-slate-700">1.0</span>
+                            </div>
+                            <input type="range" id="valX" min="-3.0" max="3.0" step="0.1" value="1.0" 
+                                class="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500">
+                            <div class="flex justify-between text-xs text-slate-500">
+                               <span>-3</span>
+                               <span>0</span>
+                               <span>3</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- リアルタイム計算結果カード -->
+                    <div class="bg-slate-50 dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-700 space-y-2">
+                        <div class="text-xs text-slate-500 dark:text-slate-400 font-medium">現在の計算値:</div>
+                        <div class="text-xl font-bold flex items-center justify-between">
+                            <span>\(y = a^x\)</span>
+                            <span id="calcResult" class="text-emerald-600 dark:text-emerald-400 font-mono">2.000</span>
+                        </div>
+                        <div id="graphProperty" class="text-xs text-indigo-600 dark:text-indigo-300 pt-1 border-t border-slate-200 dark:border-slate-800">
+                            <!-- プロパティ解説 -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- グラフ描画キャンバスエリア -->
+                <div class="lg:col-span-2 bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xl flex flex-col">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-lg font-bold flex items-center gap-2">
+                            <i class="fa-solid fa-chart-area text-indigo-600 dark:text-indigo-400"></i> 指数関数グラフ (\(y = a^x\))
+                        </h2>
+                        <div class="flex items-center space-x-3 text-xs">
+                            <span class="flex items-center gap-1.5 text-slate-600 dark:text-slate-300"><span class="w-3 h-3 rounded-full bg-indigo-500 inline-block"></span> グラフ曲線</span>
+                            <span class="flex items-center gap-1.5 text-slate-600 dark:text-slate-300"><span class="w-3 h-3 rounded-full bg-emerald-500 inline-block"></span> 点 \((x, y)\)</span>
+                        </div>
+                    </div>
+
+                    <!-- キャンバスコンテナ -->
+                    <div class="relative flex-grow bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden min-h-[350px] flex items-center justify-center">
+                        <canvas id="graphCanvas" class="w-full h-full cursor-crosshair"></canvas>
+                    </div>
+
+                    <!-- グラフの特徴解説ボックス -->
+                    <div id="graphNotes" class="mt-4 bg-slate-50 dark:bg-slate-900/60 p-4 rounded-xl border border-slate-200 dark:border-slate-700 text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
+                        <span class="font-bold text-indigo-600 dark:text-indigo-400">【現在の特徴】</span> <span id="noteText">底 \(a > 1\) のため、右肩上がりの「増加関数」です。\(x\) が大きくなると \(y\) は急激に大きくなります。</span>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ================= 2. 指数法則の本質タブ ================= -->
+        <section id="tab-laws" class="hidden space-y-6">
+            <div class="bg-white dark:bg-slate-800 p-6 sm:p-8 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xl space-y-8">
+                <div class="border-b border-slate-200 dark:border-slate-700 pb-4">
+                    <h2 class="text-xl font-bold flex items-center gap-2.5">
+                        <i class="fa-solid fa-book-bookmark text-indigo-600 dark:text-indigo-400"></i> 指数法則の本質と「なぜそうなるのか」
+                    </h2>
+                    <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">公式を暗記するのではなく、意味や背景にある構造をイメージして理解を深めましょう。</p>
+                </div>
+
+                <!-- 本質解説カード群 -->
+                <div class="space-y-6">
+                    
+                    <!-- 法則 1 -->
+                    <div class="bg-slate-50 dark:bg-slate-900/80 p-6 rounded-xl border border-slate-200 dark:border-slate-700 space-y-4">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                            <span class="text-xs font-bold uppercase tracking-wider bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-300 px-3 py-1 rounded-full w-fit">法則 ①: かけ算は指数の足し算</span>
+                            <div class="text-lg font-mono text-emerald-600 dark:text-emerald-400 font-bold">\(a^m \times a^n = a^{m+n}\)</div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2 text-sm">
+                            <div class="bg-white dark:bg-slate-800 p-4 rounded-lg border border-slate-200 dark:border-slate-700 space-y-2">
+                                <div class="font-bold text-indigo-600 dark:text-indigo-400"><i class="fa-solid fa-eye mr-1"></i> 直感的なイメージ</div>
+                                <p class="text-slate-600 dark:text-slate-300 text-xs leading-relaxed">
+                                    \(a\) を \(m\) 回かけたものに、さらに \(a\) を \(n\) 回かける操作です。全部で \(a\) が何回かけ合わされているかを数えると、\(m + n\) 回になります。
+                                </p>
+                            </div>
+                            <div class="bg-white dark:bg-slate-800 p-4 rounded-lg border border-slate-200 dark:border-slate-700 space-y-2">
+                                <div class="font-bold text-emerald-600 dark:text-emerald-400"><i class="fa-solid fa-lightbulb mr-1"></i> 具体例で確認</div>
+                                <p class="text-slate-600 dark:text-slate-300 text-xs leading-relaxed">
+                                    \(2^3 \times 2^2 = (2 \times 2 \times 2) \times (2 \times 2) = 2^{3+2} = 2^5\)
+                                </p>
+                            </div>
+                            <div class="bg-white dark:bg-slate-800 p-4 rounded-lg border border-slate-200 dark:border-slate-700 space-y-2">
+                                <div class="font-bold text-amber-600 dark:text-amber-400"><i class="fa-solid fa-triangle-exclamation mr-1"></i> 注意点</div>
+                                <p class="text-slate-600 dark:text-slate-300 text-xs leading-relaxed">
+                                    足し算同士のとき（例: \(a^m + a^n\)）には使えません！<strong>底が同じかけ算</strong>のときだけ指数が足されます。
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 法則 2 -->
+                    <div class="bg-slate-50 dark:bg-slate-900/80 p-6 rounded-xl border border-slate-200 dark:border-slate-700 space-y-4">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                            <span class="text-xs font-bold uppercase tracking-wider bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-300 px-3 py-1 rounded-full w-fit">法則 ②: べき乗のべき乗はかけ算</span>
+                            <div class="text-lg font-mono text-emerald-600 dark:text-emerald-400 font-bold">\((a^m)^n = a^{mn}\)</div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2 text-sm">
+                            <div class="bg-white dark:bg-slate-800 p-4 rounded-lg border border-slate-200 dark:border-slate-700 space-y-2">
+                                <div class="font-bold text-indigo-600 dark:text-indigo-400"><i class="fa-solid fa-eye mr-1"></i> 直感的なイメージ</div>
+                                <p class="text-slate-600 dark:text-slate-300 text-xs leading-relaxed">
+                                    「\(a^m\)」という塊を、さらに \(n\) 個並べてかけ合わせる意味です。塊が \(n\) 個あって、1つの塊の中に \(a\) が \(m\) 個あるので、全体では \(m \times n\) 個になります。
+                                </p>
+                            </div>
+                            <div class="bg-white dark:bg-slate-800 p-4 rounded-lg border border-slate-200 dark:border-slate-700 space-y-2">
+                                <div class="font-bold text-emerald-600 dark:text-emerald-400"><i class="fa-solid fa-lightbulb mr-1"></i> 具体例で確認</div>
+                                <p class="text-slate-600 dark:text-slate-300 text-xs leading-relaxed">
+                                    \((2^3)^2 = 2^3 \times 2^3 = (2 \times 2 \times 2) \times (2 \times 2 \times 2) = 2^{3 \times 2} = 2^6\)
+                                </p>
+                            </div>
+                            <div class="bg-white dark:bg-slate-800 p-4 rounded-lg border border-slate-200 dark:border-slate-700 space-y-2">
+                                <div class="font-bold text-amber-600 dark:text-amber-400"><i class="fa-solid fa-triangle-exclamation mr-1"></i> 応用へのつながり</div>
+                                <p class="text-slate-600 dark:text-slate-300 text-xs leading-relaxed">
+                                    この性質があるおかげで、分数指数（有理数）や対数へのスムーズな拡張が可能になります。
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 法則 3 & 4 (割算・拡張) -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        
+                        <!-- 割り算と負の指数 -->
+                        <div class="bg-slate-50 dark:bg-slate-900/80 p-5 rounded-xl border border-slate-200 dark:border-slate-700 space-y-3">
+                            <span class="text-xs font-bold uppercase tracking-wider bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-300 px-2.5 py-1 rounded">割り算・負の指数</span>
+                            <div class="text-md font-mono text-emerald-600 dark:text-emerald-400 font-bold bg-white dark:bg-slate-800 p-3 rounded-lg text-center border border-slate-200 dark:border-slate-700">
+                                \(\frac{a^m}{a^n} = a^{m-n}, \quad a^{-n} = \frac{1}{a^n}\)
+                            </div>
+                            <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                                分子と分母で同じ \(a\) があれば約分（相殺）できます。例えば分子が少なく分母が多いとき、指数の引き算を行うと「マイナスの指数」が現れ、それが「分母にあること（逆数）」を意味するようになります。
+                            </p>
+                        </div>
+
+                        <!-- 分数指数（根号） -->
+                        <div class="bg-slate-50 dark:bg-slate-900/80 p-5 rounded-xl border border-slate-200 dark:border-slate-700 space-y-3">
+                            <span class="text-xs font-bold uppercase tracking-wider bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-300 px-2.5 py-1 rounded">分数指数（根号・ルート）</span>
+                            <div class="text-md font-mono text-emerald-600 dark:text-emerald-400 font-bold bg-white dark:bg-slate-800 p-3 rounded-lg text-center border border-slate-200 dark:border-slate-700">
+                                \(a^{\frac{1}{n}} = \sqrt[n]{a}, \quad (a^{\frac{1}{n}})^n = a^1 = a\)
+                            </div>
+                            <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                                「何回かければ \(aになるか\)」という根号（ルート）の概念も、指数法則を崩さないための拡張です。\(n\) 乗して初めて \(a\) になる数だから、指数法則から \(1/n\) 乗と定義されます。
+                            </p>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ================= 3. 理解度チェックタブ ================= -->
+        <section id="tab-quiz" class="hidden space-y-6">
+            <div class="bg-white dark:bg-slate-800 p-6 sm:p-8 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xl max-w-2xl mx-auto space-y-6">
+                <div class="flex justify-between items-center border-b border-slate-200 dark:border-slate-700 pb-4">
+                    <h2 class="text-xl font-bold flex items-center gap-2">
+                        <i class="fa-solid fa-brain text-indigo-600 dark:text-indigo-400"></i> 指数・指数関数ミニテスト
+                    </h2>
+                    <span id="quizProgress" class="text-xs bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-200 px-3 py-1 rounded-full font-medium">問題 1 / 5</span>
+                </div>
+
+                <!-- 問題エリア -->
+                <div id="quizContainer" class="space-y-6">
+                    <div id="questionText" class="text-lg font-semibold text-slate-800 dark:text-slate-200">
+                        <!-- 問題文 -->
+                    </div>
+                    
+                    <div id="optionsContainer" class="grid grid-cols-1 gap-3">
+                        <!-- 選択肢ボタン -->
+                    </div>
+                </div>
+
+                <!-- 結果＆解説エリア -->
+                <div id="feedbackContainer" class="hidden bg-slate-50 dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-700 space-y-3">
+                    <div id="feedbackTitle" class="font-bold text-base"></div>
+                    <div id="feedbackDesc" class="text-sm text-slate-600 dark:text-slate-300"></div>
+                    <button onclick="nextQuiz()" class="w-full mt-2 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-medium transition shadow">
+                        次の問題へ <i class="fa-solid fa-arrow-right ml-1"></i>
+                    </button>
+                </div>
+
+                <!-- 完了時サマリー -->
+                <div id="quizComplete" class="hidden text-center space-y-4 py-8">
+                    <div class="text-4xl">🎉</div>
+                    <h3 class="text-2xl font-bold">テスト終了！</h3>
+                    <p id="scoreText" class="text-slate-600 dark:text-slate-300 text-lg"></p>
+                    <button onclick="restartQuiz()" class="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-medium transition shadow">
+                        もう一度挑戦する
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- フッター -->
+    <footer class="bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 py-4 text-center text-xs text-slate-500 dark:text-slate-400 mt-auto">
+        <p>数Ⅱ 指数関数・指数法則学習アプリ &copy; 2026 - 本質を理解して楽しく学ぼう</p>
+    </footer>
+
+    <!-- スクリプト部 -->
+    <script>
+        // テーマ切り替え機能
+        function toggleTheme() {
+            const html = document.documentElement;
+            const themeIcon = document.getElementById('themeIcon');
+            if (html.classList.contains('dark')) {
+                html.classList.remove('dark');
+                themeIcon.className = "fa-solid fa-sun";
+            } else {
+                html.classList.add('dark');
+                themeIcon.className = "fa-solid fa-moon";
+            }
+            if(!document.getElementById('tab-graph').classList.contains('hidden')) {
+                drawGraph();
+            }
+        }
+
+        // タブ切り替え制御
+        function switchTab(tabName) {
+            ['graph', 'laws', 'quiz'].forEach(t => {
+                document.getElementById(`tab-${t}`).classList.add('hidden');
+                document.getElementById(`btn-${t}`).className = "px-3 sm:px-4 py-2 text-sm font-medium rounded-lg transition-all text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white";
+            });
+            document.getElementById(`tab-${tabName}`).classList.remove('hidden');
+            document.getElementById(`btn-${tabName}`).className = "px-3 sm:px-4 py-2 text-sm font-medium rounded-lg transition-all bg-indigo-600 text-white shadow";
+            
+            if(tabName === 'graph') {
+                resizeCanvas();
+                drawGraph();
+            }
+        }
+
+        // --- 1. グラフ描画ツール制御・描画ロジック ---
+        const baseSlider = document.getElementById('baseA');
+        const xSlider = document.getElementById('valX');
+        const valADisplay = document.getElementById('valA');
+        const valXDisplay = document.getElementById('displayX');
+        const calcResult = document.getElementById('calcResult');
+        const graphProperty = document.getElementById('graphProperty');
+        const noteText = document.getElementById('noteText');
+        const canvas = document.getElementById('graphCanvas');
+        const ctx = canvas.getContext('2d');
+
+        let currentA = 2.0;
+        let currentX = 1.0;
+
+        function setBase(val) {
+            baseSlider.value = val;
+            updateGraphTool();
+        }
+
+        function updateGraphTool() {
+            currentA = parseFloat(baseSlider.value);
+            currentX = parseFloat(xSlider.value);
+
+            valADisplay.innerText = currentA.toFixed(1);
+            valXDisplay.innerText = currentX.toFixed(1);
+
+            let y = Math.pow(currentA, currentX);
+            calcResult.innerText = y.toFixed(3);
+
+            let propHtml = "";
+            let noteStr = "";
+            if (currentA === 1.0) {
+                propHtml = "定数関数 (\(y = 1\))";
+                noteStr = "底 \(a = 1\) のとき、\(1^x\) は常に 1 となり直線になります（指数関数としては扱いません）。";
+            } else if (currentA > 1.0) {
+                propHtml = "増加関数 (底 \(a > 1\))";
+                noteStr = `底 \(a = ${currentA.toFixed(1)} > 1\) のため、右肩上がりの「増加関数」です。\(x\) が大きくなると \(y\) は急激に増加し、常に \(y > 0\) です。`;
+            } else {
+                propHtml = "減少関数 (底 \(0 < a < 1\))";
+                noteStr = `底 \(a = ${currentA.toFixed(1)} < 1\) のため、右肩下がりの「減少関数」です。\(x\) が大きくなると \(y\) は 0 に近づきます。`;
+            }
+            graphProperty.innerHTML = propHtml;
+            noteText.innerHTML = noteStr;
+
+            drawGraph();
+            if(window.renderMathInElement) {
+                renderMathInElement(graphProperty);
+                renderMathInElement(noteText);
+            }
+        }
+
+        baseSlider.addEventListener('input', updateGraphTool);
+        xSlider.addEventListener('input', updateGraphTool);
+
+        function resizeCanvas() {
+            const container = canvas.parentElement;
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight || 350;
+        }
+
+        window.addEventListener('resize', () => {
+            if(!document.getElementById('tab-graph').classList.contains('hidden')) {
+                resizeCanvas();
+                drawGraph();
+            }
+        });
+
+        function drawGraph() {
+            if(!ctx) return;
+            const width = canvas.width;
+            const height = canvas.height;
+
+            ctx.clearRect(0, 0, width, height);
+
+            const isDark = document.documentElement.classList.contains('dark');
+            const gridColor = isDark ? '#334155' : '#e2e8f0';
+            const axisColor = isDark ? '#64748b' : '#94a3b8';
+            const textColor = isDark ? '#94a3b8' : '#64748b';
+
+            const xMin = -4, xMax = 4;
+            const yMin = -2, yMax = 8;
+
+            function toPixelX(x) {
+                return ((x - xMin) / (xMax - xMin)) * width;
+            }
+            function toPixelY(y) {
+                return height - ((y - yMin) / (yMax - yMin)) * height;
+            }
+
+            // グリッド線
+            ctx.strokeStyle = gridColor;
+            ctx.lineWidth = 1;
+            for (let x = Math.ceil(xMin); x <= Math.floor(xMax); x++) {
+                let px = toPixelX(x);
+                ctx.beginPath();
+                ctx.moveTo(px, 0);
+                ctx.lineTo(px, height);
+                ctx.stroke();
+            }
+            for (let y = Math.ceil(yMin); y <= Math.floor(yMax); y++) {
+                let py = toPixelY(y);
+                ctx.beginPath();
+                ctx.moveTo(0, py);
+                ctx.lineTo(width, py);
+                ctx.stroke();
+            }
+
+            // 軸
+            ctx.strokeStyle = axisColor;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(0, toPixelY(0));
+            ctx.lineTo(width, toPixelY(0));
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(toPixelX(0), 0);
+            ctx.lineTo(toPixelX(0), height);
+            ctx.stroke();
+
+            // 定点 (0, 1)
+            let p0x = toPixelX(0);
+            let p0y = toPixelY(1);
+            ctx.fillStyle = textColor;
+            ctx.beginPath();
+            ctx.arc(p0x, p0y, 4, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.font = '11px Inter, sans-serif';
+            ctx.fillText('(0, 1)', p0x + 6, p0y - 6);
+
+            // 指数関数曲線
+            ctx.strokeStyle = '#6366f1';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            let isFirst = true;
+            for (let px = 0; px <= width; px += 2) {
+                let x = xMin + (px / width) * (xMax - xMin);
+                let y = Math.pow(currentA, x);
+                let py = toPixelY(y);
+                if (isFirst) {
+                    ctx.moveTo(px, py);
+                    isFirst = false;
+                } else {
+                    ctx.lineTo(px, py);
+                }
+            }
+            ctx.stroke();
+
+            // 動点 P
+            let curY = Math.pow(currentA, currentX);
+            let dotPx = toPixelX(currentX);
+            let dotPy = toPixelY(curY);
+
+            ctx.strokeStyle = '#10b981';
+            ctx.lineWidth = 1.5;
+            ctx.setLineDash([4, 4]);
+            ctx.beginPath();
+            ctx.moveTo(dotPx, toPixelY(0));
+            ctx.lineTo(dotPx, dotPy);
+            ctx.lineTo(toPixelX(0), dotPy);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            ctx.fillStyle = '#10b981';
+            ctx.beginPath();
+            ctx.arc(dotPx, dotPy, 6, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = isDark ? '#1e293b' : '#ffffff';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            ctx.fillStyle = '#34d399';
+            ctx.font = 'bold 12px Inter, sans-serif';
+            ctx.fillText(`P(${currentX.toFixed(1)}, ${curY.toFixed(2)})`, dotPx + 10, dotPy - 10);
+        }
+
+        // --- 3. 理解度チェック（クイズロジック） ---
+        const quizData = [
+            {
+                question: "\\(2^3 \\times 2^4\\) が \\(2^7\\) になる理由の本質はどれですか？",
+                options: [
+                    "3と4を足すという単なる約束事だから",
+                    "2を3回かけたものと2を4回かけたものを並べると、2が合計7回かけ合わされるから",
+                    "指数同士のかけ算になるルールだから",
+                    "底が異なるため計算できないから"
+                ],
+                answer: 1,
+                explanation: "かけ算の意味は「同じ数の連続した掛け算の回数」です。3回と4回を合わせるため、合計7回となり指数が足されます。"
+            },
+            {
+                question: "\\((3^2)^3\\) を計算したときの結果として正しいものは？",
+                options: ["\\(3^5\\)", "\\(3^6\\)", "\\(9^3\\)", "\\(3^8\\)"],
+                answer: 1,
+                explanation: "\\(3^2\\) というブロックが3つあるので、\\(2 \\times 3 = 6\\) となり \\(3^6\\) です。"
+            },
+            {
+                question: "なぜ \\(a^0 = 1\\) （\(a \\neq 0\)）と定義されるのですか？",
+                options: [
+                    "計算不能を防ぐために偶然1と決めたから",
+                    "指数法則 \\(a^m \\div a^m = a^{m-m} = a^0\\) を保つと、同じ数の割り算なので 1 になるため",
+                    "すべての数は0乗すると消えるから",
+                    "グラフが常に原点を通るようにするため"
+                ],
+                answer: 1,
+                explanation: "指数法則を一貫して成り立たせるため、\\(a^m / a^m = 1\\) と \\(a^{m-m} = a^0\\) が一致するように \\(a^0 = 1\\) と定められています。"
+            },
+            {
+                question: "\\(2^{-3}\\) が表す値はどれですか？",
+                options: ["-8", "\\(-\\frac{1}{8}\\)", "\\(\\frac{1}{8}\\)", "\\(-\\frac{1}{6}\\)"],
+                answer: 2,
+                explanation: "負の指数は「割り算が過剰になった（分母に回った）」ことを表し、\\(2^{-3} = \\frac{1}{2^3} = \\frac{1}{8}\\) になります。"
+            },
+            {
+                question: "関数 \\(y = \\left(\\frac{1}{2}\\right)^x\\) のグラフの特徴として正しいものはどれですか？",
+                options: [
+                    "右肩上がりの増加関数である",
+                    "右肩下がりの減少関数である",
+                    "直線になる",
+                    "第2象限を通らない"
+                ],
+                answer: 1,
+                explanation: "底が \\(0 < \\frac{1}{2} < 1\\) であるため、\\(x\\) が大きくなると値はどんどん小さくなり、「減少関数」のグラフを描きます。"
+            }
+        ];
+
+        let currentQuizIndex = 0;
+        let score = 0;
+
+        function loadQuiz() {
+            const q = quizData[currentQuizIndex];
+            document.getElementById('quizProgress').innerText = `問題 ${currentQuizIndex + 1} / ${quizData.length}`;
+            document.getElementById('questionText').innerHTML = q.question;
+            
+            const optionsContainer = document.getElementById('optionsContainer');
+            optionsContainer.innerHTML = '';
+            
+            q.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = "w-full text-left p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:border-indigo-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition font-medium flex items-center justify-between text-slate-700 dark:text-slate-200";
+                btn.innerHTML = `<span>${opt}</span><i class="fa-solid fa-chevron-right text-slate-400 text-xs"></i>`;
+                btn.onclick = () => selectAnswer(idx);
+                optionsContainer.appendChild(btn);
+            });
+
+            document.getElementById('feedbackContainer').classList.add('hidden');
+            document.getElementById('quizContainer').classList.remove('hidden');
+
+            if(window.renderMathInElement) {
+                renderMathInElement(document.getElementById('quizContainer'));
+            }
+        }
+
+        function selectAnswer(selectedIndex) {
+            const q = quizData[currentQuizIndex];
+            const feedbackContainer = document.getElementById('feedbackContainer');
+            const feedbackTitle = document.getElementById('feedbackTitle');
+            const feedbackDesc = document.getElementById('feedbackDesc');
+
+            document.getElementById('quizContainer').classList.add('hidden');
+            feedbackContainer.classList.remove('hidden');
+
+            if (selectedIndex === q.answer) {
+                score++;
+                feedbackTitle.innerHTML = '<span class="text-emerald-500 dark:text-emerald-400"><i class="fa-solid fa-circle-check mr-1"></i> 正解です！</span>';
+            } else {
+                feedbackTitle.innerHTML = '<span class="text-rose-500 dark:text-rose-400"><i class="fa-solid fa-circle-xmark mr-1"></i> 不正解...</span>';
+            }
+            feedbackDesc.innerHTML = q.explanation;
+
+            if(window.renderMathInElement) {
+                renderMathInElement(feedbackContainer);
+            }
+
+            if (currentQuizIndex === quizData.length - 1) {
+                feedbackContainer.querySelector('button').innerHTML = '結果を見る <i class="fa-solid fa-flag-checkered ml-1"></i>';
+            } else {
+                feedbackContainer.querySelector('button').innerHTML = '次の問題へ <i class="fa-solid fa-arrow-right ml-1"></i>';
+            }
+        }
+
+        function nextQuiz() {
+            currentQuizIndex++;
+            if (currentQuizIndex < quizData.length) {
+                loadQuiz();
+            } else {
+                document.getElementById('feedbackContainer').classList.add('hidden');
+                document.getElementById('quizComplete').classList.remove('hidden');
+                document.getElementById('scoreText').innerText = `${quizData.length}問中 ${score}問正解しました！`;
+            }
+        }
+
+        function restartQuiz() {
+            currentQuizIndex = 0;
+            score = 0;
+            document.getElementById('quizComplete').classList.add('hidden');
+            loadQuiz();
+        }
+
+        // 初期化実行
+        window.onload = function() {
+            resizeCanvas();
+            updateGraphTool();
+            loadQuiz();
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,1040 @@
+<!DOCTYPE html>
+<html lang="ja" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数学Ⅰ 正弦定理の本質・応用マスター</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- KaTeX -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-100 dark:bg-slate-900 text-slate-800 dark:text-slate-100 min-h-screen flex flex-col transition-colors duration-200">
+
+    <!-- ヘッダー -->
+    <header class="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 py-4 px-6 shadow-sm">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div class="flex items-center space-x-3">
+                <div class="bg-blue-600 text-white p-2.5 rounded-xl shadow-lg flex items-center justify-center">
+                    <i class="fa-solid fa-shapes text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold tracking-tight">正弦定理の本質・応用マスター</h1>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">「なぜ \(\frac{a}{\sin A} = 2R\) なのか」を動かして体感し、実戦で使いこなそう</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center space-x-4">
+                <!-- タブ切り替えボタン -->
+                <nav class="flex bg-slate-100 dark:bg-slate-900 p-1 rounded-xl border border-slate-200 dark:border-slate-700">
+                    <button onclick="switchTab('explore')" id="btn-explore" class="px-3 sm:px-4 py-2 text-sm font-medium rounded-lg transition-all bg-blue-600 text-white shadow">
+                        <i class="fa-solid fa-compass-drafting mr-1.5"></i> 動かして発見
+                    </button>
+                    <button onclick="switchTab('proof')" id="btn-proof" class="px-3 sm:px-4 py-2 text-sm font-medium rounded-lg transition-all text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white">
+                        <i class="fa-solid fa-lightbulb mr-1.5"></i> なぜ「2R」になる？
+                    </button>
+                    <button onclick="switchTab('apply')" id="btn-apply" class="px-3 sm:px-4 py-2 text-sm font-medium rounded-lg transition-all text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white">
+                        <i class="fa-solid fa-calculator mr-1.5"></i> 実戦応用問題
+                    </button>
+                </nav>
+
+                <!-- テーマ切り替え -->
+                <button onclick="toggleTheme()" class="p-2.5 rounded-xl bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-300 dark:hover:bg-slate-600 transition" title="テーマ切り替え">
+                    <i id="themeIcon" class="fa-solid fa-moon"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- メイン領域 -->
+    <main class="flex-grow max-w-7xl w-full mx-auto p-4 sm:p-6">
+
+        <!-- ================= 1. 動かして発見タブ ================= -->
+        <section id="tab-explore" class="space-y-6">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                
+                <!-- 操作＆ライブ数値パネル (5 cols) -->
+                <div class="lg:col-span-5 bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xl flex flex-col justify-between space-y-5">
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 pb-3">
+                            <h2 class="text-lg font-bold text-blue-600 dark:text-blue-400 flex items-center gap-2">
+                                <i class="fa-solid fa-sliders"></i> 頂点を動かしてみよう
+                            </h2>
+                            <span class="text-xs bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-300 px-2.5 py-1 rounded-full border border-blue-200 dark:border-blue-800 font-mono">外接円半径 R = 5.0</span>
+                        </div>
+
+                        <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                            下のスライダーで<strong>頂点 A</strong> を円周上で左右に移動させてみましょう。<br>
+                            角 $A$ の形が鋭角・直角・鈍角へと変わっても、向かい合う辺 $a$ との比率 <span class="text-blue-600 dark:text-blue-400 font-bold">\(\frac{a}{\sin A}\) が常に直径 \(2R = 10.0\) と一致</span>していることに注目してください！
+                        </p>
+
+                        <!-- スライダー: 頂点Aの位置 -->
+                        <div class="space-y-2 pt-2">
+                            <div class="flex justify-between items-center text-xs">
+                                <label for="sliderA" class="font-semibold text-slate-700 dark:text-slate-200">
+                                    <span class="inline-block w-2.5 h-2.5 rounded-full bg-rose-500 mr-1"></span>頂点 A の位置（角度変更）:
+                                </label>
+                                <span id="labelA" class="font-mono text-rose-600 dark:text-rose-400 font-bold">A = 60°</span>
+                            </div>
+                            <input type="range" id="sliderA" min="20" max="155" step="1" value="60"
+                                class="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-rose-500">
+                            <div class="flex justify-between text-[11px] text-slate-400">
+                                <span>鋭角 (20°)</span>
+                                <span>直角 (90°)</span>
+                                <span>鈍角 (155°)</span>
+                            </div>
+                        </div>
+
+                        <!-- プリセットボタン -->
+                        <div class="grid grid-cols-4 gap-2 pt-1" id="presetButtons">
+                            <button onclick="setAngleA(30)" id="btnPreset-30" class="preset-btn text-xs py-2 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-lg font-medium transition text-slate-700 dark:text-slate-200">
+                                30°
+                            </button>
+                            <button onclick="setAngleA(45)" id="btnPreset-45" class="preset-btn text-xs py-2 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-lg font-medium transition text-slate-700 dark:text-slate-200">
+                                45°
+                            </button>
+                            <button onclick="setAngleA(60)" id="btnPreset-60" class="preset-btn text-xs py-2 bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-300 border border-blue-200 dark:border-blue-800 rounded-lg font-bold transition">
+                                60°
+                            </button>
+                            <button onclick="setAngleA(90)" id="btnPreset-90" class="preset-btn text-xs py-2 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-lg font-medium transition text-slate-700 dark:text-slate-200">
+                                90°
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- リアルタイム計算カード群 -->
+                    <div class="space-y-3 pt-2">
+                        <div class="text-xs font-semibold text-slate-500 dark:text-slate-400 flex items-center justify-between">
+                            <span>リアルタイム計算値（向かい合う角と辺）</span>
+                            <span class="text-emerald-600 dark:text-emerald-400 font-mono font-bold">直径 2R = 10</span>
+                        </div>
+
+                        <!-- 比の比較テーブル -->
+                        <div class="bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-3 space-y-2 text-xs">
+                            <div class="grid grid-cols-4 text-center font-semibold text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800 pb-1.5">
+                                <span>対角</span>
+                                <span>対辺</span>
+                                <span>\(\sin\) の値</span>
+                                <span class="text-blue-600 dark:text-blue-400">辺 ÷ \(\sin\)</span>
+                            </div>
+
+                            <!-- ペア A -->
+                            <div class="grid grid-cols-4 text-center items-center font-mono py-1.5 bg-rose-50/60 dark:bg-rose-950/30 rounded-lg text-rose-700 dark:text-rose-300">
+                                <span id="tblAngleA" class="font-bold">60°</span>
+                                <span id="tblSideA">\(5\sqrt{3}\)</span>
+                                <span id="tblSinA">\(\frac{\sqrt{3}}{2}\)</span>
+                                <span id="tblRatioA" class="font-bold text-blue-600 dark:text-blue-400">10</span>
+                            </div>
+
+                            <!-- ペア B -->
+                            <div class="grid grid-cols-4 text-center items-center font-mono py-1.5 text-slate-700 dark:text-slate-300">
+                                <span id="tblAngleB">60°</span>
+                                <span id="tblSideB">\(5\sqrt{3}\)</span>
+                                <span id="tblSinB">\(\frac{\sqrt{3}}{2}\)</span>
+                                <span id="tblRatioB" class="font-bold text-blue-600 dark:text-blue-400">10</span>
+                            </div>
+
+                            <!-- ペア C -->
+                            <div class="grid grid-cols-4 text-center items-center font-mono py-1.5 text-slate-700 dark:text-slate-300">
+                                <span id="tblAngleC">60°</span>
+                                <span id="tblSideC">\(5\sqrt{3}\)</span>
+                                <span id="tblSinC">\(\frac{\sqrt{3}}{2}\)</span>
+                                <span id="tblRatioC" class="font-bold text-blue-600 dark:text-blue-400">10</span>
+                            </div>
+                        </div>
+
+                        <!-- 結論バッジ -->
+                        <div class="p-2.5 bg-emerald-50 dark:bg-emerald-950/40 rounded-xl border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 text-xs font-semibold text-center">
+                            ✨ \(\frac{a}{\sin A} = \frac{b}{\sin B} = \frac{c}{\sin C} = 2R = 10\)
+                        </div>
+                    </div>
+                </div>
+
+                <!-- キャンバスエリア (7 cols) -->
+                <div class="lg:col-span-7 bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xl flex flex-col">
+                    <div class="flex justify-between items-center mb-3">
+                        <h2 class="text-lg font-bold flex items-center gap-2">
+                            <i class="fa-solid fa-circle-notch text-blue-600 dark:text-blue-400"></i> \(\triangle ABC\) と外接円
+                        </h2>
+                        <div class="flex items-center space-x-3 text-xs flex-wrap gap-y-1">
+                            <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block"></span> 頂点 A / 辺 a</span>
+                            <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-blue-500 inline-block"></span> 外接円 (半径 R = 5)</span>
+                        </div>
+                    </div>
+
+                    <!-- キャンバス本体 -->
+                    <div class="relative flex-grow bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden min-h-[380px] flex items-center justify-center">
+                        <canvas id="sineCanvas" class="w-full h-full cursor-pointer"></canvas>
+                    </div>
+
+                    <div class="mt-3 bg-slate-50 dark:bg-slate-900/60 p-3 rounded-xl border border-slate-200 dark:border-slate-700 text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                        <span class="font-bold text-blue-600 dark:text-blue-400">【本質のポイント】</span>
+                        向かい合う「角」と「辺」は必ずセットで伸縮します。角が大きくなれば向かいの辺も伸び、小さくなれば辺も縮むため、その比率（\(\frac{\text{辺}}{\sin(\text{角})}\)）は常に<strong>外接円の直径 \(2R\)</strong> に固定されます。
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ================= 2. なぜ2Rになる？タブ ================= -->
+        <section id="tab-proof" class="hidden space-y-6">
+            <div class="bg-white dark:bg-slate-800 p-6 sm:p-8 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xl space-y-6">
+                <div class="border-b border-slate-200 dark:border-slate-700 pb-4">
+                    <h2 class="text-xl font-bold flex items-center gap-2.5">
+                        <i class="fa-solid fa-lightbulb text-amber-500"></i> 直角三角形からひもとく！正弦定理の証明
+                    </h2>
+                    <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                        「公式を覚える」のではなく、「なぜサインと直径 $2R$ が結びつくのか」をステップ順に図で確かめてみましょう。
+                    </p>
+                </div>
+
+                <!-- ステップ切り替えボタン -->
+                <div class="grid grid-cols-3 gap-3">
+                    <button onclick="setProofStep(1)" id="stepBtn-1" class="py-2.5 px-3 rounded-xl border text-xs sm:text-sm font-semibold transition flex flex-col sm:flex-row items-center justify-center gap-1.5 bg-blue-600 text-white border-blue-600 shadow">
+                        <span class="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center text-[11px]">1</span>
+                        <span>直角の位置へ動かす</span>
+                    </button>
+                    <button onclick="setProofStep(2)" id="stepBtn-2" class="py-2.5 px-3 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 text-xs sm:text-sm font-semibold transition flex flex-col sm:flex-row items-center justify-center gap-1.5">
+                        <span class="w-5 h-5 rounded-full bg-slate-200 dark:bg-slate-600 flex items-center justify-center text-[11px]">2</span>
+                        <span>サインの定義を使う</span>
+                    </button>
+                    <button onclick="setProofStep(3)" id="stepBtn-3" class="py-2.5 px-3 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 text-xs sm:text-sm font-semibold transition flex flex-col sm:flex-row items-center justify-center gap-1.5">
+                        <span class="w-5 h-5 rounded-full bg-slate-200 dark:bg-slate-600 flex items-center justify-center text-[11px]">3</span>
+                        <span>円周角の定理で一般化！</span>
+                    </button>
+                </div>
+
+                <!-- 2カラム構成 (キャンバス＋解説文) -->
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+                    <!-- 証明図解キャンバス (7 cols) -->
+                    <div class="lg:col-span-7 bg-slate-50 dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-4 flex flex-col items-center justify-center min-h-[350px] relative overflow-hidden">
+                        <canvas id="proofCanvas" class="w-full h-full max-h-[350px]"></canvas>
+                    </div>
+
+                    <!-- 解説テキスト (5 cols) -->
+                    <div class="lg:col-span-5 bg-slate-50 dark:bg-slate-900/60 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 flex flex-col justify-between space-y-4">
+                        <div class="space-y-3">
+                            <div class="flex items-center gap-2">
+                                <span id="proofStepBadge" class="text-xs font-bold px-2.5 py-1 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300">
+                                    Step 1
+                                </span>
+                                <h3 id="proofHeading" class="font-bold text-base text-slate-800 dark:text-slate-100">
+                                    直径を通る点 \(A'\) を作る
+                                </h3>
+                            </div>
+                            <div id="proofBodyText" class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed space-y-2">
+                                <!-- JS で挿入 -->
+                            </div>
+                        </div>
+
+                        <!-- 補助数式ボックス -->
+                        <div id="proofFormulaBox" class="p-3.5 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 text-center text-xs sm:text-sm font-semibold text-blue-600 dark:text-blue-400">
+                            <!-- JS で挿入 -->
+                        </div>
+
+                        <!-- ボタン -->
+                        <div class="flex items-center justify-between pt-2 border-t border-slate-200 dark:border-slate-700">
+                            <button id="prevProofBtn" onclick="prevProofStep()" class="text-xs px-3 py-1.5 rounded-lg bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 transition disabled:opacity-40 disabled:cursor-not-allowed">
+                                <i class="fa-solid fa-arrow-left mr-1"></i> 前のステップ
+                            </button>
+                            <button id="nextProofBtn" onclick="nextProofStep()" class="text-xs px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-medium transition shadow">
+                                次のステップ <i class="fa-solid fa-arrow-right ml-1"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ================= 3. 実戦応用問題タブ ================= -->
+        <section id="tab-apply" class="hidden space-y-6">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                
+                <!-- ガイド: 正弦定理の使いどころ (4 cols) -->
+                <div class="lg:col-span-4 bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xl space-y-5">
+                    <div class="border-b border-slate-200 dark:border-slate-700 pb-3">
+                        <h2 class="text-base font-bold text-blue-600 dark:text-blue-400 flex items-center gap-2">
+                            <i class="fa-solid fa-bolt"></i> 正弦定理の「使いどころ」
+                        </h2>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">どんな問題が出たら正弦定理を疑うべき？</p>
+                    </div>
+
+                    <div class="space-y-4 text-xs leading-relaxed text-slate-600 dark:text-slate-300">
+                        <div class="p-3 bg-blue-50 dark:bg-blue-950/40 rounded-xl border border-blue-200 dark:border-blue-900 space-y-1">
+                            <span class="font-bold text-blue-700 dark:text-blue-300 flex items-center gap-1.5">
+                                <i class="fa-solid fa-1"></i> 「向かい合う角と辺」のペア
+                            </span>
+                            <p>角 $A$ と対辺 $a$、または角 $B$ と対辺 $b$ のように、向かい合うペアが与えられているときは正弦定理の出番です！</p>
+                        </div>
+
+                        <div class="p-3 bg-emerald-50 dark:bg-emerald-950/40 rounded-xl border border-emerald-200 dark:border-emerald-900 space-y-1">
+                            <span class="font-bold text-emerald-700 dark:text-emerald-300 flex items-center gap-1.5">
+                                <i class="fa-solid fa-2"></i> 「外接円の半径 R」が登場
+                            </span>
+                            <p>問題文に「外接円の半径 $R$」と書かれていたら、99% 正弦定理を使います。<br>\(\frac{a}{\sin A} = 2R \iff R = \frac{a}{2\sin A}\)</p>
+                        </div>
+
+                        <div class="p-3 bg-amber-50 dark:bg-amber-950/40 rounded-xl border border-amber-200 dark:border-amber-900 space-y-1">
+                            <span class="font-bold text-amber-700 dark:text-amber-300 flex items-center gap-1.5">
+                                <i class="fa-solid fa-triangle-exclamation"></i> 余弦定理との見分け方
+                            </span>
+                            <p><strong>2角と1辺</strong>（または外接円） $\to$ 正弦定理<br><strong>2辺と挟む角</strong>（または3辺） $\to$ 余弦定理</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 演習クイズ (8 cols) -->
+                <div class="lg:col-span-8 bg-white dark:bg-slate-800 p-6 sm:p-8 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xl space-y-6">
+                    <div class="flex justify-between items-center border-b border-slate-200 dark:border-slate-700 pb-4">
+                        <h2 class="text-lg font-bold flex items-center gap-2">
+                            <i class="fa-solid fa-brain text-blue-600 dark:text-blue-400"></i> 実戦マスター・確認テスト
+                        </h2>
+                        <span id="quizBadge" class="text-xs bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-200 px-3 py-1 rounded-full font-medium">問題 1 / 4</span>
+                    </div>
+
+                    <!-- 問題コンテナ -->
+                    <div id="quizContainer" class="space-y-5">
+                        <div id="quizQuestion" class="text-base sm:text-lg font-semibold text-slate-800 dark:text-slate-100 leading-snug">
+                            <!-- JS で挿入 -->
+                        </div>
+                        <div id="quizOptions" class="grid grid-cols-1 gap-2.5">
+                            <!-- 選択肢ボタン -->
+                        </div>
+                    </div>
+
+                    <!-- 解説・フィードバック -->
+                    <div id="feedbackContainer" class="hidden bg-slate-50 dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-700 space-y-3">
+                        <div id="feedbackTitle" class="font-bold text-base"></div>
+                        <div id="feedbackBody" class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed"></div>
+                        <button onclick="nextQuiz()" class="w-full mt-2 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-medium transition shadow">
+                            次の問題へ <i class="fa-solid fa-arrow-right ml-1"></i>
+                        </button>
+                    </div>
+
+                    <!-- 全問完了画面 -->
+                    <div id="quizComplete" class="hidden text-center space-y-4 py-8">
+                        <div class="text-4xl">🎯</div>
+                        <h3 class="text-2xl font-bold">全問クリア！</h3>
+                        <p id="quizScoreText" class="text-slate-600 dark:text-slate-300 text-base"></p>
+                        <p class="text-xs text-slate-400">正弦定理の「向かい合うペア」と「外接円直径 2R」の使い方がしっかり身につきました！</p>
+                        <button onclick="restartQuiz()" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-medium transition shadow">
+                            もう一度挑戦する
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <!-- フッター -->
+    <footer class="bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 py-4 text-center text-xs text-slate-500 dark:text-slate-400 mt-auto">
+        <p>数学Ⅰ 正弦定理の本質・応用マスター &copy; 2026 - 公式の丸暗記から脱却しよう</p>
+    </footer>
+
+    <!-- スクリプト -->
+    <script>
+        // テーマ切り替え
+        function toggleTheme() {
+            const html = document.documentElement;
+            const themeIcon = document.getElementById('themeIcon');
+            if (html.classList.contains('dark')) {
+                html.classList.remove('dark');
+                themeIcon.className = "fa-solid fa-sun";
+            } else {
+                html.classList.add('dark');
+                themeIcon.className = "fa-solid fa-moon";
+            }
+            if(!document.getElementById('tab-explore').classList.contains('hidden')) {
+                drawSineModel();
+            } else if(!document.getElementById('tab-proof').classList.contains('hidden')) {
+                drawProofCanvas();
+            }
+        }
+
+        // タブ切り替え
+        function switchTab(tabId) {
+            ['explore', 'proof', 'apply'].forEach(t => {
+                document.getElementById(`tab-${t}`).classList.add('hidden');
+                document.getElementById(`btn-${t}`).className = "px-3 sm:px-4 py-2 text-sm font-medium rounded-lg transition-all text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white";
+            });
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+            document.getElementById(`btn-${tabId}`).className = "px-3 sm:px-4 py-2 text-sm font-medium rounded-lg transition-all bg-blue-600 text-white shadow";
+
+            if (tabId === 'explore') {
+                resizeCanvas();
+                drawSineModel();
+            } else if (tabId === 'proof') {
+                resizeProofCanvas();
+                drawProofCanvas();
+            }
+        }
+
+        // KaTeX 自動レンダリングヘルパー
+        function renderMath(element) {
+            if (!element) return;
+            if (window.renderMathInElement) {
+                renderMathInElement(element, {
+                    delimiters: [
+                        { left: '$$', right: '$$', display: true },
+                        { left: '$', right: '$', display: false },
+                        { left: '\\(', right: '\\)', display: false },
+                        { left: '\\[', right: '\\]', display: true }
+                    ],
+                    throwOnError: false
+                });
+            }
+        }
+
+        // ================= 1. 動かして発見 (探索キャンバス) =================
+        const canvas = document.getElementById('sineCanvas');
+        const ctx = canvas.getContext('2d');
+        const sliderA = document.getElementById('sliderA');
+        const labelA = document.getElementById('labelA');
+
+        // 数値表示テーブル用
+        const tblAngleA = document.getElementById('tblAngleA');
+        const tblSideA = document.getElementById('tblSideA');
+        const tblSinA = document.getElementById('tblSinA');
+        const tblRatioA = document.getElementById('tblRatioA');
+
+        const tblAngleB = document.getElementById('tblAngleB');
+        const tblSideB = document.getElementById('tblSideB');
+        const tblSinB = document.getElementById('tblSinB');
+        const tblRatioB = document.getElementById('tblRatioB');
+
+        const tblAngleC = document.getElementById('tblAngleC');
+        const tblSideC = document.getElementById('tblSideC');
+        const tblSinC = document.getElementById('tblSinC');
+        const tblRatioC = document.getElementById('tblRatioC');
+
+        // 外接円半径の幾何学スケール: R = 5.0 (直径 2R = 10.0)
+        const R_MATH = 5.0;
+        let angleADeg = 60; // 頂点 A の角の大きさ
+
+        // 有名角（30°, 45°, 60°, 90°, 120°, 135°, 150° など）の正確な表現を返すヘルパー
+        function getSpecialSinAndSide(deg) {
+            const rounded = Math.round(deg * 10) / 10;
+            switch (rounded) {
+                case 30:
+                    return { sinText: '\\frac{1}{2}', sideText: '5', rawSin: 0.5, rawSide: 5 };
+                case 45:
+                    return { sinText: '\\frac{\\sqrt{2}}{2}', sideText: '5\\sqrt{2}', rawSin: Math.SQRT2 / 2, rawSide: 5 * Math.SQRT2 };
+                case 60:
+                    return { sinText: '\\frac{\\sqrt{3}}{2}', sideText: '5\\sqrt{3}', rawSin: Math.sqrt(3) / 2, rawSide: 5 * Math.sqrt(3) };
+                case 90:
+                    return { sinText: '1', sideText: '10', rawSin: 1, rawSide: 10 };
+                case 120:
+                    return { sinText: '\\frac{\\sqrt{3}}{2}', sideText: '5\\sqrt{3}', rawSin: Math.sqrt(3) / 2, rawSide: 5 * Math.sqrt(3) };
+                case 135:
+                    return { sinText: '\\frac{\\sqrt{2}}{2}', sideText: '5\\sqrt{2}', rawSin: Math.SQRT2 / 2, rawSide: 5 * Math.SQRT2 };
+                case 150:
+                    return { sinText: '\\frac{1}{2}', sideText: '5', rawSin: 0.5, rawSide: 5 };
+                default:
+                    const rad = deg * (Math.PI / 180);
+                    const s = Math.sin(rad);
+                    return { 
+                        sinText: s.toFixed(3), 
+                        sideText: (2 * R_MATH * s).toFixed(2), 
+                        rawSin: s, 
+                        rawSide: 2 * R_MATH * s 
+                    };
+            }
+        }
+
+        function updatePresetButtons(activeAngle) {
+            const presets = [30, 45, 60, 90];
+            presets.forEach(p => {
+                const btn = document.getElementById(`btnPreset-${p}`);
+                if (!btn) return;
+                if (Math.round(activeAngle) === p) {
+                    btn.className = "preset-btn text-xs py-2 bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-300 border border-blue-200 dark:border-blue-800 rounded-lg font-bold transition shadow-sm";
+                } else {
+                    btn.className = "preset-btn text-xs py-2 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-lg font-medium transition text-slate-700 dark:text-slate-200";
+                }
+            });
+        }
+
+        function setAngleA(deg) {
+            sliderA.value = deg;
+            updateExplore();
+        }
+
+        sliderA.addEventListener('input', updateExplore);
+
+        function updateExplore() {
+            angleADeg = parseFloat(sliderA.value);
+            labelA.innerText = `A = ${angleADeg}°`;
+            updatePresetButtons(angleADeg);
+            drawSineModel();
+        }
+
+        function resizeCanvas() {
+            const container = canvas.parentElement;
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight || 380;
+        }
+
+        window.addEventListener('resize', () => {
+            if(!document.getElementById('tab-explore').classList.contains('hidden')) {
+                resizeCanvas();
+                drawSineModel();
+            }
+        });
+
+        function drawSineModel() {
+            if (!ctx) return;
+            const w = canvas.width;
+            const h = canvas.height;
+            ctx.clearRect(0, 0, w, h);
+
+            const isDark = document.documentElement.classList.contains('dark');
+            const circleColor = isDark ? '#334155' : '#cbd5e1';
+            const textColor = isDark ? '#e2e8f0' : '#334155';
+
+            const visualRadius = Math.min(w, h) * 0.36;
+            const cx = w / 2;
+            const cy = h / 2;
+
+            // 基準となる底辺 BC を設定 (対辺 a)
+            const radA = angleADeg * (Math.PI / 180);
+            const centerAngle = 2 * radA;
+
+            const baseAngle = Math.PI / 2; // 真下
+            const angleB = baseAngle + centerAngle / 2;
+            const angleC = baseAngle - centerAngle / 2;
+
+            const bx = cx + visualRadius * Math.cos(angleB);
+            const by = cy + visualRadius * Math.sin(angleB);
+            const cxPos = cx + visualRadius * Math.cos(angleC);
+            const cyPos = cy + visualRadius * Math.sin(angleC);
+
+            // 頂点 A は円の上側 (-π/2)
+            const angleA_Pos = -Math.PI / 2;
+            const ax = cx + visualRadius * Math.cos(angleA_Pos);
+            const ay = cy + visualRadius * Math.sin(angleA_Pos);
+
+            // 有名角・正確な値の計算
+            const specialA = getSpecialSinAndSide(angleADeg);
+            const angleBDeg = (180 - angleADeg) / 2;
+            const angleCDeg = angleBDeg;
+            const specialB = getSpecialSinAndSide(angleBDeg);
+
+            // テーブル更新 (LaTeX数式として挿入)
+            tblAngleA.innerText = `${angleADeg}°`;
+            tblSideA.innerHTML = `\\(${specialA.sideText}\\)`;
+            tblSinA.innerHTML = `\\(${specialA.sinText}\\)`;
+            tblRatioA.innerText = "10";
+
+            tblAngleB.innerText = `${angleBDeg % 1 === 0 ? angleBDeg : angleBDeg.toFixed(1)}°`;
+            tblSideB.innerHTML = `\\(${specialB.sideText}\\)`;
+            tblSinB.innerHTML = `\\(${specialB.sinText}\\)`;
+            tblRatioB.innerText = "10";
+
+            tblAngleC.innerText = `${angleCDeg % 1 === 0 ? angleCDeg : angleCDeg.toFixed(1)}°`;
+            tblSideC.innerHTML = `\\(${specialB.sideText}\\)`;
+            tblSinC.innerHTML = `\\(${specialB.sinText}\\)`;
+            tblRatioC.innerText = "10";
+
+            // テーブル内の数式レンダリング
+            renderMath(tblSideA);
+            renderMath(tblSinA);
+            renderMath(tblSideB);
+            renderMath(tblSinB);
+            renderMath(tblSideC);
+            renderMath(tblSinC);
+
+            // --- 描画 ---
+
+            // 1. 外接円
+            ctx.strokeStyle = circleColor;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(cx, cy, visualRadius, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // 中心 O
+            ctx.fillStyle = isDark ? '#94a3b8' : '#64748b';
+            ctx.beginPath();
+            ctx.arc(cx, cy, 3.5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.font = '11px Inter, sans-serif';
+            ctx.fillText('O (中心)', cx + 6, cy + 4);
+
+            // 外接円半径 R のライン (中心 O から C)
+            ctx.strokeStyle = '#3b82f6';
+            ctx.lineWidth = 1.5;
+            ctx.setLineDash([4, 4]);
+            ctx.beginPath();
+            ctx.moveTo(cx, cy);
+            ctx.lineTo(cxPos, cyPos);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.fillStyle = '#3b82f6';
+            ctx.font = 'bold 11px Inter, sans-serif';
+            ctx.fillText('R = 5', (cx + cxPos) / 2 + 6, (cy + cyPos) / 2 - 4);
+
+            // 2. 三角形 ABC の辺
+            // 辺 a (BC): ローズ色で強調（向かい合う辺）
+            ctx.strokeStyle = '#f43f5e';
+            ctx.lineWidth = 3.5;
+            ctx.beginPath();
+            ctx.moveTo(bx, by);
+            ctx.lineTo(cxPos, cyPos);
+            ctx.stroke();
+
+            // 辺 b (AC), 辺 c (AB)
+            ctx.strokeStyle = isDark ? '#94a3b8' : '#64748b';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(ax, ay);
+            ctx.lineTo(bx, by);
+            ctx.lineTo(cxPos, cyPos);
+            ctx.lineTo(ax, ay);
+            ctx.stroke();
+
+            // 3. 頂点 A の角扇形ハイライト
+            const dirAB = Math.atan2(by - ay, bx - ax);
+            const dirAC = Math.atan2(cyPos - ay, cxPos - ax);
+            
+            // 常に内角（差が180度未満）側を扇形にする
+            let diffA = dirAB - dirAC;
+            while (diffA < -Math.PI) diffA += 2 * Math.PI;
+            while (diffA > Math.PI) diffA -= 2 * Math.PI;
+            const anticlockwiseA = diffA < 0;
+
+            ctx.fillStyle = 'rgba(244, 63, 94, 0.25)';
+            ctx.beginPath();
+            ctx.moveTo(ax, ay);
+            ctx.arc(ax, ay, 34, dirAC, dirAB, anticlockwiseA);
+            ctx.closePath();
+            ctx.fill();
+            ctx.strokeStyle = '#f43f5e';
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+
+            // 4. ラベル描画
+            drawNode(ctx, ax, ay, `A (${angleADeg}°)`, '#f43f5e', -14, -14, textColor, isDark);
+            drawNode(ctx, bx, by, `B`, '#3b82f6', -16, 18, textColor, isDark);
+            drawNode(ctx, cxPos, cyPos, `C`, '#3b82f6', 10, 18, textColor, isDark);
+
+            // 辺 a のラベル表示（ルート表現をプレーンテキストに直して描画）
+            let sideLabel = specialA.sideText.replace('\\sqrt{2}', '√2').replace('\\sqrt{3}', '√3').replace('\\frac{1}{2}', '1/2');
+            ctx.fillStyle = '#f43f5e';
+            ctx.font = 'bold 13px Inter, sans-serif';
+            ctx.fillText(`辺 a = ${sideLabel}`, (bx + cxPos) / 2 - 32, (by + cyPos) / 2 + 22);
+        }
+
+        function drawNode(ctx, x, y, text, color, ox, oy, textColor, isDark) {
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.arc(x, y, 5.5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = isDark ? '#0f172a' : '#ffffff';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            ctx.fillStyle = textColor;
+            ctx.font = 'bold 13px Inter, sans-serif';
+            ctx.fillText(text, x + ox, y + oy);
+        }
+
+        // ================= 2. なぜ2Rになる？ (証明キャンバス) =================
+        const proofCanvas = document.getElementById('proofCanvas');
+        const proofCtx = proofCanvas ? proofCanvas.getContext('2d') : null;
+        let currentProofStep = 1;
+
+        const proofSteps = [
+            {
+                step: 1,
+                badge: "Step 1: 直角三角形を作る",
+                title: "頂点 A を動かして「直径を通る線」を作る",
+                body: `<p>一般の三角形だとサインの比を求めるのが大変です。そこで、円周角の定理を使って<strong>頂点 A を円周上でスライド</strong>させ、線分 $BA'$ が中心 $O$ を通る「直径」になる位置に移動します。</p>
+                       <p class="mt-2 text-blue-600 dark:text-blue-400 font-semibold">★ 円周角の定理より、弧 $BC$ に対する角 $A$ と角 $A'$ の大きさは同じ！</p>`,
+                formula: "\\angle BAC = \\angle BA'C = A"
+            },
+            {
+                step: 2,
+                badge: "Step 2: 直角三角形のサイン",
+                title: "直径に対する円周角は必ず 90°！",
+                body: `<p>線分 $BA'$ は直径なので、長さはちょうど <strong>$2R$</strong> です。</p>
+                       <p>さらに、直径に対する円周角は直角なので、<strong>$\\angle BCA' = 90^\\circ$</strong> の直角三角形が生まれます！</p>
+                       <p class="mt-2">直角三角形における $\\sin A'$ の定義（$\\frac{\\text{対辺}}{\\text{斜辺}}$）をそのまま当てはめると：</p>`,
+                formula: "\\sin A = \\sin A' = \\frac{a}{2R}"
+            },
+            {
+                step: 3,
+                badge: "Step 3: 正弦定理の完成",
+                title: "両辺を整理すると「2R」が現れる！",
+                body: `<p>得られた式 $\\sin A = \\frac{a}{2R}$ の両辺に $2R$ をかけて $\\sin A$ で割ると：</p>
+                       <p class="mt-2 text-emerald-600 dark:text-emerald-400 font-bold">\\(\\frac{a}{\\sin A} = 2R\\)</p>
+                       <p class="mt-2">全く同じことを頂点 $B$ や頂点 $C$ についても行えるため、すべての角と辺で比率が外接円の直径 $2R$ に等しくなります！✨</p>`,
+                formula: "\\frac{a}{\\sin A} = \\frac{b}{\\sin B} = \\frac{c}{\\sin C} = 2R \\quad (証明完了!)"
+            }
+        ];
+
+        function setProofStep(step) {
+            currentProofStep = step;
+            updateProofContent();
+            drawProofCanvas();
+        }
+
+        function nextProofStep() {
+            if (currentProofStep < 3) setProofStep(currentProofStep + 1);
+        }
+
+        function prevProofStep() {
+            if (currentProofStep > 1) setProofStep(currentProofStep - 1);
+        }
+
+        function updateProofContent() {
+            for (let i = 1; i <= 3; i++) {
+                const btn = document.getElementById(`stepBtn-${i}`);
+                if (btn) {
+                    if (i === currentProofStep) {
+                        btn.className = "py-2.5 px-3 rounded-xl border text-xs sm:text-sm font-semibold transition flex flex-col sm:flex-row items-center justify-center gap-1.5 bg-blue-600 text-white border-blue-600 shadow";
+                    } else {
+                        btn.className = "py-2.5 px-3 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 text-xs sm:text-sm font-semibold transition flex flex-col sm:flex-row items-center justify-center gap-1.5";
+                    }
+                }
+            }
+
+            const data = proofSteps[currentProofStep - 1];
+            document.getElementById('proofStepBadge').innerText = data.badge;
+            document.getElementById('proofHeading').innerText = data.title;
+            const body = document.getElementById('proofBodyText');
+            body.innerHTML = data.body;
+            const formula = document.getElementById('proofFormulaBox');
+            formula.innerHTML = `$$${data.formula}$$`;
+
+            document.getElementById('prevProofBtn').disabled = (currentProofStep === 1);
+            document.getElementById('nextProofBtn').disabled = (currentProofStep === 3);
+
+            renderMath(body);
+            renderMath(formula);
+        }
+
+        function resizeProofCanvas() {
+            if (!proofCanvas) return;
+            const container = proofCanvas.parentElement;
+            proofCanvas.width = container.clientWidth;
+            proofCanvas.height = container.clientHeight || 350;
+        }
+
+        window.addEventListener('resize', () => {
+            if (!document.getElementById('tab-proof').classList.contains('hidden')) {
+                resizeProofCanvas();
+                drawProofCanvas();
+            }
+        });
+
+        function drawProofCanvas() {
+            if (!proofCtx) return;
+            const w = proofCanvas.width;
+            const h = proofCanvas.height;
+            proofCtx.clearRect(0, 0, w, h);
+
+            const isDark = document.documentElement.classList.contains('dark');
+            const circleColor = isDark ? '#334155' : '#cbd5e1';
+            const textColor = isDark ? '#e2e8f0' : '#334155';
+
+            const radius = Math.min(w, h) * 0.36;
+            const cx = w / 2;
+            const cy = h / 2;
+
+            // 頂点 B を左下、頂点 C を右下に固定
+            const angleB = Math.PI * 0.75; // 左下
+            const bx = cx + radius * Math.cos(angleB);
+            const by = cy + radius * Math.sin(angleB);
+
+            const angleC = Math.PI * 0.2;  // 右下寄り
+            const cxPos = cx + radius * Math.cos(angleC);
+            const cyPos = cy + radius * Math.sin(angleC);
+
+            // 元の頂点 A (左上)
+            const angleA = -Math.PI * 0.65;
+            const ax = cx + radius * Math.cos(angleA);
+            const ay = cy + radius * Math.sin(angleA);
+
+            // 移動後の頂点 A' (点 B の正反対 = 直径の端)
+            const angleAPrime = angleB - Math.PI; // 右上
+            const apx = cx + radius * Math.cos(angleAPrime);
+            const apy = cy + radius * Math.sin(angleAPrime);
+
+            // 1. 外接円
+            proofCtx.strokeStyle = circleColor;
+            proofCtx.lineWidth = 2;
+            proofCtx.beginPath();
+            proofCtx.arc(cx, cy, radius, 0, Math.PI * 2);
+            proofCtx.stroke();
+
+            // 中心 O
+            proofCtx.fillStyle = isDark ? '#94a3b8' : '#64748b';
+            proofCtx.beginPath();
+            proofCtx.arc(cx, cy, 3.5, 0, Math.PI * 2);
+            proofCtx.fill();
+            proofCtx.font = '11px Inter, sans-serif';
+            proofCtx.fillText('O', cx + 6, cy + 3);
+
+            // 底辺 BC (辺 a)
+            proofCtx.strokeStyle = '#f43f5e';
+            proofCtx.lineWidth = 3;
+            proofCtx.beginPath();
+            proofCtx.moveTo(bx, by);
+            proofCtx.lineTo(cxPos, cyPos);
+            proofCtx.stroke();
+            proofCtx.fillStyle = '#f43f5e';
+            proofCtx.font = 'bold 12px Inter, sans-serif';
+            proofCtx.fillText('辺 a', (bx + cxPos) / 2 - 10, (by + cyPos) / 2 + 18);
+
+            if (currentProofStep === 1) {
+                // 元の三角形 ABC
+                proofCtx.strokeStyle = isDark ? '#64748b' : '#94a3b8';
+                proofCtx.lineWidth = 2;
+                proofCtx.beginPath();
+                proofCtx.moveTo(ax, ay);
+                proofCtx.lineTo(bx, by);
+                proofCtx.lineTo(cxPos, cyPos);
+                proofCtx.lineTo(ax, ay);
+                proofCtx.stroke();
+
+                // A から A' への円弧矢印
+                proofCtx.strokeStyle = '#3b82f6';
+                proofCtx.lineWidth = 2;
+                proofCtx.setLineDash([4, 4]);
+                proofCtx.beginPath();
+                proofCtx.arc(cx, cy, radius + 12, angleA, angleAPrime, false);
+                proofCtx.stroke();
+                proofCtx.setLineDash([]);
+
+                drawNode(proofCtx, ax, ay, 'A', '#f43f5e', -14, -8, textColor, isDark);
+                drawNode(proofCtx, apx, apy, "A' (移動先)", '#3b82f6', 10, -6, textColor, isDark);
+            } 
+            else if (currentProofStep >= 2) {
+                // 直径 BA' (青い太線)
+                proofCtx.strokeStyle = '#3b82f6';
+                proofCtx.lineWidth = 3;
+                proofCtx.beginPath();
+                proofCtx.moveTo(bx, by);
+                proofCtx.lineTo(apx, apy);
+                proofCtx.stroke();
+
+                // A'C (直角三角形の辺)
+                proofCtx.strokeStyle = '#10b981';
+                proofCtx.lineWidth = 2.5;
+                proofCtx.beginPath();
+                proofCtx.moveTo(apx, apy);
+                proofCtx.lineTo(cxPos, cyPos);
+                proofCtx.stroke();
+
+                // 直径ラベル 2R
+                proofCtx.fillStyle = '#3b82f6';
+                proofCtx.font = 'bold 13px Inter, sans-serif';
+                proofCtx.fillText('直径 = 2R', cx - 45, cy - 12);
+
+                // 直角マーク (点 C)
+                const vCB = { x: bx - cxPos, y: by - cyPos };
+                const vCA = { x: apx - cxPos, y: apy - cyPos };
+                const lCB = Math.hypot(vCB.x, vCB.y);
+                const lCA = Math.hypot(vCA.x, vCA.y);
+                const uCB = { x: (vCB.x / lCB) * 16, y: (vCB.y / lCB) * 16 };
+                const uCA = { x: (vCA.x / lCA) * 16, y: (vCA.y / lCA) * 16 };
+                proofCtx.strokeStyle = '#10b981';
+                proofCtx.lineWidth = 1.5;
+                proofCtx.beginPath();
+                proofCtx.moveTo(cxPos + uCB.x, cyPos + uCB.y);
+                proofCtx.lineTo(cxPos + uCB.x + uCA.x, cyPos + uCB.y + uCA.y);
+                proofCtx.lineTo(cxPos + uCA.x, cyPos + uCA.y);
+                proofCtx.stroke();
+
+                // 角 A' のハイライト
+                const dirA_C = Math.atan2(cyPos - apy, cxPos - apx);
+                const dirA_B = Math.atan2(by - apy, bx - apx);
+
+                // 内角側を確実に描くための回転方向判定
+                let diffAPrime = dirA_B - dirA_C;
+                while (diffAPrime < -Math.PI) diffAPrime += 2 * Math.PI;
+                while (diffAPrime > Math.PI) diffAPrime -= 2 * Math.PI;
+                const anticlockwiseAPrime = diffAPrime < 0;
+
+                proofCtx.fillStyle = 'rgba(59, 130, 246, 0.25)';
+                proofCtx.beginPath();
+                proofCtx.moveTo(apx, apy);
+                proofCtx.arc(apx, apy, 32, dirA_C, dirA_B, anticlockwiseAPrime);
+                proofCtx.closePath();
+                proofCtx.fill();
+                proofCtx.strokeStyle = '#3b82f6';
+                proofCtx.lineWidth = 1.5;
+                proofCtx.stroke();
+
+                drawNode(proofCtx, apx, apy, "A' (= A)", '#3b82f6', 10, -6, textColor, isDark);
+            }
+
+            drawNode(proofCtx, bx, by, 'B', '#3b82f6', -16, 16, textColor, isDark);
+            drawNode(proofCtx, cxPos, cyPos, 'C (90°)', '#10b981', 12, 16, textColor, isDark);
+        }
+
+        // ================= 3. 実戦応用問題 (クイズロジック) =================
+        const quizData = [
+            {
+                question: "\\(\\triangle ABC\\) において、\\(A = 45^\\circ, a = 6\\) のとき、外接円の半径 \\(R\\) の値はいくつですか？",
+                options: [
+                    "\\(3\\)",
+                    "\\(3\\sqrt{2}\\)",
+                    "\\(6\\sqrt{2}\\)",
+                    "\\(12\\)"
+                ],
+                answer: 1,
+                explanation: "正弦定理より \\(\\frac{a}{\\sin A} = 2R\\) です。<br>\\(2R = \\frac{6}{\\sin 45^\\circ} = \\frac{6}{1/\\sqrt{2}} = 6\\sqrt{2}\\)<br>両辺を2で割って、\\(R = 3\\sqrt{2}\\) と求まります。"
+            },
+            {
+                question: "\\(\\triangle ABC\\) において、\\(A = 60^\\circ, B = 45^\\circ, a = \\sqrt{6}\\) のとき、辺 \\(b\\) の長さは？",
+                options: [
+                    "\\(2\\)",
+                    "\\(\\sqrt{3}\\)",
+                    "\\(2\\sqrt{2}\\)",
+                    "\\(\\sqrt{2}\\)"
+                ],
+                answer: 0,
+                explanation: "向かい合うペアが2組あるので \\(\\frac{a}{\\sin A} = \\frac{b}{\\sin B}\\) を使います。<br>\\(\\frac{\\sqrt{6}}{\\sin 60^\\circ} = \\frac{b}{\\sin 45^\\circ}\\)<br>\\(\\frac{\\sqrt{6}}{\\sqrt{3}/2} = \\frac{b}{1/\\sqrt{2}} \\implies 2\\sqrt{2} = b\\sqrt{2} \\implies b = 2\\) です。"
+            },
+            {
+                question: "\\(a = 5\\) で外接円の半径が \\(R = 5\\) のとき、角 \\(A\\)（\\(0^\\circ < A < 180^\\circ\\)）の大きさとして正しいものはどれですか？",
+                options: [
+                    "\\(30^\\circ\\) のみ",
+                    "\\(60^\\circ\\) または \\(120^\\circ\\)",
+                    "\\(30^\\circ\\) または \\(150^\\circ\\)",
+                    "\\(45^\\circ\\) または \\(135^\\circ\\)"
+                ],
+                answer: 2,
+                explanation: "正弦定理より \\(\\sin A = \\frac{a}{2R} = \\frac{5}{10} = \\frac{1}{2}\\) です。<br>\\(0^\\circ < A < 180^\\circ\\) の範囲で \\(\\sin A = \\frac{1}{2}\\) となるのは、鋭角の \\(30^\\circ\\) と鈍角の \\(150^\\circ\\) の2つがあります。"
+            },
+            {
+                question: "「2辺とその間の角」が与えられているとき、正弦定理ではなく『余弦定理』を使うべき理由はなぜですか？",
+                options: [
+                    "正弦定理は直角三角形にしか使えないから",
+                    "向かい合う「角と辺」のペアが1組も分かっておらず、比の等式が作れないから",
+                    "外接円の半径が常にゼロになるから",
+                    "余弦定理の方が常に計算が楽だから"
+                ],
+                answer: 1,
+                explanation: "正弦定理を使うには、少なくとも1つの「向かい合う角と辺のペア（\\(A\\) と \\(a\\) など）」が判明している必要があります。2辺と挟む角の場合はペアがないため、まず余弦定理で対辺を求めます。"
+            }
+        ];
+
+        let currentQuizIndex = 0;
+        let score = 0;
+
+        function loadQuiz() {
+            const q = quizData[currentQuizIndex];
+            document.getElementById('quizBadge').innerText = `問題 ${currentQuizIndex + 1} / ${quizData.length}`;
+            const qElem = document.getElementById('quizQuestion');
+            qElem.innerHTML = q.question;
+
+            const optContainer = document.getElementById('quizOptions');
+            optContainer.innerHTML = '';
+
+            q.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = "w-full text-left p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:border-blue-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition font-medium flex items-center justify-between text-slate-700 dark:text-slate-200 text-sm";
+                btn.innerHTML = `<span>${opt}</span><i class="fa-solid fa-chevron-right text-slate-400 text-xs"></i>`;
+                btn.onclick = () => selectQuizAnswer(idx);
+                optContainer.appendChild(btn);
+            });
+
+            document.getElementById('feedbackContainer').classList.add('hidden');
+            document.getElementById('quizContainer').classList.remove('hidden');
+
+            renderMath(qElem);
+            renderMath(optContainer);
+        }
+
+        function selectQuizAnswer(selectedIndex) {
+            const q = quizData[currentQuizIndex];
+            const feedbackContainer = document.getElementById('feedbackContainer');
+            const feedbackTitle = document.getElementById('feedbackTitle');
+            const feedbackBody = document.getElementById('feedbackBody');
+
+            document.getElementById('quizContainer').classList.add('hidden');
+            feedbackContainer.classList.remove('hidden');
+
+            if (selectedIndex === q.answer) {
+                score++;
+                feedbackTitle.innerHTML = '<span class="text-emerald-500 font-bold"><i class="fa-solid fa-circle-check mr-1.5"></i> 正解！その通りです</span>';
+            } else {
+                feedbackTitle.innerHTML = '<span class="text-rose-500 font-bold"><i class="fa-solid fa-circle-xmark mr-1.5"></i> 惜しい！不正解です</span>';
+            }
+            feedbackBody.innerHTML = q.explanation;
+
+            renderMath(feedbackBody);
+
+            if (currentQuizIndex === quizData.length - 1) {
+                feedbackContainer.querySelector('button').innerHTML = '結果を見る <i class="fa-solid fa-flag-checkered ml-1"></i>';
+            } else {
+                feedbackContainer.querySelector('button').innerHTML = '次の問題へ <i class="fa-solid fa-arrow-right ml-1"></i>';
+            }
+        }
+
+        function nextQuiz() {
+            currentQuizIndex++;
+            if (currentQuizIndex < quizData.length) {
+                loadQuiz();
+            } else {
+                document.getElementById('feedbackContainer').classList.add('hidden');
+                document.getElementById('quizComplete').classList.remove('hidden');
+                document.getElementById('quizScoreText').innerText = `${quizData.length} 問中 ${score} 問 正解しました！`;
+            }
+        }
+
+        function restartQuiz() {
+            currentQuizIndex = 0;
+            score = 0;
+            document.getElementById('quizComplete').classList.add('hidden');
+            loadQuiz();
+        }
+
+        // 初期化実行
+        window.onload = function() {
+            if (window.renderMathInElement) {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        { left: '$$', right: '$$', display: true },
+                        { left: '$', right: '$', display: false },
+                        { left: '\\(', right: '\\)', display: false },
+                        { left: '\\[', right: '\\]', display: true }
+                    ],
+                    throwOnError: false
+                });
+            }
+            resizeCanvas();
+            drawSineModel();
+            resizeProofCanvas();
+            setProofStep(1);
+            loadQuiz();
+        };
+    </script>
+</body>
+</html>

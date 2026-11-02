@@ -1,0 +1,2524 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>数検3級 見て・触って納得！なぜ？がわかる数学実験ラボ</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;500;700;800&display=swap" rel="stylesheet">
+  <!-- KaTeX for formal mathematical notation -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <style>
+    body {
+      font-family: 'M PLUS Rounded 1c', sans-serif;
+      background-color: #f0fdf4;
+      color: #1e293b;
+    }
+    .katex {
+      font-size: 1.08em;
+    }
+    .katex-display {
+      margin: 0.4em 0;
+    }
+    .card-shadow {
+      box-shadow: 0 10px 25px -5px rgba(16, 185, 129, 0.12), 0 8px 10px -6px rgba(16, 185, 129, 0.08);
+    }
+    .pop-btn {
+      transition: all 0.15s ease;
+    }
+    .pop-btn:active {
+      transform: translateY(2px);
+    }
+    input[type="range"] {
+      accent-color: #059669;
+    }
+    .custom-scroll::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 9999px;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- Top Header -->
+  <header class="bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 text-white shadow-lg sticky top-0 z-30">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center text-2xl shadow-inner">
+          🌱
+        </div>
+        <div>
+          <span class="text-xs font-bold tracking-wider uppercase bg-amber-400 text-slate-900 px-2 py-0.5 rounded-full">数学検定3級 間違い直し対応（全15問）</span>
+          <h1 class="text-lg md:text-xl font-extrabold tracking-tight mt-0.5">見て・触って納得！「なぜ？」がわかる数学実験ラボ</h1>
+        </div>
+      </div>
+
+      <!-- Progress Bar & Stamps -->
+      <div class="flex items-center gap-4 bg-white/15 backdrop-blur px-4 py-2 rounded-2xl">
+        <div class="text-xs md:text-sm">
+          <div class="flex items-center justify-between gap-2 font-bold">
+            <span>🌟 マスター達成度</span>
+            <span id="progressText" class="text-amber-300 font-extrabold">0 / 15 問クリア</span>
+          </div>
+          <div class="w-36 md:w-48 h-2.5 bg-white/25 rounded-full overflow-hidden mt-1">
+            <div id="progressBar" class="h-full bg-amber-400 transition-all duration-500" style="width: 0%"></div>
+          </div>
+        </div>
+        <button onclick="resetProgress()" class="text-xs bg-white/20 hover:bg-white/30 px-2.5 py-1.5 rounded-xl font-bold transition" title="進捗をリセット">
+          リセット
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Layout -->
+  <div class="max-w-7xl w-full mx-auto flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6 p-4 md:p-6">
+
+    <!-- Left Sidebar: Question Selector (問1 ~ 問15) -->
+    <aside class="lg:col-span-3 flex flex-col gap-3">
+      <div class="bg-white rounded-3xl p-4 card-shadow border border-emerald-100">
+        <h2 class="text-sm font-extrabold text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+          <span>🧭</span> 間違えた問題を選ぼう（問1〜15）
+        </h2>
+        <div id="navList" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-1 gap-2 max-h-[65vh] lg:max-h-[72vh] overflow-y-auto custom-scroll pr-1">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+      <!-- Owl Guide Box -->
+      <div class="bg-gradient-to-br from-amber-50 to-orange-50 rounded-3xl p-4 border border-amber-200 shadow-sm flex items-start gap-3">
+        <div class="text-3xl select-none">🦉</div>
+        <div class="text-xs leading-relaxed text-amber-900">
+          <p class="font-extrabold text-sm mb-1">フクロウ先生のアドバイス</p>
+          <p id="owlMessage">公式を丸暗記するのではなく、「なぜその操作をするのか」を実験ラボで動かして確かめてみよう！納得してからクイズを解くと力がグンと伸びるよ！</p>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Right Main Panel -->
+    <main class="lg:col-span-9 flex flex-col gap-6">
+
+      <!-- Topic Title & Mistake vs Essence Banner -->
+      <section class="bg-white rounded-3xl p-5 md:p-6 card-shadow border border-emerald-100">
+        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-4 mb-4">
+          <div class="flex items-center gap-3">
+            <span id="topicBadge" class="px-3.5 py-1.5 rounded-2xl bg-emerald-600 text-white font-extrabold text-sm md:text-base shadow-sm">
+              問1
+            </span>
+            <h2 id="topicTitle" class="text-xl md:text-2xl font-extrabold text-slate-800">
+              正負の数
+            </h2>
+          </div>
+          <span id="topicClearBadge" class="hidden px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 font-extrabold text-xs items-center gap-1">
+            ✅ クイズクリア済み！
+          </span>
+        </div>
+
+        <!-- Common Trap vs Key Insight -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="bg-rose-50/80 border border-rose-200 rounded-2xl p-4 flex items-start gap-3">
+            <span class="text-2xl select-none">💥</span>
+            <div>
+              <div class="text-xs font-extrabold text-rose-600 uppercase tracking-wider">よくあるワナ（間違いやすい所）</div>
+              <p id="topicMistake" class="text-sm font-bold text-rose-950 mt-1"></p>
+            </div>
+          </div>
+          <div class="bg-emerald-50/80 border border-emerald-200 rounded-2xl p-4 flex items-start gap-3">
+            <span class="text-2xl select-none">💡</span>
+            <div>
+              <div class="text-xs font-extrabold text-emerald-600 uppercase tracking-wider">何が変わる？なぜこうする？（本質ポイント）</div>
+              <p id="topicEssence" class="text-sm font-bold text-emerald-950 mt-1"></p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Tabs: 1. 触って実験ラボ / 2. なぜ？理解＆実践クイズ -->
+      <div class="flex gap-2">
+        <button id="tabSimBtn" onclick="switchTab('sim')" class="flex-1 py-3.5 px-4 rounded-2xl font-extrabold text-sm md:text-base transition flex items-center justify-center gap-2 bg-emerald-600 text-white shadow-md">
+          <span>🔬</span> ステップ1：触って納得！実験ラボ
+        </button>
+        <button id="tabQuizBtn" onclick="switchTab('quiz')" class="flex-1 py-3.5 px-4 rounded-2xl font-extrabold text-sm md:text-base transition flex items-center justify-center gap-2 bg-white text-slate-600 hover:bg-emerald-50 border border-emerald-100">
+          <span>🎯</span> ステップ2：理解度チェッククイズ（4問）
+        </button>
+      </div>
+
+      <!-- TAB 1: Interactive Simulator Container -->
+      <section id="simSection" class="bg-white rounded-3xl p-5 md:p-7 card-shadow border border-emerald-100">
+        <div id="simulatorMount"></div>
+
+        <!-- Bottom CTA to go to Quiz -->
+        <div class="mt-8 pt-5 border-t border-slate-100 flex flex-wrap items-center justify-between gap-4">
+          <div class="text-sm text-slate-600 font-medium">
+            💡 実験で「なぜそうなるか」がわかったら、クイズで理解度をチェックしよう！
+          </div>
+          <button onclick="switchTab('quiz')" class="pop-btn bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-extrabold px-6 py-3 rounded-2xl shadow-md flex items-center gap-2">
+            <span>理解度チェッククイズに挑戦する</span>
+            <span>➔</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- TAB 2: Interactive Quiz Container -->
+      <section id="quizSection" class="hidden bg-white rounded-3xl p-5 md:p-7 card-shadow border border-emerald-100">
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-6">
+          <div>
+            <h3 class="text-lg md:text-xl font-extrabold text-slate-800 flex items-center gap-2">
+              <span>🎯</span> 理解度チェック＆実践クイズ
+            </h3>
+            <p class="text-xs md:text-sm text-slate-500 mt-0.5">
+              「なぜその方法を使うのか」の理解と、確認類題の計算チェックです（4問中3問以上正解でクリア🌟）
+            </p>
+          </div>
+          <div id="quizScoreBadge" class="bg-emerald-50 text-emerald-700 font-extrabold px-4 py-2 rounded-2xl text-sm">
+            現在の正解数: 0 / 4
+          </div>
+        </div>
+
+        <div id="quizMount" class="space-y-6"></div>
+
+        <div class="mt-8 pt-5 border-t border-slate-100 flex flex-wrap items-center justify-between gap-4">
+          <button onclick="switchTab('sim')" class="pop-btn bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-5 py-2.5 rounded-2xl text-sm">
+            ← 実験ラボに戻って確認する
+          </button>
+          <button onclick="nextTopic()" class="pop-btn bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold px-6 py-3 rounded-2xl shadow-md text-sm flex items-center gap-2">
+            <span>次の問題へ進む</span>
+            <span>➔</span>
+          </button>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <script>
+    // Helper function to render formal LaTeX math via KaTeX
+    function renderMath(el = document.body) {
+      if (window.renderMathInElement) {
+        window.renderMathInElement(el, {
+          delimiters: [
+            { left: '$$', right: '$$', display: true },
+            { left: '$', right: '$', display: false }
+          ],
+          throwOnError: false
+        });
+      }
+    }
+
+    // =========================================================================
+    // DATA FOR ALL 15 QUESTIONS (Grade 3 Simulators + Concept & Practice Quizzes)
+    // =========================================================================
+    const TOPICS = [
+      {
+        id: 1,
+        badge: "問1",
+        title: "正負の数の四則計算",
+        shortTitle: "正負の数",
+        mistake: "左から順番に足し算・引き算をしてしまう。また「$-(-8)$」の符号で迷ってしまう。",
+        essence: "①「かけ算・わり算」は1つの強い塊なので足し算・引き算より先に計算します！②「負の数を引く ($-(-8)$)」は後ろ向きにバック（結果として前へ進む $+8$）と同じです。",
+        owlTip: "式を見たら、まず「$\\times$」や「$\\div$」の塊にアンダーラインを引こう！そこを先に計算するとミスが激減するよ。",
+        quizzes: [
+          {
+            type: "なぜ？理解",
+            q: "$-6 + 2 \\times (-5) - (-8)$ を計算するとき、最初に「$-6 + 2$」を計算してはいけないのはなぜですか？",
+            options: [
+              "$2$ は後ろの $(-5)$ と掛け算で強く結びついており、加減より乗除（かけ算・わり算）を先に計算する約束だから",
+              "負の数と正の数は足し算できないから",
+              "一番右の引き算から順番に計算する決まりだから"
+            ],
+            correct: 0,
+            hint: "「$-6$」と「$2 \\times (-5)$」と「$-(-8)$」の3つのパーツに分けて考えてみよう！",
+            explanation: "正解！かけ算・わり算は1つのまとまりを表すので、足し算・引き算より先に $2 \\times (-5) = -10$ を計算します。"
+          },
+          {
+            type: "なぜ？理解",
+            q: "数直線で考えるとき、「$-(-8)$（マイナスの数を引く）」が「$+8$（プラスを足す）」と同じになるのはなぜですか？",
+            options: [
+              "「マイナス（左向き）」の「逆向き（引く）」に進むので、反対の右向き（プラス方向）へ $8$ 進むことになるから",
+              "カッコがついている数はすべてプラスに変える決まりだから",
+              "$8$ が偶数だから"
+            ],
+            correct: 0,
+            hint: "「借金（マイナス）が減る（引く）」と、所持金はどうなるかイメージしてもわかりやすいよ！",
+            explanation: "その通り！反対向きのさらに反対向きなので、$-(-8) = +8$ とプラス方向に進みます。"
+          },
+          {
+            type: "実践チェック",
+            q: "【類題1】$-6 + 2 \\times (-5) - (-8)$ を計算すると答えはいくつになりますか？",
+            options: [
+              "$-8$",
+              "$-24$",
+              "$12$"
+            ],
+            correct: 0,
+            hint: "まず $2 \\times (-5) = -10$、さらに $-(-8) = +8$ です。$-6 - 10 + 8$ を計算しよう！",
+            explanation: "大正解！$-6 - 10 + 8 = -16 + 8 = -8$ です！"
+          },
+          {
+            type: "実践チェック",
+            q: "【類題4】$-5 - (-7) + 2 \\times (-4)$ を計算すると答えはいくつになりますか？",
+            options: [
+              "$-6$",
+              "$-20$",
+              "$16$"
+            ],
+            correct: 0,
+            hint: "$-(-7) = +7$、そして $2 \\times (-4) = -8$ です。$-5 + 7 - 8$ はいくつかな？",
+            explanation: "バッチリ！$-5 + 7 - 8 = 2 - 8 = -6$ になります。"
+          }
+        ]
+      },
+      {
+        id: 2,
+        badge: "問2",
+        title: "平方根の計算（変形と加減）",
+        shortTitle: "平方根",
+        mistake: "$\\sqrt{12} = 6$ のように半分にしてしまう。また $\\sqrt{2} + \\sqrt{3} = \\sqrt{5}$ のように異なる根号の中身をそのまま足してしまう。",
+        essence: "$\\sqrt{a}$ は「2乗すると $a$ になる正の数」！根号の中に $2^2=4, 3^2=9, 4^2=16, 5^2=25$ などの「2乗のペア」があれば根号の外へ出し、同じ種類の根号だけをまとめます。",
+        owlTip: "$\\sqrt{48} + \\sqrt{27}$ は、見た目が違ってもペアを外に出すと「$4\\sqrt{3} + 3\\sqrt{3}$」になって、同じ $\\sqrt{3}$ の仲間だとわかるよ！",
+        quizzes: [
+          {
+            type: "なぜ？理解",
+            q: "$\\sqrt{48}$ を $a\\sqrt{b}$ の形に変形するとき、$\\sqrt{48} = \\sqrt{16 \\times 3} = 4\\sqrt{3}$ とできるのはなぜですか？",
+            options: [
+              "$48$ の中に「$16$（つまり $4^2$）」という2乗の数が隠れており、$\\sqrt{4^2} = 4$ として根号の外に出せるから",
+              "$48$ を $12$ で割ると $4$ になるから",
+              "$48$ の十の位が $4$ で、$4 + 8 = 12$ を $4$ で割ると $3$ になるから"
+            ],
+            correct: 0,
+            hint: "根号 $\\sqrt{\\phantom{a}}$ は「2乗するとその数になる」記号なので、中で2乗になっている数は外に出られます！",
+            explanation: "大正解！$\\sqrt{16 \\times 3} = \\sqrt{4^2} \\times \\sqrt{3} = 4\\sqrt{3}$ となります。"
+          },
+          {
+            type: "なぜ？理解",
+            q: "$4\\sqrt{3} + 3\\sqrt{3} = 7\\sqrt{3}$ と計算できるのに、$\\sqrt{2} + \\sqrt{3}$ はこれ以上まとめられないのはなぜですか？",
+            options: [
+              "$4\\sqrt{3} + 3\\sqrt{3}$ は同じ「$\\sqrt{3}$ という塊」が $4$ 個と $3$ 個で計 $7$ 個になるが、$\\sqrt{2}$ と $\\sqrt{3}$ は塊の大きさが違う（文字式の $x$ と $y$ のようなものだ）から",
+              "$2$ と $3$ が素数だから",
+              "足し算のときは根号の中身が奇数のときしか足せないから"
+            ],
+            correct: 0,
+            hint: "文字式で $4x + 3x = 7x$ にはできるけれど、$x + y$ はまとめられないのと同じ仕組みだよ！",
+            explanation: "その通り！根号の中の数字が同じもの同士だけが「同類項」のように前の数字を足し引きできます。"
+          },
+          {
+            type: "実践チェック",
+            q: "【類題2】$\\sqrt{50} - \\sqrt{8}$ を計算するとどうなりますか？",
+            options: [
+              "$3\\sqrt{2}$",
+              "$\\sqrt{42}$",
+              "$21\\sqrt{2}$"
+            ],
+            correct: 0,
+            hint: "$\\sqrt{50} = \\sqrt{25 \\times 2} = 5\\sqrt{2}$、$\\sqrt{8} = \\sqrt{4 \\times 2} = 2\\sqrt{2}$ です！",
+            explanation: "正解！$5\\sqrt{2} - 2\\sqrt{2} = 3\\sqrt{2}$ となります。"
+          },
+          {
+            type: "実践チェック",
+            q: "【類題3】$\\sqrt{75} + \\sqrt{12} - \\sqrt{3}$ を計算するとどうなりますか？",
+            options: [
+              "$6\\sqrt{3}$",
+              "$7\\sqrt{3}$",
+              "$5\\sqrt{3}$"
+            ],
+            correct: 0,
+            hint: "$\\sqrt{75} = 5\\sqrt{3}$、$\\sqrt{12} = 2\\sqrt{3}$ です。最後の $-\\sqrt{3}$ は「$-1\\sqrt{3}$」のことなので忘れずに $1$ を引こう！",
+            explanation: "バッチリ！$5\\sqrt{3} + 2\\sqrt{3} - 1\\sqrt{3} = (5 + 2 - 1)\\sqrt{3} = 6\\sqrt{3}$ です！"
+          }
+        ]
+      },
+      {
+        id: 3,
+        badge: "問3",
+        title: "文字式の計算（分配法則）",
+        shortTitle: "文字式と分配法則",
+        mistake: "$-2(x + 4y)$ や $-(2a - 5b)$ のようにカッコの前がマイナスのとき、後ろの項にマイナスを掛け忘れて符号を間違える。",
+        essence: "カッコの前の数は「カッコの中の全員へのプレゼント」！特にマイナスの数を配るときは、カッコの中の【すべての項の符号が逆転】します。",
+        owlTip: "後ろの項に矢印をかいて、「マイナス $\\times$ マイナス $= $ プラス！」と声に出して確認すると絶対に間違えないよ！",
+        quizzes: [
+          {
+            type: "なぜ？理解",
+            q: "$4(3a + b) - (2a - 5b)$ の後半「$-(2a - 5b)$」のカッコを外すと、「$-2a + 5b$」と $5b$ の前がプラスになるのはなぜですか？",
+            options: [
+              "カッコの前の「$-$」は「$-1$」をカッコの中のすべての項に掛ける意味なので、$(-1) \\times (-5b) = +5b$ になるから",
+              "文字 $b$ の前はいつでもプラスにする決まりだから",
+              "前のカッコが $+b$ だからそれに合わせてプラスになるから"
+            ],
+            correct: 0,
+            hint: "「$-(2a - 5b)$」は「$-1 \\times (2a - 5b)$」と同じです。$-1$ を $-5b$ にも配ると…？",
+            explanation: "大正解！$-1$ を $2a$ と $-5b$ の両方に分配するため、$-2a + 5b$ になります。"
+          },
+          {
+            type: "なぜ？理解",
+            q: "カッコを外したあとの式「$6x - 3y - 2x - 8y$」を整理するとき、どのようにまとめますか？",
+            options: [
+              "同じ文字の項（同類項）である「$6x - 2x$」と「$-3y - 8y$」をそれぞれ計算して $4x - 11y$ にする",
+              "$x$ と $y$ の数字を全部合わせて $-7xy$ にする",
+              "引き算なので $3y$ と $8y$ を引いて $-5y$ にする"
+            ],
+            correct: 0,
+            hint: "$x$ のグループと $y$ のグループに色分けして集めよう！$-3y$ と $-8y$ は同じマイナス同士です。",
+            explanation: "その通り！$x$ 同士で $6x - 2x = 4x$、$y$ 同士で $-3y - 8y = -11y$ となります。"
+          },
+          {
+            type: "実践チェック",
+            q: "【類題3】$4(3a + b) - (2a - 5b)$ を計算するとどうなりますか？",
+            options: [
+              "$10a + 9b$",
+              "$10a - b$",
+              "$14a + 9b$"
+            ],
+            correct: 0,
+            hint: "カッコを外すと $12a + 4b - 2a + 5b$ になります！",
+            explanation: "正解！$12a - 2a = 10a$、$4b + 5b = 9b$ で、答えは $10a + 9b$ です。"
+          },
+          {
+            type: "実践チェック",
+            q: "【類題4】$-2(3x - 4y) + 5(x - y)$ を計算するとどうなりますか？",
+            options: [
+              "$-x + 3y$",
+              "$-x - 13y$",
+              "$x + 3y$"
+            ],
+            correct: 0,
+            hint: "$-2 \\times (-4y) = +8y$ です！$-6x + 8y + 5x - 5y$ をまとめよう。",
+            explanation: "バッチリ！$-6x + 5x = -x$、$8y - 5y = +3y$ なので、答えは $-x + 3y$ です！"
+          }
+        ]
+      },
+      {
+        id: 4,
+        badge: "問4",
+        title: "式の展開（4つの積）",
+        shortTitle: "式の展開",
+        mistake: "$(x + 2)(x + 7)$ で、最初の $x^2$ と最後の $+14$ だけ書いて真ん中の項を忘れたり、符号の掛け算を間違える。",
+        essence: "$(a + b)(c + d)$ はタテ $(a + b)$、ヨコ $(c + d)$ の長方形の面積！4つの部屋（$ac + ad + bc + bd$）が必ず生まれ、真ん中の2つの部屋を足し合わせます。",
+        owlTip: "実験ラボの4つの部屋を見てごらん！どの2つの部屋が同類項として合体するか一目でわかるよ。",
+        quizzes: [
+          {
+            type: "なぜ？理解",
+            q: "$(2x + 1)(x - 3)$ を展開するとき、最初にいくつの掛け算の項が出てきますか？",
+            options: [
+              "$2x \\times x$、$2x \\times (-3)$、$1 \\times x$、$1 \\times (-3)$ の4つの項が出てきて、真ん中の $-6x$ と $+x$ がまとまる",
+              "$2x \\times x$ と $1 \\times (-3)$ の2つの項だけが出てくる",
+              "全部で3つの項が最初から出てくる"
+            ],
+            correct: 0,
+            hint: "前のカッコの2項それぞれから、後ろのカッコの2項へ矢印が2本ずつ（計4本）伸びます！",
+            explanation: "正解！$2x^2 - 6x + x - 3$ の4つの積が生まれ、同類項の $-6x + x = -5x$ をまとめて $2x^2 - 5x - 3$ になります。"
+          },
+          {
+            type: "なぜ？理解",
+            q: "$(2a - 3)(3a - 1)$ を展開したとき、最後の定数項が「$+3$」になるのはなぜですか？",
+            options: [
+              "$(-3) \\times (-1)$ と負の数どうしの掛け算になるから",
+              "$-3$ と $-1$ を足してプラスにする決まりだから",
+              "前の $6a^2$ がプラスだから"
+            ],
+            correct: 0,
+            hint: "項を取り出すときは前の符号もセットにします。「$-3$」と「$-1$」を掛けると…？",
+            explanation: "その通り！$(-3) \\times (-1) = +3$ です。真ん中は $-2a - 9a = -11a$ となります。"
+          },
+          {
+            type: "実践チェック",
+            q: "【類題3】$(3x - 2)(x + 4)$ を展開するとどうなりますか？",
+            options: [
+              "$3x^2 + 10x - 8$",
+              "$3x^2 + 14x - 8$",
+              "$3x^2 - 10x - 8$"
+            ],
+            correct: 0,
+            hint: "$3x^2 + 12x - 2x - 8$ になります。$+12x - 2x$ をまとめると？",
+            explanation: "大正解！$3x^2 + 10x - 8$ です！"
+          },
+          {
+            type: "実践チェック",
+            q: "【類題5】$(2a - 3)(3a - 1)$ を展開するとどうなりますか？",
+            options: [
+              "$6a^2 - 11a + 3$",
+              "$6a^2 - 7a - 3$",
+              "$6a^2 + 11a + 3$"
+            ],
+            correct: 0,
+            hint: "$6a^2 - 2a - 9a + 3$ です。$-2a$ と $-9a$ を合わせよう！",
+            explanation: "バッチリ！$6a^2 - 11a + 3$ となります。"
+          }
+        ]
+      },
+      {
+        id: 5,
+        badge: "問5",
+        title: "因数分解（和と積のパズル）",
+        shortTitle: "因数分解",
+        mistake: "掛けて定数項になるペアを1つ見つけただけで答えにしてしまい、足して真ん中の係数になるか確かめない。",
+        essence: "$x^2 + (p+q)x + pq = (x+p)(x+q)$ は展開の逆再生！まず「掛けて後ろの数 $pq$ になるペア」を候補として挙げ、その中から「足して真ん中の数 $(p+q)$ になるペア」を選びます。",
+        owlTip: "積がプラスで和がマイナス（例：$x^2 - 9x + 20$）のときは、「マイナス $\\times$ マイナス」のペアを探せばいいんだね！",
+        quizzes: [
+          {
+            type: "なぜ？理解",
+            q: "$x^2 - 9x + 20$ を因数分解するとき、掛けて $+20$ になる2つの数の符号はどうなりますか？",
+            options: [
+              "掛けてプラス（$+20$）、足してマイナス（$-9$）なので、2つとも「負の数（マイナスとマイナス）」になる",
+              "1つが正の数、もう1つが負の数になる",
+              "2つとも正の数になる"
+            ],
+            correct: 0,
+            hint: "2つの数を掛けてプラスになるのは「正×正」か「負×負」です。さらに足してマイナス（$-9$）になるのはどっち？",
+            explanation: "大正解！$(-4) \\times (-5) = +20$、$(-4) + (-5) = -9$ なので、$(x - 4)(x - 5)$ となります。"
+          },
+          {
+            type: "なぜ？理解",
+            q: "$x^2 - 2x - 15$ を因数分解するとき、「$(x - 3)(x + 5)$」と「$(x - 5)(x + 3)$」のどちらが正しいかはどうやって見分けますか？",
+            options: [
+              "2つの数を足したときに真ん中の係数「$-2$」になる方（$-5 + 3 = -2$）を選ぶ",
+              "いつでも大きい数字の方にプラスをつける",
+              "どちらも同じなので好きな方を選ぶ"
+            ],
+            correct: 0,
+            hint: "掛けて $-15$ になるペアのうち、足して $-2$ になるのは「$-5$ と $+3$」かな？それとも「$-3$ と $+5$」かな？",
+            explanation: "その通り！$-5 + 3 = -2$ なので、$(x - 5)(x + 3)$ が正解です。最後に頭の中で展開して確かめると完璧です！"
+          },
+          {
+            type: "実践チェック",
+            q: "【類題4】$x^2 + x - 12$ を因数分解するとどうなりますか？",
+            options: [
+              "$(x + 4)(x - 3)$",
+              "$(x - 4)(x + 3)$",
+              "$(x + 6)(x - 2)$"
+            ],
+            correct: 0,
+            hint: "掛けて $-12$、足して $+1$（$x$ の前の係数は $1$）になる2つの数を探そう！",
+            explanation: "正解！$4 \\times (-3) = -12$、$4 + (-3) = +1$ なので $(x + 4)(x - 3)$ です。"
+          },
+          {
+            type: "実践チェック",
+            q: "【類題5】$x^2 - 11x + 30$ を因数分解するとどうなりますか？",
+            options: [
+              "$(x - 5)(x - 6)$",
+              "$(x + 5)(x + 6)$",
+              "$(x - 3)(x - 10)$"
+            ],
+            correct: 0,
+            hint: "掛けて $+30$、足して $-11$ になる負の数のペアは？",
+            explanation: "バッチリ！$(-5) \\times (-6) = 30$、$(-5) + (-6) = -11$ より $(x - 5)(x - 6)$ です！"
+          }
+        ]
+      },
+      {
+        id: 6,
+        badge: "問6",
+        title: "一次方程式と天秤のつり合い",
+        shortTitle: "一次方程式",
+        mistake: "イコールを飛び越えて移項するときに符号を変え忘れる。または左辺と右辺の片方だけに操作をしてしまう。",
+        essence: "方程式は「左右がつり合った天秤（てんびん）」！移項して符号が変わるのは暗記ではなく、「天秤の両皿から同じものを引いた（または足した）結果」として反対側に現れているからです。",
+        owlTip: "答えの $x$ が出たら、元の式の左辺と右辺に代入してみよう！同じ数になれば100%正解だと確信できるよ。",
+        quizzes: [
+          {
+            type: "なぜ？理解",
+            q: "$5x - 7 = 2x + 8$ を変形して $5x - 2x = 8 + 7$ とできる（移項すると符号が逆になる）本当の理由は何ですか？",
+            options: [
+              "等式の両辺から同じ $2x$ を引き、さらに両辺に同じ $7$ を足すことで、左辺の $-7$ と右辺の $2x$ を打ち消した結果だから",
+              "イコールをまたぐと数字の性質が変わる魔法だから",
+              "引き算よりも足し算を右側に集めるルールだから"
+            ],
+            correct: 0,
+            hint: "実験ラボの天秤で、左辺の「$-7$」を消すために両方の皿に何を足したか思い出してみよう！",
+            explanation: "大正解！両辺に $+7$ をすると左辺は $-7 + 7 = 0$ で消え、右辺に $+7$ が現れます。これが移項の正体です。"
+          },
+          {
+            type: "なぜ？理解",
+            q: "$2(3x - 2) = 4x + 10$ を解くとき、最初に行う正しい手順はどれですか？",
+            options: [
+              "左辺の $2$ をカッコの中の $3x$ と $-2$ の両方に分配して $6x - 4 = 4x + 10$ にする",
+              "左辺を $6x - 2 = 4x + 10$ にする",
+              "いきなり $3x$ と $4x$ を足す"
+            ],
+            correct: 0,
+            hint: "カッコがある一次方程式は、まず分配法則でカッコを外してから整理します！",
+            explanation: "その通り！$6x - 4 = 4x + 10 \\implies 2x = 14 \\implies x = 7$ と解けます。"
+          },
+          {
+            type: "実践チェック",
+            q: "【類題2】$5x - 7 = 2x + 8$ を解くと、$x$ の値はいくつですか？",
+            options: [
+              "$x = 5$",
+              "$x = \\dfrac{1}{3}$",
+              "$x = 3$"
+            ],
+            correct: 0,
+            hint: "$5x - 2x = 8 + 7$ なので $3x = 15$ になります！",
+            explanation: "正解！$3x = 15$ の両辺を $3$ で割って $x = 5$ です。"
+          },
+          {
+            type: "実践チェック",
+            q: "【類題5】$2(2x - 1) + 3 = x + 10$ を解くと、$x$ の値はいくつですか？",
+            options: [
+              "$x = 3$",
+              "$x = 2$",
+              "$x = 4$"
+            ],
+            correct: 0,
+            hint: "左辺を展開すると $4x - 2 + 3 = 4x + 1$ です。$4x + 1 = x + 10$ を解こう！",
+            explanation: "バッチリ！$4x - x = 10 - 1 \\implies 3x = 9 \\implies x = 3$ です！"
+          }
+        ]
+      },
+      {
+        id: 7,
+        badge: "問7",
+        title: "連立方程式（加減法と交点）",
+        shortTitle: "連立方程式",
+        mistake: "2つの式を引くときに下の式の符号を変え忘れる。また $x$ だけ求めて $y$ を出し忘れる。",
+        essence: "文字が2つ（$x, y$）あるままでは解けないので、2つの式を足したり引いたりして【1つの文字を消去】します！グラフで見ると、2本の直線が交わる1点 $(x, y)$ を探しています。",
+        owlTip: "消したい文字の符号が「$+y$ と $-y$（反対）」なら2式を【足す】、「$+y$ と $+y$（同じ）」なら2式を【引く】と消えるよ！",
+        quizzes: [
+          {
+            type: "なぜ？理解",
+            q: "連立方程式 $\\begin{cases} x + y = 9 \\\\ x - y = 3 \\end{cases}$ で、上の式と下の式を「足し算」するのはなぜですか？",
+            options: [
+              "$+y$ と $-y$ を足すと $0$ になって文字 $y$ が消え、$x$ だけの一次方程式（$2x = 12$）を作れるから",
+              "連立方程式はいつでも2つの式を足す決まりだから",
+              "$9$ と $3$ を足すと計算しやすい数になるから"
+            ],
+            correct: 0,
+            hint: "2種類の文字が混ざっていると値が決まりません。1種類の文字だけにするにはどうすればいいかな？",
+            explanation: "大正解！$+y + (-y) = 0$ で $y$ が消去でき、$2x = 12 \\implies x = 6$ がすぐに求まります。さらに $6 + y = 9$ より $y = 3$ となります。"
+          },
+          {
+            type: "なぜ？理解",
+            q: "連立方程式 $\\begin{cases} x + 2y = 11 \\\\ x - y = 2 \\end{cases}$ で、上の式から下の式を「引き算」すると、$y$ の項はどうなりますか？",
+            options: [
+              "$2y - (-y) = 2y + y = 3y$ になる（結果：$3y = 9$）",
+              "$2y - y = y$ になる（結果：$y = 9$）",
+              "$x$ も $y$ も消えてしまう"
+            ],
+            correct: 0,
+            hint: "下の式の「$-y$」を引くので、「$-(-y) = +y$」になります！",
+            explanation: "超重要ポイント！引き算をするときは下の式の符号が反転するので、$2y - (-y) = 3y$、右辺は $11 - 2 = 9$ となり、$3y = 9 \\implies y = 3$ です。"
+          },
+          {
+            type: "実践チェック",
+            q: "【類題2】連立方程式 $\\begin{cases} 2x + y = 13 \\\\ x + y = 8 \\end{cases}$ の解はどれですか？",
+            options: [
+              "$x = 5,\\quad y = 3$",
+              "$x = 3,\\quad y = 5$",
+              "$x = 5,\\quad y = 8$"
+            ],
+            correct: 0,
+            hint: "上の式から下の式を引くと、$+y$ が消えていきなり $x = 13 - 8$ が出ます！",
+            explanation: "正解！$x = 5$ となり、$5 + y = 8$ に戻して $y = 3$ です。"
+          },
+          {
+            type: "実践チェック",
+            q: "【類題5】連立方程式 $\\begin{cases} 2x - y = 5 \\\\ x + y = 10 \\end{cases}$ の解はどれですか？",
+            options: [
+              "$x = 5,\\quad y = 5$",
+              "$x = 3,\\quad y = 7$",
+              "$x = 5,\\quad y = -5$"
+            ],
+            correct: 0,
+            hint: "$-y$ と $+y$ なので、2つの式を足し算すると $3x = 15$ になります！",
+            explanation: "バッチリ！$3x = 15 \\implies x = 5$、そして $5 + y = 10 \\implies y = 5$ です！"
+          }
+        ]
+      },
+      {
+        id: 8,
+        badge: "問8",
+        title: "二次方程式（因数分解と解）",
+        shortTitle: "二次方程式",
+        mistake: "$(x - 2)(x - 3) = 0$ まで因数分解しただけで終わってしまったり、符号をそのまま読んで $x = -2, -3$ としてしまう。",
+        essence: "「$A \\times B = 0$」になるのは「$A = 0$ のとき」または「$B = 0$ のとき」！カッコの中を $0$ にする $x$ を考えるから、カッコの中の数字と逆の符号が解になります。",
+        owlTip: "$x^2 - 9 = 0$ のような式も、$(x - 3)(x + 3) = 0$（または $x^2 = 9$）から、プラスの $3$ とマイナスの $-3$ の2つの解が出ることを忘れないでね！",
+        quizzes: [
+          {
+            type: "なぜ？理解",
+            q: "$x^2 - 5x + 6 = 0$ を因数分解して $(x - 2)(x - 3) = 0$ となりました。ここから解が「$x = 2, 3$」となるのはなぜですか？",
+            options: [
+              "掛け算して $0$ になるのは「$x - 2 = 0$」または「$x - 3 = 0$」のときであり、それぞれを解くと $x = 2, 3$ になるから",
+              "因数分解した式の数字からマイナスを消す決まりだから",
+              "$2$ と $3$ を掛けると $6$ になるから"
+            ],
+            correct: 0,
+            hint: "カッコの中身を「$0$」にするには、$x$ にどんな数を入れると打ち消し合うかな？",
+            explanation: "正解！$x - 2 = 0 \\implies x = 2$、$x - 3 = 0 \\implies x = 3$ です。"
+          },
+          {
+            type: "なぜ？理解",
+            q: "$x^2 - 9 = 0$ を解くとき、「$x = 3$」だけでは不十分で「$x = -3, 3$」の2つが解になるのはなぜですか？",
+            options: [
+              "2乗して $9$ になる数は、プラスの $3$ だけでなくマイナスの $-3$ もある（$(x - 3)(x + 3) = 0$ になる）から",
+              "二次方程式にはどんなときも必ずプラスとマイナスのペアを書く決まりだから",
+              "$9$ の約数が複数あるから"
+            ],
+            correct: 0,
+            hint: "$(-3)^2$ を計算するといくつになるかな？",
+            explanation: "その通り！$3^2 = 9$ だけでなく $(-3)^2 = 9$ も成り立つ（因数分解すると $(x - 3)(x + 3) = 0$）ので、解は $x = -3, 3$ の2つです。"
+          },
+          {
+            type: "実践チェック",
+            q: "【類題2】$x^2 + x - 12 = 0$ を解くとどうなりますか？",
+            options: [
+              "$x = -4,\\, 3$",
+              "$x = 4,\\, -3$",
+              "$x = -4,\\, -3$"
+            ],
+            correct: 0,
+            hint: "因数分解すると $(x + 4)(x - 3) = 0$ です。それぞれのカッコが $0$ になる $x$ は？",
+            explanation: "大正解！$x + 4 = 0$ より $x = -4$、$x - 3 = 0$ より $x = 3$ となります。"
+          },
+          {
+            type: "実践チェック",
+            q: "【類題5】$x^2 + 7x + 10 = 0$ を解くとどうなりますか？",
+            options: [
+              "$x = -5,\\, -2$",
+              "$x = 5,\\, 2$",
+              "$x = -5,\\, 2$"
+            ],
+            correct: 0,
+            hint: "因数分解すると $(x + 5)(x + 2) = 0$ です！",
+            explanation: "バッチリ！$x + 5 = 0$ と $x + 2 = 0$ から、$x = -5, -2$ です！"
+          }
+        ]
+      },
+      {
+        id: 9,
+        badge: "問9",
+        title: "反比例（積が一定の関係）",
+        shortTitle: "反比例",
+        mistake: "比例（$y = ax$）と混同して、$x = 2, y = 7$ のときに割り算をして比例定数を出そうとしてしまう。",
+        essence: "反比例 $y = \\dfrac{a}{x}$ は、両辺に $x$ を掛けると【$x \\times y = a$（掛け算の積がいつも一定）】になる関係です！まずペアの $x$ と $y$ を掛けて $a$ を見つけます。",
+        owlTip: "「反比例」と聞いたらすぐに「$x \\times y = a$（掛けて一定！）」と思い出そう！長方形の面積がいつも一定の $a$ になるイメージだよ。",
+        quizzes: [
+          {
+            type: "なぜ？理解",
+            q: "$y$ が $x$ に反比例し、「$x = 2$ のとき $y = 7$」と分かっているとき、比例定数 $a$ を「$2 \\times 7 = 14$」と掛け算で求めるのはなぜですか？",
+            options: [
+              "反比例の式 $y = \\dfrac{a}{x}$ の両辺に $x$ を掛けると「$xy = a$」となり、対応する $x$ と $y$ の積が常に $a$ に等しいから",
+              "関数ではいつでも出てきた数字を掛け算する決まりだから",
+              "$2$ で割ると小数になってしまうから"
+            ],
+            correct: 0,
+            hint: "$y = \\dfrac{a}{x}$ の分母の $x$ を払うとどんな式になるかな？",
+            explanation: "大正解！反比例ではどこをとっても $x \\times y = a$（一定）になります。だから $a = 2 \\times 7 = 14$ と一瞬で求まります。"
+          },
+          {
+            type: "なぜ？理解",
+            q: "反比例 $y = \\dfrac{12}{x}$ で、$x$ の値が $2$ から $4$ へ「$2$ 倍」になると、$y$ の値はどう変化しますか？",
+            options: [
+              "積 $x \\times y$ を $12$ のまま一定に保つため、$y$ の値は $6$ から $3$ へ「半分（$\\dfrac{1}{2}$ 倍）」になる",
+              "$y$ の値も $2$ 倍になる",
+              "$y$ の値は $2$ 減る"
+            ],
+            correct: 0,
+            hint: "掛けていつも $12$ になるペアです。片方が $2$ 倍になったら、もう片方はどうなれば積が変わらないかな？",
+            explanation: "その通り！$x$ が $2$ 倍・$3$ 倍になると、$y$ は $\\dfrac{1}{2}$ 倍・$\\dfrac{1}{3}$ 倍になります。だから「反比例」と呼ぶのですね。"
+          },
+          {
+            type: "実践チェック",
+            q: "【類題2】$y$ は $x$ に反比例し、$x = -3$ のとき $y = 8$ です。$x = 4$ のときの $y$ の値はいくつですか？",
+            options: [
+              "$y = -6$",
+              "$y = 6$",
+              "$y = -9$"
+            ],
+            correct: 0,
+            hint: "まず $a = (-3) \\times 8 = -24$ です。$x = 4$ のとき、$4 \\times y = -24$（つまり $y = \\dfrac{-24}{4}$）を計算しよう！",
+            explanation: "正解！$a = -24$ なので、$y = \\dfrac{-24}{4} = -6$ です。"
+          },
+          {
+            type: "実践チェック",
+            q: "【類題4】$y$ は $x$ に反比例し、$x = -6$ のとき $y = -3$ です。$x = 9$ のときの $y$ の値はいくつですか？",
+            options: [
+              "$y = 2$",
+              "$y = -2$",
+              "$y = 3$"
+            ],
+            correct: 0,
+            hint: "負の数どうしの積なので $a = (-6) \\times (-3) = +18$ です！",
+            explanation: "バッチリ！$a = 18$ より、$y = \\dfrac{18}{9} = 2$ となります！"
+          }
+        ]
+      },
+      {
+        id: 10,
+        badge: "問10",
+        title: "2乗に比例する関数",
+        shortTitle: "2乗に比例する関数",
+        mistake: "$y = ax^2$ に $x = -3$ を代入するとき、$(-3)^2 = -9$ と符号を間違えたり、$2 \\times 3 = 6$ のように2乗せず2倍してしまう。",
+        essence: "$y = ax^2$ は「まず $x$ を2乗（$x \\times x$）してから $a$ を掛ける」関数！$x$ が負の数でも2乗すると必ず正の数になるため、グラフは $y$ 軸について左右対称になります。",
+        owlTip: "マイナスの数を代入するときは、必ずカッコをつけて $(-3)^2 = +9$ と計算しよう！$x = -3$ のときと $x = +3$ のときで $y$ が全く同じ値になるのが放物線の特徴だよ。",
+        quizzes: [
+          {
+            type: "なぜ？理解",
+            q: "関数 $y = 2x^2$ で、「$x = 3$ のときの $y$」と「$x = -3$ のときの $y$」がどちらも同じ $18$ になるのはなぜですか？",
+            options: [
+              "先に $x$ を2乗するため、$3^2 = 9$ も $(-3)^2 = 9$ も同じ正の数 $9$ になり、そこに $2$ を掛けるから",
+              "$y$ の値はマイナスになってはいけない決まりがあるから",
+              "たまたま $3$ のときだけ一致するから"
+            ],
+            correct: 0,
+            hint: "グラフが $y$ 軸を折り目として左右対称になっている理由でもあるよ！",
+            explanation: "大正解！$(-3)^2 = (-3) \\times (-3) = +9$ なので、$x = 3$ のときと同じく $y = 2 \\times 9 = 18$ になります。"
+          },
+          {
+            type: "なぜ？理解",
+            q: "$y = ax^2$ のグラフが点 $(-4, 8)$ を通るとき、比例定数 $a$ を求める正しい式はどれですか？",
+            options: [
+              "$8 = a \\times (-4)^2 \\implies 8 = 16a$ より $a = \\dfrac{1}{2}$",
+              "$8 = a \\times (-4)^2 \\implies 8 = 16a$ より $a = 2$",
+              "$8 = a \\times (-4) \\implies 8 = -4a$ より $a = -2$"
+            ],
+            correct: 0,
+            hint: "$16a = 8$ の両辺を $16$ で割ります。「$16 \\div 8 = 2$」と逆に割らないように注意！",
+            explanation: "重要ポイント！$16a = 8$ の両辺を $x^2$ の係数である $16$ で割るので、$a = \\dfrac{8}{16} = \\dfrac{1}{2}$ となります。"
+          },
+          {
+            type: "実践チェック",
+            q: "【類題1】$y = ax^2$ が $(2, 12)$ を通るとき、$a$ の値と、$x = -3$ のときの $y$ の値の組み合わせはどれですか？",
+            options: [
+              "$a = 3,\\quad y = 27$",
+              "$a = 3,\\quad y = -27$",
+              "$a = 6,\\quad y = 54$"
+            ],
+            correct: 0,
+            hint: "$12 = a \\times 2^2 = 4a$ より $a = 3$。よって $y = 3x^2$ に $x = -3$ を代入すると？",
+            explanation: "正解！$a = 3$ で、$y = 3 \\times (-3)^2 = 3 \\times 9 = 27$ です。"
+          },
+          {
+            type: "実践チェック",
+            q: "【類題5】$y = ax^2$ が $(1, -3)$ を通るとき、$a$ の値と、$x = -4$ のときの $y$ の値の組み合わせはどれですか？",
+            options: [
+              "$a = -3,\\quad y = -48$",
+              "$a = -3,\\quad y = 48$",
+              "$a = -3,\\quad y = 24$"
+            ],
+            correct: 0,
+            hint: "$a = -3$ なので式は $y = -3x^2$ です。$(-4)^2 = +16$ に $-3$ を掛けると符号はどうなるかな？",
+            explanation: "バッチリ！$(-4)^2 = 16$ はプラスですが、前の比例定数 $a = -3$ がマイナスなので、$y = -3 \\times 16 = -48$ になります！"
+          }
+        ]
+      },
+      {
+        id: 11,
+        badge: "問11",
+        title: "相似な図形と面積比",
+        shortTitle: "相似と面積比",
+        mistake: "対応する辺の長さの比が $2 : 3$ のとき、面積にもそのまま $\\dfrac{3}{2}$ を掛けてしまう。",
+        essence: "三角形の面積は「底辺 $\\times$ 高さ $\\div 2$」！相似比が $m : n$ なら、底辺も高さも同じ倍率で伸びるため、面積比は2乗の【$m^2 : n^2$】になります。",
+        owlTip: "実験ラボで三角形を2倍・3倍に拡大してみて！小さい三角形が中に何個分敷き詰められるか数えると「2乗」になる理由が一発でわかるよ。",
+        quizzes: [
+          {
+            type: "なぜ？理解",
+            q: "相似な2つの三角形で、対応する辺の長さの比が $2 : 3$ のとき、面積の比が「$2^2 : 3^2 = 4 : 9$」になるのはなぜですか？",
+            options: [
+              "三角形の面積は「底辺 $\\times$ 高さ $\\div 2$」で求まるため、底辺が $\\dfrac{3}{2}$ 倍になり、かつ高さも $\\dfrac{3}{2}$ 倍になると、面積は $\\dfrac{3}{2} \\times \\dfrac{3}{2} = \\dfrac{9}{4}$ 倍になるから",
+              "三角形には辺が3本あるから",
+              "角度も2乗倍に広がるから"
+            ],
+            correct: 0,
+            hint: "横（底辺）だけでなく、縦（高さ）も同じ比で拡大されることに注目しよう！",
+            explanation: "大正解！縦と横の2方向がそれぞれ拡大されるため、面積比は相似比の2乗（$m^2 : n^2$）になります。"
+          },
+          {
+            type: "なぜ？理解",
+            q: "辺の比が $3 : 4$ で、小さい図形の面積が $27\\text{ cm}^2$ のとき、大きい図形の面積を求める式として正しいものはどれですか？",
+            options: [
+              "面積比は $3^2 : 4^2 = 9 : 16$ なので、$27 \\times \\dfrac{16}{9}$ を計算する",
+              "辺の比が $3 : 4$ なので、$27 \\times \\dfrac{4}{3}$ を計算する",
+              "面積比は $9 : 16$ なので、$27 \\times \\dfrac{9}{16}$ を計算する"
+            ],
+            correct: 0,
+            hint: "小さい方（$9$ にあたる面積が $27\\text{ cm}^2$）から大きい方（$16$ にあたる面積）を求めるので、$\\dfrac{16}{9}$ 倍します！",
+            explanation: "その通り！$27 \\times \\dfrac{16}{9} = 3 \\times 16 = 48\\text{ cm}^2$ と求まります。"
+          },
+          {
+            type: "実践チェック",
+            q: "【類題2】対応する辺の比が $2 : 5$ で、小さい図形の面積が $8\\text{ cm}^2$ のとき、大きい図形の面積はいくつですか？",
+            options: [
+              "$50\\text{ cm}^2$",
+              "$20\\text{ cm}^2$",
+              "$100\\text{ cm}^2$"
+            ],
+            correct: 0,
+            hint: "面積比は $2^2 : 5^2 = 4 : 25$ です。$4$ にあたる面積が $8\\text{ cm}^2$（ちょうど $2$ 倍）なので、$25$ にあたる面積は？",
+            explanation: "正解！$8 \\times \\dfrac{25}{4} = 50\\text{ cm}^2$ です。"
+          },
+          {
+            type: "実践チェック",
+            q: "【類題4】対応する辺の比が $4 : 7$ で、小さい図形の面積が $16\\text{ cm}^2$ のとき、大きい図形の面積はいくつですか？",
+            options: [
+              "$49\\text{ cm}^2$",
+              "$28\\text{ cm}^2$",
+              "$64\\text{ cm}^2$"
+            ],
+            correct: 0,
+            hint: "面積比は $4^2 : 7^2 = 16 : 49$ です。小さい面積がちょうど $16\\text{ cm}^2$ だから…？",
+            explanation: "バッチリ！面積比 $16 : 49$ そのままの数になり、答えは $49\\text{ cm}^2$ です！"
+          }
+        ]
+      },
+      {
+        id: 12,
+        badge: "問12",
+        title: "円に内接する四角形の性質",
+        shortTitle: "円に内接する四角形",
+        mistake: "向かい合う角ではなく、隣り合う角を $180^\\circ$ から引いてしまう。",
+        essence: "4つの頂点が同じ円周上にある四角形では、【向かい合う角（対角）の和が必ず $180^\\circ$】になります！なぜなら、2つの向かい合う円周角が作る中心角を合わせると、円の中心のまわり1周分（$360^\\circ$）になるからです。",
+        owlTip: "四角形ABCDでは「$\\angle A$ と $\\angle C$」「$\\angle B$ と $\\angle D$」が向かい合うペアだよ！斜め向かいの角と足して $180^\\circ$ にしよう。",
+        quizzes: [
+          {
+            type: "なぜ？理解",
+            q: "円に内接する四角形ABCDで、向かい合う角の和（$\\angle A + \\angle C$ や $\\angle B + \\angle D$）が必ず $180^\\circ$ になるのはなぜですか？",
+            options: [
+              "向かい合う2つの角がそれぞれ見込む弧を合わせると円1周分（中心角の合計が $360^\\circ$）になり、円周角はその半分の $180^\\circ$ になるから",
+              "どんな四角形でも向かい合う角を足すと $180^\\circ$ になるから",
+              "四角形の内角の和が $180^\\circ$ だから"
+            ],
+            correct: 0,
+            hint: "円周角は中心角の半分（$\\dfrac{1}{2}$）です。円の中心のまわり1周は $360^\\circ$ だから、その半分は…？",
+            explanation: "大正解！円周角の定理から、向かい合う2つの角の和は $360^\\circ \\times \\dfrac{1}{2} = 180^\\circ$ になります。"
+          },
+          {
+            type: "なぜ？理解",
+            q: "円に内接する四角形ABCD（頂点が円周上にA・B・C・Dの順に並ぶ）において、$\\angle B$ と足して $180^\\circ$ になる角はどれですか？",
+            options: [
+              "向かい側にある $\\angle D$",
+              "となりにある $\\angle A$",
+              "となりにある $\\angle C$"
+            ],
+            correct: 0,
+            hint: "A $\\rightarrow$ B $\\rightarrow$ C $\\rightarrow$ D と順番に頂点をたどると、Bの反対側（対角）にあるのはどの頂点かな？",
+            explanation: "その通り！$\\angle A$ と $\\angle C$、$\\angle B$ と $\\angle D$ がそれぞれ向かい合う対角のペアです。"
+          },
+          {
+            type: "実践チェック",
+            q: "【類題2】円に内接する四角形ABCDで、$\\angle B = 75^\\circ$ のとき、向かい合う $\\angle D$ の大きさは何度ですか？",
+            options: [
+              "$105^\\circ$",
+              "$115^\\circ$",
+              "$75^\\circ$"
+            ],
+            correct: 0,
+            hint: "$180^\\circ - 75^\\circ$ を計算しよう！",
+            explanation: "正解！$180^\\circ - 75^\\circ = 105^\\circ$ です。"
+          },
+          {
+            type: "実践チェック",
+            q: "【類題3】円に内接する四角形ABCDで、$\\angle C = 118^\\circ$ のとき、向かい合う $\\angle A$ の大きさは何度ですか？",
+            options: [
+              "$62^\\circ$",
+              "$72^\\circ$",
+              "$52^\\circ$"
+            ],
+            correct: 0,
+            hint: "$180^\\circ - 118^\\circ$ を計算しよう！",
+            explanation: "バッチリ！$180^\\circ - 118^\\circ = 62^\\circ$ です！"
+          }
+        ]
+      },
+      {
+        id: 13,
+        badge: "問13",
+        title: "確率（同時に2個取り出す）",
+        shortTitle: "確率（同時に2個）",
+        mistake: "赤3個・白2個から2個取り出すとき、色だけを見て「赤赤・赤白・白白の3通りだから確率は $\\dfrac{1}{3}$」としてしまう。",
+        essence: "同じ色の球にも「赤1・赤2・赤3」と背番号をつけて区別します！全部で何通りのペアが作れるか（分母）と、条件を満たすペアが何通りあるか（分子）を漏れなく数えます。",
+        owlTip: "実験ラボのペア一覧表を見てごらん！5個から2個選ぶペアは全部で $10$ 通り、6個から2個選ぶペアは全部で $15$ 通りあるんだよ。",
+        quizzes: [
+          {
+            type: "なぜ？理解",
+            q: "赤球3個・白球2個（計5個）入った袋から同時に2個取り出すとき、「赤赤・赤白・白白の3通りだから、赤2個の確率は $\\dfrac{1}{3}$」とするのが間違いなのはなぜ？",
+            options: [
+              "赤球の方が白球より多いため「赤赤」と「白白」の起こりやすさが同じではなく、5個の球をすべて区別して数える（全10通り）必要があるから",
+              "同時に2個取り出すときは確率を計算できないから",
+              "分母は球の個数である $5$ になるから"
+            ],
+            correct: 0,
+            hint: "赤3個と白2個なら、白2個が出るのは「白1と白2」のたった1通りしかありませんが、赤2個は「赤1と赤2」「赤1と赤3」「赤2と赤3」の3通りあります！",
+            explanation: "大正解！確率の原則は「同様に確からしい（どのペアも同じ確率で出る）」状態で数えることです。球に番号をつけて区別すると、全10通り中の3通りで $\\dfrac{3}{10}$ となります。"
+          },
+          {
+            type: "なぜ？理解",
+            q: "合計6個の球から同時に2個取り出すとき、分母（すべての選び方の総数）は何通りになりますか？",
+            options: [
+              "$\\dfrac{6 \\times 5}{2 \\times 1} = 15$ 通り",
+              "$6 \\times 6 = 36$ 通り",
+              "$6 \\times 2 = 12$ 通り"
+            ],
+            correct: 0,
+            hint: "6個から1個目に選ぶのが6通り、残りの5個から選ぶのが5通りですが、「AとB」と「BとA」は同じペアなので $2$ で割ります（$5+4+3+2+1$ でもOK）！",
+            explanation: "その通り！6個から2個を選ぶ組合せは $5 + 4 + 3 + 2 + 1 = 15$ 通りです。"
+          },
+          {
+            type: "実践チェック",
+            q: "【類題1】赤4個・白2個（計6個）から同時に2個取り出すとき、2個とも赤である確率は？",
+            options: [
+              "$\\dfrac{2}{5}$",
+              "$\\dfrac{1}{3}$",
+              "$\\dfrac{4}{15}$"
+            ],
+            correct: 0,
+            hint: "全体は6個から2個選ぶ $15$ 通り。赤4個から2個選ぶペアは $\\dfrac{4 \\times 3}{2 \\times 1} = 6$ 通りです。$\\dfrac{6}{15}$ を約分すると？",
+            explanation: "正解！$\\dfrac{6}{15} = \\dfrac{2}{5}$ です！"
+          },
+          {
+            type: "実践チェック",
+            q: "【類題5】赤2個・白4個（計6個）から同時に2個取り出すとき、2個とも赤である確率は？",
+            options: [
+              "$\\dfrac{1}{15}$",
+              "$\\dfrac{2}{15}$",
+              "$\\dfrac{1}{3}$"
+            ],
+            correct: 0,
+            hint: "全体は $15$ 通り。赤は2個しかないので、2個とも赤になる選び方は「赤1と赤2」のたった $1$ 通りです！",
+            explanation: "バッチリ！$15$ 通り中の $1$ 通りなので、確率は $\\dfrac{1}{15}$ です！"
+          }
+        ]
+      },
+      {
+        id: 14,
+        badge: "問14",
+        title: "データの平均値と中央値",
+        shortTitle: "平均値と中央値",
+        mistake: "データの個数が偶数（4個など）のとき、真ん中の1つを勝手に選んでしまう。また小さい順に並べ替えずに真ん中を読んでしまう。",
+        essence: "【平均値】は全員の合計を人数で平らにならした値。【中央値（メジアン）】は小さい順に並べたときのど真ん中の値！データが偶数個のときは「中央の2つの値の平均」をとります。",
+        owlTip: "実験ラボでデータの個数を「5個（奇数）」と「4個（偶数）」に切り替えて、ど真ん中の見つけ方がどう変わるか確かめてごらん！",
+        quizzes: [
+          {
+            type: "なぜ？理解",
+            q: "4個のデータ「$1, 3, 5, 7$」の中央値（メジアン）を求めるとき、ちょうど真ん中に1つの数字がありません。この場合はどう求めますか？",
+            options: [
+              "中央にある2つの数「$3$ と $5$」の平均（$\\dfrac{3 + 5}{2} = 4$）を中央値とする",
+              "真ん中に近い $3$ か $5$ の好きな方を答える",
+              "偶数個のときは中央値は存在しない"
+            ],
+            correct: 0,
+            hint: "前から2番目（$3$）と3番目（$5$）のちょうど中間にある数を計算します！",
+            explanation: "大正解！データの個数が偶数のときは、中央にならぶ2つの値の平均をとります。$\\dfrac{3 + 5}{2} = 4$ です。"
+          },
+          {
+            type: "なぜ？理解",
+            q: "5人のテストの得点が「$1, 2, 2, 5, 10$」のとき、平均値は $4$ ですが、中央値は $2$ になります。平均値の方が高くなっているのはなぜですか？",
+            options: [
+              "1人だけ極端に高い得点（$10$ 点）の人がいるため、全体の合計が増えて平均値が上に引っ張られているから",
+              "データの個数が5個で奇数だから",
+              "同じ数字（$2$ 点）が2人いるから"
+            ],
+            correct: 0,
+            hint: "平均値は全員の合計を使うので、極端に大きい数（外れ値）の影響を強く受けます！",
+            explanation: "その通り！中央値は順番の真ん中（3番目の $2$ 点）を見るので極端な値に引っ張られませんが、平均値は合計 $\\dfrac{20}{5} = 4$ となるため違いが生まれます。"
+          },
+          {
+            type: "実践チェック",
+            q: "【類題1】5個のデータ「$2, 4, 4, 6, 9$」の平均値と中央値の組み合わせとして正しいものはどれですか？",
+            options: [
+              "平均値 $5$、中央値 $4$",
+              "平均値 $4$、中央値 $5$",
+              "平均値 $5$、中央値 $6$"
+            ],
+            correct: 0,
+            hint: "合計は $2 + 4 + 4 + 6 + 9 = 25$ なので平均は $\\dfrac{25}{5}$。小さい順に5個並んでいるので、真ん中（3番目）の数は？",
+            explanation: "正解！平均値は $\\dfrac{25}{5} = 5$、中央値は3番目の $4$ です。"
+          },
+          {
+            type: "実践チェック",
+            q: "【類題4】4個のデータ「$2, 2, 8, 8$」の平均値と中央値の組み合わせとして正しいものはどれですか？",
+            options: [
+              "平均値 $5$、中央値 $5$",
+              "平均値 $5$、中央値 $2$",
+              "平均値 $4$、中央値 $5$"
+            ],
+            correct: 0,
+            hint: "合計は $20$ なので平均は $\\dfrac{20}{4} = 5$。中央の2つは「$2$ と $8$」なので、その平均 $\\dfrac{2 + 8}{2}$ は？",
+            explanation: "バッチリ！中央の2つ $2$ と $8$ の平均も $\\dfrac{2 + 8}{2} = 5$ となり、平均値 $5$・中央値 $5$ です！"
+          }
+        ]
+      },
+      {
+        id: 15,
+        badge: "問15",
+        title: "人数と料金の文章題",
+        shortTitle: "人数と料金の文章題",
+        mistake: "料金の式だけを作って解こうとしたり、求めた $x$ と $y$ が大人と子どものどちらの人数だったか逆にして答えてしまう。",
+        essence: "①「人数の合計の式」と「金額の合計の式」の2本の式を立てます！②あるいは「合わせて $8$ 人で、大人が $x$ 人なら、残りの子どもは $(8 - x)$ 人」と置けば1つの式でも解けます。",
+        owlTip: "実験ラボで大人の人数スライダーを動かしてみて！大人が1人増えると子どもが1人減り、合計金額が「差額の分だけ」規則正しく増えていくのがわかるよ！",
+        quizzes: [
+          {
+            type: "なぜ？理解",
+            q: "「大人と子どもを合わせて10人」のとき、大人の人数を $x$ 人とすると、子どもの人数を $x$ を使って「$(10 - x)$ 人」と表せるのはなぜですか？",
+            options: [
+              "全体の10人から大人の人数 $x$ 人を除いた残りが子どもの人数になるから（$x + y = 10$ を $y = 10 - x$ に変形したのと同じだから）",
+              "大人の方が子どもより10人多いから",
+              "料金の差が10円だから"
+            ],
+            correct: 0,
+            hint: "たとえば10人中、大人が $3$ 人なら子どもは $10 - 3 = 7$ 人ですね！大人が $x$ 人なら…？",
+            explanation: "大正解！子どもの人数を $y$ 人として $x + y = 10$ と連立しても良いですし、最初から $(10 - x)$ 人として1つの式にまとめることもできます。"
+          },
+          {
+            type: "なぜ？理解",
+            q: "大人1人500円、子ども1人300円で、大人 $x$ 人・子ども $y$ 人の合計金額が3400円のとき、金額についての正しい式はどれですか？",
+            options: [
+              "$500x + 300y = 3400$",
+              "$x + y = 3400$",
+              "$300x + 500y = 3400$"
+            ],
+            correct: 0,
+            hint: "「（大人1人の料金 $\\times$ 大人の人数）$+$（子ども1人の料金 $\\times$ 子どもの人数）$=$ 合計金額」です！",
+            explanation: "その通り！大人の代金 $500x$ 円と子どもの代金 $300y$ 円を足して $500x + 300y = 3400$ となります。"
+          },
+          {
+            type: "実践チェック",
+            q: "【類題1】大人1人500円、子ども1人300円の入館料で、大人と子ども合わせて8人で入ったところ合計3400円でした。それぞれの人数は？",
+            options: [
+              "大人 $5$ 人、子ども $3$ 人",
+              "大人 $3$ 人、子ども $5$ 人",
+              "大人 $6$ 人、子ども $2$ 人"
+            ],
+            correct: 0,
+            hint: "$500x + 300(8 - x) = 3400 \\implies 200x + 2400 = 3400 \\implies 200x = 1000$ です！",
+            explanation: "正解！大人 $x = 5$ 人、子ども $8 - 5 = 3$ 人です。（検算：$500 \\times 5 + 300 \\times 3 = 2500 + 900 = 3400$ 円！）"
+          },
+          {
+            type: "実践チェック",
+            q: "【類題4】大人1人800円、子ども1人500円で、合わせて7人の合計が4400円でした。それぞれの人数は？",
+            options: [
+              "大人 $3$ 人、子ども $4$ 人",
+              "大人 $4$ 人、子ども $3$ 人",
+              "大人 $2$ 人、子ども $5$ 人"
+            ],
+            correct: 0,
+            hint: "$800x + 500(7 - x) = 4400 \\implies 300x + 3500 = 4400 \\implies 300x = 900$ です！",
+            explanation: "バッチリ！大人 $x = 3$ 人、子ども $7 - 3 = 4$ 人となります！"
+          }
+        ]
+      }
+    ];
+
+    // =========================================================================
+    // STATE MANAGEMENT
+    // =========================================================================
+    let currentTopicId = 1;
+    let currentTab = 'sim';
+    let clearedTopics = JSON.parse(localStorage.getItem('suken_grade3_cleared') || '{}');
+    let quizAnswers = {};
+
+    function saveProgress() {
+      localStorage.setItem('suken_grade3_cleared', JSON.stringify(clearedTopics));
+      updateHeaderProgress();
+      renderNavList();
+    }
+
+    function resetProgress() {
+      clearedTopics = {};
+      quizAnswers = {};
+      localStorage.removeItem('suken_grade3_cleared');
+      updateHeaderProgress();
+      renderNavList();
+      loadTopic(currentTopicId);
+    }
+
+    function updateHeaderProgress() {
+      const count = Object.keys(clearedTopics).filter(k => clearedTopics[k]).length;
+      const pct = Math.round((count / TOPICS.length) * 100);
+      document.getElementById('progressText').textContent = `${count} / ${TOPICS.length} 問クリア`;
+      document.getElementById('progressBar').style.width = `${pct}%`;
+    }
+
+    function renderNavList() {
+      const nav = document.getElementById('navList');
+      nav.innerHTML = TOPICS.map(t => {
+        const isActive = t.id === currentTopicId;
+        const isCleared = !!clearedTopics[t.id];
+        return `
+          <button onclick="loadTopic(${t.id})" class="w-full text-left px-3.5 py-2.5 rounded-2xl transition flex items-center justify-between gap-2 ${
+            isActive
+              ? 'bg-emerald-600 text-white font-extrabold shadow-md'
+              : 'bg-slate-50 hover:bg-emerald-50 text-slate-700 font-bold border border-slate-200/70'
+          }">
+            <div class="flex items-center gap-2 min-w-0">
+              <span class="text-xs px-2 py-0.5 rounded-lg ${isActive ? 'bg-white/20 text-white' : 'bg-emerald-100 text-emerald-800'} font-extrabold shrink-0">
+                ${t.badge}
+              </span>
+              <span class="truncate text-xs md:text-sm">${t.shortTitle}</span>
+            </div>
+            <span class="shrink-0 text-sm">${isCleared ? '🌟' : ''}</span>
+          </button>
+        `;
+      }).join('');
+    }
+
+    function switchTab(tab) {
+      currentTab = tab;
+      const simSec = document.getElementById('simSection');
+      const quizSec = document.getElementById('quizSection');
+      const simBtn = document.getElementById('tabSimBtn');
+      const quizBtn = document.getElementById('tabQuizBtn');
+
+      if (tab === 'sim') {
+        simSec.classList.remove('hidden');
+        quizSec.classList.add('hidden');
+        simBtn.className = "flex-1 py-3.5 px-4 rounded-2xl font-extrabold text-sm md:text-base transition flex items-center justify-center gap-2 bg-emerald-600 text-white shadow-md";
+        quizBtn.className = "flex-1 py-3.5 px-4 rounded-2xl font-extrabold text-sm md:text-base transition flex items-center justify-center gap-2 bg-white text-slate-600 hover:bg-emerald-50 border border-emerald-100";
+      } else {
+        simSec.classList.add('hidden');
+        quizSec.classList.remove('hidden');
+        quizBtn.className = "flex-1 py-3.5 px-4 rounded-2xl font-extrabold text-sm md:text-base transition flex items-center justify-center gap-2 bg-amber-500 text-white shadow-md";
+        simBtn.className = "flex-1 py-3.5 px-4 rounded-2xl font-extrabold text-sm md:text-base transition flex items-center justify-center gap-2 bg-white text-slate-600 hover:bg-emerald-50 border border-emerald-100";
+        renderQuiz(currentTopicId);
+      }
+    }
+
+    function nextTopic() {
+      const nextId = currentTopicId < TOPICS.length ? currentTopicId + 1 : 1;
+      loadTopic(nextId);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function loadTopic(id) {
+      currentTopicId = id;
+      const topic = TOPICS.find(t => t.id === id);
+      document.getElementById('topicBadge').textContent = topic.badge;
+      document.getElementById('topicTitle').textContent = topic.title;
+      document.getElementById('topicMistake').textContent = topic.mistake;
+      document.getElementById('topicEssence').textContent = topic.essence;
+      document.getElementById('owlMessage').textContent = topic.owlTip;
+
+      const clearBadge = document.getElementById('topicClearBadge');
+      if (clearedTopics[id]) {
+        clearBadge.classList.remove('hidden');
+        clearBadge.classList.add('inline-flex');
+      } else {
+        clearBadge.classList.add('hidden');
+        clearBadge.classList.remove('inline-flex');
+      }
+
+      renderNavList();
+      switchTab('sim');
+      renderSimulator(id);
+      renderMath();
+    }
+
+    // =========================================================================
+    // QUIZ RENDERER & INTERACTION
+    // =========================================================================
+    function renderQuiz(topicId) {
+      const topic = TOPICS.find(t => t.id === topicId);
+      if (!quizAnswers[topicId]) quizAnswers[topicId] = {};
+      const userAns = quizAnswers[topicId];
+
+      let correctCount = 0;
+      topic.quizzes.forEach((q, idx) => {
+        if (userAns[idx] === q.correct) correctCount++;
+      });
+
+      const scoreBadge = document.getElementById('quizScoreBadge');
+      scoreBadge.textContent = `現在の正解数: ${correctCount} / ${topic.quizzes.length}`;
+      if (correctCount >= 3) {
+        scoreBadge.className = "bg-emerald-100 text-emerald-800 font-extrabold px-4 py-2 rounded-2xl text-sm";
+      } else {
+        scoreBadge.className = "bg-teal-50 text-teal-800 font-extrabold px-4 py-2 rounded-2xl text-sm";
+      }
+
+      const mount = document.getElementById('quizMount');
+      mount.innerHTML = topic.quizzes.map((q, qIdx) => {
+        const selected = userAns[qIdx];
+        const isAnswered = selected !== undefined;
+        const isCorrect = selected === q.correct;
+
+        return `
+          <div class="rounded-2xl border-2 p-5 transition ${
+            !isAnswered
+              ? 'border-slate-200 bg-slate-50/50'
+              : isCorrect
+              ? 'border-emerald-300 bg-emerald-50/40'
+              : 'border-rose-300 bg-rose-50/40'
+          }">
+            <div class="flex items-center justify-between gap-2 mb-2">
+              <span class="text-xs font-extrabold px-2.5 py-1 rounded-lg ${
+                q.type.includes('なぜ') ? 'bg-teal-100 text-teal-800' : 'bg-amber-100 text-amber-800'
+              }">
+                Q${qIdx + 1}・${q.type}
+              </span>
+              <button onclick="toggleHint(${topicId}, ${qIdx})" class="text-xs font-bold text-emerald-700 hover:underline flex items-center gap-1">
+                <span>💡 ヒントを見る</span>
+              </button>
+            </div>
+
+            <p class="font-extrabold text-slate-800 text-sm md:text-base mb-3">${q.q}</p>
+
+            <div id="hint-${topicId}-${qIdx}" class="hidden mb-3 bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs text-amber-900 font-medium">
+              💡 <strong>ヒント：</strong>${q.hint}
+            </div>
+
+            <div class="space-y-2">
+              ${q.options.map((opt, oIdx) => {
+                let btnStyle = "bg-white hover:bg-emerald-50 border-slate-200 text-slate-700";
+                let icon = "⚪";
+                if (isAnswered) {
+                  if (oIdx === q.correct) {
+                    btnStyle = "bg-emerald-100 border-emerald-400 text-emerald-950 font-extrabold";
+                    icon = "✅";
+                  } else if (oIdx === selected) {
+                    btnStyle = "bg-rose-100 border-rose-400 text-rose-950 font-bold";
+                    icon = "❌";
+                  } else {
+                    btnStyle = "bg-white/60 border-slate-200 text-slate-400";
+                  }
+                }
+                return `
+                  <button onclick="selectQuizOption(${topicId}, ${qIdx}, ${oIdx})" class="w-full text-left p-3.5 rounded-xl border-2 transition flex items-start gap-2.5 text-xs md:text-sm font-bold ${btnStyle}">
+                    <span class="shrink-0">${icon}</span>
+                    <span>${opt}</span>
+                  </button>
+                `;
+              }).join('')}
+            </div>
+
+            ${isAnswered ? `
+              <div class="mt-3 p-3.5 rounded-xl text-xs md:text-sm leading-relaxed ${
+                isCorrect ? 'bg-emerald-100/80 text-emerald-950' : 'bg-rose-100/80 text-rose-950'
+              }">
+                <span class="font-extrabold">${isCorrect ? '🎉 正解！' : '💪 おしい！もう一度確認しよう：'}</span>
+                ${q.explanation}
+              </div>
+            ` : ''}
+          </div>
+        `;
+      }).join('');
+      renderMath(mount);
+    }
+
+    function toggleHint(topicId, qIdx) {
+      const el = document.getElementById(`hint-${topicId}-${qIdx}`);
+      if (el) el.classList.toggle('hidden');
+    }
+
+    function selectQuizOption(topicId, qIdx, oIdx) {
+      if (!quizAnswers[topicId]) quizAnswers[topicId] = {};
+      quizAnswers[topicId][qIdx] = oIdx;
+
+      const topic = TOPICS.find(t => t.id === topicId);
+      let correctCount = 0;
+      topic.quizzes.forEach((q, idx) => {
+        if (quizAnswers[topicId][idx] === q.correct) correctCount++;
+      });
+
+      if (correctCount >= 3) {
+        clearedTopics[topicId] = true;
+        saveProgress();
+        const clearBadge = document.getElementById('topicClearBadge');
+        clearBadge.classList.remove('hidden');
+        clearBadge.classList.add('inline-flex');
+      }
+
+      renderQuiz(topicId);
+    }
+
+    // =========================================================================
+    // INTERACTIVE SIMULATORS FOR ALL 15 QUESTIONS
+    // =========================================================================
+    function renderSimulator(id) {
+      const mount = document.getElementById('simulatorMount');
+      switch (id) {
+        case 1: renderSim1(mount); break;
+        case 2: renderSim2(mount); break;
+        case 3: renderSim3(mount); break;
+        case 4: renderSim4(mount); break;
+        case 5: renderSim5(mount); break;
+        case 6: renderSim6(mount); break;
+        case 7: renderSim7(mount); break;
+        case 8: renderSim8(mount); break;
+        case 9: renderSim9(mount); break;
+        case 10: renderSim10(mount); break;
+        case 11: renderSim11(mount); break;
+        case 12: renderSim12(mount); break;
+        case 13: renderSim13(mount); break;
+        case 14: renderSim14(mount); break;
+        case 15: renderSim15(mount); break;
+      }
+      renderMath(mount);
+    }
+
+    // -------------------------------------------------------------------------
+    // 問1: 正負の数 (Order of Operations & -(-a) Number Line)
+    // -------------------------------------------------------------------------
+    let sim1Step = 0;
+    let sim1ProbIdx = 0;
+    const sim1Probs = [
+      {
+        label: "$-6 + 2 \\times (-5) - (-8)$",
+        raw1: "-6",
+        mulRaw: "+ 2 \\times (-5)",
+        mulVal: "- 10",
+        subNegRaw: "- (-8)",
+        subNegVal: "+ 8",
+        midSum: -16,
+        finalAns: -8
+      },
+      {
+        label: "$-5 - (-7) + 2 \\times (-4)$",
+        raw1: "-5",
+        mulRaw: "+ 2 \\times (-4)",
+        mulVal: "- 8",
+        subNegRaw: "- (-7)",
+        subNegVal: "+ 7",
+        midSum: 2,
+        finalAns: -6
+      }
+    ];
+
+    function renderSim1(mount) {
+      const p = sim1Probs[sim1ProbIdx];
+      mount.innerHTML = `
+        <div class="space-y-6">
+          <div class="flex flex-wrap items-center justify-between gap-3 bg-emerald-50/70 p-4 rounded-2xl border border-emerald-100">
+            <div>
+              <span class="text-xs font-extrabold text-emerald-700 uppercase">実験テーマ</span>
+              <h3 class="text-base md:text-lg font-extrabold text-slate-800">どこから先に計算する？「かけ算の塊」と「負の数を引く ($-(-a)$)」を3ステップで分解！</h3>
+            </div>
+            <div class="flex gap-2">
+              ${sim1Probs.map((item, idx) => `
+                <button onclick="sim1ProbIdx=${idx}; sim1Step=0; renderSim1(document.getElementById('simulatorMount'))" class="px-3 py-1.5 rounded-xl text-xs font-extrabold transition ${
+                  sim1ProbIdx === idx ? 'bg-emerald-600 text-white shadow' : 'bg-white text-slate-600 border'
+                }">例題${idx + 1}</button>
+              `).join('')}
+            </div>
+          </div>
+
+          <!-- Stepper -->
+          <div class="grid grid-cols-3 gap-2">
+            ${[
+              "① 元の式（塊を見つける）",
+              "② かけ算と $-(-)$ を変身！",
+              "③ 数直線で答えを確認！"
+            ].map((st, idx) => `
+              <button onclick="sim1Step=${idx}; renderSim1(document.getElementById('simulatorMount'))" class="py-3 px-2 rounded-2xl font-extrabold text-xs md:text-sm border-2 transition ${
+                sim1Step === idx ? 'bg-emerald-600 text-white border-emerald-600 shadow' : 'bg-white text-slate-600 border-slate-200'
+              }">${st}</button>
+            `).join('')}
+          </div>
+
+          <div class="bg-slate-50 rounded-3xl p-6 border border-slate-200 text-center space-y-5">
+            ${sim1Step === 0 ? `
+              <div class="text-xs font-bold text-slate-500">式を3つのパーツに分けて見よう！かけ算と $-(-)$ に注目！</div>
+              <div class="flex flex-wrap items-center justify-center gap-2 text-xl md:text-3xl font-extrabold">
+                <span class="bg-white px-4 py-2 rounded-xl border border-slate-300">$${p.raw1}$</span>
+                <span class="bg-amber-200 px-4 py-2 rounded-xl border-2 border-amber-400">${sim1ProbIdx === 0 ? `$${p.mulRaw}$` : `$${p.subNegRaw}$`}</span>
+                <span class="bg-sky-200 px-4 py-2 rounded-xl border-2 border-sky-400">${sim1ProbIdx === 0 ? `$${p.subNegRaw}$` : `$${p.mulRaw}$`}</span>
+              </div>
+              <p class="text-xs md:text-sm text-slate-600">
+                ⚠️ いきなり先頭から足し引きしてはいけません！まず<strong>かけ算</strong>と<strong>$-(-)$ のカッコ</strong>をシンプルにします。
+              </p>
+              <button onclick="sim1Step=1; renderSim1(document.getElementById('simulatorMount'))" class="pop-btn bg-emerald-600 text-white font-extrabold px-6 py-3 rounded-2xl shadow">
+                変身させる ➔
+              </button>
+            ` : sim1Step === 1 ? `
+              <div class="text-xs font-bold text-emerald-700">✨ かけ算を計算し、「負の数を引く」を「プラス」に直しました！</div>
+              <div class="flex flex-wrap items-center justify-center gap-2 text-2xl md:text-4xl font-extrabold">
+                <span class="bg-white px-4 py-2 rounded-xl border border-slate-300">$${p.raw1}$</span>
+                <span class="bg-amber-100 text-amber-900 px-4 py-2 rounded-xl border-2 border-amber-400">${sim1ProbIdx === 0 ? `$${p.mulVal}$` : `$${p.subNegVal}$`}</span>
+                <span class="bg-sky-100 text-sky-900 px-4 py-2 rounded-xl border-2 border-sky-400">${sim1ProbIdx === 0 ? `$${p.subNegVal}$` : `$${p.mulVal}$`}</span>
+              </div>
+              <p class="text-xs md:text-sm text-slate-600">
+                これなら普通の足し算・引き算として数直線で計算できますね！
+              </p>
+              <button onclick="sim1Step=2; renderSim1(document.getElementById('simulatorMount'))" class="pop-btn bg-emerald-600 text-white font-extrabold px-6 py-3 rounded-2xl shadow">
+                数直線で合計を見る ➔
+              </button>
+            ` : `
+              <div class="text-xs font-bold text-emerald-700">🎉 最終結果：$${p.finalAns}$</div>
+              <div class="text-2xl md:text-3xl font-extrabold text-slate-800">
+                $${p.raw1} ${sim1ProbIdx === 0 ? `${p.mulVal} ${p.subNegVal}` : `${p.subNegVal} ${p.mulVal}`} = $ <span class="text-emerald-600 text-4xl">$${p.finalAns}$</span>
+              </div>
+              <div class="bg-white p-4 rounded-2xl border border-slate-200 max-w-xl mx-auto text-xs md:text-sm text-slate-700">
+                💡 <strong>ポイント：</strong>「$-(-8)$」は「左向き($-$)の反対($-$)」なので<strong>右へ $+8$ 進む</strong>ことになります！
+              </div>
+            `}
+          </div>
+        </div>
+      `;
+      renderMath(mount);
+    }
+
+    // -------------------------------------------------------------------------
+    // 問2: 平方根 (Square Factor Extractor & Like Radicals)
+    // -------------------------------------------------------------------------
+    let sim2Idx = 0;
+    const sim2List = [
+      {
+        title: "$\\sqrt{48} + \\sqrt{27}$",
+        n1: 48, sq1: 16, out1: 4, rem: 3,
+        n2: 27, sq2: 9, out2: 3,
+        op: "+",
+        ansOut: 7
+      },
+      {
+        title: "$\\sqrt{50} - \\sqrt{8}$",
+        n1: 50, sq1: 25, out1: 5, rem: 2,
+        n2: 8, sq2: 4, out2: 2,
+        op: "-",
+        ansOut: 3
+      },
+      {
+        title: "$\\sqrt{98} - \\sqrt{18}$",
+        n1: 98, sq1: 49, out1: 7, rem: 2,
+        n2: 18, sq2: 9, out2: 3,
+        op: "-",
+        ansOut: 4
+      }
+    ];
+
+    function renderSim2(mount) {
+      const it = sim2List[sim2Idx];
+      mount.innerHTML = `
+        <div class="space-y-6">
+          <div class="flex flex-wrap items-center justify-between gap-3 bg-emerald-50/70 p-4 rounded-2xl border border-emerald-100">
+            <div>
+              <span class="text-xs font-extrabold text-emerald-700 uppercase">実験テーマ</span>
+              <h3 class="text-base md:text-lg font-extrabold text-slate-800">なぜ $\\sqrt{${it.n1}}$ と $\\sqrt{${it.n2}}$ が足し引きできるの？中に隠れた「2乗の平方数」を取り出そう！</h3>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              ${sim2List.map((item, idx) => `
+                <button onclick="sim2Idx=${idx}; renderSim2(document.getElementById('simulatorMount'))" class="px-3 py-1.5 rounded-xl text-xs font-extrabold transition ${
+                  sim2Idx === idx ? 'bg-emerald-600 text-white shadow' : 'bg-white text-slate-600 border'
+                }">${item.title}</button>
+              `).join('')}
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-stretch">
+            <!-- Term 1 -->
+            <div class="bg-slate-50 p-5 rounded-3xl border border-slate-200 flex flex-col justify-between space-y-3">
+              <div class="text-xs font-extrabold text-slate-500">1つ目の根号：$\\sqrt{${it.n1}}$</div>
+              <div class="p-3 bg-white rounded-2xl border text-center space-y-1">
+                <div class="text-sm font-bold text-slate-600">$${it.n1} = ${it.sq1} \\times ${it.rem} = ${it.out1}^2 \\times ${it.rem}$</div>
+                <div class="text-xl font-extrabold text-emerald-700">$\\sqrt{${it.out1}^2 \\times ${it.rem}} = ${it.out1}\\sqrt{${it.rem}}$</div>
+              </div>
+              <div class="flex flex-wrap gap-1 justify-center pt-1">
+                ${Array.from({ length: it.out1 }).map(() => `
+                  <span class="px-2.5 py-1 rounded-lg bg-emerald-500 text-white font-extrabold text-xs shadow-sm">$\\sqrt{${it.rem}}$</span>
+                `).join('')}
+              </div>
+              <div class="text-center text-xs font-bold text-emerald-800">「$\\sqrt{${it.rem}}$ ブロック」が <strong>$${it.out1}$ 個</strong></div>
+            </div>
+
+            <!-- Term 2 -->
+            <div class="bg-slate-50 p-5 rounded-3xl border border-slate-200 flex flex-col justify-between space-y-3">
+              <div class="text-xs font-extrabold text-slate-500">2つ目の根号：$\\sqrt{${it.n2}}$</div>
+              <div class="p-3 bg-white rounded-2xl border text-center space-y-1">
+                <div class="text-sm font-bold text-slate-600">$${it.n2} = ${it.sq2} \\times ${it.rem} = ${it.out2}^2 \\times ${it.rem}$</div>
+                <div class="text-xl font-extrabold text-teal-700">$\\sqrt{${it.out2}^2 \\times ${it.rem}} = ${it.out2}\\sqrt{${it.rem}}$</div>
+              </div>
+              <div class="flex flex-wrap gap-1 justify-center pt-1">
+                ${Array.from({ length: it.out2 }).map(() => `
+                  <span class="px-2.5 py-1 rounded-lg bg-teal-500 text-white font-extrabold text-xs shadow-sm">$\\sqrt{${it.rem}}$</span>
+                `).join('')}
+              </div>
+              <div class="text-center text-xs font-bold text-teal-800">「$\\sqrt{${it.rem}}$ ブロック」が <strong>$${it.out2}$ 個</strong></div>
+            </div>
+
+            <!-- Combined Result -->
+            <div class="bg-amber-50 p-5 rounded-3xl border-2 border-amber-300 flex flex-col justify-between space-y-3">
+              <div class="text-xs font-extrabold text-amber-800">同じ $\\sqrt{${it.rem}}$ だからまとめられる！</div>
+              <div class="p-4 bg-white rounded-2xl border border-amber-200 text-center space-y-2">
+                <div class="text-base font-extrabold text-slate-700">
+                  $${it.out1}\\sqrt{${it.rem}} ${it.op} ${it.out2}\\sqrt{${it.rem}}$
+                </div>
+                <div class="text-2xl font-extrabold text-amber-900">
+                  $= (${it.out1} ${it.op} ${it.out2})\\sqrt{${it.rem}} = ${it.ansOut}\\sqrt{${it.rem}}$
+                </div>
+              </div>
+              <p class="text-xs text-amber-950 leading-relaxed">
+                💡 <strong>ここが本質：</strong>そのままでは足し引きできなくても、平方数（$4, 9, 16, 25, 49$ など）を外に出すと、同じ種類の $\\sqrt{${it.rem}}$ になって計算できます！
+              </p>
+            </div>
+          </div>
+        </div>
+      `;
+      renderMath(mount);
+    }
+
+    // -------------------------------------------------------------------------
+    // 問3: 文字式 (Distributive Law Sign Flipper)
+    // -------------------------------------------------------------------------
+    let sim3ShowCorrect = true;
+    let sim3Idx = 0;
+    const sim3Probs = [
+      {
+        label: "$3(2x - y) - 2(x + 4y)$",
+        part1: "3(2x - y)", exp1: "6x - 3y",
+        part2: "- 2(x + 4y)", exp2Good: "- 2x - 8y", exp2Bad: "- 2x + 4y",
+        ansGood: "4x - 11y",
+        note: "$-2$ を $+4y$ にも掛けるので、$(-2) \\times (+4y) = -8y$ になります！"
+      },
+      {
+        label: "$4(3a + b) - (2a - 5b)$",
+        part1: "4(3a + b)", exp1: "12a + 4b",
+        part2: "- (2a - 5b)", exp2Good: "- 2a + 5b", exp2Bad: "- 2a - 5b",
+        ansGood: "10a + 9b",
+        note: "カッコの前の「$-$」は $-1$ を全員に配るので、$(-1) \\times (-5b) = +5b$ と符号がプラスに変わります！"
+      }
+    ];
+
+    function renderSim3(mount) {
+      const p = sim3Probs[sim3Idx];
+      mount.innerHTML = `
+        <div class="space-y-6">
+          <div class="flex flex-wrap items-center justify-between gap-3 bg-emerald-50/70 p-4 rounded-2xl border border-emerald-100">
+            <div>
+              <span class="text-xs font-extrabold text-emerald-700 uppercase">実験テーマ</span>
+              <h3 class="text-base md:text-lg font-extrabold text-slate-800">カッコの前のマイナスは「後ろの項の符号も反転させる」！分配法則を比較しよう</h3>
+            </div>
+            <div class="flex gap-2">
+              ${sim3Probs.map((item, idx) => `
+                <button onclick="sim3Idx=${idx}; renderSim3(document.getElementById('simulatorMount'))" class="px-3 py-1.5 rounded-xl text-xs font-extrabold transition ${
+                  sim3Idx === idx ? 'bg-emerald-600 text-white shadow' : 'bg-white text-slate-600 border'
+                }">${item.label}</button>
+              `).join('')}
+            </div>
+          </div>
+
+          <div class="flex justify-center gap-3">
+            <button onclick="sim3ShowCorrect=true; renderSim3(document.getElementById('simulatorMount'))" class="px-4 py-2 rounded-xl text-xs md:text-sm font-extrabold transition ${
+              sim3ShowCorrect ? 'bg-emerald-600 text-white shadow' : 'bg-slate-100 text-slate-600'
+            }">⭕ 正しい分配（後ろの項にもマイナスを配る）</button>
+            <button onclick="sim3ShowCorrect=false; renderSim3(document.getElementById('simulatorMount'))" class="px-4 py-2 rounded-xl text-xs md:text-sm font-extrabold transition ${
+              !sim3ShowCorrect ? 'bg-rose-600 text-white shadow' : 'bg-slate-100 text-slate-600'
+            }">❌ よくあるミス（後ろの項に配り忘れる）</button>
+          </div>
+
+          <div class="bg-slate-50 p-6 rounded-3xl border border-slate-200 space-y-4 text-center">
+            <div class="text-xl md:text-2xl font-extrabold text-slate-800">
+              $${p.part1}$ <span class="text-rose-600">$${p.part2}$</span>
+            </div>
+            <div class="text-sm font-bold text-slate-400">⬇ カッコを外すと…</div>
+            <div class="text-xl md:text-3xl font-extrabold">
+              $= ${p.exp1}$
+              ${sim3ShowCorrect
+                ? `<span class="bg-emerald-100 text-emerald-900 px-3 py-1 rounded-xl border-2 border-emerald-400">$${p.exp2Good}$</span>`
+                : `<span class="bg-rose-100 text-rose-800 px-3 py-1 rounded-xl border-2 border-rose-400 line-through">$${p.exp2Bad}$</span>`
+              }
+            </div>
+            ${sim3ShowCorrect ? `
+              <div class="text-2xl md:text-3xl font-extrabold text-emerald-700 pt-2">
+                $= ${p.ansGood}$
+              </div>
+              <div class="bg-emerald-50 border border-emerald-200 p-3.5 rounded-2xl text-xs md:text-sm text-emerald-950 font-bold max-w-xl mx-auto">
+                ✨ ${p.note}
+              </div>
+            ` : `
+              <div class="bg-rose-50 border border-rose-200 p-3.5 rounded-2xl text-xs md:text-sm text-rose-950 font-bold max-w-xl mx-auto">
+                💥 <strong>ストップ！</strong>カッコの2つ目の項にマイナスが掛かっていません！${p.note}
+              </div>
+            `}
+          </div>
+        </div>
+      `;
+      renderMath(mount);
+    }
+
+    // -------------------------------------------------------------------------
+    // 問4: 式の展開 (4-Box Area Grid)
+    // -------------------------------------------------------------------------
+    let sim4Idx = 0;
+    const sim4Probs = [
+      { label: "$(x + 2)(x + 7)$", a: "x", b: "+ 2", c: "x", d: "+ 7", r1: "x^2", r2: "+ 7x", r3: "+ 2x", r4: "+ 14", mid: "+ 9x", final: "x^2 + 9x + 14" },
+      { label: "$(2x + 1)(x - 3)$", a: "2x", b: "+ 1", c: "x", d: "- 3", r1: "2x^2", r2: "- 6x", r3: "+ x", r4: "- 3", mid: "- 5x", final: "2x^2 - 5x - 3" },
+      { label: "$(3x - 2)(x + 4)$", a: "3x", b: "- 2", c: "x", d: "+ 4", r1: "3x^2", r2: "+ 12x", r3: "- 2x", r4: "- 8", mid: "+ 10x", final: "3x^2 + 10x - 8" }
+    ];
+
+    function renderSim4(mount) {
+      const p = sim4Probs[sim4Idx];
+      mount.innerHTML = `
+        <div class="space-y-6">
+          <div class="flex flex-wrap items-center justify-between gap-3 bg-emerald-50/70 p-4 rounded-2xl border border-emerald-100">
+            <div>
+              <span class="text-xs font-extrabold text-emerald-700 uppercase">実験テーマ</span>
+              <h3 class="text-base md:text-lg font-extrabold text-slate-800">$(a + b)(c + d)$ は4つの部屋の面積！斜め向かいの同類項が合体する様子を見よう</h3>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              ${sim4Probs.map((item, idx) => `
+                <button onclick="sim4Idx=${idx}; renderSim4(document.getElementById('simulatorMount'))" class="px-3 py-1.5 rounded-xl text-xs font-extrabold transition ${
+                  sim4Idx === idx ? 'bg-emerald-600 text-white shadow' : 'bg-white text-slate-600 border'
+                }">${item.label}</button>
+              `).join('')}
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+            <!-- 2x2 Multiplication Box -->
+            <div class="md:col-span-6 flex flex-col items-center">
+              <div class="grid grid-cols-3 gap-2 w-72 text-center font-extrabold">
+                <div></div>
+                <div class="bg-slate-200 py-2 rounded-xl text-sm">$${p.c}$</div>
+                <div class="bg-slate-200 py-2 rounded-xl text-sm">$${p.d}$</div>
+
+                <div class="bg-slate-200 flex items-center justify-center rounded-xl text-sm">$${p.a}$</div>
+                <div class="bg-emerald-500 text-white h-20 rounded-2xl flex flex-col items-center justify-center shadow">
+                  <span class="text-[11px] opacity-85">$${p.a} \\times ${p.c}$</span>
+                  <span class="text-lg">$${p.r1}$</span>
+                </div>
+                <div class="bg-amber-300 text-slate-900 h-20 rounded-2xl flex flex-col items-center justify-center shadow border-2 border-amber-500">
+                  <span class="text-[11px] opacity-75">①同類項</span>
+                  <span class="text-lg">$${p.r2}$</span>
+                </div>
+
+                <div class="bg-slate-200 flex items-center justify-center rounded-xl text-sm">$${p.b}$</div>
+                <div class="bg-amber-300 text-slate-900 h-20 rounded-2xl flex flex-col items-center justify-center shadow border-2 border-amber-500">
+                  <span class="text-[11px] opacity-75">②同類項</span>
+                  <span class="text-lg">$${p.r3}$</span>
+                </div>
+                <div class="bg-teal-600 text-white h-20 rounded-2xl flex flex-col items-center justify-center shadow">
+                  <span class="text-[11px] opacity-85">定数項</span>
+                  <span class="text-lg">$${p.r4}$</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Formula Summary -->
+            <div class="md:col-span-6 bg-slate-50 p-5 rounded-3xl border border-slate-200 space-y-3">
+              <div class="text-xs font-extrabold text-slate-400">STEP 1：4つの部屋の積をすべて書き出す</div>
+              <div class="p-3 bg-white rounded-xl border text-base font-extrabold">
+                $= ${p.r1}$ <span class="bg-amber-200 px-2 py-0.5 rounded">$${p.r2} ${p.r3}$</span> $${p.r4}$
+              </div>
+              <div class="text-xs font-extrabold text-amber-700">STEP 2：黄色い2つの部屋（$x$ の同類項）を合体！</div>
+              <div class="p-3.5 bg-emerald-50 border border-emerald-300 rounded-xl text-xl font-extrabold text-emerald-950">
+                $= ${p.final}$
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      renderMath(mount);
+    }
+
+    // -------------------------------------------------------------------------
+    // 問5: 因数分解 (Sum & Product Factor Finder)
+    // -------------------------------------------------------------------------
+    let sim5TargetIdx = 0;
+    let sim5SelectedPair = 0;
+    const sim5Targets = [
+      {
+        expr: "x^2 - 2x - 15", sum: -2, prod: -15,
+        pairs: [
+          { p: 1, q: -15 },
+          { p: -1, q: 15 },
+          { p: 3, q: -5 },
+          { p: -3, q: 5 }
+        ]
+      },
+      {
+        expr: "x^2 - 9x + 20", sum: -9, prod: 20,
+        pairs: [
+          { p: 2, q: 10 },
+          { p: 4, q: 5 },
+          { p: -2, q: -10 },
+          { p: -4, q: -5 }
+        ]
+      }
+    ];
+
+    function renderSim5(mount) {
+      const t = sim5Targets[sim5TargetIdx];
+      const pair = t.pairs[sim5SelectedPair];
+      const currentSum = pair.p + pair.q;
+      const isMatch = currentSum === t.sum;
+      const pStr = pair.p >= 0 ? `+ ${pair.p}` : `- ${Math.abs(pair.p)}`;
+      const qStr = pair.q >= 0 ? `+ ${pair.q}` : `- ${Math.abs(pair.q)}`;
+
+      mount.innerHTML = `
+        <div class="space-y-6">
+          <div class="flex flex-wrap items-center justify-between gap-3 bg-emerald-50/70 p-4 rounded-2xl border border-emerald-100">
+            <div>
+              <span class="text-xs font-extrabold text-emerald-700 uppercase">実験テーマ</span>
+              <h3 class="text-base md:text-lg font-extrabold text-slate-800">$${t.expr}$ を因数分解！「掛けて $${t.prod}$」になるペアの中から「足して $${t.sum}$」を探そう</h3>
+            </div>
+            <div class="flex gap-2">
+              ${sim5Targets.map((item, idx) => `
+                <button onclick="sim5TargetIdx=${idx}; sim5SelectedPair=0; renderSim5(document.getElementById('simulatorMount'))" class="px-3 py-1.5 rounded-xl text-xs font-extrabold transition ${
+                  sim5TargetIdx === idx ? 'bg-emerald-600 text-white shadow' : 'bg-white text-slate-600 border'
+                }">$${item.expr}$</button>
+              `).join('')}
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            ${t.pairs.map((pr, idx) => `
+              <button onclick="sim5SelectedPair=${idx}; renderSim5(document.getElementById('simulatorMount'))" class="p-3 rounded-2xl border-2 font-extrabold text-sm transition ${
+                sim5SelectedPair === idx ? 'bg-emerald-600 text-white border-emerald-600 shadow' : 'bg-white text-slate-700 border-slate-200 hover:bg-emerald-50'
+              }">
+                $${pr.p}$ と $${pr.q}$
+              </button>
+            `).join('')}
+          </div>
+
+          <div class="bg-slate-50 p-6 rounded-3xl border border-slate-200 grid grid-cols-1 md:grid-cols-3 gap-4 text-center items-center">
+            <div class="bg-white p-4 rounded-2xl border">
+              <div class="text-xs font-bold text-slate-500">① 掛け算（積 $=$ $${t.prod}$ か？）</div>
+              <div class="text-xl font-extrabold text-emerald-700 mt-1">$${pair.p} \\times (${pair.q}) = ${t.prod}$ ⭕</div>
+            </div>
+            <div class="bg-white p-4 rounded-2xl border-2 ${isMatch ? 'border-emerald-400 bg-emerald-50/40' : 'border-rose-300 bg-rose-50/40'}">
+              <div class="text-xs font-bold text-slate-500">② 足し算（和 $=$ $${t.sum}$ か？）</div>
+              <div class="text-xl font-extrabold mt-1 ${isMatch ? 'text-emerald-700' : 'text-rose-600'}">
+                $${pair.p} + (${pair.q}) = ${currentSum}$ ${isMatch ? '🎯一致！' : '❌不一致'}
+              </div>
+            </div>
+            <div class="p-4 rounded-2xl ${isMatch ? 'bg-amber-400 text-slate-900 shadow-md' : 'bg-slate-200 text-slate-500'}">
+              <div class="text-xs font-bold">因数分解の答え</div>
+              <div class="text-xl font-extrabold mt-1">$(x ${pStr})(x ${qStr})$</div>
+              <div class="text-xs font-extrabold mt-1">${isMatch ? '✨ 大正解のペア！' : '別のペアを試そう'}</div>
+            </div>
+          </div>
+        </div>
+      `;
+      renderMath(mount);
+    }
+
+    // -------------------------------------------------------------------------
+    // 問6: 一次方程式 (Balance Scale Operation Visualizer)
+    // -------------------------------------------------------------------------
+    let sim6Step = 0;
+    function renderSim6(mount) {
+      const steps = [
+        {
+          title: "スタート：$5x - 7 = 2x + 8$",
+          left: "5x - 7",
+          right: "2x + 8",
+          action: "左辺の「$-7$」を消すために、両方の皿に「$+7$」を乗せよう！",
+          btn: "両辺に $+7$ を足す ➔"
+        },
+        {
+          title: "ステップ1：両辺に $+7$ を足した状態",
+          left: "5x - 7 + 7 \\implies 5x",
+          right: "2x + 8 + 7 \\implies 2x + 15",
+          action: "これが「$-7$ を右辺に移項すると $+7$ になる」理由です！次は右辺の $2x$ を消すために両辺から $2x$ を引こう。",
+          btn: "両辺から $2x$ を引く ➔"
+        },
+        {
+          title: "ステップ2：両辺から $2x$ を引いた状態",
+          left: "5x - 2x \\implies 3x",
+          right: "15",
+          action: "$x$ の重り3個分で $15$ になりました！最後に両辺を $3$ で割れば $x$ 1個分がわかります。",
+          btn: "両辺を $3$ で割る ➔"
+        },
+        {
+          title: "クリア！両辺を $3$ で割って解が判明！",
+          left: "x",
+          right: "\\dfrac{15}{3} = 5",
+          action: "🎉 $x = 5$！元の式に入れると、左辺 $= 5\\times 5 - 7 = 18$、右辺 $= 2\\times 5 + 8 = 18$ でピッタリつり合います！",
+          btn: "最初からもう一度見る"
+        }
+      ];
+      const st = steps[sim6Step];
+
+      mount.innerHTML = `
+        <div class="space-y-6">
+          <div class="bg-emerald-50/70 p-4 rounded-2xl border border-emerald-100">
+            <span class="text-xs font-extrabold text-emerald-700 uppercase">実験テーマ</span>
+            <h3 class="text-base md:text-lg font-extrabold text-slate-800">なぜ移項すると符号が変わるの？天秤の両皿に同じ操作をして確かめよう！</h3>
+          </div>
+
+          <div class="grid grid-cols-4 gap-2">
+            ${steps.map((_, idx) => `
+              <button onclick="sim6Step=${idx}; renderSim6(document.getElementById('simulatorMount'))" class="py-2 rounded-xl text-xs font-extrabold border ${
+                sim6Step === idx ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-white text-slate-600'
+              }">STEP ${idx + 1}</button>
+            `).join('')}
+          </div>
+
+          <div class="bg-slate-50 p-6 rounded-3xl border border-slate-200 text-center space-y-5">
+            <div class="text-sm font-extrabold text-emerald-700">${st.title}</div>
+
+            <!-- Balance Scale Visual -->
+            <div class="max-w-lg mx-auto">
+              <div class="grid grid-cols-11 items-center gap-2">
+                <div class="col-span-5 bg-white p-4 rounded-2xl border-b-4 border-emerald-500 shadow text-lg md:text-xl font-extrabold text-slate-800">
+                  $${st.left}$
+                </div>
+                <div class="col-span-1 text-2xl font-extrabold text-emerald-600">$=$</div>
+                <div class="col-span-5 bg-white p-4 rounded-2xl border-b-4 border-emerald-500 shadow text-lg md:text-xl font-extrabold text-slate-800">
+                  $${st.right}$
+                </div>
+              </div>
+              <div class="w-3/4 h-2 bg-slate-400 mx-auto rounded-full mt-2"></div>
+              <div class="w-0 h-0 border-l-[18px] border-l-transparent border-r-[18px] border-r-transparent border-b-[26px] border-b-slate-500 mx-auto"></div>
+            </div>
+
+            <p class="text-xs md:text-sm text-slate-700 max-w-xl mx-auto font-medium">${st.action}</p>
+
+            <button onclick="sim6Step=(${sim6Step}+1)%4; renderSim6(document.getElementById('simulatorMount'))" class="pop-btn bg-emerald-600 text-white font-extrabold px-6 py-3 rounded-2xl shadow">
+              ${st.btn}
+            </button>
+          </div>
+        </div>
+      `;
+      renderMath(mount);
+    }
+
+    // -------------------------------------------------------------------------
+    // 問7: 連立方程式 (Simultaneous Equations & Graph Intersection)
+    // -------------------------------------------------------------------------
+    let sim7TestX = 4;
+    let sim7TestY = 5;
+
+    function renderSim7(mount) {
+      // Equation 1: x + y = 9, Equation 2: x - y = 3 -> Solution (6, 3)
+      const eq1Val = sim7TestX + sim7TestY;
+      const eq2Val = sim7TestX - sim7TestY;
+      const ok1 = eq1Val === 9;
+      const ok2 = eq2Val === 3;
+      const bothOk = ok1 && ok2;
+
+      mount.innerHTML = `
+        <div class="space-y-6">
+          <div class="bg-emerald-50/70 p-4 rounded-2xl border border-emerald-100">
+            <span class="text-xs font-extrabold text-emerald-700 uppercase">実験テーマ</span>
+            <h3 class="text-base md:text-lg font-extrabold text-slate-800">連立方程式 $\\begin{cases} x + y = 9 \\\\ x - y = 3 \\end{cases}$ は「2つの式を同時に満たすたった1つの組」を探すパズル！</h3>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+            <div class="md:col-span-6 space-y-4">
+              <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-3">
+                <div class="text-xs font-extrabold text-slate-500">$x + y = 9$ を満たす色々なペアをクリックして試そう：</div>
+                <div class="flex flex-wrap gap-2">
+                  ${[[4,5], [5,4], [6,3], [7,2]].map(([vx, vy]) => `
+                    <button onclick="sim7TestX=${vx}; sim7TestY=${vy}; renderSim7(document.getElementById('simulatorMount'))" class="px-3.5 py-2 rounded-xl text-xs font-extrabold transition ${
+                      sim7TestX===vx && sim7TestY===vy ? 'bg-emerald-600 text-white shadow' : 'bg-white border text-slate-700'
+                    }">$(x, y) = (${vx}, ${vy})$</button>
+                  `).join('')}
+                </div>
+              </div>
+
+              <div class="space-y-2.5">
+                <div class="p-4 rounded-2xl border-2 ${ok1 ? 'bg-emerald-50 border-emerald-300' : 'bg-rose-50 border-rose-300'} flex justify-between items-center">
+                  <div>
+                    <div class="text-xs font-bold text-slate-500">① 1つ目の式：$x + y = 9$</div>
+                    <div class="text-base font-extrabold mt-0.5">$${sim7TestX} + ${sim7TestY} = ${eq1Val}$</div>
+                  </div>
+                  <span class="text-sm font-extrabold ${ok1 ? 'text-emerald-700' : 'text-rose-600'}">${ok1 ? '⭕ クリア！' : '❌ 不一致'}</span>
+                </div>
+
+                <div class="p-4 rounded-2xl border-2 ${ok2 ? 'bg-emerald-50 border-emerald-300' : 'bg-rose-50 border-rose-300'} flex justify-between items-center">
+                  <div>
+                    <div class="text-xs font-bold text-slate-500">② 2つ目の式：$x - y = 3$</div>
+                    <div class="text-base font-extrabold mt-0.5">$${sim7TestX} - ${sim7TestY} = ${eq2Val}$</div>
+                  </div>
+                  <span class="text-sm font-extrabold ${ok2 ? 'text-emerald-700' : 'text-rose-600'}">${ok2 ? '⭕ クリア！' : '❌ 3にならない'}</span>
+                </div>
+              </div>
+
+              <div class="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-xs md:text-sm text-amber-950 leading-relaxed">
+                💡 <strong>加減法なら一発で求まる理由：</strong><br>
+                $(x + y) + (x - y) = 9 + 3 \\implies 2x = 12 \\implies x = 6$。<br>
+                そして $6 + y = 9$ より $y = 3$ と、当てずっぽうで探さなくても交点 $(6, 3)$ が計算で求まります！
+              </div>
+            </div>
+
+            <!-- SVG Graph of 2 Lines -->
+            <div class="md:col-span-6 bg-slate-50 p-4 rounded-3xl border border-slate-200 flex justify-center">
+              <svg viewBox="0 0 320 230" class="w-full max-w-[320px] h-auto bg-white rounded-2xl border p-2">
+                <!-- Axes -->
+                <line x1="30" y1="195" x2="300" y2="195" stroke="#94a3b8" stroke-width="1.5" />
+                <line x1="40" y1="15" x2="40" y2="210" stroke="#94a3b8" stroke-width="1.5" />
+                <!-- Line 1: x + y = 9 (x=0,y=9 -> 40,33; x=9,y=0 -> 292,195) -->
+                <line x1="40" y1="33" x2="292" y2="195" stroke="#0284c7" stroke-width="2.5" />
+                <text x="115" y="65" font-size="11" font-weight="800" fill="#0284c7">x + y = 9</text>
+                <!-- Line 2: x - y = 3 (x=2,y=-1 -> 96,213; x=9,y=6 -> 292,87) -->
+                <line x1="96" y1="213" x2="292" y2="87" stroke="#f59e0b" stroke-width="2.5" />
+                <text x="235" y="100" font-size="11" font-weight="800" fill="#d97706">x - y = 3</text>
+
+                <!-- Intersection (6, 3) -> x = 40 + 6*28 = 208, y = 195 - 3*18 = 141 -->
+                <circle cx="208" cy="141" r="6" fill="#10b981" />
+                <text x="208" y="162" text-anchor="middle" font-size="11" font-weight="800" fill="#059669">交点(6, 3)</text>
+
+                <!-- Selected Test Point -->
+                <circle cx="${40 + sim7TestX * 28}" cy="${195 - sim7TestY * 18}" r="7" fill="${bothOk ? '#10b981' : '#e11d48'}" stroke="#fff" stroke-width="2" />
+                <text x="${40 + sim7TestX * 28}" y="${195 - sim7TestY * 18 - 10}" text-anchor="middle" font-size="11" font-weight="800" fill="${bothOk ? '#059669' : '#e11d48'}">(${sim7TestX}, ${sim7TestY})</text>
+              </svg>
+            </div>
+          </div>
+        </div>
+      `;
+      renderMath(mount);
+    }
+
+    // -------------------------------------------------------------------------
+    // 問8: 二次方程式 (Two Locks Zero Maker)
+    // -------------------------------------------------------------------------
+    let sim8X = 2;
+    function renderSim8(mount) {
+      const candidates = [-3, -2, 0, 2, 3, 4];
+      const f1 = sim8X - 2;
+      const f2 = sim8X - 3;
+      const prod = f1 * f2;
+      const isZero = prod === 0;
+
+      mount.innerHTML = `
+        <div class="space-y-6">
+          <div class="bg-emerald-50/70 p-4 rounded-2xl border border-emerald-100">
+            <span class="text-xs font-extrabold text-emerald-700 uppercase">実験テーマ</span>
+            <h3 class="text-base md:text-lg font-extrabold text-slate-800">$x^2 - 5x + 6 = 0 \\implies (x - 2)(x - 3) = 0$ の解が $x = 2, 3$ の2つになる理由を試そう！</h3>
+          </div>
+
+          <div class="flex flex-wrap justify-center gap-2">
+            <span class="text-xs font-extrabold text-slate-500 self-center mr-1">$x$ に代入する値：</span>
+            ${candidates.map(v => `
+              <button onclick="sim8X=${v}; renderSim8(document.getElementById('simulatorMount'))" class="px-4 py-2 rounded-xl font-extrabold text-sm transition ${
+                sim8X === v ? 'bg-emerald-600 text-white shadow scale-105' : 'bg-slate-100 text-slate-700 hover:bg-emerald-50'
+              }">$x = ${v}$</button>
+            `).join('')}
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-11 gap-3 items-center bg-slate-50 p-6 rounded-3xl border border-slate-200 text-center">
+            <div class="md:col-span-4 p-4 rounded-2xl border-2 ${f1 === 0 ? 'bg-emerald-100 border-emerald-400' : 'bg-white border-slate-200'}">
+              <div class="text-xs font-bold text-slate-500">左のカッコ $(x - 2)$</div>
+              <div class="text-xl font-extrabold mt-1">$${sim8X} - 2 = ${f1}$</div>
+              ${f1 === 0 ? '<div class="text-xs font-extrabold text-emerald-700 mt-1">🎯 0になった！</div>' : ''}
+            </div>
+            <div class="md:col-span-1 text-2xl font-extrabold text-slate-400">$\\times$</div>
+            <div class="md:col-span-4 p-4 rounded-2xl border-2 ${f2 === 0 ? 'bg-emerald-100 border-emerald-400' : 'bg-white border-slate-200'}">
+              <div class="text-xs font-bold text-slate-500">右のカッコ $(x - 3)$</div>
+              <div class="text-xl font-extrabold mt-1">$${sim8X} - 3 = ${f2}$</div>
+              ${f2 === 0 ? '<div class="text-xs font-extrabold text-emerald-700 mt-1">🎯 0になった！</div>' : ''}
+            </div>
+            <div class="md:col-span-2 p-4 rounded-2xl ${isZero ? 'bg-amber-400 text-slate-900 shadow' : 'bg-slate-200 text-slate-600'}">
+              <div class="text-xs font-bold">積</div>
+              <div class="text-2xl font-extrabold mt-1">$= ${prod}$</div>
+              <div class="text-xs font-extrabold">${isZero ? '⭕ 解！' : '❌'}</div>
+            </div>
+          </div>
+        </div>
+      `;
+      renderMath(mount);
+    }
+
+    // -------------------------------------------------------------------------
+    // 問9: 反比例 (Constant Product xy = a Visualizer)
+    // -------------------------------------------------------------------------
+    let sim9A = 12;
+    let sim9X = 3;
+
+    function renderSim9(mount) {
+      const yVal = sim9A / sim9X;
+      const validX = [-6, -4, -3, -2, 2, 3, 4, 6];
+
+      mount.innerHTML = `
+        <div class="space-y-6">
+          <div class="flex flex-wrap items-center justify-between gap-3 bg-emerald-50/70 p-4 rounded-2xl border border-emerald-100">
+            <div>
+              <span class="text-xs font-extrabold text-emerald-700 uppercase">実験テーマ</span>
+              <h3 class="text-base md:text-lg font-extrabold text-slate-800">反比例 $y = \\dfrac{a}{x}$ は「$x \\times y = a$（掛け算の積がいつも一定）」になる関係！</h3>
+            </div>
+            <div class="flex gap-2">
+              <button onclick="sim9A=12; sim9X=3; renderSim9(document.getElementById('simulatorMount'))" class="px-3 py-1.5 rounded-xl text-xs font-extrabold ${sim9A===12 ? 'bg-emerald-600 text-white' : 'bg-white border'}">$a = 12$（正）</button>
+              <button onclick="sim9A=-24; sim9X=-3; renderSim9(document.getElementById('simulatorMount'))" class="px-3 py-1.5 rounded-xl text-xs font-extrabold ${sim9A===-24 ? 'bg-emerald-600 text-white' : 'bg-white border'}">$a = -24$（負）</button>
+            </div>
+          </div>
+
+          <div class="flex flex-wrap justify-center gap-2">
+            <span class="text-xs font-extrabold text-slate-500 self-center">$x$ の値を変えてみよう：</span>
+            ${validX.map(vx => `
+              <button onclick="sim9X=${vx}; renderSim9(document.getElementById('simulatorMount'))" class="px-3.5 py-2 rounded-xl font-extrabold text-xs md:text-sm transition ${
+                sim9X === vx ? 'bg-emerald-600 text-white shadow' : 'bg-slate-100 text-slate-700 hover:bg-emerald-50'
+              }">$x = ${vx}$</button>
+            `).join('')}
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-center bg-slate-50 p-6 rounded-3xl border border-slate-200 text-center">
+            <div class="bg-white p-4 rounded-2xl border">
+              <div class="text-xs font-bold text-slate-500">横の値 $x$</div>
+              <div class="text-2xl font-extrabold text-slate-800 mt-1">$x = ${sim9X}$</div>
+            </div>
+            <div class="bg-white p-4 rounded-2xl border">
+              <div class="text-xs font-bold text-slate-500">対応する縦の値 $y = \\dfrac{${sim9A}}{${sim9X}}$</div>
+              <div class="text-2xl font-extrabold text-emerald-700 mt-1">$y = ${yVal}$</div>
+            </div>
+            <div class="bg-amber-400 text-slate-900 p-4 rounded-2xl shadow">
+              <div class="text-xs font-extrabold">2つの積 $x \\times y$</div>
+              <div class="text-2xl font-extrabold mt-1">$${sim9X} \\times (${yVal}) = ${sim9A}$</div>
+              <div class="text-xs font-bold mt-0.5">いつも一定の $a = ${sim9A}$！</div>
+            </div>
+          </div>
+        </div>
+      `;
+      renderMath(mount);
+    }
+
+    // -------------------------------------------------------------------------
+    // 問10: 2乗に比例する関数 (Symmetry & Squaring Negative Numbers)
+    // -------------------------------------------------------------------------
+    let sim10A = 2;
+    let sim10X = -3;
+
+    function renderSim10(mount) {
+      const sq = sim10X * sim10X;
+      const yVal = sim10A * sq;
+      const mirrorX = -sim10X;
+
+      mount.innerHTML = `
+        <div class="space-y-6">
+          <div class="flex flex-wrap items-center justify-between gap-3 bg-emerald-50/70 p-4 rounded-2xl border border-emerald-100">
+            <div>
+              <span class="text-xs font-extrabold text-emerald-700 uppercase">実験テーマ</span>
+              <h3 class="text-base md:text-lg font-extrabold text-slate-800">$y = ax^2$ で $x = ${sim10X}$ と $x = ${mirrorX}$ の $y$ が同じ値になる理由を確かめよう！</h3>
+            </div>
+            <div class="flex gap-2">
+              <button onclick="sim10A=2; renderSim10(document.getElementById('simulatorMount'))" class="px-3 py-1.5 rounded-xl text-xs font-extrabold ${sim10A===2 ? 'bg-emerald-600 text-white' : 'bg-white border'}">$y = 2x^2$</button>
+              <button onclick="sim10A=3; renderSim10(document.getElementById('simulatorMount'))" class="px-3 py-1.5 rounded-xl text-xs font-extrabold ${sim10A===3 ? 'bg-emerald-600 text-white' : 'bg-white border'}">$y = 3x^2$</button>
+              <button onclick="sim10A=-2; renderSim10(document.getElementById('simulatorMount'))" class="px-3 py-1.5 rounded-xl text-xs font-extrabold ${sim10A===-2 ? 'bg-emerald-600 text-white' : 'bg-white border'}">$y = -2x^2$</button>
+            </div>
+          </div>
+
+          <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200">
+            <label class="text-sm font-extrabold text-emerald-800 flex justify-between">
+              <span>🔍 $x$ の値を選ぶ：$x = ${sim10X}$</span>
+              <span class="text-xs text-slate-500">（マイナスとプラスを比べてみよう）</span>
+            </label>
+            <input type="range" min="-4" max="4" step="1" value="${sim10X}" oninput="sim10X=Number(this.value); renderSim10(document.getElementById('simulatorMount'))" class="w-full mt-2">
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="p-5 rounded-3xl bg-white border-2 border-emerald-300 space-y-2">
+              <div class="text-xs font-extrabold text-emerald-700">① まず $x$ を2乗する（負の数も必ずプラス！）</div>
+              <div class="text-xl font-extrabold text-slate-800">
+                $x^2 = (${sim10X})^2 = (${sim10X}) \\times (${sim10X}) =$ <span class="text-emerald-600">$+${sq}$</span>
+              </div>
+              <p class="text-xs text-slate-500">※ $(-3)^2$ を $-9$ にしないよう注意！</p>
+            </div>
+
+            <div class="p-5 rounded-3xl bg-white border-2 border-teal-300 space-y-2">
+              <div class="text-xs font-extrabold text-teal-700">② 次に比例定数 $a = ${sim10A}$ を掛ける</div>
+              <div class="text-xl font-extrabold text-slate-800">
+                $y = ${sim10A} \\times ${sq} =$ <span class="text-teal-700 text-2xl">$${yVal}$</span>
+              </div>
+              <p class="text-xs text-slate-500">反対側の $x = ${mirrorX}$ のときも同じく $y = ${yVal}$ になります（左右対称）！</p>
+            </div>
+          </div>
+        </div>
+      `;
+      renderMath(mount);
+    }
+
+    // -------------------------------------------------------------------------
+    // 問11: 相似と面積比 (Triangle Tiling Visualizer)
+    // -------------------------------------------------------------------------
+    let sim11K = 2;
+    let sim11SmallArea = 12;
+
+    function renderSim11(mount) {
+      const sqK = sim11K * sim11K;
+      const bigArea = sim11SmallArea * sqK;
+
+      mount.innerHTML = `
+        <div class="space-y-6">
+          <div class="bg-emerald-50/70 p-4 rounded-2xl border border-emerald-100">
+            <span class="text-xs font-extrabold text-emerald-700 uppercase">実験テーマ</span>
+            <h3 class="text-base md:text-lg font-extrabold text-slate-800">辺の長さが $1 : ${sim11K}$ になると、面積が $1^2 : ${sim11K}^2 = 1 : ${sqK}$ になる理由を図で確かめよう！</h3>
+          </div>
+
+          <div class="flex flex-wrap items-center justify-between gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-200">
+            <div class="flex gap-2 items-center">
+              <span class="text-xs font-extrabold text-slate-600">辺の比（相似比）：</span>
+              ${[2, 3, 4].map(k => `
+                <button onclick="sim11K=${k}; renderSim11(document.getElementById('simulatorMount'))" class="px-4 py-2 rounded-xl text-xs font-extrabold transition ${
+                  sim11K === k ? 'bg-emerald-600 text-white shadow' : 'bg-white border text-slate-700'
+                }">$1 : ${k}$</button>
+              `).join('')}
+            </div>
+            <div class="text-sm font-extrabold text-emerald-800">
+              底辺 $${sim11K}$ 倍 $\\times$ 高さ $${sim11K}$ 倍 $=$ 面積は <strong>$${sqK}$ 倍</strong>！
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center bg-white p-6 rounded-3xl border border-slate-200">
+            <div class="text-center space-y-2">
+              <div class="text-xs font-bold text-slate-500">元の三角形（面積 $${sim11SmallArea}\\text{ cm}^2$）</div>
+              <svg viewBox="0 0 220 140" class="w-48 h-auto mx-auto">
+                <polygon points="110,20 65,110 155,110" fill="#10b981" stroke="#047857" stroke-width="2.5" />
+                <text x="110" y="90" text-anchor="middle" font-size="13" font-weight="800" fill="#fff">${sim11SmallArea}</text>
+              </svg>
+              <div class="text-xs font-extrabold text-emerald-700">三角形タイル $1$ 枚分</div>
+            </div>
+
+            <div class="text-center space-y-2">
+              <div class="text-xs font-bold text-emerald-700">辺を $${sim11K}$ 倍に拡大した三角形</div>
+              <div class="p-4 bg-emerald-50 rounded-2xl border border-emerald-200 inline-block">
+                <div class="text-2xl font-extrabold text-emerald-900">
+                  小さい三角形が $${sim11K}^2 = ${sqK}$ 枚分入る！
+                </div>
+                <div class="text-lg font-extrabold text-emerald-700 mt-2">
+                  面積 $= ${sim11SmallArea} \\times ${sqK} = ${bigArea}\\text{ cm}^2$
+                </div>
+              </div>
+              <p class="text-xs text-slate-500">※ 長さの比 $2:5$ なら面積比は $2^2:5^2 = 4:25$ になります。</p>
+            </div>
+          </div>
+        </div>
+      `;
+      renderMath(mount);
+    }
+
+    // -------------------------------------------------------------------------
+    // 問12: 円に内接する四角形 (Cyclic Quadrilateral Opposite Angles = 180)
+    // -------------------------------------------------------------------------
+    let sim12AngleA = 100;
+    let sim12AngleB = 75;
+
+    function renderSim12(mount) {
+      const A = sim12AngleA;
+      const B = sim12AngleB;
+      const angleC = 180 - A;
+      const angleD = 180 - B;
+
+      // 円周角の定理に基づき、内角が正確に A, B, C, D になる円周上の4頂点の中心角を計算
+      const minCD = Math.max(25, 2 * A + 2 * B - 335);
+      const maxCD = Math.min(2 * A - 25, 2 * B - 25);
+      const arcCD = (minCD + maxCD) / 2;
+      const arcBC = 2 * A - arcCD;
+      const arcDA = 2 * B - arcCD;
+      const arcAB = 360 - (arcBC + arcCD + arcDA);
+
+      // 各頂点の極角（度数法・右上を起点に反時計回り）
+      const degA = -25;
+      const degB = degA - arcAB;
+      const degC = degB - arcBC;
+      const degD = degC - arcCD;
+
+      const cx = 180;
+      const cy = 145;
+      const r = 86;
+
+      function ptOnCircle(deg, radius = r) {
+        const rad = (deg * Math.PI) / 180;
+        return {
+          x: +(cx + radius * Math.cos(rad)).toFixed(1),
+          y: +(cy + radius * Math.sin(rad)).toFixed(1)
+        };
+      }
+
+      const pA = ptOnCircle(degA);
+      const pB = ptOnCircle(degB);
+      const pC = ptOnCircle(degC);
+      const pD = ptOnCircle(degD);
+
+      // ラベル位置（円の少し外側、かつ画面端からはみ出さないようクランプ）
+      function labelPos(deg) {
+        const raw = ptOnCircle(deg, r + 30);
+        return {
+          x: Math.max(46, Math.min(314, raw.x)),
+          y: Math.max(24, Math.min(272, raw.y + 4))
+        };
+      }
+
+      const lA = labelPos(degA);
+      const lB = labelPos(degB);
+      const lC = labelPos(degC);
+      const lD = labelPos(degD);
+
+      mount.innerHTML = `
+        <div class="space-y-6">
+          <div class="bg-emerald-50/70 p-4 rounded-2xl border border-emerald-100">
+            <span class="text-xs font-extrabold text-emerald-700 uppercase">実験テーマ</span>
+            <h3 class="text-base md:text-lg font-extrabold text-slate-800">円に内接する四角形では、隣ではなく「向かい合う角（対角）の和」がいつも $180^\\circ$！</h3>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-200">
+            <div>
+              <label class="text-xs font-extrabold text-rose-700">🔴 $\\angle A$ の大きさを変える：$${A}^\\circ$（向かいの $\\angle C = ${angleC}^\\circ$）</label>
+              <input type="range" min="60" max="125" step="1" value="${A}" oninput="sim12AngleA=Number(this.value); renderSim12(document.getElementById('simulatorMount'))" class="w-full mt-2">
+            </div>
+            <div>
+              <label class="text-xs font-extrabold text-blue-700">🔵 $\\angle B$ の大きさを変える：$${B}^\\circ$（向かいの $\\angle D = ${angleD}^\\circ$）</label>
+              <input type="range" min="60" max="125" step="1" value="${B}" oninput="sim12AngleB=Number(this.value); renderSim12(document.getElementById('simulatorMount'))" class="w-full mt-2">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+            <div class="md:col-span-6 flex justify-center bg-white p-4 rounded-3xl border border-slate-200">
+              <svg viewBox="0 0 360 290" class="w-full max-w-[360px] h-auto">
+                <!-- Circumscribed Circle -->
+                <circle cx="${cx}" cy="${cy}" r="${r}" fill="#f8fafc" stroke="#0d9488" stroke-width="3" />
+
+                <!-- Inscribed Quadrilateral Polygon -->
+                <polygon points="${pA.x},${pA.y} ${pB.x},${pB.y} ${pC.x},${pC.y} ${pD.x},${pD.y}" fill="#ffffff" stroke="#334155" stroke-width="2.5" />
+
+                <!-- Diagonal Dashed Lines Connecting Opposite Angles -->
+                <line x1="${pA.x}" y1="${pA.y}" x2="${pC.x}" y2="${pC.y}" stroke="#f43f5e" stroke-width="1.8" stroke-dasharray="5,4" />
+                <line x1="${pB.x}" y1="${pB.y}" x2="${pD.x}" y2="${pD.y}" stroke="#3b82f6" stroke-width="1.8" stroke-dasharray="5,4" />
+
+                <!-- Opposite Pair A & C (Red) -->
+                <circle cx="${pA.x}" cy="${pA.y}" r="11" fill="#fecdd3" stroke="#e11d48" stroke-width="2" />
+                <rect x="${lA.x - 36}" y="${lA.y - 15}" width="72" height="22" rx="6" fill="#fff1f2" stroke="#fecdd3" />
+                <text x="${lA.x}" y="${lA.y}" text-anchor="middle" font-size="12" font-weight="800" fill="#be123c">A (${A}°)</text>
+
+                <circle cx="${pC.x}" cy="${pC.y}" r="11" fill="#fecdd3" stroke="#e11d48" stroke-width="2" />
+                <rect x="${lC.x - 36}" y="${lC.y - 15}" width="72" height="22" rx="6" fill="#fff1f2" stroke="#fecdd3" />
+                <text x="${lC.x}" y="${lC.y}" text-anchor="middle" font-size="12" font-weight="800" fill="#be123c">C (${angleC}°)</text>
+
+                <!-- Opposite Pair B & D (Blue) -->
+                <circle cx="${pB.x}" cy="${pB.y}" r="11" fill="#bfdbfe" stroke="#2563eb" stroke-width="2" />
+                <rect x="${lB.x - 36}" y="${lB.y - 15}" width="72" height="22" rx="6" fill="#eff6ff" stroke="#bfdbfe" />
+                <text x="${lB.x}" y="${lB.y}" text-anchor="middle" font-size="12" font-weight="800" fill="#1d4ed8">B (${B}°)</text>
+
+                <circle cx="${pD.x}" cy="${pD.y}" r="11" fill="#bfdbfe" stroke="#2563eb" stroke-width="2" />
+                <rect x="${lD.x - 36}" y="${lD.y - 15}" width="72" height="22" rx="6" fill="#eff6ff" stroke="#bfdbfe" />
+                <text x="${lD.x}" y="${lD.y}" text-anchor="middle" font-size="12" font-weight="800" fill="#1d4ed8">D (${angleD}°)</text>
+              </svg>
+            </div>
+
+            <div class="md:col-span-6 space-y-4">
+              <div class="p-4 rounded-2xl bg-rose-50 border border-rose-200">
+                <div class="text-xs font-extrabold text-rose-700">🔴 向かい合う角ペア①（$\\angle A$ と $\\angle C$）</div>
+                <div class="text-xl font-extrabold text-rose-950 mt-1">
+                  $\\angle C = 180^\\circ - ${A}^\\circ = ${angleC}^\\circ$
+                </div>
+                <div class="text-xs text-rose-800 mt-1">合計：$${A}^\\circ + ${angleC}^\\circ = 180^\\circ$</div>
+              </div>
+
+              <div class="p-4 rounded-2xl bg-blue-50 border border-blue-200">
+                <div class="text-xs font-extrabold text-blue-700">🔵 向かい合う角ペア②（$\\angle B$ と $\\angle D$）</div>
+                <div class="text-xl font-extrabold text-blue-950 mt-1">
+                  $\\angle D = 180^\\circ - ${B}^\\circ = ${angleD}^\\circ$
+                </div>
+                <div class="text-xs text-blue-800 mt-1">合計：$${B}^\\circ + ${angleD}^\\circ = 180^\\circ$</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      renderMath(mount);
+    }
+
+    // -------------------------------------------------------------------------
+    // 問13: 確率（同時に2個） (All Combinations Pair Grid)
+    // -------------------------------------------------------------------------
+    let sim13Red = 4;
+    let sim13White = 2;
+
+    function renderSim13(mount) {
+      const balls = [
+        ...Array.from({ length: sim13Red }, (_, i) => ({ type: 'R', label: `赤${i + 1}` })),
+        ...Array.from({ length: sim13White }, (_, i) => ({ type: 'W', label: `白${i + 1}` }))
+      ];
+      const pairs = [];
+      for (let i = 0; i < balls.length; i++) {
+        for (let j = i + 1; j < balls.length; j++) {
+          pairs.push({ b1: balls[i], b2: balls[j], bothRed: balls[i].type === 'R' && balls[j].type === 'R' });
+        }
+      }
+      const totalPairs = pairs.length;
+      const redPairs = pairs.filter(p => p.bothRed).length;
+      function gcd(a, b) { return b === 0 ? a : gcd(b, a % b); }
+      const g = gcd(redPairs, totalPairs);
+
+      mount.innerHTML = `
+        <div class="space-y-6">
+          <div class="flex flex-wrap items-center justify-between gap-3 bg-emerald-50/70 p-4 rounded-2xl border border-emerald-100">
+            <div>
+              <span class="text-xs font-extrabold text-emerald-700 uppercase">実験テーマ</span>
+              <h3 class="text-base md:text-lg font-extrabold text-slate-800">球に背番号をつけて「同時に2個選ぶペア」をぜんぶ並べて数えよう！</h3>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              <button onclick="sim13Red=4; sim13White=2; renderSim13(document.getElementById('simulatorMount'))" class="px-3 py-1.5 rounded-xl text-xs font-extrabold ${sim13Red===4 && sim13White===2 ? 'bg-emerald-600 text-white' : 'bg-white border'}">赤 $4$・白 $2$</button>
+              <button onclick="sim13Red=3; sim13White=3; renderSim13(document.getElementById('simulatorMount'))" class="px-3 py-1.5 rounded-xl text-xs font-extrabold ${sim13Red===3 && sim13White===3 ? 'bg-emerald-600 text-white' : 'bg-white border'}">赤 $3$・白 $3$</button>
+              <button onclick="sim13Red=2; sim13White=4; renderSim13(document.getElementById('simulatorMount'))" class="px-3 py-1.5 rounded-xl text-xs font-extrabold ${sim13Red===2 && sim13White===4 ? 'bg-emerald-600 text-white' : 'bg-white border'}">赤 $2$・白 $4$</button>
+            </div>
+          </div>
+
+          <div class="bg-slate-50 p-4 rounded-3xl border border-slate-200">
+            <div class="text-xs font-extrabold text-slate-500 mb-3">
+              計 $${balls.length}$ 個から2個を選ぶ全 <strong>$${totalPairs}$ 通り</strong>のペア（赤2個になる当たりペアは <strong>$${redPairs}$ 通り</strong>）：
+            </div>
+            <div class="grid grid-cols-3 sm:grid-cols-5 gap-2">
+              ${pairs.map(p => `
+                <div class="p-2.5 rounded-xl border text-center text-xs font-extrabold transition ${
+                  p.bothRed
+                    ? 'bg-rose-500 text-white border-rose-600 shadow scale-105'
+                    : 'bg-white text-slate-600 border-slate-200'
+                }">
+                  (${p.b1.label}, ${p.b2.label})
+                </div>
+              `).join('')}
+            </div>
+          </div>
+
+          <div class="bg-emerald-50 border border-emerald-200 p-4 rounded-2xl flex flex-wrap items-center justify-between gap-3">
+            <div class="text-xs md:text-sm text-emerald-950 font-bold">
+              ✨ 全ての選び方が <strong>$${totalPairs}$ 通り</strong>、そのうち両方赤になるのが <strong>$${redPairs}$ 通り</strong>！
+            </div>
+            <div class="text-base md:text-xl font-extrabold bg-white px-4 py-2 rounded-xl border border-emerald-300 text-emerald-900">
+              確率 $= \\dfrac{${redPairs}}{${totalPairs}} ${g > 1 ? `= \\dfrac{${redPairs / g}}{${totalPairs / g}}` : ''}$
+            </div>
+          </div>
+        </div>
+      `;
+      renderMath(mount);
+    }
+
+    // -------------------------------------------------------------------------
+    // 問14: データの平均値・中央値 (Odd vs Even Dataset Explorer)
+    // -------------------------------------------------------------------------
+    let sim14Idx = 0;
+    const sim14Sets = [
+      { label: "5個（奇数個）：$2, 4, 4, 6, 9$", data: [2, 4, 4, 6, 9], mean: 5, median: 4, isEven: false },
+      { label: "4個（偶数個）：$1, 3, 5, 7$", data: [1, 3, 5, 7], mean: 4, median: 4, isEven: true },
+      { label: "4個（偶数個）：$2, 2, 8, 8$", data: [2, 2, 8, 8], mean: 5, median: 5, isEven: true },
+      { label: "外れ値あり：$1, 2, 2, 5, 10$", data: [1, 2, 2, 5, 10], mean: 4, median: 2, isEven: false }
+    ];
+
+    function renderSim14(mount) {
+      const s = sim14Sets[sim14Idx];
+      const sum = s.data.reduce((a, b) => a + b, 0);
+      const n = s.data.length;
+
+      mount.innerHTML = `
+        <div class="space-y-6">
+          <div class="flex flex-wrap items-center justify-between gap-3 bg-emerald-50/70 p-4 rounded-2xl border border-emerald-100">
+            <div>
+              <span class="text-xs font-extrabold text-emerald-700 uppercase">実験テーマ</span>
+              <h3 class="text-base md:text-lg font-extrabold text-slate-800">データの個数が「奇数個」と「偶数個」のときの中央値の違いと、平均値の意味を比べよう！</h3>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              ${sim14Sets.map((item, idx) => `
+                <button onclick="sim14Idx=${idx}; renderSim14(document.getElementById('simulatorMount'))" class="px-3 py-1.5 rounded-xl text-xs font-extrabold transition ${
+                  sim14Idx === idx ? 'bg-emerald-600 text-white shadow' : 'bg-white text-slate-600 border'
+                }">${item.label}</button>
+              `).join('')}
+            </div>
+          </div>
+
+          <!-- Cards lined up in ascending order -->
+          <div class="bg-slate-50 p-6 rounded-3xl border border-slate-200 text-center space-y-4">
+            <div class="text-xs font-bold text-slate-500">小さい順に並べたデータ（黄色が中央値のターゲット！）</div>
+            <div class="flex flex-wrap items-center justify-center gap-3">
+              ${s.data.map((val, idx) => {
+                const isMid = s.isEven
+                  ? (idx === n / 2 - 1 || idx === n / 2)
+                  : (idx === Math.floor(n / 2));
+                return `
+                  <div class="w-16 h-20 rounded-2xl flex flex-col items-center justify-center border-2 transition ${
+                    isMid ? 'bg-amber-300 border-amber-500 text-slate-900 font-extrabold shadow-md scale-110' : 'bg-white border-slate-200 text-slate-700 font-bold'
+                  }">
+                    <span class="text-[10px] opacity-70">${idx + 1}番目</span>
+                    <span class="text-2xl">$${val}$</span>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="p-5 rounded-2xl bg-sky-50 border border-sky-200 space-y-1">
+              <div class="text-xs font-extrabold text-sky-800">📊 平均値（全員の合計 $\\div$ 個数）</div>
+              <div class="text-xl font-extrabold text-sky-950">
+                $\\dfrac{${s.data.join(' + ')}}{${n}} = \\dfrac{${sum}}{${n}} = ${s.mean}$
+              </div>
+            </div>
+
+            <div class="p-5 rounded-2xl bg-amber-50 border border-amber-200 space-y-1">
+              <div class="text-xs font-extrabold text-amber-800">🎯 中央値（小さい順のど真ん中）</div>
+              <div class="text-xl font-extrabold text-amber-950">
+                ${s.isEven
+                  ? `偶数個なので中央2つの平均：$\\dfrac{${s.data[n/2 - 1]} + ${s.data[n/2]}}{2} = ${s.median}$`
+                  : `奇数個なのでど真ん中（3番目）の数：$${s.median}$`
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      renderMath(mount);
+    }
+
+    // -------------------------------------------------------------------------
+    // 問15: 人数と料金の文章題 (Adult & Child Ticket Simulator)
+    // -------------------------------------------------------------------------
+    let sim15Adult = 5;
+    let sim15ProbIdx = 0;
+    const sim15Probs = [
+      { totalPeople: 8, adultFee: 500, childFee: 300, targetFee: 3400, ansAdult: 5 },
+      { totalPeople: 10, adultFee: 700, childFee: 400, targetFee: 5500, ansAdult: 5 },
+      { totalPeople: 7, adultFee: 800, childFee: 500, targetFee: 4400, ansAdult: 3 }
+    ];
+
+    function renderSim15(mount) {
+      const p = sim15Probs[sim15ProbIdx];
+      if (sim15Adult > p.totalPeople) sim15Adult = p.totalPeople;
+      const childCount = p.totalPeople - sim15Adult;
+      const currentTotal = p.adultFee * sim15Adult + p.childFee * childCount;
+      const isMatch = currentTotal === p.targetFee;
+
+      mount.innerHTML = `
+        <div class="space-y-6">
+          <div class="flex flex-wrap items-center justify-between gap-3 bg-emerald-50/70 p-4 rounded-2xl border border-emerald-100">
+            <div>
+              <span class="text-xs font-extrabold text-emerald-700 uppercase">実験テーマ</span>
+              <h3 class="text-base md:text-lg font-extrabold text-slate-800">大人 $${p.adultFee}$ 円・子ども $${p.childFee}$ 円、合わせて $${p.totalPeople}$ 人で合計 $${p.targetFee}$ 円になる人数を探そう！</h3>
+            </div>
+            <div class="flex gap-2">
+              ${sim15Probs.map((item, idx) => `
+                <button onclick="sim15ProbIdx=${idx}; sim15Adult=${item.ansAdult}; renderSim15(document.getElementById('simulatorMount'))" class="px-3 py-1.5 rounded-xl text-xs font-extrabold transition ${
+                  sim15ProbIdx === idx ? 'bg-emerald-600 text-white shadow' : 'bg-white text-slate-600 border'
+                }">計 $${item.totalPeople}$ 人（$${item.targetFee}$ 円）</button>
+              `).join('')}
+            </div>
+          </div>
+
+          <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200">
+            <div class="flex flex-wrap justify-between text-sm font-extrabold text-slate-700">
+              <span>👨 大人の人数 $x =$ <span class="text-emerald-700 text-lg">$${sim15Adult}$ 人</span></span>
+              <span>🧒 子どもの人数 $(${p.totalPeople} - x) =$ <span class="text-teal-700 text-lg">$${childCount}$ 人</span></span>
+              <span>（合計は常に $${p.totalPeople}$ 人！）</span>
+            </div>
+            <input type="range" min="0" max="${p.totalPeople}" step="1" value="${sim15Adult}" oninput="sim15Adult=Number(this.value); renderSim15(document.getElementById('simulatorMount'))" class="w-full mt-3">
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
+            <div class="md:col-span-7 bg-white p-5 rounded-3xl border-2 ${isMatch ? 'border-emerald-400 bg-emerald-50/30' : 'border-slate-200'} space-y-3">
+              <div class="flex justify-between items-center text-sm font-bold">
+                <span>👨 大人代金：$${p.adultFee} \\times ${sim15Adult}$ 人</span>
+                <span class="font-extrabold">$= ${p.adultFee * sim15Adult}$ 円</span>
+              </div>
+              <div class="flex justify-between items-center text-sm font-bold">
+                <span>🧒 子ども代金：$${p.childFee} \\times ${childCount}$ 人</span>
+                <span class="font-extrabold">$= ${p.childFee * childCount}$ 円</span>
+              </div>
+              <div class="border-t pt-2 flex justify-between items-center text-base md:text-lg font-extrabold ${isMatch ? 'text-emerald-700' : 'text-rose-600'}">
+                <span>💰 合計金額（目標 $${p.targetFee}$ 円）</span>
+                <span>$${currentTotal}$ 円 ${isMatch ? '🎯 ピッタリ！' : ''}</span>
+              </div>
+            </div>
+
+            <div class="md:col-span-5 bg-slate-50 p-5 rounded-3xl border border-slate-200 space-y-2 text-xs md:text-sm">
+              <div class="font-extrabold text-emerald-800">方程式での解き方：</div>
+              <div class="p-3 bg-white rounded-xl border font-bold leading-relaxed">
+                $${p.adultFee}x + ${p.childFee}(${p.totalPeople} - x) = ${p.targetFee}$<br>
+                $${p.adultFee - p.childFee}x + ${p.childFee * p.totalPeople} = ${p.targetFee}$<br>
+                $${p.adultFee - p.childFee}x = ${p.targetFee - p.childFee * p.totalPeople} \\implies x = ${p.ansAdult}$
+              </div>
+              <div class="font-extrabold text-slate-700">
+                答え：大人 $${p.ansAdult}$ 人、子ども $${p.totalPeople - p.ansAdult}$ 人
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      renderMath(mount);
+    }
+
+    // Initialize on load
+    window.addEventListener('DOMContentLoaded', () => {
+      updateHeaderProgress();
+      loadTopic(1);
+    });
+  </script>
+</body>
+</html>

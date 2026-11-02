@@ -1,0 +1,1376 @@
+<!DOCTYPE html>
+<html lang="ja" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>三角比の相互関係 本質マスター</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- KaTeX for beautiful math rendering -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+    <script>
+        // ResizeObserverのエラー通知を安全に抑制
+        window.addEventListener('error', function(e) {
+            if (e.message && (
+                e.message.includes('ResizeObserver') ||
+                e.message.includes('undelivered notifications')
+            )) {
+                e.stopImmediatePropagation();
+                e.preventDefault();
+            }
+        }, true);
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-100 dark:bg-slate-900 text-slate-800 dark:text-slate-100 min-h-screen flex flex-col transition-colors duration-200">
+
+    <!-- ヘッダー -->
+    <header class="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 py-4 px-6 shadow-sm">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center space-x-3">
+                <div class="bg-indigo-600 text-white p-2.5 rounded-xl shadow-lg flex items-center justify-center">
+                    <i class="fa-solid fa-shapes text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold tracking-tight">三角比の相互関係 本質マスター</h1>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">「面積パズル」から「全体を1とする割合」へ ―― \(\sin^2\theta + \cos^2\theta = 1\) の秘密を解き明かそう</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center space-x-3">
+                <!-- ナビゲーションタブ -->
+                <nav class="flex bg-slate-100 dark:bg-slate-900 p-1 rounded-xl border border-slate-200 dark:border-slate-700 overflow-x-auto max-w-full">
+                    <button onclick="switchTab('puzzle')" id="btn-puzzle" class="px-3 py-2 text-xs sm:text-sm font-medium rounded-lg transition-all bg-indigo-600 text-white shadow whitespace-nowrap">
+                        <i class="fa-solid fa-puzzle-piece mr-1"></i> ① 面積パズル
+                    </button>
+                    <button onclick="switchTab('ratio')" id="btn-ratio" class="px-3 py-2 text-xs sm:text-sm font-medium rounded-lg transition-all text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white whitespace-nowrap">
+                        <i class="fa-solid fa-sliders mr-1"></i> ② 全体を1にする割合
+                    </button>
+                    <button onclick="switchTab('deduce')" id="btn-deduce" class="px-3 py-2 text-xs sm:text-sm font-medium rounded-lg transition-all text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white whitespace-nowrap">
+                        <i class="fa-solid fa-user-secret mr-1"></i> ③ 推理＆探偵検算
+                    </button>
+                    <button onclick="switchTab('quiz')" id="btn-quiz" class="px-3 py-2 text-xs sm:text-sm font-medium rounded-lg transition-all text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white whitespace-nowrap">
+                        <i class="fa-solid fa-brain mr-1"></i> ④ 理解度チェック
+                    </button>
+                </nav>
+
+                <!-- テーマ切り替え -->
+                <button onclick="toggleTheme()" class="p-2.5 rounded-xl bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-300 dark:hover:bg-slate-600 transition flex-shrink-0" title="テーマ切り替え">
+                    <i id="themeIcon" class="fa-solid fa-moon"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- メイン領域 -->
+    <main class="flex-grow max-w-7xl w-full mx-auto p-4 sm:p-6">
+
+        <!-- ================= 1. 面積パズルタブ (指導案 0〜16分) ================= -->
+        <section id="tab-puzzle" class="space-y-6">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                
+                <!-- 左サイド: 問いかけと操作 (5 cols) -->
+                <div class="lg:col-span-5 bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xl flex flex-col justify-between space-y-5">
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 pb-3">
+                            <h2 class="text-base font-bold text-indigo-600 dark:text-indigo-400 flex items-center gap-2">
+                                <i class="fa-solid fa-ruler-combined"></i> 測れない横の長さを推理する
+                            </h2>
+                            <span class="text-xs bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-300 px-2.5 py-1 rounded-full border border-indigo-200 dark:border-indigo-800 font-mono">
+                                導入体験
+                            </span>
+                        </div>
+
+                        <!-- 問いかけボックス -->
+                        <div class="p-4 bg-indigo-50/70 dark:bg-indigo-950/40 rounded-xl border border-indigo-200 dark:border-indigo-900 space-y-2 text-xs leading-relaxed">
+                            <div class="font-bold text-indigo-700 dark:text-indigo-300 flex items-center gap-1.5 text-sm">
+                                <i class="fa-solid fa-question-circle"></i> 直感で予想してみよう！
+                            </div>
+                            <p class="text-slate-600 dark:text-slate-300">
+                                ロープの長さが <strong>5m</strong>、壁の高さが <strong>3m</strong> のとき、壁までの横の長さは何mくらいでしょう？
+                            </p>
+                            <div class="grid grid-cols-3 gap-2 pt-1 font-semibold text-center">
+                                <button onclick="guessAnswer('longer')" id="btnGuess-longer" class="p-2 rounded-lg border bg-white dark:bg-slate-800 hover:border-indigo-500 transition text-slate-700 dark:text-slate-200">5mより長い</button>
+                                <button onclick="guessAnswer('equal')" id="btnGuess-equal" class="p-2 rounded-lg border bg-white dark:bg-slate-800 hover:border-indigo-500 transition text-slate-700 dark:text-slate-200">ちょうど5m</button>
+                                <button onclick="guessAnswer('shorter')" id="btnGuess-shorter" class="p-2 rounded-lg border bg-white dark:bg-slate-800 hover:border-indigo-500 transition text-slate-700 dark:text-slate-200">5mより短い</button>
+                            </div>
+                            <div id="guessFeedback" class="hidden p-2 rounded-lg text-xs font-semibold"></div>
+                        </div>
+
+                        <!-- 三角形の長さパターン切り替え -->
+                        <div class="space-y-2 pt-2">
+                            <label class="text-xs font-bold text-slate-500 dark:text-slate-400">三角形の長さを選ぶ（いろいろな辺の比）:</label>
+                            <div class="grid grid-cols-3 gap-2">
+                                <button onclick="setPuzzleTriangle(3, 4, 5)" id="btnTri-345" class="py-2 px-1 text-xs rounded-xl font-bold bg-indigo-600 text-white shadow">
+                                    3 : 4 : 5（基本）
+                                </button>
+                                <button onclick="setPuzzleTriangle(5, 12, 13)" id="btnTri-51213" class="py-2 px-1 text-xs rounded-xl font-medium bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200">
+                                    5 : 12 : 13（長め）
+                                </button>
+                                <button onclick="setPuzzleTriangle(8, 15, 17)" id="btnTri-81517" class="py-2 px-1 text-xs rounded-xl font-medium bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200">
+                                    8 : 15 : 17（実戦）
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- パズル表示モード切り替え -->
+                        <div class="p-3 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 space-y-2">
+                            <div class="text-xs font-semibold text-slate-500 dark:text-slate-400">パズルの見方:</div>
+                            <div class="flex gap-2">
+                                <button onclick="setPuzzleView('separate')" id="btnView-separate" class="flex-1 py-1.5 text-xs rounded-lg font-bold bg-indigo-600 text-white shadow">
+                                    正方形を分解して比較
+                                </button>
+                                <button onclick="setPuzzleView('combined')" id="btnView-combined" class="flex-1 py-1.5 text-xs rounded-lg font-medium bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200">
+                                    斜辺の正方形に合体！
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 面積パズルの計算結果カード -->
+                    <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 space-y-2">
+                        <div class="text-xs text-slate-500 dark:text-slate-400 font-medium">正方形の面積の関係（マスの合計）:</div>
+                        <div id="puzzleFormulaDisplay" class="text-sm sm:text-base font-bold text-center text-indigo-600 dark:text-indigo-400 py-1">
+                            <!-- JS で更新 -->
+                        </div>
+                        <div class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed border-t border-slate-200 dark:border-slate-800 pt-2" id="puzzleInsight">
+                            <!-- JS で更新 -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 右サイド: 面積パズルキャンバス (7 cols) -->
+                <div class="lg:col-span-7 bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xl flex flex-col">
+                    <div class="flex justify-between items-center mb-3">
+                        <h2 class="text-base font-bold flex items-center gap-2">
+                            <i class="fa-solid fa-shapes text-indigo-600 dark:text-indigo-400"></i> 各辺にできる「正方形の面積パズル」
+                        </h2>
+                        <div class="flex items-center space-x-3 text-xs flex-wrap gap-y-1">
+                            <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block"></span> 高さの正方形</span>
+                            <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-blue-500 inline-block"></span> 横の正方形</span>
+                            <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span> 斜めの正方形</span>
+                        </div>
+                    </div>
+
+                    <!-- キャンバス固定コンテナ -->
+                    <div class="relative w-full h-[380px] sm:h-[420px] bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden flex items-center justify-center">
+                        <canvas id="puzzleCanvas" class="absolute inset-0 w-full h-full block"></canvas>
+                    </div>
+
+                    <div class="mt-3 bg-slate-50 dark:bg-slate-900/60 p-3.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                        <span class="font-bold text-indigo-600 dark:text-indigo-400">【大切な発見】</span>
+                        辺の長さそのままでは足し算できません（\(3 + 4 \neq 5\)）。しかし、各辺を1辺とする<strong>「正方形の面積」</strong>に直すと、<strong>小さい正方形2つの面積を足したものが、ちょうど斜めの正方形の面積にピタリと一致</strong>します！
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ================= 2. 全体を1にする割合タブ (指導案 16〜33分) ================= -->
+        <section id="tab-ratio" class="hidden space-y-6">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                
+                <!-- 操作＆割合パラメータパネル (5 cols) -->
+                <div class="lg:col-span-5 bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xl flex flex-col justify-between space-y-5">
+                    <div class="space-y-5">
+                        <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 pb-3">
+                            <h2 class="text-base font-bold text-indigo-600 dark:text-indigo-400 flex items-center gap-2">
+                                <i class="fa-solid fa-sliders"></i> 斜辺を「全体(1)」に規格化する
+                            </h2>
+                            <span class="text-xs bg-emerald-50 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-300 px-2.5 py-1 rounded-full border border-emerald-200 dark:border-emerald-800 font-mono">
+                                割合の2乗
+                            </span>
+                        </div>
+
+                        <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                            どんな大きさの三角形でも、<strong>斜辺の長さを「全体＝1」</strong>として縮小すると、<strong>高さは \(\sin\theta\)</strong>、<strong>横は \(\cos\theta\)</strong> になります。<br>
+                            下のスライダーで<strong>「角度」</strong>や<strong>「斜辺の長さ」</strong>を変えて、面積の割合がどうなるか試してみましょう！
+                        </p>
+
+                        <!-- スライダー 1: 角度 θ -->
+                        <div class="space-y-2">
+                            <div class="flex justify-between items-center text-xs">
+                                <label for="ratioAngleSlider" class="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block"></span> 角度 \(\theta\) の変更:
+                                </label>
+                                <span id="ratioAngleDisplay" class="font-mono font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/60 px-2 py-0.5 rounded border border-amber-200 dark:border-amber-800">
+                                    36.9° (3:4:5)
+                                </span>
+                            </div>
+                            <input type="range" id="ratioAngleSlider" min="10" max="80" step="0.5" value="36.87"
+                                class="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-amber-500">
+                            <div class="flex justify-between text-[11px] text-slate-400 font-mono">
+                                <span>10°</span>
+                                <span>30°</span>
+                                <span>45°</span>
+                                <span>60°</span>
+                                <span>80°</span>
+                            </div>
+                        </div>
+
+                        <!-- スライダー 2: 斜辺の長さ c (多くの長さで確認できる工夫) -->
+                        <div class="space-y-2 pt-1 border-t border-slate-200 dark:border-slate-700">
+                            <div class="flex justify-between items-center text-xs">
+                                <label for="ratioHypSlider" class="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-indigo-500 inline-block"></span> 斜辺の長さ \(c\)（スケール拡大・縮小）:
+                                </label>
+                                <span id="ratioHypDisplay" class="font-mono font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/60 px-2 py-0.5 rounded border border-indigo-200 dark:border-indigo-800">
+                                    c = 5.0 m
+                                </span>
+                            </div>
+                            <input type="range" id="ratioHypSlider" min="1" max="10" step="0.5" value="5.0"
+                                class="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-indigo-500">
+                            <div class="flex justify-between text-[11px] text-slate-400">
+                                <span>基準 1m (単位円)</span>
+                                <span>5m (ロープ)</span>
+                                <span>10m (巨大)</span>
+                            </div>
+                        </div>
+
+                        <!-- 有名角・ピタゴラス プリセットボタン -->
+                        <div class="grid grid-cols-4 gap-1.5 pt-1">
+                            <button onclick="setRatioPreset(30, 2)" id="btnRatioPreset-30" class="py-1.5 text-xs rounded-lg font-medium bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-700 dark:text-slate-200 transition">30°</button>
+                            <button onclick="setRatioPreset(45, Math.SQRT2)" id="btnRatioPreset-45" class="py-1.5 text-xs rounded-lg font-medium bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-700 dark:text-slate-200 transition">45°</button>
+                            <button onclick="setRatioPreset(60, 2)" id="btnRatioPreset-60" class="py-1.5 text-xs rounded-lg font-medium bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-700 dark:text-slate-200 transition">60°</button>
+                            <button onclick="setRatioPreset(36.87, 5)" id="btnRatioPreset-345" class="py-1.5 text-xs rounded-lg font-bold bg-indigo-600 text-white shadow">3:4:5</button>
+                        </div>
+                    </div>
+
+                    <!-- リアルタイム割合バー＆数式 -->
+                    <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 space-y-3">
+                        <div class="text-xs font-semibold text-slate-500 dark:text-slate-400 flex justify-between">
+                            <span>全体の面積に対する割合バー（合計＝100%）</span>
+                            <span class="font-mono text-emerald-600 font-bold">1.000 (100%)</span>
+                        </div>
+                        
+                        <!-- 面積割合バー (高さ²: 赤 / 横²: 青) -->
+                        <div class="w-full h-6 rounded-lg overflow-hidden flex bg-slate-200 dark:bg-slate-700 shadow-inner">
+                            <div id="barSin2" class="bg-rose-500 h-full transition-all duration-75 flex items-center justify-center text-[11px] text-white font-mono font-bold" style="width: 36%;">
+                                36%
+                            </div>
+                            <div id="barCos2" class="bg-blue-500 h-full transition-all duration-75 flex items-center justify-center text-[11px] text-white font-mono font-bold" style="width: 64%;">
+                                64%
+                            </div>
+                        </div>
+
+                        <!-- 数式表示 -->
+                        <div id="ratioFormulaDisplay" class="text-center font-bold text-sm sm:text-base py-1">
+                            <!-- JS で更新 -->
+                        </div>
+
+                        <div class="text-[11px] text-slate-500 dark:text-slate-400 text-center">
+                            斜辺がどんな長さでも、相似比で割ると \(\sin^2\theta + \cos^2\theta = 1\) が常に成立します！
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 右サイド: 割合の幾何モデルキャンバス (7 cols) -->
+                <div class="lg:col-span-7 bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xl flex flex-col">
+                    <div class="flex justify-between items-center mb-3">
+                        <h2 class="text-base font-bold flex items-center gap-2">
+                            <i class="fa-solid fa-chart-pie text-indigo-600 dark:text-indigo-400"></i> 斜辺を1にした直角三角形と正方形
+                        </h2>
+                        <div class="flex items-center space-x-3 text-xs flex-wrap gap-y-1">
+                            <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block"></span> \(\sin^2\theta\) (高さ²)</span>
+                            <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-blue-500 inline-block"></span> \(\cos^2\theta\) (横²)</span>
+                            <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span> 斜辺² ＝ 1</span>
+                        </div>
+                    </div>
+
+                    <!-- キャンバス固定コンテナ -->
+                    <div class="relative w-full h-[380px] sm:h-[420px] bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden flex items-center justify-center">
+                        <canvas id="ratioCanvas" class="absolute inset-0 w-full h-full block"></canvas>
+                    </div>
+
+                    <div id="ratioInsight" class="mt-3 bg-slate-50 dark:bg-slate-900/60 p-3.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                        <!-- JS で更新 -->
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ================= 3. 推理＆探偵検算タブ (指導案 33〜41分) ================= -->
+        <section id="tab-deduce" class="hidden space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                <!-- 活用 1: 片方の割合から、もう片方を推理する -->
+                <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xl space-y-4 flex flex-col justify-between">
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 pb-3">
+                            <h3 class="font-bold text-base text-indigo-600 dark:text-indigo-400 flex items-center gap-2">
+                                <i class="fa-solid fa-calculator"></i> 未知の横の割合 \(\cos\theta\) を推理する
+                            </h3>
+                            <span class="text-xs bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-300 px-2 py-0.5 rounded font-mono">
+                                応用 ①
+                            </span>
+                        </div>
+                        <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                            「横を直接測れなくても、高さの割合 \(\sin\theta\) が分かれば、\(\cos^2\theta = 1 - \sin^2\theta\) を使って横の割合を完全に推理できます！」
+                        </p>
+
+                        <!-- サンプル問題セレクタ -->
+                        <div class="space-y-2">
+                            <label class="text-xs font-bold text-slate-500">問題を選んで推理の流れを見る:</label>
+                            <div class="grid grid-cols-3 gap-2 text-xs">
+                                <button onclick="setDeduceExample(1)" id="btnDed-1" class="py-2 rounded-xl font-bold bg-indigo-600 text-white shadow">
+                                    \(\sin\theta = \frac{3}{5}\)
+                                </button>
+                                <button onclick="setDeduceExample(2)" id="btnDed-2" class="py-2 rounded-xl font-medium bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200">
+                                    \(\sin\theta = \frac{1}{3}\)
+                                </button>
+                                <button onclick="setDeduceExample(3)" id="btnDed-3" class="py-2 rounded-xl font-medium bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200">
+                                    \(\cos\theta = \frac{\sqrt{5}}{3}\)
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- 推理ステップ表示 -->
+                        <div id="deduceStepsBox" class="p-4 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 space-y-2.5 text-xs sm:text-sm">
+                            <!-- JS で更新 -->
+                        </div>
+                    </div>
+
+                    <div class="p-3 bg-emerald-50 dark:bg-emerald-950/40 rounded-xl border border-emerald-200 dark:border-emerald-800 text-xs font-semibold text-emerald-700 dark:text-emerald-300">
+                        💡 \(\cos\theta > 0\)（鋭角）だから、平方根をとるだけで横の割合が求まります！
+                    </div>
+                </div>
+
+                <!-- 活用 2: 探偵検算（あり得ないデータを見抜く！） -->
+                <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xl space-y-4 flex flex-col justify-between">
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 pb-3">
+                            <h3 class="font-bold text-base text-rose-600 dark:text-rose-400 flex items-center gap-2">
+                                <i class="fa-solid fa-shield-halved"></i> 探偵検算！「あり得ない記録」を見抜く
+                            </h3>
+                            <span class="text-xs bg-rose-50 dark:bg-rose-950 text-rose-600 dark:text-rose-300 px-2 py-0.5 rounded font-mono">
+                                応用 ②
+                            </span>
+                        </div>
+                        <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                            公式は計算するだけでなく、<strong>「記録が正しいか検算する」</strong>ためにも使えます。<br>
+                            下の調査員が測った記録は、直角三角形として実在するでしょうか？
+                        </p>
+
+                        <!-- 検算ゲーム出題エリア -->
+                        <div class="p-4 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 space-y-3">
+                            <div class="text-xs font-semibold text-slate-500">【調査記録ファイル】</div>
+                            <div id="detectiveCaseText" class="text-center font-bold text-sm sm:text-base text-slate-800 dark:text-slate-100 py-1 flex items-center justify-center gap-3 sm:gap-6 flex-wrap">
+                                <!-- JS で出題 -->
+                            </div>
+                            
+                            <div class="grid grid-cols-2 gap-3 pt-2">
+                                <button onclick="judgeCase(true)" class="py-2.5 rounded-xl font-bold bg-emerald-600 hover:bg-emerald-500 text-white shadow transition text-xs sm:text-sm">
+                                    <i class="fa-solid fa-check mr-1"></i> 正しい記録（実在する）
+                                </button>
+                                <button onclick="judgeCase(false)" class="py-2.5 rounded-xl font-bold bg-rose-600 hover:bg-rose-500 text-white shadow transition text-xs sm:text-sm">
+                                    <i class="fa-solid fa-xmark mr-1"></i> あり得ない（ウソの記録）
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- 判定フィードバック -->
+                        <div id="detectiveFeedback" class="hidden p-3.5 rounded-xl border text-xs sm:text-sm leading-relaxed">
+                            <!-- JS で更新 -->
+                        </div>
+                    </div>
+
+                    <button onclick="nextDetectiveCase()" class="w-full py-2 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-xl text-xs font-bold transition">
+                        別の記録をチェックする <i class="fa-solid fa-rotate-right ml-1"></i>
+                    </button>
+                </div>
+
+                <!-- 活用 3: tan への発展 (指導案 既習との接続) -->
+                <div class="md:col-span-2 bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 p-6 rounded-2xl border border-indigo-200 dark:border-indigo-800 shadow-lg space-y-3">
+                    <div class="flex items-center gap-2 text-indigo-700 dark:text-indigo-300 font-bold text-base">
+                        <i class="fa-solid fa-route"></i>
+                        <span>さらに先へ！\(\tan\theta\) との相互関係への広がり</span>
+                    </div>
+                    <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                        「高さの割合 \(\sin\theta\)」と「横の割合 \(\cos\theta\)」が分かれば、直線の傾きである \(\tan\theta = \frac{\sin\theta}{\cos\theta}\) も即座に求まります。<br>
+                        さらに \(\sin^2\theta + \cos^2\theta = 1\) の両辺を \(\cos^2\theta\) で割ると、高校数学で大活躍する第2の公式 <strong>\(1 + \tan^2\theta = \frac{1}{\cos^2\theta}\)</strong> が自然に誕生します！
+                    </p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1 font-mono text-center text-xs sm:text-sm">
+                        <div class="bg-white dark:bg-slate-800 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 font-bold text-indigo-600 dark:text-indigo-400">
+                            $$\tan\theta = \frac{\sin\theta}{\cos\theta}$$
+                        </div>
+                        <div class="bg-white dark:bg-slate-800 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 font-bold text-purple-600 dark:text-purple-400">
+                            $$1 + \tan^2\theta = \frac{1}{\cos^2\theta}$$
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ================= 4. 理解度チェックタブ (指導案 41〜45分 出口問題) ================= -->
+        <section id="tab-quiz" class="hidden space-y-6">
+            <div class="bg-white dark:bg-slate-800 p-6 sm:p-8 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xl max-w-3xl mx-auto space-y-6">
+                <div class="flex justify-between items-center border-b border-slate-200 dark:border-slate-700 pb-4">
+                    <h2 class="text-xl font-bold flex items-center gap-2">
+                        <i class="fa-solid fa-brain text-indigo-600 dark:text-indigo-400"></i> 三角比の相互関係 理解度チェック
+                    </h2>
+                    <span id="quizBadge" class="text-xs bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-200 px-3 py-1 rounded-full font-medium">問題 1 / 5</span>
+                </div>
+
+                <!-- 問題出題コンテナ -->
+                <div id="quizContainer" class="space-y-5">
+                    <div id="quizQuestion" class="text-base sm:text-lg font-semibold text-slate-800 dark:text-slate-100 leading-snug">
+                        <!-- JS で挿入 -->
+                    </div>
+                    <div id="quizOptions" class="grid grid-cols-1 gap-2.5">
+                        <!-- 選択肢 -->
+                    </div>
+                </div>
+
+                <!-- 解説・フィードバック -->
+                <div id="feedbackContainer" class="hidden bg-slate-50 dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-700 space-y-3">
+                    <div id="feedbackTitle" class="font-bold text-base"></div>
+                    <div id="feedbackBody" class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed"></div>
+                    <button onclick="nextQuiz()" class="w-full mt-2 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-medium transition shadow">
+                        次の問題へ <i class="fa-solid fa-arrow-right ml-1"></i>
+                    </button>
+                </div>
+
+                <!-- 全問完了画面 -->
+                <div id="quizComplete" class="hidden text-center space-y-4 py-8">
+                    <div class="text-4xl">🎉</div>
+                    <h3 class="text-2xl font-bold">全問クリア！</h3>
+                    <p id="quizScoreText" class="text-slate-600 dark:text-slate-300 text-base"></p>
+                    <p class="text-xs text-slate-400">面積パズルと全体を1とする割合から、相互関係の本質が完璧に理解できました！</p>
+                    <button onclick="restartQuiz()" class="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-medium transition shadow">
+                        もう一度挑戦する
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- フッター -->
+    <footer class="bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 py-4 text-center text-xs text-slate-500 dark:text-slate-400 mt-auto">
+        <p>数学Ⅰ 三角比の相互関係 本質マスター &copy; 2026 - 「横を測れなくても推理できる」</p>
+    </footer>
+
+    <!-- スクリプト -->
+    <script>
+        // テーマ切り替え
+        function toggleTheme() {
+            const html = document.documentElement;
+            const themeIcon = document.getElementById('themeIcon');
+            if (html.classList.contains('dark')) {
+                html.classList.remove('dark');
+                themeIcon.className = "fa-solid fa-sun";
+            } else {
+                html.classList.add('dark');
+                themeIcon.className = "fa-solid fa-moon";
+            }
+            if (!document.getElementById('tab-puzzle').classList.contains('hidden')) {
+                drawPuzzle();
+            } else if (!document.getElementById('tab-ratio').classList.contains('hidden')) {
+                drawRatio();
+            }
+        }
+
+        // タブ切り替え
+        function switchTab(tabId) {
+            ['puzzle', 'ratio', 'deduce', 'quiz'].forEach(t => {
+                document.getElementById(`tab-${t}`).classList.add('hidden');
+                document.getElementById(`btn-${t}`).className = "px-3 py-2 text-xs sm:text-sm font-medium rounded-lg transition-all text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white whitespace-nowrap";
+            });
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+            document.getElementById(`btn-${tabId}`).className = "px-3 py-2 text-xs sm:text-sm font-medium rounded-lg transition-all bg-indigo-600 text-white shadow whitespace-nowrap";
+
+            if (tabId === 'puzzle') {
+                lastPuzzleW = 0; lastPuzzleH = 0;
+                resizePuzzleCanvas();
+                drawPuzzle();
+            } else if (tabId === 'ratio') {
+                lastRatioW = 0; lastRatioH = 0;
+                resizeRatioCanvas();
+                drawRatio();
+            } else if (tabId === 'deduce') {
+                setDeduceExample(currentDeduceEx);
+                renderMath(document.getElementById('tab-deduce'));
+            }
+        }
+
+        // KaTeX 自動レンダリングヘルパー
+        function renderMath(targetElement) {
+            if (!targetElement) return;
+            if (window.renderMathInElement) {
+                renderMathInElement(targetElement, {
+                    delimiters: [
+                        { left: '$$', right: '$$', display: true },
+                        { left: '$', right: '$', display: false },
+                        { left: '\\(', right: '\\)', display: false },
+                        { left: '\\[', right: '\\]', display: true }
+                    ],
+                    throwOnError: false
+                });
+            }
+        }
+
+        // ================= 1. 面積パズルロジック =================
+        const puzzleCanvas = document.getElementById('puzzleCanvas');
+        const puzzleCtx = puzzleCanvas.getContext('2d');
+        let pA = 3, pB = 4, pC = 5; // 高さ a, 横 b, 斜辺 c
+        let puzzleView = 'separate'; // 'separate' | 'combined'
+
+        function guessAnswer(choice) {
+            const feedback = document.getElementById('guessFeedback');
+            feedback.classList.remove('hidden');
+            if (choice === 'shorter') {
+                feedback.className = "p-2.5 rounded-lg text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 text-emerald-700 dark:text-emerald-300";
+                feedback.innerHTML = "✨ <strong>大正解！</strong> 直角三角形では一番長い辺が斜辺（5m）なので、横は必ず5mより短くなります。では具体的に何mになるでしょうか？下の面積パズルで確かめてみましょう！";
+            } else {
+                feedback.className = "p-2.5 rounded-lg text-xs font-semibold bg-amber-50 dark:bg-amber-950/60 border border-amber-300 text-amber-700 dark:text-amber-300";
+                feedback.innerHTML = "💡 直角三角形をよく見てみましょう。斜めにピンと張ったロープ（5m）が一番長い辺ですね！ということは、横の長さは5mより短いはずです。";
+            }
+        }
+
+        function setPuzzleTriangle(a, b, c) {
+            pA = a; pB = b; pC = c;
+            ['345', '51213', '81517'].forEach(k => {
+                const btn = document.getElementById(`btnTri-${k}`);
+                if (k === `${a}${b}${c}`) {
+                    btn.className = "py-2 px-1 text-xs rounded-xl font-bold bg-indigo-600 text-white shadow";
+                } else {
+                    btn.className = "py-2 px-1 text-xs rounded-xl font-medium bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200";
+                }
+            });
+            updatePuzzleInfo();
+            drawPuzzle();
+        }
+
+        function setPuzzleView(mode) {
+            puzzleView = mode;
+            if (mode === 'separate') {
+                document.getElementById('btnView-separate').className = "flex-1 py-1.5 text-xs rounded-lg font-bold bg-indigo-600 text-white shadow";
+                document.getElementById('btnView-combined').className = "flex-1 py-1.5 text-xs rounded-lg font-medium bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200";
+            } else {
+                document.getElementById('btnView-separate').className = "flex-1 py-1.5 text-xs rounded-lg font-medium bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200";
+                document.getElementById('btnView-combined').className = "flex-1 py-1.5 text-xs rounded-lg font-bold bg-indigo-600 text-white shadow";
+            }
+            updatePuzzleInfo();
+            drawPuzzle();
+        }
+
+        function updatePuzzleInfo() {
+            const sqA = pA * pA;
+            const sqB = pB * pB;
+            const sqC = pC * pC;
+            const formulaElem = document.getElementById('puzzleFormulaDisplay');
+            const insightElem = document.getElementById('puzzleInsight');
+
+            if (puzzleView === 'separate') {
+                formulaElem.innerHTML = `$$${pA}^2 + ${pB}^2 = ${sqA} + ${sqB} = ${sqC} = ${pC}^2$$`;
+                insightElem.innerHTML = `高さの正方形 <strong>${sqA}マス</strong> と、横の正方形 <strong>${sqB}マス</strong> を合わせると、ちょうど斜めの正方形 <strong>${sqC}マス</strong> になります！`;
+            } else {
+                formulaElem.innerHTML = `$$\\text{全体 } ${sqC} \\text{ マス} = \\text{赤 } ${sqA} \\text{ マス} + \\text{青 } ${sqB} \\text{ マス}$$`;
+                insightElem.innerHTML = `斜辺の正方形（${sqC}マス）の中に、高さの正方形と横の正方形が隙間なく敷き詰められます。`;
+            }
+            renderMath(formulaElem);
+        }
+
+        let lastPuzzleW = 0, lastPuzzleH = 0;
+        function resizePuzzleCanvas() {
+            const container = puzzleCanvas.parentElement;
+            if (!container) return;
+            const width = Math.floor(container.clientWidth);
+            const height = Math.floor(container.clientHeight);
+            if (width === 0 || height === 0) return;
+            if (width === lastPuzzleW && height === lastPuzzleH) return;
+
+            lastPuzzleW = width;
+            lastPuzzleH = height;
+            const dpr = window.devicePixelRatio || 1;
+            puzzleCanvas.width = width * dpr;
+            puzzleCanvas.height = height * dpr;
+            puzzleCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        }
+
+        function drawPuzzle() {
+            if (!puzzleCtx) return;
+            const w = lastPuzzleW || (puzzleCanvas.width / (window.devicePixelRatio || 1));
+            const h = lastPuzzleH || (puzzleCanvas.height / (window.devicePixelRatio || 1));
+            if (w <= 0 || h <= 0) return;
+            puzzleCtx.clearRect(0, 0, w, h);
+
+            const isDark = document.documentElement.classList.contains('dark');
+            const textColor = isDark ? '#e2e8f0' : '#334155';
+            const subTextColor = isDark ? '#94a3b8' : '#64748b';
+
+            if (puzzleView === 'separate') {
+                // 3つの正方形を独立して比較表示
+                drawSeparateSquares(puzzleCtx, w, h, isDark, textColor, subTextColor);
+            } else {
+                // 合体ビュー: 25マスの中に9マスと16マスを色分け配置
+                drawCombinedSquare(puzzleCtx, w, h, isDark, textColor, subTextColor);
+            }
+        }
+
+        function drawSeparateSquares(ctx, w, h, isDark, textColor, subTextColor) {
+            // 3つの正方形のサイズと配置
+            // [a x a] + [b x b] = [c x c]
+            const maxVal = pC;
+            const scale = Math.min(w * 0.28, h * 0.45) / maxVal;
+
+            const marginX = w * 0.05;
+            const totalWidthRequired = (pA + pB + pC) * scale + 100;
+            const startX = Math.max(20, (w - totalWidthRequired) / 2);
+            const centerY = h * 0.52;
+
+            // 1. 高さ a の正方形 (赤)
+            const xA = startX;
+            const yA = centerY - (pA * scale) / 2;
+            drawGridSquare(ctx, xA, yA, pA, scale, '#f43f5e', 'rgba(244, 63, 94, 0.15)', isDark);
+            
+            ctx.fillStyle = '#f43f5e';
+            ctx.font = 'bold 13px Inter, sans-serif';
+            ctx.fillText(`${pA}m`, xA + (pA * scale) / 2 - 10, yA - 8);
+            ctx.fillText(`${pA * pA} マス`, xA + (pA * scale) / 2 - 18, yA + (pA * scale) / 2 + 5);
+
+            // ＋ 記号
+            const plusX = xA + pA * scale + 16;
+            ctx.fillStyle = textColor;
+            ctx.font = 'bold 20px Inter, sans-serif';
+            ctx.fillText('+', plusX, centerY + 6);
+
+            // 2. 横 b の正方形 (青)
+            const xB = plusX + 24;
+            const yB = centerY - (pB * scale) / 2;
+            drawGridSquare(ctx, xB, yB, pB, scale, '#3b82f6', 'rgba(59, 130, 246, 0.15)', isDark);
+
+            ctx.fillStyle = '#3b82f6';
+            ctx.font = 'bold 13px Inter, sans-serif';
+            ctx.fillText(`${pB}m`, xB + (pB * scale) / 2 - 10, yB - 8);
+            ctx.fillText(`${pB * pB} マス`, xB + (pB * scale) / 2 - 20, yB + (pB * scale) / 2 + 5);
+
+            // ＝ 記号
+            const eqX = xB + pB * scale + 16;
+            ctx.fillStyle = textColor;
+            ctx.font = 'bold 20px Inter, sans-serif';
+            ctx.fillText('=', eqX, centerY + 6);
+
+            // 3. 斜め c の正方形 (緑)
+            const xC = eqX + 24;
+            const yC = centerY - (pC * scale) / 2;
+            drawGridSquare(ctx, xC, yC, pC, scale, '#10b981', 'rgba(16, 185, 129, 0.15)', isDark);
+
+            ctx.fillStyle = '#10b981';
+            ctx.font = 'bold 13px Inter, sans-serif';
+            ctx.fillText(`斜め ${pC}m`, xC + (pC * scale) / 2 - 22, yC - 8);
+            ctx.fillText(`全体 ${pC * pC} マス`, xC + (pC * scale) / 2 - 32, yC + (pC * scale) / 2 + 5);
+
+            // 下部ガイド
+            ctx.fillStyle = subTextColor;
+            ctx.font = '12px Inter, sans-serif';
+            ctx.fillText(`高さ² (${pA * pA}) ＋ 横² (${pB * pB}) ＝ 斜め² (${pC * pC})`, w / 2 - 110, h - 18);
+        }
+
+        function drawGridSquare(ctx, x, y, n, scale, strokeColor, fillColor, isDark) {
+            const size = n * scale;
+            ctx.fillStyle = fillColor;
+            ctx.fillRect(x, y, size, size);
+
+            ctx.strokeStyle = strokeColor;
+            ctx.lineWidth = 2;
+            ctx.strokeRect(x, y, size, size);
+
+            // グリッド線（n x n 分割）
+            if (n <= 15) {
+                ctx.strokeStyle = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
+                ctx.lineWidth = 1;
+                for (let i = 1; i < n; i++) {
+                    ctx.beginPath();
+                    ctx.moveTo(x + i * scale, y);
+                    ctx.lineTo(x + i * scale, y + size);
+                    ctx.moveTo(x, y + i * scale);
+                    ctx.lineTo(x + size, y + i * scale);
+                    ctx.stroke();
+                }
+            }
+        }
+
+        function drawCombinedSquare(ctx, w, h, isDark, textColor, subTextColor) {
+            // 斜辺 c x c のグリッドを描き、その中に a^2 マス（赤）と b^2 マス（青）を塗る
+            const size = Math.min(w * 0.52, h * 0.56);
+            const startX = (w - size) / 2;
+            const startY = (h - size) / 2 + 16;
+            const cellSize = size / pC;
+
+            const sqA = pA * pA;
+            const totalCells = pC * pC;
+
+            let count = 0;
+            for (let row = 0; row < pC; row++) {
+                for (let col = 0; col < pC; col++) {
+                    const cx = startX + col * cellSize;
+                    const cy = startY + row * cellSize;
+
+                    if (count < sqA) {
+                        ctx.fillStyle = 'rgba(244, 63, 94, 0.45)';
+                    } else {
+                        ctx.fillStyle = 'rgba(59, 130, 246, 0.45)';
+                    }
+                    ctx.fillRect(cx, cy, cellSize, cellSize);
+
+                    ctx.strokeStyle = isDark ? 'rgba(255,255,255,0.18)' : 'rgba(0,0,0,0.18)';
+                    ctx.lineWidth = 1;
+                    ctx.strokeRect(cx, cy, cellSize, cellSize);
+
+                    count++;
+                }
+            }
+
+            // 外枠
+            ctx.strokeStyle = '#10b981';
+            ctx.lineWidth = 3;
+            ctx.strokeRect(startX, startY, size, size);
+
+            // ラベルの描画 (中央揃えで2行に配置し、横幅に関わらず重なりを確実に防止)
+            ctx.textAlign = 'center';
+            ctx.font = 'bold 12px Inter, sans-serif';
+
+            // 1行目: 高さ側の面積 (赤)
+            ctx.fillStyle = '#f43f5e';
+            ctx.fillText(`■ 高さ側の面積: ${sqA}マス (${((sqA / totalCells) * 100).toFixed(1)}%)`, w / 2, startY - 22);
+
+            // 2行目: 横側の面積 (青)
+            ctx.fillStyle = '#3b82f6';
+            ctx.fillText(`■ 横側の面積: ${pB * pB}マス (${(((pB * pB) / totalCells) * 100).toFixed(1)}%)`, w / 2, startY - 7);
+
+            // 下部: 全体の面積 (緑)
+            ctx.fillStyle = '#10b981';
+            ctx.font = 'bold 13px Inter, sans-serif';
+            ctx.fillText(`全体の面積 ＝ 斜辺の正方形 (${totalCells}マス ＝ 100%)`, w / 2, startY + size + 24);
+
+            // 設定リセット
+            ctx.textAlign = 'left';
+        }
+
+        // ================= 2. 全体を1にする割合ロジック =================
+        const ratioCanvas = document.getElementById('ratioCanvas');
+        const ratioCtx = ratioCanvas.getContext('2d');
+        const ratioAngleSlider = document.getElementById('ratioAngleSlider');
+        const ratioHypSlider = document.getElementById('ratioHypSlider');
+        const ratioAngleDisplay = document.getElementById('ratioAngleDisplay');
+        const ratioHypDisplay = document.getElementById('ratioHypDisplay');
+        const barSin2 = document.getElementById('barSin2');
+        const barCos2 = document.getElementById('barCos2');
+        const ratioFormulaDisplay = document.getElementById('ratioFormulaDisplay');
+        const ratioInsight = document.getElementById('ratioInsight');
+
+        let currentRatioDeg = 36.87; // 3:4:5 の角度
+        let currentRatioHyp = 5.0;   // 斜辺 c
+
+        // 有名角・有理数角における厳密な分数・根号データを取得するヘルパー
+        function getRatioSpecialValues(deg) {
+            if (Math.abs(deg - 30) < 0.3) {
+                return {
+                    isSpecial: true,
+                    key: '30',
+                    displayDeg: '30°',
+                    formula: '\\sin^2(30^\\circ) + \\cos^2(30^\\circ) = \\left(\\frac{1}{2}\\right)^2 + \\left(\\frac{\\sqrt{3}}{2}\\right)^2 = \\frac{1}{4} + \\frac{3}{4} = 1',
+                    insightA: '\\frac{1}{2}',
+                    insightB: '\\frac{\\sqrt{3}}{2}',
+                    canvasSinText: '高さ ＝ sin 30° (1/2)',
+                    canvasSin2Text: '面積 ＝ 1/4',
+                    canvasCosText: '横 ＝ cos 30° (√3/2)',
+                    canvasCos2Text: '面積 ＝ 3/4',
+                    barSinText: '1/4 (25%)',
+                    barCosText: '3/4 (75%)',
+                    sinPct: 25,
+                    cosPct: 75
+                };
+            } else if (Math.abs(deg - 45) < 0.3) {
+                return {
+                    isSpecial: true,
+                    key: '45',
+                    displayDeg: '45°',
+                    formula: '\\sin^2(45^\\circ) + \\cos^2(45^\\circ) = \\left(\\frac{\\sqrt{2}}{2}\\right)^2 + \\left(\\frac{\\sqrt{2}}{2}\\right)^2 = \\frac{1}{2} + \\frac{1}{2} = 1',
+                    insightA: '\\frac{\\sqrt{2}}{2}',
+                    insightB: '\\frac{\\sqrt{2}}{2}',
+                    canvasSinText: '高さ ＝ sin 45° (√2/2)',
+                    canvasSin2Text: '面積 ＝ 1/2',
+                    canvasCosText: '横 ＝ cos 45° (√2/2)',
+                    canvasCos2Text: '面積 ＝ 1/2',
+                    barSinText: '1/2 (50%)',
+                    barCosText: '1/2 (50%)',
+                    sinPct: 50,
+                    cosPct: 50
+                };
+            } else if (Math.abs(deg - 60) < 0.3) {
+                return {
+                    isSpecial: true,
+                    key: '60',
+                    displayDeg: '60°',
+                    formula: '\\sin^2(60^\\circ) + \\cos^2(60^\\circ) = \\left(\\frac{\\sqrt{3}}{2}\\right)^2 + \\left(\\frac{1}{2}\\right)^2 = \\frac{3}{4} + \\frac{1}{4} = 1',
+                    insightA: '\\frac{\\sqrt{3}}{2}',
+                    insightB: '\\frac{1}{2}',
+                    canvasSinText: '高さ ＝ sin 60° (√3/2)',
+                    canvasSin2Text: '面積 ＝ 3/4',
+                    canvasCosText: '横 ＝ cos 60° (1/2)',
+                    canvasCos2Text: '面積 ＝ 1/4',
+                    barSinText: '3/4 (75%)',
+                    barCosText: '1/4 (25%)',
+                    sinPct: 75,
+                    cosPct: 25
+                };
+            } else if (Math.abs(deg - 36.87) < 0.5) {
+                return {
+                    isSpecial: true,
+                    key: '345',
+                    displayDeg: '36.9° (3:4:5)',
+                    formula: '\\sin^2\\theta + \\cos^2\\theta = \\left(\\frac{3}{5}\\right)^2 + \\left(\\frac{4}{5}\\right)^2 = \\frac{9}{25} + \\frac{16}{25} = \\frac{25}{25} = 1',
+                    insightA: '\\frac{3}{5}',
+                    insightB: '\\frac{4}{5}',
+                    canvasSinText: '高さ ＝ sinθ (3/5)',
+                    canvasSin2Text: '面積 ＝ 9/25',
+                    canvasCosText: '横 ＝ cosθ (4/5)',
+                    canvasCos2Text: '面積 ＝ 16/25',
+                    barSinText: '9/25 (36%)',
+                    barCosText: '16/25 (64%)',
+                    sinPct: 36,
+                    cosPct: 64
+                };
+            }
+            return { isSpecial: false };
+        }
+
+        function updateRatioPresetButtons(deg) {
+            const presets = [
+                { id: 'btnRatioPreset-30', match: Math.abs(deg - 30) < 0.3 },
+                { id: 'btnRatioPreset-45', match: Math.abs(deg - 45) < 0.3 },
+                { id: 'btnRatioPreset-60', match: Math.abs(deg - 60) < 0.3 },
+                { id: 'btnRatioPreset-345', match: Math.abs(deg - 36.87) < 0.5 }
+            ];
+            presets.forEach(p => {
+                const btn = document.getElementById(p.id);
+                if (!btn) return;
+                if (p.match) {
+                    btn.className = "py-1.5 text-xs rounded-lg font-bold bg-indigo-600 text-white shadow";
+                } else {
+                    btn.className = "py-1.5 text-xs rounded-lg font-medium bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-700 dark:text-slate-200 transition";
+                }
+            });
+        }
+
+        function setRatioPreset(deg, hyp) {
+            currentRatioDeg = deg;
+            currentRatioHyp = hyp;
+            ratioAngleSlider.value = deg;
+            ratioHypSlider.value = hyp;
+            updateRatioSimulation();
+        }
+
+        ratioAngleSlider.addEventListener('input', () => {
+            currentRatioDeg = parseFloat(ratioAngleSlider.value);
+            updateRatioSimulation();
+        });
+
+        ratioHypSlider.addEventListener('input', () => {
+            currentRatioHyp = parseFloat(ratioHypSlider.value);
+            updateRatioSimulation();
+        });
+
+        function updateRatioSimulation() {
+            const rad = currentRatioDeg * (Math.PI / 180);
+            const sinVal = Math.sin(rad);
+            const cosVal = Math.cos(rad);
+            const sin2Val = sinVal * sinVal;
+            const cos2Val = cosVal * cosVal;
+
+            const special = getRatioSpecialValues(currentRatioDeg);
+            updateRatioPresetButtons(currentRatioDeg);
+
+            ratioAngleDisplay.innerText = special.isSpecial ? special.displayDeg : `${currentRatioDeg.toFixed(1)}°`;
+            ratioHypDisplay.innerText = `c = ${currentRatioHyp.toFixed(1)} m`;
+
+            if (special.isSpecial) {
+                // 有名角・ピタゴラス比: 分数・根号を用いた厳密表記
+                barSin2.style.width = `${special.sinPct}%`;
+                barSin2.innerText = special.barSinText;
+                barCos2.style.width = `${special.cosPct}%`;
+                barCos2.innerText = special.barCosText;
+
+                ratioFormulaDisplay.innerHTML = `$$${special.formula}$$`;
+
+                ratioInsight.innerHTML = `<strong>【特別な角の直角三角形】</strong> 斜辺を全体 \(1\) としたとき、高さは \\(${special.insightA}\\)、横は \\(${special.insightB}\\) です。<br>
+                それぞれの面積の割合（2乗）を足すと：<br>
+                <strong>\\(${special.formula}\\)</strong> となり、小数の丸め誤差のない厳密な分数計算でもぴったり 1 になることが確かめられます！`;
+            } else {
+                // 一般角: 連続変化の確認用小数
+                const sinPct = (sin2Val * 100).toFixed(1);
+                const cosPct = (cos2Val * 100).toFixed(1);
+                barSin2.style.width = `${sinPct}%`;
+                barSin2.innerText = `sin²θ: ${sinPct}%`;
+                barCos2.style.width = `${cosPct}%`;
+                barCos2.innerText = `cos²θ: ${cosPct}%`;
+
+                ratioFormulaDisplay.innerHTML = `$$\\sin^2(${currentRatioDeg.toFixed(1)}^\\circ) + \\cos^2(${currentRatioDeg.toFixed(1)}^\\circ) = ${sin2Val.toFixed(3)} + ${cos2Val.toFixed(3)} = 1.000$$`;
+
+                const actualA = (currentRatioHyp * sinVal).toFixed(2);
+                const actualB = (currentRatioHyp * cosVal).toFixed(2);
+                ratioInsight.innerHTML = `<strong>【現在の直角三角形】</strong> 斜辺 \(c = ${currentRatioHyp.toFixed(1)}\\text{m}\), 高さ \(a = ${actualA}\\text{m}\), 横 \(b = ${actualB}\\text{m}\)<br>
+                実際の正方形の面積は \(a^2 + b^2 = ${(actualA*actualA + actualB*actualB).toFixed(1)} = c^2\) です。<br>
+                これを斜辺の正方形 \(c^2\) で割ると、<strong>\\(\\left(\\frac{a}{c}\\right)^2 + \\left(\\frac{b}{c}\\right)^2 = \\sin^2\\theta + \\cos^2\\theta = 1\\)</strong> となり、斜辺の大きさに関係なく常にぴったり 1 になります！`;
+            }
+
+            renderMath(ratioFormulaDisplay);
+            renderMath(ratioInsight);
+
+            drawRatio();
+        }
+
+        let lastRatioW = 0, lastRatioH = 0;
+        function resizeRatioCanvas() {
+            const container = ratioCanvas.parentElement;
+            if (!container) return;
+            const width = Math.floor(container.clientWidth);
+            const height = Math.floor(container.clientHeight);
+            if (width === 0 || height === 0) return;
+            if (width === lastRatioW && height === lastRatioH) return;
+
+            lastRatioW = width;
+            lastRatioH = height;
+            const dpr = window.devicePixelRatio || 1;
+            ratioCanvas.width = width * dpr;
+            ratioCanvas.height = height * dpr;
+            ratioCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        }
+
+        function drawRatio() {
+            if (!ratioCtx) return;
+            const w = lastRatioW || (ratioCanvas.width / (window.devicePixelRatio || 1));
+            const h = lastRatioH || (ratioCanvas.height / (window.devicePixelRatio || 1));
+            if (w <= 0 || h <= 0) return;
+            ratioCtx.clearRect(0, 0, w, h);
+
+            const isDark = document.documentElement.classList.contains('dark');
+            const textColor = isDark ? '#e2e8f0' : '#334155';
+            const subTextColor = isDark ? '#94a3b8' : '#64748b';
+
+            const rad = currentRatioDeg * (Math.PI / 180);
+            const sinVal = Math.sin(rad);
+            const cosVal = Math.cos(rad);
+
+            // 画面中央下部に直角三角形を配置
+            const baseLen = Math.min(w * 0.38, h * 0.42);
+            const originX = w * 0.22;
+            const originY = h * 0.72;
+
+            const triBx = originX + baseLen * cosVal; // 横
+            const triBy = originY;
+            const triAx = triBx;
+            const triAy = originY - baseLen * sinVal; // 頂点
+
+            // 1. 直角三角形の描画
+            ratioCtx.beginPath();
+            ratioCtx.moveTo(originX, originY);
+            ratioCtx.lineTo(triBx, triBy);
+            ratioCtx.lineTo(triAx, triAy);
+            ratioCtx.closePath();
+
+            ratioCtx.fillStyle = isDark ? 'rgba(99, 102, 241, 0.1)' : 'rgba(99, 102, 241, 0.05)';
+            ratioCtx.fill();
+            ratioCtx.strokeStyle = isDark ? '#64748b' : '#94a3b8';
+            ratioCtx.lineWidth = 2;
+            ratioCtx.stroke();
+
+            // 直角マーク
+            const sqMark = 12;
+            ratioCtx.strokeStyle = isDark ? '#64748b' : '#94a3b8';
+            ratioCtx.strokeRect(triBx - sqMark, triBy - sqMark, sqMark, sqMark);
+
+            // 2. 辺のハイライト＆ラベル
+            // 斜辺 (緑)
+            ratioCtx.strokeStyle = '#10b981';
+            ratioCtx.lineWidth = 3.5;
+            ratioCtx.beginPath();
+            ratioCtx.moveTo(originX, originY);
+            ratioCtx.lineTo(triAx, triAy);
+            ratioCtx.stroke();
+
+            // 横 (青 = cosθ)
+            ratioCtx.strokeStyle = '#3b82f6';
+            ratioCtx.lineWidth = 3.5;
+            ratioCtx.beginPath();
+            ratioCtx.moveTo(originX, originY);
+            ratioCtx.lineTo(triBx, triBy);
+            ratioCtx.stroke();
+
+            // 高さ (赤 = sinθ)
+            ratioCtx.strokeStyle = '#f43f5e';
+            ratioCtx.lineWidth = 3.5;
+            ratioCtx.beginPath();
+            ratioCtx.moveTo(triBx, triBy);
+            ratioCtx.lineTo(triAx, triAy);
+            ratioCtx.stroke();
+
+            // 3. 各辺の外側に正方形を描く（面積の視覚化）
+            // 横の正方形（下側）
+            const bLen = baseLen * cosVal;
+            ratioCtx.fillStyle = 'rgba(59, 130, 246, 0.2)';
+            ratioCtx.fillRect(originX, originY, bLen, Math.min(bLen, h * 0.22));
+            ratioCtx.strokeStyle = '#3b82f6';
+            ratioCtx.lineWidth = 1.5;
+            ratioCtx.strokeRect(originX, originY, bLen, Math.min(bLen, h * 0.22));
+
+            // 高さの正方形（右側）
+            const aLen = baseLen * sinVal;
+            ratioCtx.fillStyle = 'rgba(244, 63, 94, 0.2)';
+            ratioCtx.fillRect(triBx, triAy, Math.min(aLen, w * 0.22), aLen);
+            ratioCtx.strokeStyle = '#f43f5e';
+            ratioCtx.lineWidth = 1.5;
+            ratioCtx.strokeRect(triBx, triAy, Math.min(aLen, w * 0.22), aLen);
+
+            // 4. ラベル
+            ratioCtx.font = 'bold 12px Inter, sans-serif';
+
+            // 角度 θ の弧
+            ratioCtx.strokeStyle = '#f59e0b';
+            ratioCtx.lineWidth = 2;
+            ratioCtx.beginPath();
+            ratioCtx.arc(originX, originY, 28, 0, -rad, true);
+            ratioCtx.stroke();
+            ratioCtx.fillStyle = '#f59e0b';
+
+            const specialInfo = getRatioSpecialValues(currentRatioDeg);
+            const angleLabel = specialInfo.isSpecial ? specialInfo.displayDeg : `θ = ${currentRatioDeg.toFixed(1)}°`;
+            ratioCtx.fillText(angleLabel, originX + 34, originY - 10);
+
+            // 斜辺ラベル
+            ratioCtx.fillStyle = '#10b981';
+            const midHypX = (originX + triAx) / 2 - 25;
+            const midHypY = (originY + triAy) / 2 - 10;
+            ratioCtx.fillText(`斜辺 ＝ 1 (全体)`, midHypX, midHypY);
+
+            // 横ラベル (有名角なら分数/根号、一般角なら小数)
+            ratioCtx.fillStyle = '#3b82f6';
+            const cosLabelText = specialInfo.isSpecial ? specialInfo.canvasCosText : `横 ＝ cosθ (${cosVal.toFixed(3)})`;
+            const cos2LabelText = specialInfo.isSpecial ? specialInfo.canvasCos2Text : `面積 ＝ cos²θ (${(cosVal*cosVal).toFixed(3)})`;
+            ratioCtx.fillText(cosLabelText, originX + bLen / 2 - 40, originY + 16);
+            ratioCtx.fillText(cos2LabelText, originX + bLen / 2 - 45, originY + 34);
+
+            // 高さラベル (有名角なら分数/根号、一般角なら小数)
+            ratioCtx.fillStyle = '#f43f5e';
+            const sinLabelText = specialInfo.isSpecial ? specialInfo.canvasSinText : `高さ ＝ sinθ (${sinVal.toFixed(3)})`;
+            const sin2LabelText = specialInfo.isSpecial ? specialInfo.canvasSin2Text : `面積 ＝ sin²θ (${(sinVal*sinVal).toFixed(3)})`;
+            ratioCtx.fillText(sinLabelText, triBx + 8, (triBy + triAy) / 2);
+            ratioCtx.fillText(sin2LabelText, triBx + 8, (triBy + triAy) / 2 + 18);
+        }
+
+        // ================= 3. 推理＆探偵検算ロジック =================
+        let currentDeduceEx = 1;
+
+        const deduceExamples = {
+            1: {
+                given: "\\sin\\theta = \\frac{3}{5} \\quad (\\theta \\text{ は鋭角})",
+                step1: "\\cos^2\\theta = 1 - \\sin^2\\theta",
+                step2: "\\cos^2\\theta = 1 - \\left(\\frac{3}{5}\\right)^2 = 1 - \\frac{9}{25} = \\frac{16}{25}",
+                step3: "\\theta \\text{ は鋭角なので } \\cos\\theta > 0 \\implies \\cos\\theta = \\sqrt{\\frac{16}{25}} = \\frac{4}{5}",
+                tan: "\\tan\\theta = \\frac{\\sin\\theta}{\\cos\\theta} = \\frac{3/5}{4/5} = \\frac{3}{4}"
+            },
+            2: {
+                given: "\\sin\\theta = \\frac{1}{3} \\quad (\\theta \\text{ は鋭角})",
+                step1: "\\cos^2\\theta = 1 - \\sin^2\\theta",
+                step2: "\\cos^2\\theta = 1 - \\left(\\frac{1}{3}\\right)^2 = 1 - \\frac{1}{9} = \\frac{8}{9}",
+                step3: "\\theta \\text{ は鋭角なので } \\cos\\theta > 0 \\implies \\cos\\theta = \\frac{\\sqrt{8}}{3} = \\frac{2\\sqrt{2}}{3}",
+                tan: "\\tan\\theta = \\frac{\\sin\\theta}{\\cos\\theta} = \\frac{1/3}{2\\sqrt{2}/3} = \\frac{1}{2\\sqrt{2}} = \\frac{\\sqrt{2}}{4}"
+            },
+            3: {
+                given: "\\cos\\theta = \\frac{\\sqrt{5}}{3} \\quad (\\theta \\text{ は鋭角})",
+                step1: "\\sin^2\\theta = 1 - \\cos^2\\theta",
+                step2: "\\sin^2\\theta = 1 - \\left(\\frac{\\sqrt{5}}{3}\\right)^2 = 1 - \\frac{5}{9} = \\frac{4}{9}",
+                step3: "\\theta \\text{ は鋭角なので } \\sin\\theta > 0 \\implies \\sin\\theta = \\sqrt{\\frac{4}{9}} = \\frac{2}{3}",
+                tan: "\\tan\\theta = \\frac{\\sin\\theta}{\\cos\\theta} = \\frac{2/3}{\\sqrt{5}/3} = \\frac{2}{\\sqrt{5}} = \\frac{2\\sqrt{5}}{5}"
+            }
+        };
+
+        function setDeduceExample(num) {
+            currentDeduceEx = num;
+            for (let i = 1; i <= 3; i++) {
+                const btn = document.getElementById(`btnDed-${i}`);
+                if (i === num) {
+                    btn.className = "py-2 rounded-xl font-bold bg-indigo-600 text-white shadow";
+                } else {
+                    btn.className = "py-2 rounded-xl font-medium bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200";
+                }
+            }
+
+            const data = deduceExamples[num];
+            const box = document.getElementById('deduceStepsBox');
+            box.innerHTML = `
+                <div class="font-bold text-indigo-600 dark:text-indigo-400">【与えられた条件】 $${data.given}$</div>
+                <div class="space-y-1.5 pt-1">
+                    <div><strong>手順 1（公式の変形）:</strong> $${data.step1}$</div>
+                    <div><strong>手順 2（面積の引き算）:</strong> $${data.step2}$</div>
+                    <div><strong>手順 3（平方根をとる）:</strong> $${data.step3}$</div>
+                    <div class="pt-1 text-emerald-600 dark:text-emerald-400 font-bold border-t border-slate-200 dark:border-slate-700">
+                        ★ おまけ（傾き $\\tan$ も即座に判明！）: $${data.tan}$
+                    </div>
+                </div>
+            `;
+            renderMath(box);
+        }
+
+        // 探偵検算ゲームのデータ
+        const detectiveCases = [
+            {
+                sin: 0.6,
+                cos: 0.9,
+                isReal: false,
+                reason: "高さの割合 0.6 と横の割合 0.9 の2乗を足すと：<br>$0.6^2 + 0.9^2 = 0.36 + 0.81 = 1.17 \\neq 1$<br>合計が 1 を超えてしまっているため、このような直角三角形は物理的に存在しません！"
+            },
+            {
+                sin: 0.6,
+                cos: 0.8,
+                isReal: true,
+                reason: "$0.6^2 + 0.8^2 = 0.36 + 0.64 = 1.00$<br>ぴったり 1 になるため、これは 3:4:5 の直角三角形として完全に実在します！"
+            },
+            {
+                sin: 0.5,
+                cos: 0.5,
+                isReal: false,
+                reason: "$0.5^2 + 0.5^2 = 0.25 + 0.25 = 0.50 \\neq 1$<br>合計が 0.5 しかなく、直角になりません（斜辺が閉じません）。"
+            },
+            {
+                sin: 0.5,
+                cos: 0.866,
+                isReal: true,
+                reason: "$0.5^2 + 0.866^2 \\approx 0.25 + 0.75 = 1.00$<br>これは 30°-60°-90° の特別な直角三角形（$\\sin 30^\\circ = 1/2, \\; \\cos 30^\\circ = \\sqrt{3}/2$）です！"
+            }
+        ];
+        let currentCaseIdx = 0;
+
+        function loadDetectiveCase() {
+            const c = detectiveCases[currentCaseIdx];
+            document.getElementById('detectiveCaseText').innerHTML = `
+                <span class="inline-flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-rose-500 inline-block"></span> 高さ $\\sin\\theta = ${c.sin}$</span>
+                <span class="text-slate-300 dark:text-slate-600 font-normal">|</span>
+                <span class="inline-flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-blue-500 inline-block"></span> 横 $\\cos\\theta = ${c.cos}$</span>
+            `;
+            document.getElementById('detectiveFeedback').classList.add('hidden');
+            renderMath(document.getElementById('detectiveCaseText'));
+        }
+
+        function judgeCase(userChoice) {
+            const c = detectiveCases[currentCaseIdx];
+            const fb = document.getElementById('detectiveFeedback');
+            fb.classList.remove('hidden');
+
+            const isCorrect = (userChoice === c.isReal);
+            if (isCorrect) {
+                fb.className = "p-3.5 rounded-xl border border-emerald-300 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 text-xs sm:text-sm leading-relaxed";
+                fb.innerHTML = `<div class="font-bold mb-1"><i class="fa-solid fa-circle-check mr-1"></i> 名推理！大正解です</div>${c.reason}`;
+            } else {
+                fb.className = "p-3.5 rounded-xl border border-rose-300 dark:border-rose-800 bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 text-xs sm:text-sm leading-relaxed";
+                fb.innerHTML = `<div class="font-bold mb-1"><i class="fa-solid fa-circle-xmark mr-1"></i> 残念、見抜けませんでした...</div>${c.reason}`;
+            }
+            renderMath(fb);
+        }
+
+        function nextDetectiveCase() {
+            currentCaseIdx = (currentCaseIdx + 1) % detectiveCases.length;
+            loadDetectiveCase();
+        }
+
+        // ================= 4. 理解度チェックロジック (出口問題) =================
+        const quizData = [
+            {
+                question: "3m, 4m, 5m の直角三角形において、9 + 16 = 25 という計算は何を表していますか？",
+                options: [
+                    "辺の長さをそのまま足したもの",
+                    "各辺を1辺とする3つの正方形の「面積」を足したもの",
+                    "三角形の周の長さの合計",
+                    "角度の合計が90°になること"
+                ],
+                answer: 1,
+                explanation: "<strong>正解！</strong><br>\\(3+4 \\neq 5\\) ですが、それぞれの長さを2回かけた正方形の面積（9マスと16マス）を合わせると、斜めの正方形の面積（25マス）と一致します。"
+            },
+            {
+                question: "斜辺の長さを「全体 ＝ 1」としたとき、直角三角形の「高さ」と「横の長さ」はそれぞれ何になりますか？",
+                options: [
+                    "高さ ＝ \\(\\tan\\theta\\), 横 ＝ \\(\\sin\\theta\\)",
+                    "高さ ＝ \\(\\cos\\theta\\), 横 ＝ \\(\\sin\\theta\\)",
+                    "高さ ＝ \\(\\sin\\theta\\), 横 ＝ \\(\\cos\\theta\\)",
+                    "どちらも 1 になる"
+                ],
+                answer: 2,
+                explanation: "<strong>正解！</strong><br>斜辺を1としたときの高さの割合が \\(\\sin\\theta\\)、横の割合が \\(\\cos\\theta\\) です。"
+            },
+            {
+                question: "\\(\\sin^2\\theta + \\cos^2\\theta = 1\\) という公式の本質的な意味として最も正しいものはどれですか？",
+                options: [
+                    "高さの割合の2乗（面積）と横の割合の2乗（面積）を足すと、全体の面積（1）になる",
+                    "角度 \\(\\theta\\) を2乗して足すと 1 になるという意味",
+                    "直角三角形の内角の和が180°になることの言い換え",
+                    "斜辺を測るためだけの公式"
+                ],
+                answer: 0,
+                explanation: "<strong>素晴らしい！</strong><br>斜辺を全体1としたときの「高さ側の正方形の面積（\\(\\sin^2\\theta\\)）」と「横側の正方形の面積（\\(\\cos^2\\theta\\)）」の合計が、全体である斜辺の正方形の面積 1 になるという本質を表しています。"
+            },
+            {
+                question: "\\(\\theta\\) が鋭角で \\(\\sin\\theta = \\frac{4}{5}\\) のとき、横の割合 \\(\\cos\\theta\\) の値はいくつですか？",
+                options: [
+                    "\\(\\frac{1}{5}\\)",
+                    "\\(\\frac{3}{5}\\)",
+                    "\\(\\frac{2}{5}\\)",
+                    "\\(1\\)"
+                ],
+                answer: 1,
+                explanation: "<strong>正解！</strong><br>\\(\\cos^2\\theta = 1 - \\sin^2\\theta = 1 - \\frac{16}{25} = \\frac{9}{25}\\) です。\\(\\theta\\) は鋭角なので \\(\\cos\\theta > 0\\) より \\(\\cos\\theta = \\frac{3}{5}\\) となります。"
+            },
+            {
+                question: "ある調査記録に「高さの割合が 0.6、横の割合が 0.9」と書かれていました。この記録の判断として正しいものは？",
+                options: [
+                    "正しい記録である",
+                    "\\(0.6^2 + 0.9^2 = 1.17 \\neq 1\\) であり、直角三角形としてあり得ない記録である",
+                    "角度が鋭角なら実在する",
+                    "斜辺が 1 より長ければ実在する"
+                ],
+                answer: 1,
+                explanation: "<strong>お見事！探偵検算マスターです。</strong><br>どんな直角三角形でも割合の2乗の和は必ず 1 にならなければなりません。\\(0.36 + 0.81 = 1.17\\) となり 1 を超えるため、明らかに誤った記録です。"
+            }
+        ];
+
+        let currentQuizIndex = 0;
+        let score = 0;
+
+        function loadQuiz() {
+            const q = quizData[currentQuizIndex];
+            document.getElementById('quizBadge').innerText = `問題 ${currentQuizIndex + 1} / ${quizData.length}`;
+            const qElem = document.getElementById('quizQuestion');
+            qElem.innerHTML = q.question;
+
+            const optContainer = document.getElementById('quizOptions');
+            optContainer.innerHTML = '';
+
+            q.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = "w-full text-left p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:border-indigo-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition font-medium flex items-center justify-between text-slate-700 dark:text-slate-200 text-sm";
+                btn.innerHTML = `<span>${opt}</span><i class="fa-solid fa-chevron-right text-slate-400 text-xs"></i>`;
+                btn.onclick = () => selectQuizAnswer(idx);
+                optContainer.appendChild(btn);
+            });
+
+            document.getElementById('feedbackContainer').classList.add('hidden');
+            document.getElementById('quizContainer').classList.remove('hidden');
+
+            renderMath(qElem);
+            renderMath(optContainer);
+        }
+
+        function selectQuizAnswer(selectedIndex) {
+            const q = quizData[currentQuizIndex];
+            const feedbackContainer = document.getElementById('feedbackContainer');
+            const feedbackTitle = document.getElementById('feedbackTitle');
+            const feedbackBody = document.getElementById('feedbackBody');
+
+            document.getElementById('quizContainer').classList.add('hidden');
+            feedbackContainer.classList.remove('hidden');
+
+            if (selectedIndex === q.answer) {
+                score++;
+                feedbackTitle.innerHTML = '<span class="text-emerald-500 font-bold"><i class="fa-solid fa-circle-check mr-1.5"></i> 正解！その通りです</span>';
+            } else {
+                feedbackTitle.innerHTML = '<span class="text-rose-500 font-bold"><i class="fa-solid fa-circle-xmark mr-1.5"></i> 惜しい！不正解です</span>';
+            }
+            feedbackBody.innerHTML = q.explanation;
+
+            renderMath(feedbackBody);
+
+            if (currentQuizIndex === quizData.length - 1) {
+                feedbackContainer.querySelector('button').innerHTML = '結果を見る <i class="fa-solid fa-flag-checkered ml-1"></i>';
+            } else {
+                feedbackContainer.querySelector('button').innerHTML = '次の問題へ <i class="fa-solid fa-arrow-right ml-1"></i>';
+            }
+        }
+
+        function nextQuiz() {
+            currentQuizIndex++;
+            if (currentQuizIndex < quizData.length) {
+                loadQuiz();
+            } else {
+                document.getElementById('feedbackContainer').classList.add('hidden');
+                document.getElementById('quizComplete').classList.remove('hidden');
+                document.getElementById('quizScoreText').innerText = `${quizData.length} 問中 ${score} 問 正解しました！`;
+            }
+        }
+
+        function restartQuiz() {
+            currentQuizIndex = 0;
+            score = 0;
+            document.getElementById('quizComplete').classList.add('hidden');
+            loadQuiz();
+        }
+
+        // ウィンドウリサイズハンドラ (requestAnimationFrame で安全に更新)
+        let rafResizeId = null;
+        function handleResize() {
+            if (rafResizeId) cancelAnimationFrame(rafResizeId);
+            rafResizeId = requestAnimationFrame(() => {
+                lastPuzzleW = 0; lastPuzzleH = 0;
+                lastRatioW = 0; lastRatioH = 0;
+                if (!document.getElementById('tab-puzzle').classList.contains('hidden')) {
+                    resizePuzzleCanvas();
+                    drawPuzzle();
+                } else if (!document.getElementById('tab-ratio').classList.contains('hidden')) {
+                    resizeRatioCanvas();
+                    drawRatio();
+                }
+            });
+        }
+        window.addEventListener('resize', handleResize);
+        window.addEventListener('orientationchange', () => setTimeout(handleResize, 100));
+
+        // 初期化実行
+        window.onload = function() {
+            if (window.renderMathInElement) {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        { left: '$$', right: '$$', display: true },
+                        { left: '$', right: '$', display: false },
+                        { left: '\\(', right: '\\)', display: false },
+                        { left: '\\[', right: '\\]', display: true }
+                    ],
+                    throwOnError: false
+                });
+            }
+
+            resizePuzzleCanvas();
+            updatePuzzleInfo();
+            drawPuzzle();
+
+            resizeRatioCanvas();
+            updateRatioSimulation();
+
+            setDeduceExample(1);
+            loadDetectiveCase();
+            loadQuiz();
+        };
+    </script>
+</body>
+</html>

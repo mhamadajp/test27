@@ -1,0 +1,2028 @@
+<!DOCTYPE html>
+<html lang="ja" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数学A 線分の内分・外分の本質マスター</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- KaTeX -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+    <script>
+        // ResizeObserverなどの通知エラーを安全に抑制
+        window.addEventListener('error', function(e) {
+            if (e.message && (
+                e.message.includes('ResizeObserver') ||
+                e.message.includes('undelivered notifications')
+            )) {
+                e.stopImmediatePropagation();
+                e.preventDefault();
+            }
+        }, true);
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-100 dark:bg-slate-900 text-slate-800 dark:text-slate-100 min-h-screen flex flex-col transition-colors duration-200">
+
+    <!-- ヘッダー (狭い画面でも潰れない上下2段レスポンシブ設計) -->
+    <header class="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 py-3 px-4 sm:px-6 shadow-sm">
+        <div class="max-w-7xl mx-auto space-y-3">
+            <!-- 上段: タイトル ＆ テーマ切替 -->
+            <div class="flex justify-between items-center gap-3">
+                <div class="flex items-center space-x-3 min-w-0">
+                    <div class="bg-blue-600 text-white p-2 sm:p-2.5 rounded-xl shadow-md flex items-center justify-center flex-shrink-0">
+                        <i class="fa-solid fa-arrows-split-up-and-left text-lg sm:text-xl"></i>
+                    </div>
+                    <div class="min-w-0">
+                        <h1 class="text-base sm:text-xl font-bold tracking-tight truncate">線分の内分・外分の本質マスター</h1>
+                        <p class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 truncate">「AP : PB = 3 : 2 となる点Pはどこにある？ 1つだけ？」―― 箱ものさしと距離の比でスッキリ納得</p>
+                    </div>
+                </div>
+                
+                <!-- テーマ切り替えボタン -->
+                <button onclick="toggleTheme()" class="p-2 sm:p-2.5 rounded-xl bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-600 transition flex-shrink-0 border border-slate-200 dark:border-slate-600 shadow-sm" title="テーマ切り替え">
+                    <i id="themeIcon" class="fa-solid fa-moon"></i>
+                </button>
+            </div>
+
+            <!-- 下段: ナビゲーションタブ (全幅でスムーズに横スクロール可能) -->
+            <nav class="flex bg-slate-100 dark:bg-slate-900 p-1 rounded-xl border border-slate-200 dark:border-slate-700 overflow-x-auto max-w-full space-x-1 scrollbar-none">
+                <button onclick="switchTab('hunt')" id="btn-hunt" class="px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium rounded-lg transition-all bg-blue-600 text-white shadow whitespace-nowrap flex-shrink-0">
+                    <i class="fa-solid fa-magnifying-glass mr-1"></i> ① Pを探せ！探偵シミュレータ
+                </button>
+                <button onclick="switchTab('boxes')" id="btn-boxes" class="px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium rounded-lg transition-all text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white whitespace-nowrap flex-shrink-0">
+                    <i class="fa-solid fa-cubes-stacked mr-1"></i> ② 箱ものさしラボ（和と差）
+                </button>
+                <button onclick="switchTab('bisector')" id="btn-bisector" class="px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium rounded-lg transition-all text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white whitespace-nowrap flex-shrink-0">
+                    <i class="fa-solid fa-draw-polygon mr-1"></i> ③ 角の二等分線とつながる
+                </button>
+                <button onclick="switchTab('worksheet')" id="btn-worksheet" class="px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium rounded-lg transition-all text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white whitespace-nowrap flex-shrink-0">
+                    <i class="fa-solid fa-file-signature mr-1"></i> ④ ワークシート演習＆クイズ
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- メイン領域 -->
+    <main class="flex-grow max-w-7xl w-full mx-auto p-4 sm:p-6">
+
+        <!-- ================= 1. Pを探せ！探偵シミュレータ (中心課題の探究) ================= -->
+        <section id="tab-hunt" class="space-y-6">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                
+                <!-- 左サイド: 操作＆探偵ミッション (5 cols) -->
+                <div class="lg:col-span-5 bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xl flex flex-col justify-between space-y-5">
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 pb-3">
+                            <h2 class="text-base font-bold text-blue-600 dark:text-blue-400 flex items-center gap-2">
+                                <i class="fa-solid fa-user-secret"></i> 今日の探偵ミッション
+                            </h2>
+                            <span class="text-xs bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-300 px-2.5 py-1 rounded-full border border-blue-200 dark:border-blue-800 font-mono">
+                                線分 AB = 10 cm
+                            </span>
+                        </div>
+
+                        <!-- 問いかけボックス -->
+                        <div class="p-4 bg-blue-50/70 dark:bg-blue-950/40 rounded-xl border border-blue-200 dark:border-blue-900 space-y-2 text-xs leading-relaxed">
+                            <div class="font-bold text-blue-700 dark:text-blue-300 text-sm flex items-center gap-1.5">
+                                <i class="fa-solid fa-bullseye"></i> ターゲット条件：
+                            </div>
+                            <p class="text-slate-700 dark:text-slate-200 font-medium">
+                                基準の2点 A と B からの距離の比が <span class="font-bold text-rose-500 font-mono text-sm" id="huntTargetRatioText">AP : PB = 3 : 2</span> になる点 P を探してください！
+                            </p>
+                            <p class="text-slate-500 dark:text-slate-400 text-[11px]" id="huntSubHint">
+                                ※「3cm と 2cm」だと合計 5cm しかなく、10cm の線分と合いません。下のスライダーで点 P を動かして探してみましょう！
+                            </p>
+                        </div>
+
+                        <!-- スライダー: 点 P の位置 -->
+                        <div class="space-y-2 pt-1">
+                            <div class="flex justify-between items-center text-xs">
+                                <label for="huntSlider" class="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span> 点 P の位置を動かす:
+                                </label>
+                                <span id="huntPosBadge" class="font-mono font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2.5 py-0.5 rounded border border-emerald-200 dark:border-emerald-800">
+                                    P = 3.0 cm
+                                </span>
+                            </div>
+                            <input type="range" id="huntSlider" min="-25" max="35" step="0.5" value="3"
+                                class="w-full h-2.5 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500">
+                            <div class="flex justify-between text-[11px] text-slate-400 font-mono">
+                                <span>Aの左 (-25cm)</span>
+                                <span>A (0cm)</span>
+                                <span>B (10cm)</span>
+                                <span>Bの右 (+35cm)</span>
+                            </div>
+                            
+                            <!-- ワープアシストボタン -->
+                            <div class="flex items-center justify-end gap-2 pt-1">
+                                <span class="text-[10px] text-slate-400">見つからない時は:</span>
+                                <button onclick="jumpToTarget('internal')" class="text-[10px] py-1 px-2 rounded bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-700 dark:text-slate-200 transition">
+                                    内分の場所へ飛ぶ
+                                </button>
+                                <button onclick="jumpToTarget('external')" class="text-[10px] py-1 px-2 rounded bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-700 dark:text-slate-200 transition">
+                                    外分の場所へ飛ぶ
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- 発見達成カード（2つの解を見つけるワクワク感） -->
+                        <div class="p-3.5 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 space-y-2">
+                            <div class="text-xs font-bold text-slate-500 dark:text-slate-400 flex justify-between items-center">
+                                <span>発見ステータス:</span>
+                                <span id="huntScoreText" class="text-blue-600 dark:text-blue-400 font-mono font-bold text-sm">0 / 2 か所 発見</span>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2 text-xs">
+                                <div id="cardInternalFound" class="p-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-center transition-all">
+                                    <div class="font-bold text-slate-400 flex items-center justify-center gap-1" id="labelInternal">
+                                        <i class="fa-regular fa-circle-question"></i> ① 内側の解（内分）
+                                    </div>
+                                    <div class="text-[11px] text-slate-500 mt-1" id="subInternal">AとBの間を探そう</div>
+                                </div>
+                                <div id="cardExternalFound" class="p-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-center transition-all">
+                                    <div class="font-bold text-slate-400 flex items-center justify-center gap-1" id="labelExternal">
+                                        <i class="fa-regular fa-circle-question"></i> ② 外側の解（外分）
+                                    </div>
+                                    <div class="text-[11px] text-slate-500 mt-1" id="subExternal">Bの右側を探そう</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ターゲット比の変更プリセット -->
+                        <div class="space-y-1.5 pt-1">
+                            <label class="text-xs font-bold text-slate-500 dark:text-slate-400">他の比でも試してみる:</label>
+                            <div class="grid grid-cols-3 gap-2">
+                                <button onclick="setHuntRatio(3, 2)" id="btnHunt-32" class="py-1.5 text-xs rounded-lg font-bold bg-blue-600 text-white shadow">
+                                    3 : 2（標準）
+                                </button>
+                                <button onclick="setHuntRatio(2, 3)" id="btnHunt-23" class="py-1.5 text-xs rounded-lg font-medium bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200">
+                                    2 : 3（逆比・左外分）
+                                </button>
+                                <button onclick="setHuntRatio(1, 1)" id="btnHunt-11" class="py-1.5 text-xs rounded-lg font-medium bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200">
+                                    1 : 1（外分なし）
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- リアルタイム距離・比率メーター -->
+                    <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 space-y-2.5">
+                        <div class="text-xs font-semibold text-slate-500 dark:text-slate-400 flex justify-between">
+                            <span>現在の距離の実測値:</span>
+                            <span id="huntCurrentRatioBadge" class="font-mono font-bold text-rose-500">AP : PB = -- : --</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2 text-center text-xs">
+                            <div class="p-2 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
+                                <span class="text-blue-500 font-bold block">Aからの距離 (AP)</span>
+                                <span id="distAPText" class="font-mono text-base font-bold text-slate-800 dark:text-slate-100">3.0 cm</span>
+                            </div>
+                            <div class="p-2 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
+                                <span class="text-amber-500 font-bold block">Bからの距離 (PB)</span>
+                                <span id="distPBText" class="font-mono text-base font-bold text-slate-800 dark:text-slate-100">7.0 cm</span>
+                            </div>
+                        </div>
+                        <div id="huntHintBox" class="p-2.5 rounded-lg text-xs leading-relaxed transition-colors font-medium">
+                            <!-- JS で更新 -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 右サイド: 数直線キャンバス (7 cols) -->
+                <div class="lg:col-span-7 bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xl flex flex-col">
+                    <div class="flex justify-between items-center mb-3">
+                        <h2 class="text-base font-bold flex items-center gap-2">
+                            <i class="fa-solid fa-ruler-horizontal text-blue-600 dark:text-blue-400"></i> 数直線シミュレーション（距離の可視化）
+                        </h2>
+                        <div class="flex items-center space-x-3 text-xs flex-wrap gap-y-1">
+                            <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-blue-500 inline-block"></span> 距離 AP</span>
+                            <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block"></span> 距離 PB</span>
+                            <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span> 動かす点 P</span>
+                        </div>
+                    </div>
+
+                    <!-- キャンバス固定コンテナ -->
+                    <div class="relative w-full h-[380px] sm:h-[420px] bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden flex items-center justify-center">
+                        <canvas id="huntCanvas" class="absolute inset-0 w-full h-full block cursor-ew-resize"></canvas>
+                    </div>
+
+                    <!-- 本質への気づきフッター -->
+                    <div id="huntInsight" class="mt-3 bg-slate-50 dark:bg-slate-900/60 p-3.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                        <!-- JS で更新 -->
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ================= 2. 箱ものさしラボ (和と差のカラクリ) ================= -->
+        <section id="tab-boxes" class="hidden space-y-6">
+            <div class="bg-white dark:bg-slate-800 p-6 sm:p-8 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xl space-y-6">
+                <div class="border-b border-slate-200 dark:border-slate-700 pb-4">
+                    <h2 class="text-xl font-bold flex items-center gap-2.5">
+                        <i class="fa-solid fa-cubes-stacked text-blue-600 dark:text-blue-400"></i> 「箱ものさし」で納得！なぜ足し算と引き算になるのか？
+                    </h2>
+                    <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                        「3 : 2 は 3cm と 2cm ではなく、<strong>同じ幅の箱が 3箱 と 2箱</strong>」。並び順を見るだけで公式の意味が丸見えになります！
+                    </p>
+                </div>
+
+                <!-- 3大配置パターンセレクタ -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <button onclick="setBoxPattern('internal')" id="btnBox-internal" class="p-3.5 rounded-xl border text-left transition flex flex-col justify-between bg-blue-600 text-white border-blue-600 shadow">
+                        <div class="flex items-center justify-between">
+                            <span class="font-bold text-sm">① 内分（A - P - B）</span>
+                            <span class="text-xs bg-white/20 px-2 py-0.5 rounded font-mono">足し算</span>
+                        </div>
+                        <p class="text-xs opacity-90 mt-1.5">Pが間にある：\(AB = AP + PB\)<br>\(3\text{箱} + 2\text{箱} = 5\text{箱}\)</p>
+                    </button>
+
+                    <button onclick="setBoxPattern('externalRight')" id="btnBox-externalRight" class="p-3.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 text-left transition flex flex-col justify-between">
+                        <div class="flex items-center justify-between">
+                            <span class="font-bold text-sm">② 外分・右（A - B - P）</span>
+                            <span class="text-xs bg-rose-100 dark:bg-rose-950 text-rose-600 dark:text-rose-300 px-2 py-0.5 rounded font-mono">引き算</span>
+                        </div>
+                        <p class="text-xs opacity-80 mt-1.5">\(AP > PB\)（3:2）：PはBの右<br>\(AB = AP - PB\)（\(3 - 2 = 1\text{箱}\)）</p>
+                    </button>
+
+                    <button onclick="setBoxPattern('externalLeft')" id="btnBox-externalLeft" class="p-3.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 text-left transition flex flex-col justify-between">
+                        <div class="flex items-center justify-between">
+                            <span class="font-bold text-sm">③ 外分・左（P - A - B）</span>
+                            <span class="text-xs bg-amber-100 dark:bg-amber-950 text-amber-600 dark:text-amber-300 px-2 py-0.5 rounded font-mono">引き算（逆比）</span>
+                        </div>
+                        <p class="text-xs opacity-80 mt-1.5">\(AP < PB\)（2:3）：PはAの左<br>\(AB = PB - AP\)（\(3 - 2 = 1\text{箱}\)）</p>
+                    </button>
+                </div>
+
+                <!-- 2カラム構成: 箱ものさしキャンバス ＆ 計算ステップ -->
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+                    <!-- キャンバス (7 cols) -->
+                    <div class="lg:col-span-7 bg-slate-50 dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-4 flex flex-col items-center justify-center h-[340px] sm:h-[380px] relative overflow-hidden">
+                        <canvas id="boxCanvas" class="absolute inset-0 w-full h-full block"></canvas>
+                    </div>
+
+                    <!-- 計算ステップ＆落とし穴解説 (5 cols) -->
+                    <div class="lg:col-span-5 bg-slate-50 dark:bg-slate-900/60 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 flex flex-col justify-between space-y-4">
+                        <div class="space-y-3">
+                            <div class="flex items-center justify-between">
+                                <span id="boxBadge" class="text-xs font-bold px-2.5 py-1 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300">
+                                    内分の考え方
+                                </span>
+                                <span class="text-xs font-mono font-bold text-slate-500">線分 AB = 10 cm</span>
+                            </div>
+
+                            <h3 id="boxHeading" class="font-bold text-base text-slate-800 dark:text-slate-100">
+                                3箱と2箱を合わせると全体10cm！
+                            </h3>
+
+                            <!-- ステップ式解説 -->
+                            <div id="boxStepsBody" class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed space-y-2">
+                                <!-- JS で更新 -->
+                            </div>
+                        </div>
+
+                        <!-- 疑問解決ボタン：「比 1:1 の外分がない理由」 -->
+                        <div class="pt-2 border-t border-slate-200 dark:border-slate-700">
+                            <button onclick="showOneToOneCuriosity()" class="w-full py-2 px-3 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800 text-amber-700 dark:text-amber-300 font-bold text-xs flex items-center justify-between hover:bg-amber-100 transition">
+                                <span><i class="fa-solid fa-circle-question mr-1.5"></i> なぜ「1 : 1 に外分する点」は存在しないの？</span>
+                                <i class="fa-solid fa-arrow-right text-xs"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ================= 3. 角の二等分線とつながる (幾何への応用) ================= -->
+        <section id="tab-bisector" class="hidden space-y-6">
+            <div class="bg-white dark:bg-slate-800 p-6 sm:p-8 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xl space-y-6">
+                <div class="border-b border-slate-200 dark:border-slate-700 pb-4">
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 font-bold px-2.5 py-1 rounded-full font-mono">
+                            なぜ外分を学ぶのか？
+                        </span>
+                    </div>
+                    <h2 class="text-xl font-bold flex items-center gap-2.5 mt-2">
+                        <i class="fa-solid fa-draw-polygon text-blue-600 dark:text-blue-400"></i> 「角の二等分線」と「内分・外分」の美しい関係
+                    </h2>
+                    <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                        <strong>【この単元の最大の目的】</strong> 三角形の内角を2等分すると<strong>内分点 P</strong>が現れ、外角を2等分すると<strong>外分点 Q</strong>が現れます！直接測れない交点の位置を比で言い当てるために外分が必要なのです。
+                    </p>
+                </div>
+
+                <!-- 操作コントローラーバー（自動デモ＆プリセット） -->
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 bg-slate-50 dark:bg-slate-900 p-3.5 rounded-xl border border-slate-200 dark:border-slate-700">
+                    <div class="flex flex-wrap gap-2 items-center">
+                        <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">形を選ぶ:</span>
+                        <button onclick="setBisectorPreset('21')" id="btnBisect-21" class="px-3 py-1.5 rounded-lg text-xs font-bold transition bg-blue-600 text-white shadow">
+                            AB : AC ＝ 2 : 1（Qが右側）
+                        </button>
+                        <button onclick="setBisectorPreset('12')" id="btnBisect-12" class="px-3 py-1.5 rounded-lg text-xs font-medium transition bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200">
+                            AB : AC ＝ 1 : 2（Qが左側）
+                        </button>
+                        <button onclick="setBisectorPreset('32')" id="btnBisect-32" class="px-3 py-1.5 rounded-lg text-xs font-medium transition bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200">
+                            AB : AC ＝ 3 : 2（標準）
+                        </button>
+                        <button onclick="setBisectorPreset('11')" id="btnBisect-11" class="px-3 py-1.5 rounded-lg text-xs font-medium transition bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200">
+                            AB ＝ AC（二等辺・平行でQなし）
+                        </button>
+                    </div>
+
+                    <!-- 自動アニメーション＆表示トグル -->
+                    <div class="flex items-center gap-2 w-full md:w-auto justify-between md:justify-end">
+                        <button id="btnBisectorAuto" onclick="toggleBisectorAuto()" class="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 hover:bg-indigo-500 text-white transition flex items-center gap-1.5 shadow">
+                            <i id="bisectorPlayIcon" class="fa-solid fa-play"></i> <span id="bisectorPlayText">自動で動かす</span>
+                        </button>
+                        <div class="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-300">
+                            <input type="checkbox" id="chkShowExternal" checked onchange="drawBisectorCanvas()" class="accent-blue-600 cursor-pointer">
+                            <label for="chkShowExternal" class="cursor-pointer select-none font-bold text-sky-600 dark:text-sky-400">外分点 Q を表示</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+                    <!-- インタラクティブ三角形キャンバス (7 cols) -->
+                    <div class="lg:col-span-7 bg-slate-50 dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-4 flex flex-col justify-between space-y-3">
+                        <div class="relative w-full h-[360px] sm:h-[400px] bg-slate-50 dark:bg-slate-900 rounded-xl overflow-hidden flex items-center justify-center">
+                            <canvas id="bisectorCanvas" class="absolute inset-0 w-full h-full block cursor-grab active:cursor-grabbing"></canvas>
+                            <div class="absolute top-2 left-2 bg-white/95 dark:bg-slate-800/95 backdrop-blur px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-[11px] font-medium text-slate-600 dark:text-slate-300 pointer-events-none shadow-sm space-y-0.5">
+                                <div class="font-bold text-indigo-600 dark:text-indigo-400 flex items-center gap-1">
+                                    <i class="fa-solid fa-lightbulb"></i> 外分点 Q はどこから来た？
+                                </div>
+                                <div>① 辺BAを上に延長して<strong>外角</strong>を作る $\to$ ② 外角の二等分線が<strong>地面（底辺の延長）とぶつかる交点が Q</strong>！</div>
+                            </div>
+
+                            <!-- スクロール案内＆リセットボタン -->
+                            <div class="absolute bottom-2 left-2 pointer-events-none bg-slate-900/75 backdrop-blur text-white px-2.5 py-1 rounded-lg text-[10px] flex items-center gap-1.5 shadow-sm">
+                                <i class="fa-solid fa-arrows-left-right text-indigo-400"></i>
+                                <span>背景を左右ドラッグでスクロール可能</span>
+                            </div>
+                            <div class="absolute bottom-2 right-2">
+                                <button onclick="resetBisectorPan()" class="px-2.5 py-1 rounded-lg bg-white/90 dark:bg-slate-800/90 hover:bg-white dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 text-[11px] font-medium shadow-sm transition flex items-center gap-1">
+                                    <i class="fa-solid fa-arrows-to-dot"></i> 位置をリセット
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- 頂点 A を動かすスライダ群 & スクロールスライダ -->
+                        <div class="space-y-2 pt-1 border-t border-slate-200 dark:border-slate-700">
+                            <div class="flex justify-between items-center text-xs">
+                                <label for="sliderAx" class="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span> 頂点 A の左右位置（ドラッグまたはスライダー）:
+                                </label>
+                                <span id="valAxBadge" class="font-mono text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-200 dark:border-emerald-800">左右位置</span>
+                            </div>
+                            <input type="range" id="sliderAx" min="15" max="85" step="0.5" value="38"
+                                class="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500"
+                                oninput="onSliderAxInput(this.value)">
+
+                            <!-- 図の左右スクロールスライダー -->
+                            <div class="flex items-center gap-2 pt-1">
+                                <label for="sliderPanX" class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 whitespace-nowrap flex items-center gap-1">
+                                    <i class="fa-solid fa-arrows-left-right text-indigo-500"></i> 図の視点スクロール:
+                                </label>
+                                <input type="range" id="sliderPanX" min="-350" max="350" step="5" value="0"
+                                    class="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-indigo-500"
+                                    oninput="onPanSliderInput(this.value)">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 解説カード ＆ リアルタイム比率バー (5 cols) -->
+                    <div class="lg:col-span-5 bg-slate-50 dark:bg-slate-900/60 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 flex flex-col justify-between space-y-4">
+                        <div class="space-y-4">
+                            <div>
+                                <span class="text-xs font-bold px-2.5 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 font-mono">
+                                    定理：2辺の比 ＝ 底辺の分割比
+                                </span>
+                                <h3 class="font-bold text-base text-slate-800 dark:text-slate-100 mt-2">
+                                    内角の二等分線 ＝ 内分点 P<br>外角の二等分線 ＝ 外分点 Q
+                                </h3>
+                            </div>
+
+                            <!-- リアルタイム辺の比率バー比較 -->
+                            <div class="p-3.5 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 space-y-3 text-xs">
+                                <!-- 2辺の比 AB : AC -->
+                                <div class="space-y-1">
+                                    <div class="flex justify-between items-center">
+                                        <span class="font-bold text-slate-600 dark:text-slate-300">① 2辺の比 (AB : AC):</span>
+                                        <span id="bisectorSidesRatio" class="font-mono font-bold text-indigo-600 dark:text-indigo-400 text-sm">-- : --</span>
+                                    </div>
+                                    <div class="w-full h-3.5 rounded-full overflow-hidden flex bg-slate-100 dark:bg-slate-700 shadow-inner">
+                                        <div id="barSideAB" class="bg-blue-500 h-full transition-all duration-75" style="width: 60%;"></div>
+                                        <div id="barSideAC" class="bg-amber-500 h-full transition-all duration-75" style="width: 40%;"></div>
+                                    </div>
+                                </div>
+
+                                <!-- 底辺の内分比 BP : PC -->
+                                <div class="space-y-1 border-t border-slate-100 dark:border-slate-700 pt-2">
+                                    <div class="flex justify-between items-center">
+                                        <span class="font-bold text-rose-500">② 内分比 (BP : PC):</span>
+                                        <span id="bisectorInternalRatio" class="font-mono font-bold text-rose-500 text-sm">-- : --</span>
+                                    </div>
+                                    <div class="w-full h-3.5 rounded-full overflow-hidden flex bg-slate-100 dark:bg-slate-700 shadow-inner">
+                                        <div id="barSegBP" class="bg-blue-500 h-full transition-all duration-75" style="width: 60%;"></div>
+                                        <div id="barSegPC" class="bg-amber-500 h-full transition-all duration-75" style="width: 40%;"></div>
+                                    </div>
+                                </div>
+
+                                <!-- 底辺の外分比 BQ : QC -->
+                                <div id="boxExternalInfo" class="space-y-1 border-t border-slate-100 dark:border-slate-700 pt-2">
+                                    <div class="flex justify-between items-center">
+                                        <span class="font-bold text-sky-600 dark:text-sky-400">③ 外分比 (BQ : QC):</span>
+                                        <span id="bisectorExternalRatio" class="font-mono font-bold text-sky-600 dark:text-sky-400 text-sm">-- : --</span>
+                                    </div>
+                                    <p class="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold">
+                                        ✨ すべての比率がピタリと一致！
+                                    </p>
+                                </div>
+                            </div>
+
+                            <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                                <strong>「なぜ外分が必要なのか？」</strong><br>
+                                内角を2等分すると内分点 P が、外角を2等分すると延長線上に外分点 Q が求まるからです。内分と外分は、この2つの交点位置を言い当てるための車の両輪です！
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ================= 4. ワークシート演習＆クイズ ================= -->
+        <section id="tab-worksheet" class="hidden space-y-6">
+            <div class="bg-white dark:bg-slate-800 p-6 sm:p-8 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xl max-w-3xl mx-auto space-y-6">
+                <div class="flex justify-between items-center border-b border-slate-200 dark:border-slate-700 pb-4">
+                    <h2 class="text-xl font-bold flex items-center gap-2">
+                        <i class="fa-solid fa-file-signature text-blue-600 dark:text-blue-400"></i> ワークシート問題 チャレンジ
+                    </h2>
+                    <span id="quizBadge" class="text-xs bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-200 px-3 py-1 rounded-full font-medium">問題 1 / 5</span>
+                </div>
+
+                <!-- 問題出題コンテナ -->
+                <div id="quizContainer" class="space-y-5">
+                    <div id="quizQuestion" class="text-base sm:text-lg font-semibold text-slate-800 dark:text-slate-100 leading-snug">
+                        <!-- JS で挿入 -->
+                    </div>
+                    <div id="quizOptions" class="grid grid-cols-1 gap-2.5">
+                        <!-- 選択肢 -->
+                    </div>
+                </div>
+
+                <!-- 解説・フィードバック -->
+                <div id="feedbackContainer" class="hidden bg-slate-50 dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-700 space-y-3">
+                    <div id="feedbackTitle" class="font-bold text-base"></div>
+                    <div id="feedbackBody" class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed"></div>
+                    <button onclick="nextQuiz()" class="w-full mt-2 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-medium transition shadow">
+                        次の問題へ <i class="fa-solid fa-arrow-right ml-1"></i>
+                    </button>
+                </div>
+
+                <!-- 全問完了画面 -->
+                <div id="quizComplete" class="hidden text-center space-y-4 py-8">
+                    <div class="text-4xl">🎉</div>
+                    <h3 class="text-2xl font-bold">全問クリア！</h3>
+                    <p id="quizScoreText" class="text-slate-600 dark:text-slate-300 text-base"></p>
+                    <p class="text-xs text-slate-400">「箱の数」と「点の順序」を使った内分・外分の考え方が完璧に身につきました！</p>
+                    <button onclick="restartQuiz()" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-medium transition shadow">
+                        もう一度挑戦する
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- フッター -->
+    <footer class="bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 py-4 text-center text-xs text-slate-500 dark:text-slate-400 mt-auto">
+        <p>数学A 線分の内分・外分の本質マスター &copy; 2026 - 「2点からの距離の比で位置を言い当てる」</p>
+    </footer>
+
+    <!-- スクリプト -->
+    <script>
+        // テーマ切り替え
+        function toggleTheme() {
+            const html = document.documentElement;
+            const themeIcon = document.getElementById('themeIcon');
+            if (html.classList.contains('dark')) {
+                html.classList.remove('dark');
+                themeIcon.className = "fa-solid fa-sun";
+            } else {
+                html.classList.add('dark');
+                themeIcon.className = "fa-solid fa-moon";
+            }
+            if (!document.getElementById('tab-hunt').classList.contains('hidden')) {
+                drawHuntCanvas();
+            } else if (!document.getElementById('tab-boxes').classList.contains('hidden')) {
+                drawBoxCanvas();
+            } else if (!document.getElementById('tab-bisector').classList.contains('hidden')) {
+                drawBisectorCanvas();
+            }
+        }
+
+        // タブ切り替え
+        function switchTab(tabId) {
+            ['hunt', 'boxes', 'bisector', 'worksheet'].forEach(t => {
+                document.getElementById(`tab-${t}`).classList.add('hidden');
+                document.getElementById(`btn-${t}`).className = "px-3 py-2 text-xs sm:text-sm font-medium rounded-lg transition-all text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white whitespace-nowrap";
+            });
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+            document.getElementById(`btn-${tabId}`).className = "px-3 py-2 text-xs sm:text-sm font-medium rounded-lg transition-all bg-blue-600 text-white shadow whitespace-nowrap";
+
+            if (tabId === 'hunt') {
+                lastHuntW = 0; lastHuntH = 0;
+                resizeHuntCanvas();
+                drawHuntCanvas();
+            } else if (tabId === 'boxes') {
+                lastBoxW = 0; lastBoxH = 0;
+                resizeBoxCanvas();
+                drawBoxCanvas();
+            } else if (tabId === 'bisector') {
+                lastBisectorW = 0; lastBisectorH = 0;
+                resizeBisectorCanvas();
+                drawBisectorCanvas();
+            } else if (tabId === 'worksheet') {
+                renderMath(document.getElementById('tab-worksheet'));
+            }
+        }
+
+        // KaTeX 自動レンダリングヘルパー
+        function renderMath(targetElement) {
+            if (!targetElement) return;
+            if (window.renderMathInElement) {
+                renderMathInElement(targetElement, {
+                    delimiters: [
+                        { left: '$$', right: '$$', display: true },
+                        { left: '$', right: '$', display: false },
+                        { left: '\\(', right: '\\)', display: false },
+                        { left: '\\[', right: '\\]', display: true }
+                    ],
+                    throwOnError: false
+                });
+            }
+        }
+
+        // ================= 1. Pを探せ！探偵シミュレータロジック =================
+        const huntCanvas = document.getElementById('huntCanvas');
+        const huntCtx = huntCanvas.getContext('2d');
+        const huntSlider = document.getElementById('huntSlider');
+        const huntPosBadge = document.getElementById('huntPosBadge');
+        const distAPText = document.getElementById('distAPText');
+        const distPBText = document.getElementById('distPBText');
+        const huntCurrentRatioBadge = document.getElementById('huntCurrentRatioBadge');
+        const huntHintBox = document.getElementById('huntHintBox');
+        const huntInsight = document.getElementById('huntInsight');
+
+        const cardInternalFound = document.getElementById('cardInternalFound');
+        const cardExternalFound = document.getElementById('cardExternalFound');
+        const labelInternal = document.getElementById('labelInternal');
+        const labelExternal = document.getElementById('labelExternal');
+        const subInternal = document.getElementById('subInternal');
+        const subExternal = document.getElementById('subExternal');
+        const huntScoreText = document.getElementById('huntScoreText');
+        const huntTargetRatioText = document.getElementById('huntTargetRatioText');
+
+        const AB_LEN = 10; // 線分 AB = 10 cm (A=0, B=10)
+        let huntTargetM = 3; // ターゲット比 m : n
+        let huntTargetN = 2;
+        let huntCurrentP = 3.0; // 現在の点 P の座標 (cm)
+
+        let internalFound = false;
+        let externalFound = false;
+
+        // 正解位置へ直接ジャンプする便利機能
+        function jumpToTarget(type) {
+            const targetInternalP = (huntTargetM / (huntTargetM + huntTargetN)) * AB_LEN;
+            let targetExternalP = null;
+            if (huntTargetM !== huntTargetN) {
+                targetExternalP = (-huntTargetN * 0 + huntTargetM * AB_LEN) / (huntTargetM - huntTargetN);
+            }
+
+            if (type === 'internal') {
+                huntCurrentP = targetInternalP;
+            } else if (type === 'external' && targetExternalP !== null) {
+                huntCurrentP = targetExternalP;
+            }
+            huntSlider.value = huntCurrentP;
+            updateHuntSimulation();
+        }
+
+        function setHuntRatio(m, n) {
+            huntTargetM = m;
+            huntTargetN = n;
+            internalFound = false;
+            externalFound = false;
+
+            if (huntTargetRatioText) {
+                huntTargetRatioText.innerText = `AP : PB = ${m} : ${n}`;
+            }
+
+            ['32', '23', '11'].forEach(k => {
+                const btn = document.getElementById(`btnHunt-${k}`);
+                if (!btn) return;
+                if (k === `${m}${n}`) {
+                    btn.className = "py-1.5 text-xs rounded-lg font-bold bg-blue-600 text-white shadow";
+                } else {
+                    btn.className = "py-1.5 text-xs rounded-lg font-medium bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200";
+                }
+            });
+
+            // 目標に応じた初期位置
+            huntCurrentP = 3.0;
+            huntSlider.value = huntCurrentP;
+
+            updateHuntSimulation();
+        }
+
+        huntSlider.addEventListener('input', () => {
+            huntCurrentP = parseFloat(huntSlider.value);
+
+            // 目標位置に近づいたらスナップ（吸着アシスト）
+            const targetInternalP = (huntTargetM / (huntTargetM + huntTargetN)) * AB_LEN;
+            let targetExternalP = null;
+            if (huntTargetM !== huntTargetN) {
+                targetExternalP = (-huntTargetN * 0 + huntTargetM * AB_LEN) / (huntTargetM - huntTargetN);
+            }
+
+            if (Math.abs(huntCurrentP - targetInternalP) < 0.35) {
+                huntCurrentP = targetInternalP;
+                huntSlider.value = targetInternalP;
+            } else if (targetExternalP !== null && Math.abs(huntCurrentP - targetExternalP) < 0.45) {
+                huntCurrentP = targetExternalP;
+                huntSlider.value = targetExternalP;
+            }
+
+            updateHuntSimulation();
+        });
+
+        // 最も簡単な整数比を計算するヘルパー
+        function getSimplifiedRatio(a, b) {
+            if (b < 1e-4) return { m: 1, n: 0, text: '∞ : 0' };
+            if (a < 1e-4) return { m: 0, n: 1, text: '0 : 1' };
+            const ratioVal = a / b;
+            const knowns = [
+                { val: 3/2, m: 3, n: 2 },
+                { val: 2/3, m: 2, n: 3 },
+                { val: 1/1, m: 1, n: 1 },
+                { val: 2/1, m: 2, n: 1 },
+                { val: 1/2, m: 1, n: 2 },
+                { val: 4/1, m: 4, n: 1 },
+                { val: 3/1, m: 3, n: 1 },
+                { val: 5/2, m: 5, n: 2 }
+            ];
+            for (let k of knowns) {
+                if (Math.abs(ratioVal - k.val) < 0.04) {
+                    return { m: k.m, n: k.n, text: `${k.m} : ${k.n}` };
+                }
+            }
+            return { m: ratioVal.toFixed(1), n: '1', text: `${ratioVal.toFixed(2)} : 1` };
+        }
+
+        function updateHuntSimulation() {
+            huntPosBadge.innerText = `P = ${huntCurrentP >= 0 ? '+' : ''}${huntCurrentP.toFixed(1)} cm`;
+
+            const distAP = Math.abs(huntCurrentP - 0);
+            const distPB = Math.abs(huntCurrentP - AB_LEN);
+
+            distAPText.innerText = `${distAP.toFixed(1)} cm`;
+            distPBText.innerText = `${distPB.toFixed(1)} cm`;
+
+            const curRatio = getSimplifiedRatio(distAP, distPB);
+            huntCurrentRatioBadge.innerText = `AP : PB = ${curRatio.text}`;
+
+            // 目標の内分点・外分点の計算
+            const targetInternalP = (huntTargetM / (huntTargetM + huntTargetN)) * AB_LEN;
+            let targetExternalP = null;
+            if (huntTargetM !== huntTargetN) {
+                targetExternalP = (-huntTargetN * 0 + huntTargetM * AB_LEN) / (huntTargetM - huntTargetN);
+            }
+
+            // 一致判定（スナップ済みまたは誤差 ±0.2cm 以内）
+            const isAtInternal = Math.abs(huntCurrentP - targetInternalP) < 0.25;
+            const isAtExternal = targetExternalP !== null && Math.abs(huntCurrentP - targetExternalP) < 0.3;
+
+            if (isAtInternal) internalFound = true;
+            if (isAtExternal) externalFound = true;
+
+            // 発見ステータス更新
+            const totalTargets = (huntTargetM === huntTargetN) ? 1 : 2;
+            let countFound = (internalFound ? 1 : 0) + (externalFound ? 1 : 0);
+            huntScoreText.innerText = `${countFound} / ${totalTargets} か所 発見`;
+
+            // カードのスタイル更新
+            if (internalFound) {
+                cardInternalFound.className = "p-2.5 rounded-lg border-2 border-emerald-500 bg-emerald-50 dark:bg-emerald-950/60 text-center shadow-sm";
+                labelInternal.className = "font-bold text-emerald-600 dark:text-emerald-400 flex items-center justify-center gap-1";
+                labelInternal.innerHTML = '<i class="fa-solid fa-circle-check text-base"></i> ① 内分点 発見！';
+                subInternal.innerText = `P = +${targetInternalP.toFixed(1)}cm (AP=${targetInternalP.toFixed(1)}, PB=${(AB_LEN - targetInternalP).toFixed(1)})`;
+            } else {
+                cardInternalFound.className = "p-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-center";
+                labelInternal.className = "font-bold text-slate-400 flex items-center justify-center gap-1";
+                labelInternal.innerHTML = '<i class="fa-regular fa-circle-question"></i> ① 内側の解（内分）';
+                subInternal.innerText = "AとBの間を探そう";
+            }
+
+            // 外分側の案内（大小関係の理由を明記して混乱を解消！）
+            const extDirection = (huntTargetM > huntTargetN) ? "Bの右側 (+30cm付近)" : "Aの左側 (-20cm付近)";
+            const extReason = (huntTargetM > huntTargetN) 
+                ? "AP > PB (Bに近い) なので Bの右側 を探そう！"
+                : "AP < PB (Aに近い) なので Aの左側 を探そう！";
+
+            if (huntTargetM === huntTargetN) {
+                cardExternalFound.className = "p-2.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-800/40 text-center opacity-60";
+                labelExternal.innerHTML = '<i class="fa-solid fa-ban text-rose-500"></i> ② 外分点なし';
+                subExternal.innerText = "1:1の外分は存在しない！";
+            } else if (externalFound) {
+                cardExternalFound.className = "p-2.5 rounded-lg border-2 border-emerald-500 bg-emerald-50 dark:bg-emerald-950/60 text-center shadow-sm";
+                labelExternal.className = "font-bold text-emerald-600 dark:text-emerald-400 flex items-center justify-center gap-1";
+                labelExternal.innerHTML = '<i class="fa-solid fa-circle-check text-base"></i> ② 外分点 発見！';
+                const apExt = Math.abs(targetExternalP);
+                const pbExt = Math.abs(targetExternalP - AB_LEN);
+                subExternal.innerText = `P = ${targetExternalP >= 0 ? '+' : ''}${targetExternalP.toFixed(1)}cm (AP=${apExt.toFixed(1)}, PB=${pbExt.toFixed(1)})`;
+            } else {
+                cardExternalFound.className = "p-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-center";
+                labelExternal.className = "font-bold text-slate-400 flex items-center justify-center gap-1";
+                labelExternal.innerHTML = '<i class="fa-regular fa-circle-question"></i> ② 外側の解（外分）';
+                subExternal.innerText = extReason;
+            }
+
+            // ヒントボックスの表示（発見時は大きく祝福！）
+            if (isAtInternal) {
+                huntHintBox.className = "p-3 rounded-xl text-xs leading-relaxed bg-emerald-100 dark:bg-emerald-950 border-2 border-emerald-400 text-emerald-800 dark:text-emerald-200 animate-pulse";
+                huntHintBox.innerHTML = `🎯 <strong>【大発見！】内分点（$P = ${targetInternalP.toFixed(1)}\\text{cm}$）を見つけました！</strong><br>
+                $AP = ${targetInternalP.toFixed(1)}\\text{cm}$, $\\; PB = ${(AB_LEN - targetInternalP).toFixed(1)}\\text{cm}$ で、ちょうど $${huntTargetM} : ${huntTargetN}$ になっています！<br>
+                <span class="text-indigo-600 dark:text-indigo-300 font-bold">次は「線分の外側」にあるもう1つの解（外分点）を探してみましょう！</span>`;
+            } else if (isAtExternal) {
+                huntHintBox.className = "p-3 rounded-xl text-xs leading-relaxed bg-emerald-100 dark:bg-emerald-950 border-2 border-emerald-400 text-emerald-800 dark:text-emerald-200 animate-pulse";
+                huntHintBox.innerHTML = `🏆 <strong>【大発見！】外分点（$P = ${targetExternalP.toFixed(1)}\\text{cm}$）を見つけました！</strong><br>
+                線分の外側でも $AP : PB = ${Math.abs(targetExternalP).toFixed(1)} : ${Math.abs(targetExternalP - AB_LEN).toFixed(1)} = ${huntTargetM} : ${huntTargetN}$ が成立します！<br>
+                <strong>「比の条件だけでは内か外かは決まらないため、答えは2つある」</strong>という本質が証明されました！`;
+            } else {
+                huntHintBox.className = "p-2.5 rounded-lg text-xs leading-relaxed bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900 text-blue-700 dark:text-blue-300";
+                if (huntCurrentP >= 0 && huntCurrentP <= AB_LEN) {
+                    huntHintBox.innerHTML = `🔍 <strong>内側を探索中:</strong> 内分点 $P = ${targetInternalP.toFixed(1)}\\text{cm}$ を目指してください（スライダーを動かすとピタッと合います）。`;
+                } else {
+                    huntHintBox.innerHTML = `🔍 <strong>外側を探索中:</strong> ${extReason}`;
+                }
+            }
+
+            // 下部インサイト
+            if (internalFound && externalFound) {
+                huntInsight.innerHTML = `🏆 <strong>探偵ミッション完全クリア！おめでとうございます！</strong><br>
+                「$AP : PB = ${huntTargetM} : ${huntTargetN}$」を満たす点 P は、<strong>AとBの間に1つ（内分点）</strong>、そして<strong>外側に1つ（外分点）</strong>の合計2か所存在することが確かめられました！<br>
+                次の「② 箱ものさしラボ」で、なぜ足し算と引き算でこの位置が計算できるのか秘密を解き明かしましょう！`;
+            } else {
+                huntInsight.innerHTML = `💡 <strong>大切な着眼点：</strong> 「3:2」は 3cm と 2cm ではありません。<strong>同じ比率（割合）を保ったまま、どこまで離れられるか</strong>を試しています。`;
+            }
+
+            renderMath(huntHintBox);
+            renderMath(huntInsight);
+
+            drawHuntCanvas();
+        }
+
+        let lastHuntW = 0, lastHuntH = 0;
+        function resizeHuntCanvas() {
+            const container = huntCanvas.parentElement;
+            if (!container) return;
+            const width = Math.floor(container.clientWidth);
+            const height = Math.floor(container.clientHeight);
+            if (width === 0 || height === 0) return;
+            if (width === lastHuntW && height === lastHuntH) return;
+
+            lastHuntW = width;
+            lastHuntH = height;
+            const dpr = window.devicePixelRatio || 1;
+            huntCanvas.width = width * dpr;
+            huntCanvas.height = height * dpr;
+            huntCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        }
+
+        // ラベルが図形や線と重なってもクリアに読めるようにするバッジ描画関数
+        function drawCanvasBadge(ctx, text, x, y, textColor, bgColor, borderColor, align = 'center') {
+            ctx.save();
+            ctx.font = 'bold 11px Inter, sans-serif';
+            ctx.textAlign = align;
+            ctx.textBaseline = 'middle';
+            const metrics = ctx.measureText(text);
+            const textWidth = metrics.width;
+            const padX = 7;
+            const boxH = 20;
+            const boxW = textWidth + padX * 2;
+            
+            let boxX = x - boxW / 2;
+            if (align === 'left') boxX = x - 2;
+            if (align === 'right') boxX = x - boxW + 2;
+            const boxY = y - boxH / 2;
+            
+            ctx.fillStyle = bgColor;
+            ctx.strokeStyle = borderColor;
+            ctx.lineWidth = 1.2;
+            ctx.beginPath();
+            if (ctx.roundRect) {
+                ctx.roundRect(boxX, boxY, boxW, boxH, 5);
+            } else {
+                ctx.rect(boxX, boxY, boxW, boxH);
+            }
+            ctx.fill();
+            ctx.stroke();
+            
+            ctx.fillStyle = textColor;
+            ctx.fillText(text, x, y);
+            ctx.restore();
+        }
+
+        // 基準点のピンとラベルを描画する関数
+        function drawPinPoint(ctx, x, y, label, pinColor, textColor, isDark, labelY) {
+            ctx.save();
+            ctx.fillStyle = pinColor;
+            ctx.beginPath();
+            ctx.arc(x, y, 6, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = isDark ? '#0f172a' : '#ffffff';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            ctx.fillStyle = textColor;
+            ctx.font = 'bold 12px Inter, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'bottom';
+            ctx.fillText(label, x, labelY !== undefined ? labelY : y - 10);
+            ctx.restore();
+        }
+
+        function drawHuntCanvas() {
+            if (!huntCtx) return;
+            const w = lastHuntW || (huntCanvas.width / (window.devicePixelRatio || 1));
+            const h = lastHuntH || (huntCanvas.height / (window.devicePixelRatio || 1));
+            if (w <= 0 || h <= 0) return;
+            huntCtx.clearRect(0, 0, w, h);
+
+            const isDark = document.documentElement.classList.contains('dark');
+            const axisColor = isDark ? '#475569' : '#cbd5e1';
+            const textColor = isDark ? '#e2e8f0' : '#334155';
+            const subTextColor = isDark ? '#94a3b8' : '#64748b';
+            const badgeBg = isDark ? 'rgba(15, 23, 42, 0.95)' : 'rgba(255, 255, 255, 0.95)';
+
+            // 数直線の座標範囲: -28cm 〜 +38cm
+            const minX = -28;
+            const maxX = 38;
+            function toCanvasX(cm) {
+                const pad = Math.min(w * 0.08, 45);
+                return pad + ((cm - minX) / (maxX - minX)) * (w - pad * 2);
+            }
+            const axisY = h * 0.50;
+
+            // 1. 数直線ベースライン
+            huntCtx.strokeStyle = axisColor;
+            huntCtx.lineWidth = 2;
+            huntCtx.beginPath();
+            huntCtx.moveTo(toCanvasX(minX), axisY);
+            huntCtx.lineTo(toCanvasX(maxX), axisY);
+            huntCtx.stroke();
+
+            // 目盛り
+            const tickStep = (w < 480) ? 20 : 10;
+            for (let cm = -20; cm <= 30; cm += tickStep) {
+                const mx = toCanvasX(cm);
+                huntCtx.strokeStyle = axisColor;
+                huntCtx.beginPath();
+                huntCtx.moveTo(mx, axisY - 4);
+                huntCtx.lineTo(mx, axisY + 4);
+                huntCtx.stroke();
+
+                huntCtx.fillStyle = subTextColor;
+                huntCtx.font = '10px Inter, sans-serif';
+                huntCtx.textAlign = 'center';
+                huntCtx.textBaseline = 'top';
+                huntCtx.fillText(`${cm}`, mx, axisY + 7);
+            }
+
+            // 2. 基準線分 AB (10cm) のハイライト太線
+            const xA = toCanvasX(0);
+            const xB = toCanvasX(AB_LEN);
+            huntCtx.strokeStyle = '#6366f1';
+            huntCtx.lineWidth = 5;
+            huntCtx.beginPath();
+            huntCtx.moveTo(xA, axisY);
+            huntCtx.lineTo(xB, axisY);
+            huntCtx.stroke();
+
+            // 基準線分 AB の表示
+            const midAB = (xA + xB) / 2;
+            huntCtx.strokeStyle = '#6366f1';
+            huntCtx.lineWidth = 1.2;
+            huntCtx.beginPath();
+            huntCtx.moveTo(xA, axisY + 18);
+            huntCtx.lineTo(xA, axisY + 28);
+            huntCtx.lineTo(xB, axisY + 28);
+            huntCtx.lineTo(xB, axisY + 18);
+            huntCtx.stroke();
+            drawCanvasBadge(huntCtx, '基準 AB = 10cm', midAB, axisY + 28, '#6366f1', badgeBg, '#6366f1');
+
+            // 3. 距離 AP のアーク
+            const xP = toCanvasX(huntCurrentP);
+            const distAP = Math.abs(huntCurrentP - 0);
+            const distPB = Math.abs(huntCurrentP - AB_LEN);
+
+            const arcSpanAP = Math.abs(xA - xP);
+            const arcHeightAP = Math.max(62, Math.min(arcSpanAP * 0.5, h * 0.35));
+            const midAP = (xA + xP) / 2;
+
+            huntCtx.strokeStyle = '#3b82f6';
+            huntCtx.lineWidth = 2.5;
+            huntCtx.beginPath();
+            huntCtx.moveTo(xA, axisY - 6);
+            huntCtx.quadraticCurveTo(midAP, axisY - 6 - arcHeightAP, xP, axisY - 6);
+            huntCtx.stroke();
+
+            drawCanvasBadge(huntCtx, `AP = ${distAP.toFixed(1)} cm`, midAP, axisY - 14 - arcHeightAP, '#3b82f6', badgeBg, '#3b82f6');
+
+            // 4. 距離 PB のアーク
+            const arcSpanPB = Math.abs(xB - xP);
+            const arcHeightPB = Math.max(62, Math.min(arcSpanPB * 0.5, h * 0.35));
+            const midPB = (xB + xP) / 2;
+
+            huntCtx.strokeStyle = '#f59e0b';
+            huntCtx.lineWidth = 2.5;
+            huntCtx.beginPath();
+            huntCtx.moveTo(xB, axisY + 6);
+            huntCtx.quadraticCurveTo(midPB, axisY + 6 + arcHeightPB, xP, axisY + 6);
+            huntCtx.stroke();
+
+            drawCanvasBadge(huntCtx, `PB = ${distPB.toFixed(1)} cm`, midPB, axisY + 14 + arcHeightPB, '#f59e0b', badgeBg, '#f59e0b');
+
+            // 5. 基準点 A, B の描画
+            drawPinPoint(huntCtx, xA, axisY, 'A (0)', '#6366f1', textColor, isDark, axisY - 14);
+            drawPinPoint(huntCtx, xB, axisY, 'B (10)', '#6366f1', textColor, isDark, axisY - 14);
+
+            // 目標の内分点・外分点との一致判定
+            const targetInternalP = (huntTargetM / (huntTargetM + huntTargetN)) * AB_LEN;
+            let targetExternalP = null;
+            if (huntTargetM !== huntTargetN) {
+                targetExternalP = (-huntTargetN * 0 + huntTargetM * AB_LEN) / (huntTargetM - huntTargetN);
+            }
+            const isHitInternal = Math.abs(huntCurrentP - targetInternalP) < 0.25;
+            const isHitExternal = targetExternalP !== null && Math.abs(huntCurrentP - targetExternalP) < 0.3;
+
+            // 6. 動く点 P の描画（HIT時は波紋エフェクト）
+            if (isHitInternal || isHitExternal) {
+                // 光る波紋リング
+                huntCtx.strokeStyle = '#10b981';
+                huntCtx.lineWidth = 3;
+                huntCtx.beginPath();
+                huntCtx.arc(xP, axisY, 16, 0, Math.PI * 2);
+                huntCtx.stroke();
+
+                huntCtx.fillStyle = 'rgba(16, 185, 129, 0.25)';
+                huntCtx.beginPath();
+                huntCtx.arc(xP, axisY, 22, 0, Math.PI * 2);
+                huntCtx.fill();
+            }
+
+            huntCtx.fillStyle = '#10b981';
+            huntCtx.beginPath();
+            huntCtx.arc(xP, axisY, 8.5, 0, Math.PI * 2);
+            huntCtx.fill();
+            huntCtx.strokeStyle = isDark ? '#0f172a' : '#ffffff';
+            huntCtx.lineWidth = 2.5;
+            huntCtx.stroke();
+
+            // 点 P のスマートラベルバッジ（HIT時はお祝い表示）
+            if (isHitInternal) {
+                drawCanvasBadge(huntCtx, `🎉 内分点 発見！(P = +${huntCurrentP.toFixed(1)})`, xP, axisY - 38, '#10b981', badgeBg, '#10b981');
+            } else if (isHitExternal) {
+                drawCanvasBadge(huntCtx, `🎉 外分点 発見！(P = ${huntCurrentP >= 0 ? '+' : ''}${huntCurrentP.toFixed(1)})`, xP, axisY - 38, '#10b981', badgeBg, '#10b981');
+            } else {
+                const pLabelText = `点 P (${huntCurrentP >= 0 ? '+' : ''}${huntCurrentP.toFixed(1)})`;
+                drawCanvasBadge(huntCtx, pLabelText, xP, axisY - 38, '#10b981', badgeBg, '#10b981');
+            }
+        }
+
+        // ================= 2. 箱ものさしラボロジック =================
+        const boxCanvas = document.getElementById('boxCanvas');
+        const boxCtx = boxCanvas ? boxCanvas.getContext('2d') : null;
+        const boxBadge = document.getElementById('boxBadge');
+        const boxHeading = document.getElementById('boxHeading');
+        const boxStepsBody = document.getElementById('boxStepsBody');
+
+        let currentBoxPattern = 'internal';
+
+        function setBoxPattern(pattern) {
+            currentBoxPattern = pattern;
+            ['internal', 'externalRight', 'externalLeft'].forEach(p => {
+                const btn = document.getElementById(`btnBox-${p}`);
+                if (!btn) return;
+                if (p === pattern) {
+                    btn.className = "p-3.5 rounded-xl border text-left transition flex flex-col justify-between bg-blue-600 text-white border-blue-600 shadow";
+                    const badgeSpan = btn.querySelector('span:last-child');
+                    if (badgeSpan) badgeSpan.className = "text-xs bg-white/20 px-2 py-0.5 rounded font-mono text-white";
+                } else {
+                    btn.className = "p-3.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 text-left transition flex flex-col justify-between";
+                    const badgeSpan = btn.querySelector('span:last-child');
+                    if (badgeSpan) {
+                        if (p === 'externalRight') badgeSpan.className = "text-xs bg-rose-100 dark:bg-rose-950 text-rose-600 dark:text-rose-300 px-2 py-0.5 rounded font-mono";
+                        else if (p === 'externalLeft') badgeSpan.className = "text-xs bg-amber-100 dark:bg-amber-950 text-amber-600 dark:text-amber-300 px-2 py-0.5 rounded font-mono";
+                    }
+                }
+            });
+
+            if (pattern === 'internal') {
+                boxBadge.className = "text-xs font-bold px-2.5 py-1 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300";
+                boxBadge.innerText = "内分（足し算の構造）";
+                boxHeading.innerText = "3箱と2箱を合わせると全体10cm！";
+                boxStepsBody.innerHTML = `
+                    <div class="space-y-1.5 text-xs sm:text-sm">
+                        <div><strong>① 箱の合計:</strong> $3\\text{箱} + 2\\text{箱} = 5\\text{箱}$</div>
+                        <div><strong>② 1箱の長さ:</strong> $10\\text{cm} \\div 5\\text{箱} = \\mathbf{2\\text{cm}}$</div>
+                        <div><strong>③ 各線分の長さ:</strong>
+                            <ul class="list-disc list-inside pl-2 space-y-0.5 mt-0.5">
+                                <li>$AP = 3\\text{箱} \\times 2\\text{cm} = \\mathbf{6\\text{cm}}$</li>
+                                <li>$PB = 2\\text{箱} \\times 2\\text{cm} = \\mathbf{4\\text{cm}}$</li>
+                            </ul>
+                        </div>
+                        <div class="text-slate-500 dark:text-slate-400 text-xs pt-1">
+                            $AP > PB$ なので、点 P は B の近く（Aから6cm離れた地点）に位置します。
+                        </div>
+                    </div>
+                `;
+            } else if (pattern === 'externalRight') {
+                boxBadge.className = "text-xs font-bold px-2.5 py-1 rounded-full bg-rose-100 dark:bg-rose-900 text-rose-700 dark:text-rose-300";
+                boxBadge.innerText = "外分・右（引き算の構造）";
+                boxHeading.innerText = "差の1箱がちょうど線分AB（10cm）！";
+                boxStepsBody.innerHTML = `
+                    <div class="space-y-1.5 text-xs sm:text-sm">
+                        <div><strong>① 点の順序:</strong> $AP > PB$（3 > 2）なので P は B の右側（A - B - P）</div>
+                        <div><strong>② 箱の引き算:</strong> $AB = AP - PB = 3\\text{箱} - 2\\text{箱} = \\mathbf{1\\text{箱}}$</div>
+                        <div><strong>③ 1箱の長さ:</strong> $1\\text{箱} = \\mathbf{10\\text{cm}}$（そのままABの長さ！）</div>
+                        <div><strong>④ 各線分の長さ:</strong>
+                            <ul class="list-disc list-inside pl-2 space-y-0.5 mt-0.5">
+                                <li>$AP = 3\\text{箱} \\times 10\\text{cm} = \\mathbf{30\\text{cm}}$</li>
+                                <li>$PB = 2\\text{箱} \\times 10\\text{cm} = \\mathbf{20\\text{cm}}$</li>
+                            </ul>
+                        </div>
+                        <div class="text-rose-600 dark:text-rose-400 font-bold text-xs pt-1">
+                            外側にあるため、1箱の長さがグッと大きくなり、P は B から 20cm 右（原点から 30cm）に飛び出します！
+                        </div>
+                    </div>
+                `;
+            } else if (pattern === 'externalLeft') {
+                boxBadge.className = "text-xs font-bold px-2.5 py-1 rounded-full bg-amber-100 dark:bg-amber-900 text-amber-700 dark:text-amber-300";
+                boxBadge.innerText = "外分・左（逆比 2:3）";
+                boxHeading.innerText = "AP < PB なので P は A の左側へ！";
+                boxStepsBody.innerHTML = `
+                    <div class="space-y-1.5 text-xs sm:text-sm">
+                        <div><strong>① 点の順序:</strong> $AP < PB$（2 < 3）なので P は A の左側（P - A - B）</div>
+                        <div><strong>② 箱の引き算:</strong> $AB = PB - AP = 3\\text{箱} - 2\\text{箱} = \\mathbf{1\\text{箱}}$</div>
+                        <div><strong>③ 1箱の長さ:</strong> $1\\text{箱} = \\mathbf{10\\text{cm}}$</div>
+                        <div><strong>④ 各線分の長さ:</strong>
+                            <ul class="list-disc list-inside pl-2 space-y-0.5 mt-0.5">
+                                <li>$AP = 2\\text{箱} \\times 10\\text{cm} = \\mathbf{20\\text{cm}}$</li>
+                                <li>$PB = 3\\text{箱} \\times 10\\text{cm} = \\mathbf{30\\text{cm}}$</li>
+                            </ul>
+                        </div>
+                        <div class="text-amber-600 dark:text-amber-400 font-bold text-xs pt-1">
+                            P は A の左 20cm（座標 $-20\\text{cm}$）の位置になります！
+                        </div>
+                    </div>
+                `;
+            }
+
+            renderMath(boxStepsBody);
+            drawBoxCanvas();
+        }
+
+        function showOneToOneCuriosity() {
+            boxBadge.className = "text-xs font-bold px-2.5 py-1 rounded-full bg-amber-100 dark:bg-amber-900 text-amber-700 dark:text-amber-300";
+            boxBadge.innerText = "疑問解決";
+            boxHeading.innerText = "なぜ「1 : 1 に外分する点」は存在しないのか？";
+            boxStepsBody.innerHTML = `
+                <div class="p-3 bg-amber-50 dark:bg-amber-950/50 rounded-xl border border-amber-300 dark:border-amber-800 text-amber-800 dark:text-amber-200 text-xs sm:text-sm space-y-2">
+                    <p><strong>【箱の引き算で考えると一目瞭然！】</strong></p>
+                    <p>外分は「長い箱 $-$ 短い箱 ＝ 線分AB」という引き算の構造です。</p>
+                    <p class="font-mono font-bold pl-2">\\(1\\text{箱} - 1\\text{箱} = 0\\text{箱} = 10\\text{cm}\\)（？！）</p>
+                    <p>「0箱で 10cm」になる箱の幅は計算できません（数学で禁止されている <strong>0 による割り算</strong> になります）。</p>
+                    <p class="mt-1">図形的に見ても、Aからの距離とBからの距離が等しい点（AP = PB）は、線分のど真ん中（中点＝1:1の内分点）にしかなく、直線の外側へいくら離れても同時に同じ距離になる点は<strong>無限の彼方（存在しない）</strong>になってしまうためです！</p>
+                </div>
+                <button onclick="setBoxPattern('internal')" class="w-full mt-2 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-bold">内分の説明に戻る</button>
+            `;
+            renderMath(boxStepsBody);
+        }
+
+        let lastBoxW = 0, lastBoxH = 0;
+        function resizeBoxCanvas() {
+            if (!boxCanvas) return;
+            const container = boxCanvas.parentElement;
+            if (!container) return;
+            const width = Math.floor(container.clientWidth);
+            const height = Math.floor(container.clientHeight);
+            if (width === 0 || height === 0) return;
+            if (width === lastBoxW && height === lastBoxH) return;
+
+            lastBoxW = width;
+            lastBoxH = height;
+            const dpr = window.devicePixelRatio || 1;
+            boxCanvas.width = width * dpr;
+            boxCanvas.height = height * dpr;
+            boxCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        }
+
+        function drawBoxItem(ctx, x, y, w, h, strokeColor, fillColor, text, isDark, boxW = 50) {
+            ctx.fillStyle = fillColor;
+            ctx.fillRect(x, y, w, h);
+            ctx.strokeStyle = strokeColor;
+            ctx.lineWidth = 2;
+            ctx.strokeRect(x, y, w, h);
+
+            ctx.fillStyle = strokeColor;
+            const fontSize = (boxW < 45) ? '9px' : '11px';
+            ctx.font = `bold ${fontSize} Inter, sans-serif`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(text, x + w / 2, y + h / 2);
+        }
+
+        function drawBoxCanvas() {
+            if (!boxCtx) return;
+            const w = lastBoxW || (boxCanvas.width / (window.devicePixelRatio || 1));
+            const h = lastBoxH || (boxCanvas.height / (window.devicePixelRatio || 1));
+            if (w <= 0 || h <= 0) return;
+            boxCtx.clearRect(0, 0, w, h);
+
+            const isDark = document.documentElement.classList.contains('dark');
+            const textColor = isDark ? '#e2e8f0' : '#334155';
+            const badgeBg = isDark ? 'rgba(15, 23, 42, 0.95)' : 'rgba(255, 255, 255, 0.95)';
+
+            if (currentBoxPattern === 'internal') {
+                const totalBoxes = 5;
+                const boxW = Math.min((w - 80) / totalBoxes, 65);
+                const boxH = Math.min(boxW * 0.9, 52);
+                const startX = (w - boxW * totalBoxes) / 2;
+                const startY = h * 0.35;
+
+                for (let i = 0; i < 3; i++) {
+                    drawBoxItem(boxCtx, startX + i * boxW, startY, boxW, boxH, '#3b82f6', isDark ? 'rgba(59, 130, 246, 0.2)' : 'rgba(59, 130, 246, 0.1)', '2cm', isDark, boxW);
+                }
+                for (let i = 3; i < 5; i++) {
+                    drawBoxItem(boxCtx, startX + i * boxW, startY, boxW, boxH, '#f59e0b', isDark ? 'rgba(245, 158, 11, 0.2)' : 'rgba(245, 158, 11, 0.1)', '2cm', isDark, boxW);
+                }
+
+                drawCanvasBadge(boxCtx, 'AP = 3箱 (6cm)', startX + (3 * boxW) / 2, startY - 20, '#3b82f6', badgeBg, '#3b82f6');
+                drawCanvasBadge(boxCtx, 'PB = 2箱 (4cm)', startX + 3 * boxW + (2 * boxW) / 2, startY - 20, '#f59e0b', badgeBg, '#f59e0b');
+
+                const bracketY = startY + boxH + 18;
+                boxCtx.strokeStyle = '#6366f1';
+                boxCtx.lineWidth = 1.5;
+                boxCtx.beginPath();
+                boxCtx.moveTo(startX, bracketY - 8);
+                boxCtx.lineTo(startX, bracketY);
+                boxCtx.lineTo(startX + totalBoxes * boxW, bracketY);
+                boxCtx.lineTo(startX + totalBoxes * boxW, bracketY - 8);
+                boxCtx.stroke();
+                drawCanvasBadge(boxCtx, '全体 AB = 5箱 = 10cm (1箱 = 2cm)', startX + (totalBoxes * boxW) / 2, bracketY + 18, '#6366f1', badgeBg, '#6366f1');
+
+                drawPinPoint(boxCtx, startX, startY + boxH, 'A', '#6366f1', textColor, isDark, startY + boxH + 16);
+                drawPinPoint(boxCtx, startX + 3 * boxW, startY + boxH, 'P (内分点)', '#10b981', '#10b981', isDark, startY + boxH + 16);
+                drawPinPoint(boxCtx, startX + 5 * boxW, startY + boxH, 'B', '#6366f1', textColor, isDark, startY + boxH + 16);
+
+            } else if (currentBoxPattern === 'externalRight') {
+                const totalBoxes = 3;
+                const boxW = Math.min((w - 80) / totalBoxes, 90);
+                const boxH = Math.min(boxW * 0.55, 46);
+                const startX = (w - boxW * totalBoxes) / 2;
+                const yTop = h * 0.24;
+                const yBot = h * 0.54;
+
+                for (let i = 0; i < 3; i++) {
+                    drawBoxItem(boxCtx, startX + i * boxW, yTop, boxW, boxH, '#3b82f6', isDark ? 'rgba(59, 130, 246, 0.2)' : 'rgba(59, 130, 246, 0.1)', '10cm', isDark, boxW);
+                }
+                drawCanvasBadge(boxCtx, 'AP = 3箱 (30cm)', startX + (3 * boxW) / 2, yTop - 18, '#3b82f6', badgeBg, '#3b82f6');
+
+                for (let i = 1; i < 3; i++) {
+                    drawBoxItem(boxCtx, startX + i * boxW, yBot, boxW, boxH, '#f59e0b', isDark ? 'rgba(245, 158, 11, 0.2)' : 'rgba(245, 158, 11, 0.1)', '10cm', isDark, boxW);
+                }
+                drawCanvasBadge(boxCtx, 'PB = 2箱 (20cm)', startX + boxW + boxW, yBot + boxH + 18, '#f59e0b', badgeBg, '#f59e0b');
+
+                boxCtx.strokeStyle = '#6366f1';
+                boxCtx.lineWidth = 2.5;
+                boxCtx.setLineDash([4, 4]);
+                boxCtx.strokeRect(startX, yBot, boxW, boxH);
+                boxCtx.setLineDash([]);
+                drawCanvasBadge(boxCtx, '差 1箱 ＝ AB (10cm)', startX + boxW / 2, yBot + boxH / 2, '#6366f1', badgeBg, '#6366f1');
+
+                drawPinPoint(boxCtx, startX, yTop, 'A', '#6366f1', textColor, isDark, yTop - 8);
+                drawPinPoint(boxCtx, startX + boxW, yTop, 'B', '#6366f1', textColor, isDark, yTop - 8);
+                drawPinPoint(boxCtx, startX + 3 * boxW, yTop, 'P (外分点)', '#10b981', '#10b981', isDark, yTop - 8);
+
+            } else if (currentBoxPattern === 'externalLeft') {
+                const totalBoxes = 3;
+                const boxW = Math.min((w - 80) / totalBoxes, 90);
+                const boxH = Math.min(boxW * 0.55, 46);
+                const startX = (w - boxW * totalBoxes) / 2;
+                const yTop = h * 0.24;
+                const yBot = h * 0.54;
+
+                for (let i = 0; i < 2; i++) {
+                    drawBoxItem(boxCtx, startX + i * boxW, yTop, boxW, boxH, '#3b82f6', isDark ? 'rgba(59, 130, 246, 0.2)' : 'rgba(59, 130, 246, 0.1)', '10cm', isDark, boxW);
+                }
+                drawCanvasBadge(boxCtx, 'AP = 2箱 (20cm)', startX + boxW, yTop - 18, '#3b82f6', badgeBg, '#3b82f6');
+
+                for (let i = 0; i < 3; i++) {
+                    drawBoxItem(boxCtx, startX + i * boxW, yBot, boxW, boxH, '#f59e0b', isDark ? 'rgba(245, 158, 11, 0.2)' : 'rgba(245, 158, 11, 0.1)', '10cm', isDark, boxW);
+                }
+                drawCanvasBadge(boxCtx, 'PB = 3箱 (30cm)', startX + (3 * boxW) / 2, yBot + boxH + 18, '#f59e0b', badgeBg, '#f59e0b');
+
+                boxCtx.strokeStyle = '#6366f1';
+                boxCtx.lineWidth = 2.5;
+                boxCtx.setLineDash([4, 4]);
+                boxCtx.strokeRect(startX + 2 * boxW, yTop, boxW, boxH);
+                boxCtx.setLineDash([]);
+                drawCanvasBadge(boxCtx, '差 1箱 ＝ AB (10cm)', startX + 2.5 * boxW, yTop + boxH / 2, '#6366f1', badgeBg, '#6366f1');
+
+                drawPinPoint(boxCtx, startX, yTop, 'P (外分点)', '#10b981', '#10b981', isDark, yTop - 8);
+                drawPinPoint(boxCtx, startX + 2 * boxW, yTop, 'A', '#6366f1', textColor, isDark, yTop - 8);
+                drawPinPoint(boxCtx, startX + 3 * boxW, yTop, 'B', '#6366f1', textColor, isDark, yTop - 8);
+            }
+        }
+
+        // ================= 3. 角の二等分線とつながるロジック =================
+        const bisectorCanvas = document.getElementById('bisectorCanvas');
+        const bisectorCtx = bisectorCanvas.getContext('2d');
+        const bisectorSidesRatio = document.getElementById('bisectorSidesRatio');
+        const bisectorInternalRatio = document.getElementById('bisectorInternalRatio');
+        const bisectorExternalRatio = document.getElementById('bisectorExternalRatio');
+        const barSideAB = document.getElementById('barSideAB');
+        const barSideAC = document.getElementById('barSideAC');
+        const barSegBP = document.getElementById('barSegBP');
+        const barSegPC = document.getElementById('barSegPC');
+        const chkShowExternal = document.getElementById('chkShowExternal');
+        const sliderAx = document.getElementById('sliderAx');
+        const valAxBadge = document.getElementById('valAxBadge');
+        const sliderPanX = document.getElementById('sliderPanX');
+
+        // 三角形の相対座標比率（画面幅・高さに対する比率で保持し、リサイズやプリセットの破壊を防ぐ）
+        let relBx = 0.20, relBy = 0.63;
+        let relCx = 0.43, relCy = 0.63;
+        let relAx = 0.43, relAy = 0.36;
+        let currentBisectorPreset = '21';
+        let isDraggingA = false;
+
+        // 図の左右スクロール（水平パン）用変数
+        let bisectorPanX = 0; // スクロールオフセット (px)
+        let isPanning = false;
+        let panStartX = 0;
+
+        let isBisectorAuto = false;
+        let bisectorAutoTime = 0;
+        let bisectorAutoId = null;
+
+        function updatePresetUI(presetKey) {
+            currentBisectorPreset = presetKey;
+            ['21', '12', '32', '11'].forEach(k => {
+                const btn = document.getElementById(`btnBisect-${k}`);
+                if (!btn) return;
+                if (k === presetKey) {
+                    btn.className = "px-3 py-1.5 rounded-lg text-xs font-bold transition bg-blue-600 text-white shadow";
+                } else {
+                    btn.className = "px-3 py-1.5 rounded-lg text-xs font-medium transition bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200";
+                }
+            });
+        }
+
+        function onSliderAxInput(val) {
+            if (isBisectorAuto) stopBisectorAuto();
+            relAx = parseFloat(val) / 100;
+            updatePresetUI('custom');
+            drawBisectorCanvas();
+        }
+
+        // スクロールスライダー操作
+        function onPanSliderInput(val) {
+            bisectorPanX = parseFloat(val);
+            drawBisectorCanvas();
+        }
+
+        // 表示位置を中央にリセット
+        function resetBisectorPan() {
+            bisectorPanX = 0;
+            if (sliderPanX) sliderPanX.value = 0;
+            drawBisectorCanvas();
+        }
+
+        function setBisectorPreset(preset) {
+            if (isBisectorAuto) stopBisectorAuto();
+            updatePresetUI(preset);
+            resetBisectorPan();
+
+            const w = lastBisectorW || 600;
+            const h = lastBisectorH || 380;
+            relBy = 0.63;
+            relCy = 0.63;
+
+            if (preset === '21') {
+                // AB : AC ＝ 2 : 1 (Qが画面幅の約66%の位置に現れ、最初から画面内に完全に収まる)
+                const L = 0.23;
+                relBx = 0.20;
+                relCx = relBx + L; // 0.43
+                relAx = relCx;     // 0.43 (Cの真上)
+                // 幾何学的に AB:AC = 2:1 となる垂直高さ
+                const vertH = (Math.sqrt(3) / 3) * L * (w / h);
+                relAy = Math.max(0.18, relBy - vertH);
+            } else if (preset === '12') {
+                // AB : AC ＝ 1 : 2 (Qが画面幅の約30%の位置＝左側に最初から完全に収まる)
+                const L = 0.23;
+                relCx = 0.76;
+                relBx = relCx - L; // 0.53
+                relAx = relBx;     // 0.53 (Bの真上)
+                const vertH = (Math.sqrt(3) / 3) * L * (w / h);
+                relAy = Math.max(0.18, relBy - vertH);
+            } else if (preset === '32') {
+                // AB : AC ＝ 3 : 2 (Qが画面幅の約69%の位置に最初から完全に収まる)
+                const L = 0.17;
+                relBx = 0.18;
+                relCx = relBx + L; // 0.35
+                // アポロニウスの円から AB:AC = 3:2 となる厳密配置
+                relAx = relBx + 1.2 * L; // 0.384
+                const vertH = (0.6 * Math.sqrt(3)) * L * (w / h);
+                relAy = Math.max(0.18, relBy - vertH);
+            } else if (preset === '11') {
+                // 二等辺三角形 (AB ＝ AC: 外角二等分線が底辺と完全に平行になり Q が存在しない)
+                const L = 0.28;
+                relBx = 0.36;
+                relCx = relBx + L; // 0.64
+                relAx = 0.50;      // 中央
+                const vertH = 0.65 * L * (w / h);
+                relAy = Math.max(0.18, relBy - vertH);
+            }
+
+            if (sliderAx) {
+                sliderAx.value = Math.round(relAx * 100);
+            }
+            drawBisectorCanvas();
+        }
+
+        function toggleBisectorAuto() {
+            if (isBisectorAuto) {
+                stopBisectorAuto();
+            } else {
+                startBisectorAuto();
+            }
+        }
+
+        function startBisectorAuto() {
+            isBisectorAuto = true;
+            document.getElementById('bisectorPlayIcon').className = "fa-solid fa-pause";
+            document.getElementById('bisectorPlayText').innerText = "一時停止";
+            updatePresetUI('custom');
+
+            // 自動アニメーション中も Q が画面内（60%〜78%）に常時収まるよう底辺と頂点を設計
+            relBx = 0.20; 
+            relCx = 0.43; 
+            relBy = 0.63; 
+            relCy = 0.63;
+
+            function anim() {
+                if (!isBisectorAuto) return;
+                bisectorAutoTime += 0.025;
+                const w = lastBisectorW || 600;
+                const h = lastBisectorH || 380;
+                const L = 0.23;
+
+                // 左右に滑らかに揺らしつつ、Q が常に画面内にとどまる比率をキープ
+                relAx = 0.43 + 0.04 * Math.sin(bisectorAutoTime);
+                const vertH = ((Math.sqrt(3) / 3) + 0.05 * Math.cos(bisectorAutoTime * 1.5)) * L * (w / h);
+                relAy = Math.max(0.18, relBy - vertH);
+
+                if (sliderAx) {
+                    sliderAx.value = Math.round(relAx * 100);
+                }
+
+                drawBisectorCanvas();
+                bisectorAutoId = requestAnimationFrame(anim);
+            }
+            bisectorAutoId = requestAnimationFrame(anim);
+        }
+
+        function stopBisectorAuto() {
+            isBisectorAuto = false;
+            if (bisectorAutoId) {
+                cancelAnimationFrame(bisectorAutoId);
+                bisectorAutoId = null;
+            }
+            document.getElementById('bisectorPlayIcon').className = "fa-solid fa-play";
+            document.getElementById('bisectorPlayText').innerText = "自動で動かす";
+        }
+
+        // ドラッグイベントリスナー（頂点Aの移動 ＆ 背景の水平スクロール両対応）
+        bisectorCanvas.addEventListener('mousedown', (e) => {
+            const rect = bisectorCanvas.getBoundingClientRect();
+            const w = rect.width;
+            const h = rect.height;
+            const mx = e.clientX - rect.left;
+            const my = e.clientY - rect.top;
+            
+            // パンオフセットを考慮した頂点Aの画面上座標
+            const curAx = w * relAx + bisectorPanX;
+            const curAy = h * relAy;
+
+            if (Math.hypot(mx - curAx, my - curAy) < 35) {
+                // 頂点 A のドラッグ
+                isDraggingA = true;
+                if (isBisectorAuto) stopBisectorAuto();
+                updatePresetUI('custom');
+            } else {
+                // 背景の水平スクロール（パン）
+                isPanning = true;
+                panStartX = mx - bisectorPanX;
+            }
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            const rect = bisectorCanvas.getBoundingClientRect();
+            const w = rect.width;
+            const h = rect.height;
+            const mx = e.clientX - rect.left;
+            const my = e.clientY - rect.top;
+
+            if (isDraggingA) {
+                // パンオフセットを逆算して相対比率を更新
+                relAx = Math.max(0.05, Math.min(0.95, (mx - bisectorPanX) / w));
+                relAy = Math.max(0.12, Math.min(0.55, my / h));
+                if (sliderAx) {
+                    sliderAx.value = (relAx * 100).toFixed(1);
+                }
+                drawBisectorCanvas();
+            } else if (isPanning) {
+                bisectorPanX = mx - panStartX;
+                // 最大スクロール範囲の制限 (-350px 〜 +350px)
+                bisectorPanX = Math.max(-350, Math.min(350, bisectorPanX));
+                if (sliderPanX) sliderPanX.value = bisectorPanX;
+                drawBisectorCanvas();
+            }
+        });
+
+        window.addEventListener('mouseup', () => { 
+            isDraggingA = false; 
+            isPanning = false; 
+        });
+
+        // マウスホイールでの左右スクロール対応
+        bisectorCanvas.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            const delta = (Math.abs(e.deltaX) > Math.abs(e.deltaY)) ? e.deltaX : e.deltaY;
+            bisectorPanX -= delta * 0.7;
+            bisectorPanX = Math.max(-350, Math.min(350, bisectorPanX));
+            if (sliderPanX) sliderPanX.value = bisectorPanX;
+            drawBisectorCanvas();
+        }, { passive: false });
+
+        // タッチ操作（頂点Aの移動 ＆ 背景スクロール両対応）
+        bisectorCanvas.addEventListener('touchstart', (e) => {
+            if (e.touches.length > 0) {
+                const rect = bisectorCanvas.getBoundingClientRect();
+                const w = rect.width;
+                const h = rect.height;
+                const mx = e.touches[0].clientX - rect.left;
+                const my = e.touches[0].clientY - rect.top;
+                
+                const curAx = w * relAx + bisectorPanX;
+                const curAy = h * relAy;
+
+                if (Math.hypot(mx - curAx, my - curAy) < 40) {
+                    isDraggingA = true;
+                    if (isBisectorAuto) stopBisectorAuto();
+                    updatePresetUI('custom');
+                    e.preventDefault();
+                } else {
+                    isPanning = true;
+                    panStartX = mx - bisectorPanX;
+                }
+            }
+        });
+
+        bisectorCanvas.addEventListener('touchmove', (e) => {
+            if (e.touches.length === 0) return;
+            const rect = bisectorCanvas.getBoundingClientRect();
+            const w = rect.width;
+            const h = rect.height;
+            const mx = e.touches[0].clientX - rect.left;
+            const my = e.touches[0].clientY - rect.top;
+
+            if (isDraggingA) {
+                relAx = Math.max(0.05, Math.min(0.95, (mx - bisectorPanX) / w));
+                relAy = Math.max(0.12, Math.min(0.55, my / h));
+                if (sliderAx) {
+                    sliderAx.value = (relAx * 100).toFixed(1);
+                }
+                drawBisectorCanvas();
+                e.preventDefault();
+            } else if (isPanning) {
+                bisectorPanX = mx - panStartX;
+                bisectorPanX = Math.max(-350, Math.min(350, bisectorPanX));
+                if (sliderPanX) sliderPanX.value = bisectorPanX;
+                drawBisectorCanvas();
+                e.preventDefault();
+            }
+        });
+
+        bisectorCanvas.addEventListener('touchend', () => { 
+            isDraggingA = false; 
+            isPanning = false; 
+        });
+
+        let lastBisectorW = 0, lastBisectorH = 0;
+        function resizeBisectorCanvas() {
+            const container = bisectorCanvas.parentElement;
+            if (!container) return;
+            const width = Math.floor(container.clientWidth);
+            const height = Math.floor(container.clientHeight);
+            if (width === 0 || height === 0) return;
+            if (width === lastBisectorW && height === lastBisectorH) return;
+
+            lastBisectorW = width;
+            lastBisectorH = height;
+            const dpr = window.devicePixelRatio || 1;
+            bisectorCanvas.width = width * dpr;
+            bisectorCanvas.height = height * dpr;
+            bisectorCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        }
+
+        function drawBisectorCanvas() {
+            if (!bisectorCtx) return;
+            const w = lastBisectorW || (bisectorCanvas.width / (window.devicePixelRatio || 1));
+            const h = lastBisectorH || (bisectorCanvas.height / (window.devicePixelRatio || 1));
+            if (w <= 0 || h <= 0) return;
+            bisectorCtx.clearRect(0, 0, w, h);
+
+            // スクロール（水平パン）の適用
+            bisectorCtx.save();
+            bisectorCtx.translate(bisectorPanX, 0);
+
+            // 相対比率からピクセル座標を算出（勝手に上書きされない！）
+            const triBx = w * relBx;
+            const triBy = h * relBy;
+            const triCx = w * relCx;
+            const triCy = h * relCy;
+            const triAx = w * relAx;
+            const triAy = h * relAy;
+
+            const isDark = document.documentElement.classList.contains('dark');
+            const textColor = isDark ? '#e2e8f0' : '#334155';
+            const subTextColor = isDark ? '#94a3b8' : '#64748b';
+            const badgeBg = isDark ? 'rgba(15, 23, 42, 0.95)' : 'rgba(255, 255, 255, 0.95)';
+
+            // 辺の長さを計算
+            const lenAB = Math.hypot(triAx - triBx, triAy - triBy);
+            const lenAC = Math.hypot(triAx - triCx, triAy - triCy);
+            const lenBC = Math.hypot(triCx - triBx, triCy - triBy);
+
+            const totalSide = lenAB + lenAC;
+            const ratioABPercent = (lenAB / totalSide) * 100;
+            const ratioACPercent = (lenAC / totalSide) * 100;
+
+            if (valAxBadge) {
+                valAxBadge.innerText = `Aの位置: ${(relAx * 100).toFixed(0)}%`;
+            }
+
+            // 内分点 P (内角二等分線と BC の交点: BP : PC = lenAB : lenAC)
+            const tInternal = lenAB / (lenAB + lenAC);
+            const px = triBx + tInternal * (triCx - triBx);
+            const py = triBy;
+
+            const lenBP = tInternal * lenBC;
+            const lenPC = (1 - tInternal) * lenBC;
+
+            // 外分点 Q (外角二等分線と直線 BC の交点: BQ : QC = lenAB : lenAC)
+            let qx = null, qy = null;
+            const diffLen = lenAB - lenAC;
+            const isParallel = Math.abs(diffLen) < 3.5; // 二等辺三角形 (平行判定)
+            if (!isParallel) {
+                const tExternal = lenAB / diffLen;
+                qx = triBx + tExternal * (triCx - triBx);
+                qy = triBy;
+            }
+
+            // リアルタイム比率バーの更新
+            if (barSideAB && barSideAC && barSegBP && barSegPC) {
+                barSideAB.style.width = `${ratioABPercent.toFixed(1)}%`;
+                barSideAC.style.width = `${ratioACPercent.toFixed(1)}%`;
+                barSegBP.style.width = `${ratioABPercent.toFixed(1)}%`;
+                barSegPC.style.width = `${ratioACPercent.toFixed(1)}%`;
+            }
+
+            // テキスト更新
+            const simAB = (lenAB / 25).toFixed(1);
+            const simAC = (lenAC / 25).toFixed(1);
+            const simBP = (lenBP / 25).toFixed(1);
+            const simPC = (lenPC / 25).toFixed(1);
+
+            bisectorSidesRatio.innerText = `${simAB} : ${simAC} (${(lenAB / lenAC).toFixed(2)})`;
+            bisectorInternalRatio.innerText = `${simBP} : ${simPC} (${(lenBP / lenPC).toFixed(2)})`;
+
+            if (isParallel) {
+                bisectorExternalRatio.innerText = "外分点なし（底辺と平行！）";
+            } else if (qx !== null) {
+                const distBQ = Math.abs(qx - triBx) / 25;
+                const distQC = Math.abs(qx - triCx) / 25;
+                bisectorExternalRatio.innerText = `${distBQ.toFixed(1)} : ${distQC.toFixed(1)} (${(lenAB / lenAC).toFixed(2)})`;
+            }
+
+            // 1. 直線 BC の延長線（パンしても途切れないよう十分に広く引く）
+            bisectorCtx.strokeStyle = subTextColor;
+            bisectorCtx.lineWidth = 1.5;
+            bisectorCtx.setLineDash([4, 4]);
+            bisectorCtx.beginPath();
+            bisectorCtx.moveTo(-w * 2, triBy);
+            bisectorCtx.lineTo(w * 3, triBy);
+            bisectorCtx.stroke();
+            bisectorCtx.setLineDash([]);
+
+            // 2. 三角形 ABC の辺
+            // 辺 AB (青太線)
+            bisectorCtx.strokeStyle = '#3b82f6';
+            bisectorCtx.lineWidth = 3.5;
+            bisectorCtx.beginPath();
+            bisectorCtx.moveTo(triAx, triAy);
+            bisectorCtx.lineTo(triBx, triBy);
+            bisectorCtx.stroke();
+
+            // 辺 AC (橙太線)
+            bisectorCtx.strokeStyle = '#f59e0b';
+            bisectorCtx.lineWidth = 3.5;
+            bisectorCtx.beginPath();
+            bisectorCtx.moveTo(triAx, triAy);
+            bisectorCtx.lineTo(triCx, triCy);
+            bisectorCtx.stroke();
+
+            // 底辺 BC (紫太線)
+            bisectorCtx.strokeStyle = '#6366f1';
+            bisectorCtx.lineWidth = 4;
+            bisectorCtx.beginPath();
+            bisectorCtx.moveTo(triBx, triBy);
+            bisectorCtx.lineTo(triCx, triCy);
+            bisectorCtx.stroke();
+
+            // 3. 内角二等分の扇形マーク（内角側のみ正確に描画）
+            const angleAB = Math.atan2(triBy - triAy, triBx - triAx);
+            const angleAC = Math.atan2(triCy - triAy, triCx - triAx);
+            const angleAP = Math.atan2(py - triAy, px - triAx);
+
+            bisectorCtx.fillStyle = 'rgba(244, 63, 94, 0.25)';
+            bisectorCtx.beginPath();
+            bisectorCtx.moveTo(triAx, triAy);
+            bisectorCtx.arc(triAx, triAy, 26, angleAB, angleAP, false);
+            bisectorCtx.closePath();
+            bisectorCtx.fill();
+
+            bisectorCtx.beginPath();
+            bisectorCtx.moveTo(triAx, triAy);
+            bisectorCtx.arc(triAx, triAy, 26, angleAP, angleAC, false);
+            bisectorCtx.closePath();
+            bisectorCtx.fill();
+
+            // 内角二等分線 AP (ローズ色実線)
+            bisectorCtx.strokeStyle = '#f43f5e';
+            bisectorCtx.lineWidth = 2.5;
+            bisectorCtx.beginPath();
+            bisectorCtx.moveTo(triAx, triAy);
+            bisectorCtx.lineTo(px, py);
+            bisectorCtx.stroke();
+
+            // 内分点 P
+            bisectorCtx.fillStyle = '#f43f5e';
+            bisectorCtx.beginPath(); bisectorCtx.arc(px, py, 6.5, 0, Math.PI * 2); bisectorCtx.fill();
+            bisectorCtx.strokeStyle = '#ffffff'; bisectorCtx.lineWidth = 2; bisectorCtx.stroke();
+            drawCanvasBadge(bisectorCtx, '内分点 P', px, py + 22, '#f43f5e', badgeBg, '#f43f5e');
+
+            // 4. 外角の二等分線と外分点 Q
+            const showExt = chkShowExternal && chkShowExternal.checked;
+            if (showExt) {
+                // 辺 BA を上へ伸ばした延長線（上空へ伸びる破線）
+                const extLen = 65;
+                const vBAx = (triAx - triBx) / lenAB;
+                const vBAy = (triAy - triBy) / lenAB;
+                const extAx = triAx + vBAx * extLen;
+                const extAy = triAy + vBAy * extLen;
+
+                bisectorCtx.strokeStyle = '#94a3b8';
+                bisectorCtx.lineWidth = 2;
+                bisectorCtx.setLineDash([3, 3]);
+                bisectorCtx.beginPath();
+                bisectorCtx.moveTo(triAx, triAy);
+                bisectorCtx.lineTo(extAx, extAy);
+                bisectorCtx.stroke();
+                bisectorCtx.setLineDash([]);
+
+                if (isParallel) {
+                    // 二等辺三角形（平行線で交点なし）
+                    bisectorCtx.strokeStyle = '#0284c7';
+                    bisectorCtx.lineWidth = 2.5;
+                    bisectorCtx.setLineDash([4, 4]);
+                    bisectorCtx.beginPath();
+                    bisectorCtx.moveTo(triAx - 180, triAy);
+                    bisectorCtx.lineTo(triAx + 180, triAy);
+                    bisectorCtx.stroke();
+                    bisectorCtx.setLineDash([]);
+                    drawCanvasBadge(bisectorCtx, '⚠️ 底辺と平行（外分点なし！）', triAx, triAy - 44, '#0284c7', badgeBg, '#0284c7');
+                } else if (qx !== null) {
+                    // 外角二等分線 AQ (スカイブルー)
+                    bisectorCtx.strokeStyle = '#0284c7';
+                    bisectorCtx.lineWidth = 2.5;
+                    bisectorCtx.beginPath();
+                    bisectorCtx.moveTo(triAx, triAy);
+                    bisectorCtx.lineTo(qx, qy);
+                    bisectorCtx.stroke();
+
+                    // 外角を2等分する扇形アーク
+                    const angleExt = Math.atan2(extAy - triAy, extAx - triAx);
+                    const angleAQ = Math.atan2(qy - triAy, qx - triAx);
+
+                    bisectorCtx.fillStyle = 'rgba(2, 132, 199, 0.25)';
+                    bisectorCtx.beginPath();
+                    bisectorCtx.moveTo(triAx, triAy);
+                    bisectorCtx.arc(triAx, triAy, 30, angleExt, angleAQ, (angleAQ < angleExt));
+                    bisectorCtx.closePath();
+                    bisectorCtx.fill();
+
+                    // 頂点 A のラベルと重ならないよう、上空の延長線付近にゆとりを持って配置
+                    const badgeExtX = extAx + (qx > triAx ? 36 : -36);
+                    const badgeExtY = Math.min(extAy + 6, triAy - 44);
+                    drawCanvasBadge(bisectorCtx, '外角を2等分', badgeExtX, badgeExtY, '#0284c7', badgeBg, '#0284c7');
+
+                    // 外分点 Q の交点ピン（地面と完全に交差！）
+                    bisectorCtx.fillStyle = '#0284c7';
+                    bisectorCtx.beginPath(); bisectorCtx.arc(qx, qy, 7.5, 0, Math.PI * 2); bisectorCtx.fill();
+                    bisectorCtx.strokeStyle = '#ffffff'; bisectorCtx.lineWidth = 2.5; bisectorCtx.stroke();
+                    drawCanvasBadge(bisectorCtx, '🎯 外分点 Q (交点)', qx, qy + 24, '#0284c7', badgeBg, '#0284c7');
+
+                    // 外分比の視覚化アーク (左右の出現方向に応じて全体・部分の弧の高さを動的切り替え)
+                    const isQOnRight = (qx > triCx);
+                    const arcLongH = 36;
+                    const arcShortH = 20;
+
+                    if (isQOnRight) {
+                        // Qが右側: BQが全体(長), QCが部分(短)
+                        const midBQ = (triBx + qx) / 2;
+                        bisectorCtx.strokeStyle = 'rgba(59, 130, 246, 0.6)';
+                        bisectorCtx.lineWidth = 2;
+                        bisectorCtx.beginPath();
+                        bisectorCtx.moveTo(triBx, triBy + 8);
+                        bisectorCtx.quadraticCurveTo(midBQ, triBy + 8 + arcLongH, qx, triBy + 8);
+                        bisectorCtx.stroke();
+                        drawCanvasBadge(bisectorCtx, `BQ = ${((Math.abs(qx - triBx))/25).toFixed(1)}`, midBQ, triBy + 12 + arcLongH, '#3b82f6', badgeBg, '#3b82f6');
+
+                        const midQC = (triCx + qx) / 2;
+                        bisectorCtx.strokeStyle = 'rgba(245, 158, 11, 0.7)';
+                        bisectorCtx.lineWidth = 2;
+                        bisectorCtx.beginPath();
+                        bisectorCtx.moveTo(triCx, triBy + 6);
+                        bisectorCtx.quadraticCurveTo(midQC, triBy + 6 + arcShortH, qx, triBy + 6);
+                        bisectorCtx.stroke();
+                        drawCanvasBadge(bisectorCtx, `QC = ${((Math.abs(qx - triCx))/25).toFixed(1)}`, midQC, triBy + 8 + arcShortH, '#f59e0b', badgeBg, '#f59e0b');
+                    } else {
+                        // Qが左側: QCが全体(長), QBが部分(短)
+                        const midQC = (triCx + qx) / 2;
+                        bisectorCtx.strokeStyle = 'rgba(245, 158, 11, 0.7)';
+                        bisectorCtx.lineWidth = 2;
+                        bisectorCtx.beginPath();
+                        bisectorCtx.moveTo(triCx, triBy + 8);
+                        bisectorCtx.quadraticCurveTo(midQC, triBy + 8 + arcLongH, qx, triBy + 8);
+                        bisectorCtx.stroke();
+                        drawCanvasBadge(bisectorCtx, `QC = ${((Math.abs(qx - triCx))/25).toFixed(1)}`, midQC, triBy + 12 + arcLongH, '#f59e0b', badgeBg, '#f59e0b');
+
+                        const midQB = (triBx + qx) / 2;
+                        bisectorCtx.strokeStyle = 'rgba(59, 130, 246, 0.6)';
+                        bisectorCtx.lineWidth = 2;
+                        bisectorCtx.beginPath();
+                        bisectorCtx.moveTo(triBx, triBy + 6);
+                        bisectorCtx.quadraticCurveTo(midQB, triBy + 6 + arcShortH, qx, triBy + 6);
+                        bisectorCtx.stroke();
+                        drawCanvasBadge(bisectorCtx, `BQ = ${((Math.abs(qx - triBx))/25).toFixed(1)}`, midQB, triBy + 8 + arcShortH, '#3b82f6', badgeBg, '#3b82f6');
+                    }
+                }
+            }
+
+            // 5. 頂点ピンとラベル
+            drawPinPoint(bisectorCtx, triBx, triBy, 'B', '#3b82f6', textColor, isDark, triBy - 14);
+            drawPinPoint(bisectorCtx, triCx, triCy, 'C', '#f59e0b', textColor, isDark, triCy - 14);
+
+            // 頂点 A
+            bisectorCtx.fillStyle = '#10b981';
+            bisectorCtx.beginPath(); bisectorCtx.arc(triAx, triAy, 8.5, 0, Math.PI * 2); bisectorCtx.fill();
+            bisectorCtx.strokeStyle = '#ffffff'; bisectorCtx.lineWidth = 2.5; bisectorCtx.stroke();
+            drawCanvasBadge(bisectorCtx, '頂点 A', triAx, triAy - 18, '#10b981', badgeBg, '#10b981');
+
+            // 辺の長さバッジ
+            drawCanvasBadge(bisectorCtx, `AB = ${simAB}`, (triAx + triBx) / 2 - 14, (triAy + triBy) / 2, '#3b82f6', badgeBg, '#3b82f6');
+            drawCanvasBadge(bisectorCtx, `AC = ${simAC}`, (triAx + triCx) / 2 + 14, (triAy + triCy) / 2, '#f59e0b', badgeBg, '#f59e0b');
+
+            // パン変形のリセット
+            bisectorCtx.restore();
+        }
+
+        // ================= 4. ワークシート演習＆クイズロジック =================
+        const quizData = [
+            {
+                question: "「線分 AB を 3 : 2 に内分する点 P」について、正しい説明はどれですか？",
+                options: [
+                    "AP = 3cm, PB = 2cm でなければならない",
+                    "P は A と B の間にあり、A からの距離と B からの距離の比が 3 : 2 になる",
+                    "P は B の右側にあり、AB の長さは 5cm である",
+                    "点 P は線分の中点のことである"
+                ],
+                answer: 1,
+                explanation: "<strong>正解！</strong><br>比は cm ではなく「長さの割合」を指定します。内分点 P は A と B の間にあり、\\(AP : PB = 3 : 2\\) を満たす点です。"
+            },
+            {
+                question: "線分 \\(AB = 15\\text{cm}\\) を \\(2 : 3\\) に内分する点 P において、線分 AP の長さは何 cm ですか？",
+                options: [
+                    "2 cm",
+                    "5 cm",
+                    "6 cm",
+                    "9 cm"
+                ],
+                answer: 2,
+                explanation: "<strong>正解！</strong><br>全体は \\(2\\text{箱} + 3\\text{箱} = 5\\text{箱}\\) です。\\(15\\text{cm} \\div 5 = 3\\text{cm}\\)（1箱）。<br>\\(AP = 2 \\times 3 = \\mathbf{6\\text{cm}}\\) となります（点 P は A に近い）。"
+            },
+            {
+                question: "線分 \\(AB = 8\\text{cm}\\) を \\(5 : 3\\) に外分する点 P について、P はどこにあり、式はどうなりますか？",
+                options: [
+                    "P は A の左側にあり、\\(AB = PB - AP\\)",
+                    "P は B の右側にあり、\\(AB = AP - PB\\)（差 2箱 ＝ 8cm）",
+                    "P は A と B の間にあり、\\(AB = AP + PB\\)",
+                    "外分点は存在しない"
+                ],
+                answer: 1,
+                explanation: "<strong>大正解！</strong><br>\\(AP > PB\\)（5 > 3）なので、P は B に近い側、つまり「B の右側」にあります。<br>並び順は A - B - P となり、差の \\(5 - 3 = 2\\text{箱} = 8\\text{cm}\\)（1箱 4cm）より \\(AP = 20\\text{cm}, PB = 12\\text{cm}\\) です。"
+            },
+            {
+                question: "なぜ「線分を 1 : 1 に外分する点」は存在しないのですか？",
+                options: [
+                    "外分点は常に奇数の比でしか作れないから",
+                    "箱の差が \\(1 - 1 = 0\\text{箱}\\) となり、線分の長さを表せなくなるから",
+                    "中点と名前が同じになって紛らわしいから",
+                    "計算するとマイナスの長さになるから"
+                ],
+                answer: 1,
+                explanation: "<strong>素晴らしい洞察力です！</strong><br>外分は箱の差をとりますが、\\(1 : 1\\) だと \\(1 - 1 = 0\\text{箱}\\) になってしまいます。「0箱で AB の長さ」になる箱は存在しないため、有限の位置に外分点は現れません。"
+            },
+            {
+                question: "三角形の内角の二等分線と外角の二等分線において、「内分・外分」はどう役立ちますか？",
+                options: [
+                    "三角形の面積を直接 2 倍にするため",
+                    "内角の二等分線は底辺を内分し、外角の二等分線は底辺を外分するため、交点 P, Q の位置を比で言い当てられる",
+                    "直角三角形を作って三平方の定理を使うため",
+                    "角度を測る分度器の代わりになる"
+                ],
+                answer: 1,
+                explanation: "<strong>パーフェクト！</strong><br>角の二等分線定理により、2辺の比 \\(AB : AC\\) がそのまま底辺の内分比・外分比になります。内分・外分は図形の未知の交点を正確に特定するための必須の道具です。"
+            }
+        ];
+
+        let currentQuizIndex = 0;
+        let score = 0;
+
+        function loadQuiz() {
+            const q = quizData[currentQuizIndex];
+            const badge = document.getElementById('quizBadge');
+            if (badge) badge.innerText = `問題 ${currentQuizIndex + 1} / ${quizData.length}`;
+
+            const qElem = document.getElementById('quizQuestion');
+            if (qElem) qElem.innerHTML = q.question;
+
+            const optContainer = document.getElementById('quizOptions');
+            if (optContainer) {
+                optContainer.innerHTML = '';
+                q.options.forEach((opt, idx) => {
+                    const btn = document.createElement('button');
+                    btn.className = "w-full text-left p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:border-blue-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition font-medium flex items-center justify-between text-slate-700 dark:text-slate-200 text-xs sm:text-sm";
+                    btn.innerHTML = `<span>${opt}</span><i class="fa-solid fa-chevron-right text-slate-400 text-xs"></i>`;
+                    btn.onclick = () => selectQuizAnswer(idx);
+                    optContainer.appendChild(btn);
+                });
+            }
+
+            document.getElementById('feedbackContainer').classList.add('hidden');
+            document.getElementById('quizContainer').classList.remove('hidden');
+
+            renderMath(qElem);
+            renderMath(optContainer);
+        }
+
+        function selectQuizAnswer(selectedIndex) {
+            const q = quizData[currentQuizIndex];
+            const feedbackContainer = document.getElementById('feedbackContainer');
+            const feedbackTitle = document.getElementById('feedbackTitle');
+            const feedbackBody = document.getElementById('feedbackBody');
+
+            document.getElementById('quizContainer').classList.add('hidden');
+            feedbackContainer.classList.remove('hidden');
+
+            if (selectedIndex === q.answer) {
+                score++;
+                feedbackTitle.innerHTML = '<span class="text-emerald-500 font-bold"><i class="fa-solid fa-circle-check mr-1.5"></i> 正解！その通りです</span>';
+            } else {
+                feedbackTitle.innerHTML = '<span class="text-rose-500 font-bold"><i class="fa-solid fa-circle-xmark mr-1.5"></i> 惜しい！不正解です</span>';
+            }
+            feedbackBody.innerHTML = q.explanation;
+
+            renderMath(feedbackBody);
+
+            if (currentQuizIndex === quizData.length - 1) {
+                feedbackContainer.querySelector('button').innerHTML = '結果を見る <i class="fa-solid fa-flag-checkered ml-1"></i>';
+            } else {
+                feedbackContainer.querySelector('button').innerHTML = '次の問題へ <i class="fa-solid fa-arrow-right ml-1"></i>';
+            }
+        }
+
+        function nextQuiz() {
+            currentQuizIndex++;
+            if (currentQuizIndex < quizData.length) {
+                loadQuiz();
+            } else {
+                document.getElementById('feedbackContainer').classList.add('hidden');
+                document.getElementById('quizComplete').classList.remove('hidden');
+                document.getElementById('quizScoreText').innerText = `${quizData.length} 問中 ${score} 問 正解しました！`;
+            }
+        }
+
+        function restartQuiz() {
+            currentQuizIndex = 0;
+            score = 0;
+            document.getElementById('quizComplete').classList.add('hidden');
+            loadQuiz();
+        }
+
+        // リサイズハンドラ
+        let rafResizeId = null;
+        function handleResize() {
+            if (rafResizeId) cancelAnimationFrame(rafResizeId);
+            rafResizeId = requestAnimationFrame(() => {
+                lastHuntW = 0; lastHuntH = 0;
+                lastBoxW = 0; lastBoxH = 0;
+                lastBisectorW = 0; lastBisectorH = 0;
+
+                if (!document.getElementById('tab-hunt').classList.contains('hidden')) {
+                    resizeHuntCanvas();
+                    drawHuntCanvas();
+                } else if (!document.getElementById('tab-boxes').classList.contains('hidden')) {
+                    resizeBoxCanvas();
+                    drawBoxCanvas();
+                } else if (!document.getElementById('tab-bisector').classList.contains('hidden')) {
+                    resizeBisectorCanvas();
+                    drawBisectorCanvas();
+                }
+            });
+        }
+
+        window.addEventListener('resize', handleResize);
+        window.addEventListener('orientationchange', () => setTimeout(handleResize, 100));
+
+        // 初期化実行
+        window.onload = function() {
+            if (window.renderMathInElement) {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        { left: '$$', right: '$$', display: true },
+                        { left: '$', right: '$', display: false },
+                        { left: '\\(', right: '\\)', display: false },
+                        { left: '\\[', right: '\\]', display: true }
+                    ],
+                    throwOnError: false
+                });
+            }
+
+            resizeHuntCanvas();
+            updateHuntSimulation();
+
+            resizeBoxCanvas();
+            setBoxPattern('internal');
+
+            resizeBisectorCanvas();
+            setBisectorPreset('21');
+
+            loadQuiz();
+        };
+    </script>
+</body>
+</html>

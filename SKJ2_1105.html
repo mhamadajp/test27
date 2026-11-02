@@ -1,0 +1,2282 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>数検準2級 見て・触って納得！なぜ？がわかる数学実験ラボ</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;500;700;800&display=swap" rel="stylesheet">
+  <!-- KaTeX for formal mathematical notation -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <style>
+    body {
+      font-family: 'M PLUS Rounded 1c', sans-serif;
+      background-color: #f0f7ff;
+      color: #1e293b;
+    }
+    .katex {
+      font-size: 1.08em;
+    }
+    .katex-display {
+      margin: 0.4em 0;
+    }
+    .card-shadow {
+      box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.12), 0 8px 10px -6px rgba(59, 130, 246, 0.08);
+    }
+    .pop-btn {
+      transition: all 0.15s ease;
+    }
+    .pop-btn:active {
+      transform: translateY(2px);
+    }
+    input[type="range"] {
+      accent-color: #3b82f6;
+    }
+    @keyframes pulse-soft {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.85; transform: scale(1.02); }
+    }
+    .animate-pulse-soft {
+      animation: pulse-soft 2s infinite ease-in-out;
+    }
+    .custom-scroll::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 9999px;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- Top Header -->
+  <header class="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white shadow-lg sticky top-0 z-30">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center text-2xl shadow-inner">
+          🧪
+        </div>
+        <div>
+          <span class="text-xs font-bold tracking-wider uppercase bg-amber-400 text-slate-900 px-2 py-0.5 rounded-full">数学検定準2級 間違い直し対応</span>
+          <h1 class="text-lg md:text-xl font-extrabold tracking-tight mt-0.5">見て・触って納得！「なぜ？」がわかる数学実験ラボ</h1>
+        </div>
+      </div>
+
+      <!-- Progress Bar & Stamps -->
+      <div class="flex items-center gap-4 bg-white/15 backdrop-blur px-4 py-2 rounded-2xl">
+        <div class="text-xs md:text-sm">
+          <div class="flex items-center justify-between gap-2 font-bold">
+            <span>🌟 マスター達成度</span>
+            <span id="progressText" class="text-amber-300 font-extrabold">0 / 12 問クリア</span>
+          </div>
+          <div class="w-36 md:w-48 h-2.5 bg-white/25 rounded-full overflow-hidden mt-1">
+            <div id="progressBar" class="h-full bg-amber-400 transition-all duration-500" style="width: 0%"></div>
+          </div>
+        </div>
+        <button onclick="resetProgress()" class="text-xs bg-white/20 hover:bg-white/30 px-2.5 py-1.5 rounded-xl font-bold transition" title="進捗をリセット">
+          リセット
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Layout -->
+  <div class="max-w-7xl w-full mx-auto flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6 p-4 md:p-6">
+
+    <!-- Left Sidebar: Question Selector (問1 ~ 問12) -->
+    <aside class="lg:col-span-3 flex flex-col gap-3">
+      <div class="bg-white rounded-3xl p-4 card-shadow border border-blue-100">
+        <h2 class="text-sm font-extrabold text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+          <span>🧭</span> 間違えた問題を選ぼう
+        </h2>
+        <div id="navList" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-1 gap-2 max-h-[65vh] lg:max-h-[72vh] overflow-y-auto custom-scroll pr-1">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+      <!-- Owl Guide Box -->
+      <div class="bg-gradient-to-br from-amber-50 to-orange-50 rounded-3xl p-4 border border-amber-200 shadow-sm flex items-start gap-3">
+        <div class="text-3xl select-none">🦉</div>
+        <div class="text-xs leading-relaxed text-amber-900">
+          <p class="font-extrabold text-sm mb-1">フクロウ先生のアドバイス</p>
+          <p id="owlMessage">公式を丸暗記しようとすると大変だけど、「なぜそうなるか」を実験で確かめると忘れなくなるよ！まずはスライダーやボタンを動かして遊んでみよう！</p>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Right Main Panel -->
+    <main class="lg:col-span-9 flex flex-col gap-6">
+
+      <!-- Topic Title & Mistake vs Essence Banner -->
+      <section class="bg-white rounded-3xl p-5 md:p-6 card-shadow border border-blue-100">
+        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-4 mb-4">
+          <div class="flex items-center gap-3">
+            <span id="topicBadge" class="px-3.5 py-1.5 rounded-2xl bg-blue-600 text-white font-extrabold text-sm md:text-base shadow-sm">
+              問1
+            </span>
+            <h2 id="topicTitle" class="text-xl md:text-2xl font-extrabold text-slate-800">
+              根号の展開
+            </h2>
+          </div>
+          <span id="topicClearBadge" class="hidden px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 font-extrabold text-xs items-center gap-1">
+            ✅ クイズクリア済み！
+          </span>
+        </div>
+
+        <!-- Common Trap vs Key Insight -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="bg-rose-50/80 border border-rose-200 rounded-2xl p-4 flex items-start gap-3">
+            <span class="text-2xl select-none">💥</span>
+            <div>
+              <div class="text-xs font-extrabold text-rose-600 uppercase tracking-wider">よくあるワナ（間違いやすい所）</div>
+              <p id="topicMistake" class="text-sm font-bold text-rose-950 mt-1"></p>
+            </div>
+          </div>
+          <div class="bg-emerald-50/80 border border-emerald-200 rounded-2xl p-4 flex items-start gap-3">
+            <span class="text-2xl select-none">💡</span>
+            <div>
+              <div class="text-xs font-extrabold text-emerald-600 uppercase tracking-wider">何が変わる？なぜこうする？（本質ポイント）</div>
+              <p id="topicEssence" class="text-sm font-bold text-emerald-950 mt-1"></p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Tabs: 1. 触って実験ラボ / 2. なぜ？理解＆実践クイズ -->
+      <div class="flex gap-2">
+        <button id="tabSimBtn" onclick="switchTab('sim')" class="flex-1 py-3.5 px-4 rounded-2xl font-extrabold text-sm md:text-base transition flex items-center justify-center gap-2 bg-blue-600 text-white shadow-md">
+          <span>🔬</span> ステップ1：触って納得！実験ラボ
+        </button>
+        <button id="tabQuizBtn" onclick="switchTab('quiz')" class="flex-1 py-3.5 px-4 rounded-2xl font-extrabold text-sm md:text-base transition flex items-center justify-center gap-2 bg-white text-slate-600 hover:bg-blue-50 border border-blue-100">
+          <span>🎯</span> ステップ2：理解度チェッククイズ（4問）
+        </button>
+      </div>
+
+      <!-- TAB 1: Interactive Simulator Container -->
+      <section id="simSection" class="bg-white rounded-3xl p-5 md:p-7 card-shadow border border-blue-100">
+        <div id="simulatorMount"></div>
+
+        <!-- Bottom CTA to go to Quiz -->
+        <div class="mt-8 pt-5 border-t border-slate-100 flex flex-wrap items-center justify-between gap-4">
+          <div class="text-sm text-slate-600 font-medium">
+            💡 実験で「なぜそうなるか」がわかったら、クイズで自分のものにしよう！
+          </div>
+          <button onclick="switchTab('quiz')" class="pop-btn bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-extrabold px-6 py-3 rounded-2xl shadow-md flex items-center gap-2">
+            <span>理解度チェッククイズに挑戦する</span>
+            <span>➔</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- TAB 2: Interactive Quiz Container -->
+      <section id="quizSection" class="hidden bg-white rounded-3xl p-5 md:p-7 card-shadow border border-blue-100">
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-6">
+          <div>
+            <h3 class="text-lg md:text-xl font-extrabold text-slate-800 flex items-center gap-2">
+              <span>🎯</span> 理解度チェック＆実践クイズ
+            </h3>
+            <p class="text-xs md:text-sm text-slate-500 mt-0.5">
+              「なぜその方法を使うのか」の理解と、実際の計算問題の両方をチェックします（4問中3問以上正解でクリア🌟）
+            </p>
+          </div>
+          <div id="quizScoreBadge" class="bg-blue-50 text-blue-700 font-extrabold px-4 py-2 rounded-2xl text-sm">
+            現在の正解数: 0 / 4
+          </div>
+        </div>
+
+        <div id="quizMount" class="space-y-6"></div>
+
+        <div class="mt-8 pt-5 border-t border-slate-100 flex flex-wrap items-center justify-between gap-4">
+          <button onclick="switchTab('sim')" class="pop-btn bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-5 py-2.5 rounded-2xl text-sm">
+            ← 実験ラボに戻って確認する
+          </button>
+          <button onclick="nextTopic()" class="pop-btn bg-blue-600 hover:bg-blue-700 text-white font-extrabold px-6 py-3 rounded-2xl shadow-md text-sm flex items-center gap-2">
+            <span>次の問題へ進む</span>
+            <span>➔</span>
+          </button>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <script>
+    // Helper function to render formal LaTeX math via KaTeX
+    function renderMath(el = document.body) {
+      if (window.renderMathInElement) {
+        window.renderMathInElement(el, {
+          delimiters: [
+            { left: '$$', right: '$$', display: true },
+            { left: '$', right: '$', display: false }
+          ],
+          throwOnError: false
+        });
+      }
+    }
+
+    // =========================================================================
+    // DATA FOR ALL 12 QUESTIONS (Simulators + Concept & Practice Quizzes)
+    // =========================================================================
+    const TOPICS = [
+      {
+        id: 1,
+        badge: "問1",
+        title: "根号（ルート）の展開",
+        shortTitle: "根号の展開",
+        icon: "🟦",
+        mistake: "$(a + b)^2$ を計算するときに、$a^2 + b^2$ だけで終わらせてしまい、真ん中の「$2ab$」を忘れてしまう。",
+        essence: "2乗は「正方形の面積」！タテもヨコも $(a + b)$ に伸びると、角に「$a \\times b$ の長方形」が2つ生まれるから「$+ 2ab$」が絶対に必要になります。",
+        owlTip: "正方形の図で「$a^2 + b^2$ だけ」にしたとき、どこにスキマが空くかスイッチを切り替えて見てごらん！",
+        quizzes: [
+          {
+            type: "なぜ？理解",
+            q: "$(\\sqrt{5} + \\sqrt{2})^2$ を展開するとき、$5 + 2 = 7$ だけでは間違いになります。なぜ「$2\\sqrt{10}$」を足す必要があるのでしょうか？",
+            options: [
+              "タテ $(\\sqrt{5}+\\sqrt{2}) \\times$ ヨコ $(\\sqrt{5}+\\sqrt{2})$ の正方形を作ると、$\\sqrt{5}\\times\\sqrt{2}$ の長方形が2つ分できるから",
+              "根号の足し算では、必ず後ろに2倍した数をくっつける決まりがあるから",
+              "$\\sqrt{5}$ と $\\sqrt{2}$ を足すと $\\sqrt{7}$ になり、それを2乗すると $2\\sqrt{10}$ になるから"
+            ],
+            correct: 0,
+            hint: "実験ラボの正方形の4つの部屋（左上・右下・右上・左下）を思い出してみよう！",
+            explanation: "正解！$(a+b)^2$ は $(a+b)\\times(a+b)$ なので、$a^2$ と $b^2$ のほかに、右上と左下に $a\\times b$（ここでは $\\sqrt{5}\\times\\sqrt{2}=\\sqrt{10}$）が2つ分生まれます。"
+          },
+          {
+            type: "なぜ？理解",
+            q: "$(\\sqrt{6} - \\sqrt{2})^2$ を展開したときの「真ん中の項（$2ab$ の部分）」の符号と値はどうなりますか？",
+            options: [
+              "$+2\\sqrt{12}$ になる",
+              "$-2\\sqrt{12}$ になる",
+              "$-\\sqrt{8}$ になる"
+            ],
+            correct: 1,
+            hint: "$(a - b)^2 = a^2 - 2ab + b^2$ です。$\\sqrt{6} \\times \\sqrt{2} = \\sqrt{6 \\times 2}$ と根号の中身を掛け算します。",
+            explanation: "正解！真ん中は $-2 \\times \\sqrt{6} \\times \\sqrt{2} = -2\\sqrt{12}$ です。なお、最後の $(-\\sqrt{2})^2$ はマイナス×マイナスなので $+2$ になります。"
+          },
+          {
+            type: "実践チェック",
+            q: "【類題1】$(\\sqrt{5} + \\sqrt{2})^2 - 2\\sqrt{10}$ を計算すると、答えはいくつになりますか？",
+            options: [
+              "$7$",
+              "$7 - 2\\sqrt{10}$",
+              "$3$"
+            ],
+            correct: 0,
+            hint: "カッコを展開すると「$5 + 2\\sqrt{10} + 2$」になります。後ろにある「$- 2\\sqrt{10}$」と合わせると…？",
+            explanation: "大正解！$(\\sqrt{5} + \\sqrt{2})^2 = 5 + 2\\sqrt{10} + 2$ なので、後ろの $-2\\sqrt{10}$ とちょうど打ち消し合って $5 + 2 = 7$ だけが残ります！"
+          },
+          {
+            type: "実践チェック",
+            q: "【類題3】$(\\sqrt{6} - \\sqrt{2})^2 + 2\\sqrt{12}$ を計算すると、答えはいくつになりますか？",
+            options: [
+              "$4$",
+              "$8$",
+              "$8 + 4\\sqrt{12}$"
+            ],
+            correct: 1,
+            hint: "$(\\sqrt{6} - \\sqrt{2})^2$ を展開すると「$6 - 2\\sqrt{12} + 2$」です。最後の $+2$ がプラスになることに注意！",
+            explanation: "バッチリ！$6 - 2\\sqrt{12} + 2 + 2\\sqrt{12}$ となり、真ん中の $-2\\sqrt{12}$ と $+2\\sqrt{12}$ が消えて $6 + 2 = 8$ になります。"
+          }
+        ]
+      },
+      {
+        id: 2,
+        badge: "問2",
+        title: "置き換えによる因数分解",
+        shortTitle: "置き換え因数分解",
+        icon: "📦",
+        mistake: "置き換えた文字 $t$ のまま $(t-2)(t-3)$ で答えを終えてしまう。または最初から無理に全部展開して計算ミスをする。",
+        essence: "同じ形のカッコ $(x+1)$ が何度も出てきたら、1つの「箱 $t$」に詰めると見慣れた簡単な二次式に変身します。最後は必ず箱を開けて $x$ に戻します！",
+        owlTip: "$t$ は私たちが計算をラクにするために勝手に借りた箱だよ。テストの解答欄には元の $x$ に戻して返そうね！",
+        quizzes: [
+          {
+            type: "なぜ？理解",
+            q: "$(x + 3)^2 - 7(x + 3) + 10$ を因数分解するとき、いきなり $(x + 3)^2$ を展開せずに「$t = x + 3$」と置き換える一番のメリットは何ですか？",
+            options: [
+              "式全体の構造が「$t^2 - 7t + 10$」というシンプルな二次式になり、足して $-7$・掛けて $10$ のペアをすぐ見つけられるから",
+              "$t$ に置き換えると、最後に $x$ に戻さなくても正解になるから",
+              "展開すると答えが変わってしまうから"
+            ],
+            correct: 0,
+            hint: "ごちゃごちゃした塊を1つの箱にすると、見た目がどう変わるかな？",
+            explanation: "その通り！塊を1つの文字 $t$ にすることで、普段やり慣れている $t^2 - 7t + 10 = (t - 5)(t - 2)$ の形が一目で見抜けるようになります。"
+          },
+          {
+            type: "なぜ？理解",
+            q: "$(x + 1)^2 - 5(x + 1) + 6$ で $t = x + 1$ と置いて $(t - 2)(t - 3)$ までできました。ここから最後に行う作業として正しいものはどれ？",
+            options: [
+              "$t = 2, 3$ と答える",
+              "$t$ の場所に「$x + 1$」を戻して、$(x + 1 - 2)(x + 1 - 3)$ を計算する",
+              "$t$ をそのまま $x$ に書き換えて $(x - 2)(x - 3)$ とする"
+            ],
+            correct: 1,
+            hint: "箱 $t$ の中身はただの「$x$」ではなく「$x + 1$」でした！",
+            explanation: "正解！$t$ の中身は「$x + 1$」なので、$t$ の場所に $x + 1$ を代入し、$(x + 1 - 2)(x + 1 - 3) = (x - 1)(x - 2)$ と整理します。"
+          },
+          {
+            type: "実践チェック",
+            q: "【類題2】$(x + 3)^2 - 7(x + 3) + 10$ を因数分解するとどうなりますか？",
+            options: [
+              "$(x - 5)(x - 2)$",
+              "$(x - 2)(x + 1)$",
+              "$(x + 8)(x + 5)$"
+            ],
+            correct: 1,
+            hint: "$t = x + 3$ と置くと $(t - 5)(t - 2)$。それぞれの $t$ に「$x + 3$」を戻してみよう！",
+            explanation: "大正解！$(t - 5)(t - 2)$ の $t$ に $x + 3$ を戻すと、$(x + 3 - 5)(x + 3 - 2) = (x - 2)(x + 1)$ となります！"
+          },
+          {
+            type: "実践チェック",
+            q: "【類題3】$(x - 2)^2 + 5(x - 2) + 6$ を因数分解するとどうなりますか？",
+            options: [
+              "$x(x + 1)$",
+              "$(x + 2)(x + 3)$",
+              "$(x - 2)(x + 1)$"
+            ],
+            correct: 0,
+            hint: "$t = x - 2$ と置くと $(t + 2)(t + 3)$ です。$t$ に「$x - 2$」を戻すと、最初のカッコはどうなるかな？",
+            explanation: "素晴らしい！$(x - 2 + 2)(x - 2 + 3) = x(x + 1)$ です。$(x + 0)$ はただの $x$ と書くのがポイントです！"
+          }
+        ]
+      },
+      {
+        id: 3,
+        badge: "問3",
+        title: "二次方程式の解き方",
+        shortTitle: "二次方程式",
+        icon: "⚖️",
+        mistake: "$(2x - 1)(x - 3) = 0$ から解を出すときに符号を間違えて $x = -3$ にしたり、解を1つだけ書いて満足してしまう。",
+        essence: "「$A \\times B = 0$」が成り立つのは「$A$ が $0$ になるとき」または「$B$ が $0$ になるとき」の2つのチャンスがあるから！それぞれのカッコを $0$ にする $x$ を探します。",
+        owlTip: "掛け算して $0$ になるには、左のカッコか右のカッコのどっちかが $0$ になればOK！だから答えが2つ出てくるんだね。",
+        quizzes: [
+          {
+            type: "なぜ？理解",
+            q: "$(2x - 1)(x - 3) = 0$ という式から「$2x - 1 = 0$ または $x - 3 = 0$」と考えられるのはなぜですか？",
+            options: [
+              "2つの数を掛けて $0$ になるのは、少なくともどちらか片方が $0$ のときだけだから",
+              "カッコを外すときはいつでも $= 0$ をつけてよいルールだから",
+              "$x$ にはどんな数字を入れても $0$ になるから"
+            ],
+            correct: 0,
+            hint: "「$\\square \\times \\triangle = 0$」になるとき、$\\square$ か $\\triangle$ のどちらかは必ずどんな数になるかな？",
+            explanation: "その通り！掛け算の結果が $0$ になるのは「左側が $0$」または「右側が $0$」のときです。だから2つの一次方程式に分けて解くことができます。"
+          },
+          {
+            type: "なぜ？理解",
+            q: "$(2x - 3)(x + 2) = 0$ のとき、解の符号が「$x = \\dfrac{3}{2}, -2$」とカッコの中の符号（$-3, +2$）と逆になるのはなぜ？",
+            options: [
+              "カッコの中身を「$0$」にするためには、足し引きして打ち消す逆の符号の数を入れる必要があるから",
+              "二次方程式では最後に必ずマイナスを掛ける決まりだから",
+              "たすき掛けをするときに符号が反転するから"
+            ],
+            correct: 0,
+            hint: "「$x + 2$」を $0$ にしたいとき、$x$ に何を入れると $0$ になるか考えてみよう！",
+            explanation: "正解！たとえば $x + 2 = 0$ を満たすには、$+2$ を打ち消すために $x = -2$ が必要になります。$2x - 3 = 0$ なら $2x = 3 \\rightarrow x = \\dfrac{3}{2}$ です。"
+          },
+          {
+            type: "実践チェック",
+            q: "【類題2】$3x^2 + 2x - 1 = 0$ を因数分解して解くと、解はどうなりますか？",
+            options: [
+              "$x = -1, \\dfrac{1}{3}$",
+              "$x = 1, -\\dfrac{1}{3}$",
+              "$x = -1, 3$"
+            ],
+            correct: 0,
+            hint: "因数分解すると $(3x - 1)(x + 1) = 0$ になります。それぞれのカッコが $0$ になる $x$ は？",
+            explanation: "大正解！$3x - 1 = 0$ より $x = \\dfrac{1}{3}$、$x + 1 = 0$ より $x = -1$ となります。"
+          },
+          {
+            type: "実践チェック",
+            q: "【類題5】$4x^2 - 4x - 3 = 0$ の解として正しいものはどれですか？",
+            options: [
+              "$x = \\dfrac{3}{2}, -\\dfrac{1}{2}$",
+              "$x = -\\dfrac{3}{2}, \\dfrac{1}{2}$",
+              "$x = \\dfrac{3}{4}, -\\dfrac{1}{4}$"
+            ],
+            correct: 0,
+            hint: "$4x^2$ は $2x$ と $2x$ に分けられます。$(2x - 3)(2x + 1) = 0$ を解いてみよう！",
+            explanation: "バッチリ！$(2x - 3)(2x + 1) = 0$ となるので、$2x = 3$ から $x = \\dfrac{3}{2}$、$2x = -1$ から $x = -\\dfrac{1}{2}$ です。"
+          }
+        ]
+      },
+      {
+        id: 4,
+        badge: "問4",
+        title: "絶対値を含む方程式",
+        shortTitle: "絶対値と距離",
+        icon: "📏",
+        mistake: "$|x - 2| = 4$ を解くときに「$x - 2 = 4$」の片方しか考えず、もう1つの解（$x - 2 = -4$）を落としてしまう。",
+        essence: "絶対値は「数直線での距離（歩数）」！ある地点から「距離が $4$ の場所」を探すと、右側に $4$ 歩進んだ場所と、左側に $4$ 歩戻った場所の【2か所】あります。",
+        owlTip: "数直線で基準の場所から「右へ進む」のと「左へ進む」の2つの矢印をイメージすると、絶対に片方を忘れなくなるよ！",
+        quizzes: [
+          {
+            type: "なぜ？理解",
+            q: "$|x - 4| = 3$ という式は、数直線上ではどのような意味を表していますか？",
+            options: [
+              "数直線上で、点 $4$ からの距離が $3$ である場所 $x$ を探すという意味",
+              "$x$ から $4$ を引くと必ずプラスの $3$ になるという意味",
+              "$0$ から $4$ までの距離を $3$ 倍するという意味"
+            ],
+            correct: 0,
+            hint: "絶対値記号 $|A|$ は「距離」を表します。$x = 4$ のとき中身が $0$（スタート地点）になります。",
+            explanation: "大正解！$|x - 4| = 3$ は「基準点 $4$ から右に $3$ 歩（$x=7$）と左に $3$ 歩（$x=1$）の場所」を探すことと同じです。"
+          },
+          {
+            type: "なぜ？理解",
+            q: "もし「$|x - 2| = -5$」という問題があったら、実数解はどうなりますか？",
+            options: [
+              "距離がマイナスになることはあり得ないので、「解なし」になる",
+              "$x - 2 = -5$ を解いて $x = -3$ になる",
+              "$x = 7$ と $x = -3$ の2つになる"
+            ],
+            correct: 0,
+            hint: "絶対値は「距離」です。「距離が $-5\\text{ m}$」ということはあり得るかな？",
+            explanation: "素晴らしい！絶対値は距離なので必ず $0$ 以上になります。右辺が負の数なら、計算するまでもなく「解なし」とわかります。"
+          },
+          {
+            type: "実践チェック",
+            q: "【類題1】$|x - 2| = 4$ を解くと、$x$ の値はどうなりますか？",
+            options: [
+              "$x = 6$ のみ",
+              "$x = 6, -2$",
+              "$x = 2, -6$"
+            ],
+            correct: 1,
+            hint: "基準点 $2$ から「$+4$（右へ $4$）」と「$-4$（左へ $4$）」の2通り（$x - 2 = \\pm 4$）を計算しよう！",
+            explanation: "正解！$x - 2 = 4$ より $x = 6$、$x - 2 = -4$ より $x = -2$ の2つが答えです。"
+          },
+          {
+            type: "実践チェック",
+            q: "【類題2】$|2x + 3| = 7$ を解くと、$x$ の値はどうなりますか？",
+            options: [
+              "$x = 2, -5$",
+              "$x = 2, -2$",
+              "$x = 5, -2$"
+            ],
+            correct: 0,
+            hint: "中身「$2x + 3$」が「$+7$」になるときと、「$-7$」になるときの2つの方程式を立てて解こう！",
+            explanation: "バッチリ！$2x + 3 = 7 \\rightarrow 2x = 4 \\rightarrow x = 2$。もう1つは $2x + 3 = -7 \\rightarrow 2x = -10 \\rightarrow x = -5$ です！"
+          }
+        ]
+      },
+      {
+        id: 5,
+        badge: "問5",
+        title: "平方完成と頂点・最小値",
+        shortTitle: "平方完成と頂点",
+        icon: "🎢",
+        mistake: "$y = (x - 3)^2 - 4$ の頂点を、見た目のまま「$(-3, -4)$」と読んでしまう。また平方完成で半分にした数の2乗を引き忘れる。",
+        essence: "2乗した塊 $(x - 3)^2$ は絶対にマイナスにならず、一番小さくて「$0$」です。この塊が「$0$」になる瞬間（つまり $x = +3$ のとき！）に $y$ が一番低い底（頂点 $-4$）になります。",
+        owlTip: "「なぜ $(x - 3)^2$ の頂点の $x$ は $+3$ なの？」と迷ったら、「カッコの中を $0$ にするには $x$ に何を入れればいい？」と考えてごらん！",
+        quizzes: [
+          {
+            type: "なぜ？理解",
+            q: "$y = (x - 3)^2 - 4$ のグラフの頂点の $x$ 座標が「$-3$」ではなく「$+3$」になる理由として、最も正しいものはどれですか？",
+            options: [
+              "$(x - 3)^2$ は2乗なので $0$ 以上にしかならず、$x = 3$ のときに $(x - 3)^2$ が最小の $0$ になってグラフの一番底（頂点）になるから",
+              "頂点の座標を書くときは、すべての数字のプラス・マイナスを逆にする決まりだから",
+              "$x$ に $0$ を代入すると $3$ になるから"
+            ],
+            correct: 0,
+            hint: "実験ラボで $x$ をいろいろ動かしたとき、$(x - 3)^2$ が一番小さくなる（$0$ になる）のは $x$ がいくつのときだったかな？",
+            explanation: "大正解！2乗の部分は $0$ 以上なので、ここが $0$ になる $x = 3$ のときに $y$ は最小値 $-4$（頂点）をとります。だから横座標は $+3$ で、縦座標はそのまま $-4$ なのです！"
+          },
+          {
+            type: "なぜ？理解",
+            q: "$x^2 - 6x$ を平方完成するとき、$(x - 3)^2$ の後ろに「$- 9$」をつける（$x^2 - 6x = (x - 3)^2 - 9$ とする）のはなぜですか？",
+            options: [
+              "$(x - 3)^2$ を展開すると $x^2 - 6x + 9$ になり、勝手に出てきた余分な「$+ 9$」を引いて元の式とイコールにするため",
+              "$-6$ と $-3$ を足すと $-9$ になるから",
+              "いつでも後ろから $9$ を引く公式だから"
+            ],
+            correct: 0,
+            hint: "$(x - 3)^2$ を展開した式と、元の「$x^2 - 6x$」を見比べてみよう。何が余分に増えているかな？",
+            explanation: "その通り！$(x - 3)^2 = x^2 - 6x + 9$ なので、元の $x^2 - 6x$ と同じ値に保つために、余分な $+9$ を引き算（$-9$）して調整しています。"
+          },
+          {
+            type: "実践チェック",
+            q: "【類題1】$y = x^2 - 4x + 1$ を平方完成したときの「頂点の座標」と「最小値」はどれですか？",
+            options: [
+              "頂点 $(2, -3)$、最小値 $-3$",
+              "頂点 $(-2, -3)$、最小値 $-3$",
+              "頂点 $(2, 1)$、最小値 $1$"
+            ],
+            correct: 0,
+            hint: "$-4$ の半分は $-2$ なので、$y = (x - 2)^2 - 4 + 1 = (x - 2)^2 - 3$ になります！",
+            explanation: "正解！$y = (x - 2)^2 - 3$ となるので、カッコの中が $0$ になる $x = 2$ のとき、最小値 $-3$（頂点 $(2, -3)$）になります。"
+          },
+          {
+            type: "実践チェック",
+            q: "【類題2】$y = x^2 + 6x + 5$ の頂点の座標と最小値はどれですか？",
+            options: [
+              "頂点 $(3, -4)$、最小値 $-4$",
+              "頂点 $(-3, -4)$、最小値 $-4$",
+              "頂点 $(-3, 5)$、最小値 $5$"
+            ],
+            correct: 1,
+            hint: "$+6$ の半分は $+3$ なので、$y = (x + 3)^2 - 9 + 5 = (x + 3)^2 - 4$ です。$(x + 3)$ が $0$ になる $x$ は？",
+            explanation: "バッチリ！$y = (x + 3)^2 - 4$ なので、$x + 3 = 0$ となる $x = -3$ で最小値 $-4$、頂点は $(-3, -4)$ です！"
+          }
+        ]
+      },
+      {
+        id: 6,
+        badge: "問6",
+        title: "二次関数とx軸の交点",
+        shortTitle: "二次関数とx軸",
+        icon: "⚓",
+        mistake: "$x$ 軸との交点の座標を聞かれているのに、「$x = 1, 3$」と $x$ の値だけ書いてしまい、座標「$(1, 0), (3, 0)$」の形で書かない。",
+        essence: "「$x$ 軸の上にある点」は、どこであっても高さ $y$ が「$0$」です！だから式に $y = 0$ を代入して $x$ を求め、最後に点の住所「$(x, 0)$」として答えます。",
+        owlTip: "$x$ 軸は「海面（高さ $0\\text{ m}$）」と同じ！海面とぶつかる場所を探すから $y = 0$ にするんだよ。",
+        quizzes: [
+          {
+            type: "なぜ？理解",
+            q: "二次関数 $y = x^2 - 4x + 3$ のグラフと「$x$ 軸との交点」を求めるとき、最初に「$y = 0$」を代入するのはなぜですか？",
+            options: [
+              "$x$ 軸上にあるすべての点は、高さ（$y$ 座標）が $0$ だから",
+              "二次関数ではいつも $y$ を $0$ にすると計算が簡単になるから",
+              "頂点の $y$ 座標が $0$ だから"
+            ],
+            correct: 0,
+            hint: "$x$ 軸の上にある点 $(1, 0)$ や $(3, 0)$ に共通している $y$ の値はいくつかな？",
+            explanation: "大正解！$x$ 軸というのは「$y = 0$ の直線（高さ $0$ のライン）」のことです。だからグラフが $x$ 軸と交わる場所では必ず $y = 0$ になります。"
+          },
+          {
+            type: "なぜ？理解",
+            q: "「$x$ 軸との交点の座標を求めなさい」という問題で、$x^2 - 5x + 6 = 0$ を解いて $x = 2, 3$ と出ました。解答欄にはどう書くべきですか？",
+            options: [
+              "$(2, 0), (3, 0)$",
+              "$(2, 3)$",
+              "$x = 2, 3$"
+            ],
+            correct: 0,
+            hint: "2つの交点をそれぞれの「$(x\\text{座標}, y\\text{座標})$」のセットで書こう！$(2, 3)$ だと1つの別の点になってしまいます。",
+            explanation: "重要ポイント！「$x = 2$ で $y = 0$ の点」と「$x = 3$ で $y = 0$ の点」の2か所で交わるので、$(2, 0), (3, 0)$ と書きます。"
+          },
+          {
+            type: "実践チェック",
+            q: "【類題2】放物線 $y = x^2 + x - 6$ と $x$ 軸の交点の座標はどれですか？",
+            options: [
+              "$(-3, 0), (2, 0)$",
+              "$(3, 0), (-2, 0)$",
+              "$(-3, 2)$"
+            ],
+            correct: 0,
+            hint: "$x^2 + x - 6 = 0$ を因数分解すると $(x + 3)(x - 2) = 0$ です！",
+            explanation: "正解！$(x + 3)(x - 2) = 0$ より $x = -3, 2$ なので、交点の座標は $(-3, 0), (2, 0)$ です。"
+          },
+          {
+            type: "実践チェック",
+            q: "【類題3】放物線 $y = x^2 - 4$ と $x$ 軸の交点の座標はどれですか？",
+            options: [
+              "$(-2, 0), (2, 0)$",
+              "$(0, -4), (0, 4)$",
+              "$(4, 0), (-4, 0)$"
+            ],
+            correct: 0,
+            hint: "$y = 0$ と置くと $x^2 - 4 = 0$、つまり $(x + 2)(x - 2) = 0$ になります！",
+            explanation: "バッチリ！$x^2 = 4$ より $x = -2, 2$ なので、交点の座標は $(-2, 0), (2, 0)$ です。"
+          }
+        ]
+      },
+      {
+        id: 7,
+        badge: "問7",
+        title: "集合の要素の個数（和集合）",
+        shortTitle: "集合と倍数",
+        icon: "🟢",
+        mistake: "「$3$ の倍数または $5$ の倍数」の個数を求めるとき、$3$ の倍数の個数と $5$ の倍数の個数を足しただけで終わり、両方に重なる「$15$ の倍数」を引き忘れる。",
+        essence: "$A \\cup B$（$3$ の倍数または $5$ の倍数）を別々に数えて足すと、真ん中の $A \\cap B$（両方に入る公倍数）にスタンプが2回押されて【2重カウント】になります。だから最後に1回分引きます！",
+        owlTip: "「$4$ の倍数または $6$ の倍数」のときは、重なる部分が「$4\\times 6=24$ の倍数」ではなく「最小公倍数の $12$ の倍数」になることにも気をつけよう！",
+        quizzes: [
+          {
+            type: "なぜ？理解",
+            q: "$1$ から $30$ までの整数のうち「$3$ または $5$ の倍数」の個数を求めるとき、$10\\text{個} + 6\\text{個}$ から「$15$ の倍数の $2\\text{個}$」を引くのはなぜですか？",
+            options: [
+              "$15$ と $30$ は「$3$ の倍数」でも「$5$ の倍数」でも数えられており、2回ダブって数えてしまっているから1回分減らすため",
+              "$15$ の倍数は条件に当てはまらないので全部取り除くため",
+              "「または」という言葉があるときは必ず引き算をする決まりだから"
+            ],
+            correct: 0,
+            hint: "実験ラボの数字ボードで、$15$ と $30$ のタイルには何個のスタンプが押されていたかな？",
+            explanation: "その通り！$15$ の倍数を丸ごと消すわけではなく、「2回数えてしまったから1回分だけ引いて、ちょうど1回数えた状態にする」のが引き算の意味です。"
+          },
+          {
+            type: "なぜ？理解",
+            q: "「$4$ または $6$ の倍数」の個数を調べるとき、重なって2回数えてしまう数は「何の倍数」ですか？",
+            options: [
+              "$4$ と $6$ の最小公倍数である「$12$ の倍数」",
+              "$4 \\times 6$ である「$24$ の倍数」",
+              "$4 + 6$ である「$10$ の倍数」"
+            ],
+            correct: 0,
+            hint: "$4$ でも割り切れて、$6$ でも割り切れる一番小さい数（最小公倍数）はいくつかな？$12$ はどうだろう？",
+            explanation: "超重要ポイント！$4$ と $6$ の公倍数は $24$ だけでなく「$12, 24, 36\\dots$（$12$ の倍数）」です。掛け算ではなく【最小公倍数】を探すのがコツです！"
+          },
+          {
+            type: "実践チェック",
+            q: "【類題2】$1\\sim 45$ までの自然数のうち、「$3$ または $5$ の倍数」は全部で何個ありますか？",
+            options: [
+              "$24$ 個",
+              "$21$ 個",
+              "$18$ 個"
+            ],
+            correct: 1,
+            hint: "$3$ の倍数は $45 \\div 3 = 15$ 個、$5$ の倍数は $45 \\div 5 = 9$ 個、重なる $15$ の倍数は $45 \\div 15 = 3$ 個です！",
+            explanation: "大正解！$15 + 9 - 3 = 21$ 個です！"
+          },
+          {
+            type: "実践チェック",
+            q: "【類題4】$1\\sim 40$ までの自然数のうち、「$4$ または $6$ の倍数」は全部で何個ありますか？",
+            options: [
+              "$13$ 個",
+              "$15$ 個",
+              "$16$ 個"
+            ],
+            correct: 0,
+            hint: "$4$ の倍数は $10$ 個、$6$ の倍数は $40 \\div 6 = 6$ 個（余り $4$）、重なる「$12$ の倍数」は $40 \\div 12 = 3$ 個（$12, 24, 36$）です！",
+            explanation: "素晴らしい！$10 + 6 - 3 = 13$ 個です。最小公倍数 $12$ の倍数を正しく引けましたね！"
+          }
+        ]
+      },
+      {
+        id: 8,
+        badge: "問8",
+        title: "三角比（sin・cos・tan）",
+        shortTitle: "三角比と辺の向き",
+        icon: "📐",
+        mistake: "角 $\\theta$ の位置が変わったときに「対辺（向かいの辺）」と「隣辺（となりの辺）」を取り違えてしまう。",
+        essence: "最初に「基準の角 $\\theta$ に立つ（目印をつける）」のが鉄則！あなたが角 $\\theta$ に立ったとき、目の前に見える壁が【対辺】、足元の床が【隣辺】、一番長い坂道が【斜辺】です。",
+        owlTip: "三角形がどんな向きに回転していても、「直角の向かい側＝斜辺（一番長い）」「角 $\\theta$ の向かい側＝対辺」の2つを先に見つければ迷わないよ！",
+        quizzes: [
+          {
+            type: "なぜ？理解",
+            q: "直角三角形で三角比を考えるとき、見る角 $\\theta$ の場所が変わっても絶対に変わらない辺はどれですか？",
+            options: [
+              "直角（$90^\\circ$）の向かい側にある一番長い「斜辺」",
+              "角 $\\theta$ の向かい側にある「対辺」",
+              "角 $\\theta$ のとなりにある「隣辺」"
+            ],
+            correct: 0,
+            hint: "実験ラボで角 $\\theta$ の位置を切り替えたとき、名前が変わらなかった一番長い辺はどれだったかな？",
+            explanation: "正解！斜辺は常に「直角の向かい側の一番長い辺」です。一方、対辺と隣辺は「どの角 $\\theta$ から見るか」によって入れ替わります。"
+          },
+          {
+            type: "なぜ？理解",
+            q: "鋭角 $\\theta$ について「$\\sin\\theta = \\dfrac{5}{13}$」とだけ分かっているとき、残りの1辺（隣辺）の長さをどうやって求めますか？",
+            options: [
+              "斜辺が $13$、対辺が $5$ の直角三角形をかいて、三平方の定理（$13^2 - 5^2 = 144$）から隣辺 $= 12$ と求める",
+              "$13 - 5 = 8$ と引き算して隣辺 $= 8$ と求める",
+              "$5 + 13 = 18$ と足し算して求める"
+            ],
+            correct: 0,
+            hint: "直角三角形の2辺が分かれば、三平方の定理 $a^2 + b^2 = c^2$ で残りの辺がわかります！",
+            explanation: "その通り！$\\sin\\theta = \\dfrac{\\text{対辺}}{\\text{斜辺}}$ なので、対辺 $= 5$、斜辺 $= 13$ の直角三角形をイメージし、$\\sqrt{169 - 25} = \\sqrt{144} = 12$ と隣辺を求めます。"
+          },
+          {
+            type: "実践チェック",
+            q: "【類題3】鋭角 $\\theta$ で $\\cos\\theta = \\dfrac{3}{5}$ のとき、$\\sin\\theta$ と $\\tan\\theta$ の値の組み合わせとして正しいものはどれ？",
+            options: [
+              "$\\sin\\theta = \\dfrac{4}{5},\\quad \\tan\\theta = \\dfrac{4}{3}$",
+              "$\\sin\\theta = \\dfrac{4}{5},\\quad \\tan\\theta = \\dfrac{3}{4}$",
+              "$\\sin\\theta = \\dfrac{3}{4},\\quad \\tan\\theta = \\dfrac{4}{5}$"
+            ],
+            correct: 0,
+            hint: "$\\cos\\theta = \\dfrac{\\text{隣辺}}{\\text{斜辺}} = \\dfrac{3}{5}$ なので、隣辺 $= 3$、斜辺 $= 5$ です。$3:4:5$ の直角三角形だから対辺は $4$！",
+            explanation: "大正解！対辺 $= 4$、隣辺 $= 3$、斜辺 $= 5$ なので、$\\sin\\theta = \\dfrac{\\text{対辺}}{\\text{斜辺}} = \\dfrac{4}{5}$、$\\tan\\theta = \\dfrac{\\text{対辺}}{\\text{隣辺}} = \\dfrac{4}{3}$ となります。"
+          },
+          {
+            type: "実践チェック",
+            q: "【類題5】鋭角 $\\theta$ で $\\tan\\theta = \\dfrac{3}{4}$ のとき、$\\sin\\theta$ と $\\cos\\theta$ の組み合わせとして正しいものはどれ？",
+            options: [
+              "$\\sin\\theta = \\dfrac{3}{5},\\quad \\cos\\theta = \\dfrac{4}{5}$",
+              "$\\sin\\theta = \\dfrac{4}{5},\\quad \\cos\\theta = \\dfrac{3}{5}$",
+              "$\\sin\\theta = \\dfrac{3}{4},\\quad \\cos\\theta = \\dfrac{4}{3}$"
+            ],
+            correct: 0,
+            hint: "$\\tan\\theta = \\dfrac{\\text{対辺}}{\\text{隣辺}} = \\dfrac{3}{4}$ です。対辺 $= 3$、隣辺 $= 4$ なので、斜辺は $\\sqrt{3^2+4^2} = 5$ です！",
+            explanation: "バッチリ！斜辺が $5$ とわかるので、$\\sin\\theta = \\dfrac{\\text{対辺}}{\\text{斜辺}} = \\dfrac{3}{5}$、$\\cos\\theta = \\dfrac{\\text{隣辺}}{\\text{斜辺}} = \\dfrac{4}{5}$ です。"
+          }
+        ]
+      },
+      {
+        id: 9,
+        badge: "問9",
+        title: "相似な図形の相似比と面積比",
+        shortTitle: "相似比と面積比",
+        icon: "🔍",
+        mistake: "相似比が $2 : 3$ のとき、面積もそのまま $2 : 3$ だと勘違いして $16 \\times \\dfrac{3}{2}$ と計算してしまう。",
+        essence: "面積は「タテ $\\times$ ヨコ」の掛け算！長さが $k$ 倍になると、タテも $k$ 倍・ヨコも $k$ 倍になるから、面積は「$k \\times k = k^2$ 倍（2乗の比）」になります。",
+        owlTip: "長さが $2$ 倍のピザを注文したら、タテも $2$ 倍・ヨコも $2$ 倍で、量は $2\\times 2=4$ 枚分になるよ！だから面積比は2乗するんだね。",
+        quizzes: [
+          {
+            type: "なぜ？理解",
+            q: "相似比が $2 : 5$ の2つの図形があるとき、面積の比が「$2 : 5$」ではなく「$2^2 : 5^2 = 4 : 25$」になるのはなぜですか？",
+            options: [
+              "面積は「タテ $\\times$ ヨコ（底辺 $\\times$ 高さ）」で決まるため、タテが $\\dfrac{5}{2}$ 倍・ヨコも $\\dfrac{5}{2}$ 倍になると面積は $\\dfrac{5}{2}\\times\\dfrac{5}{2} = \\dfrac{25}{4}$ 倍（$4:25$）になるから",
+              "図形の問題ではいつも数字を2乗するルールがあるから",
+              "周の長さも $4 : 25$ になるから"
+            ],
+            correct: 0,
+            hint: "実験ラボで長さを $2$ 倍・$3$ 倍にしたとき、中に敷き詰められる正方形タイルの数はどう増えたかな？",
+            explanation: "大正解！長さ（1次元）が $k$ 倍になると、面積（2次元：タテ $\\times$ ヨコ）は $k \\times k = k^2$ 倍になります。"
+          },
+          {
+            type: "なぜ？理解",
+            q: "相似比が $2 : 3$ で、小さい方の面積が $16\\text{ cm}^2$ のとき、大きい方の面積を求める正しい式はどれですか？",
+            options: [
+              "面積比は $2^2 : 3^2 = 4 : 9$ なので、$16 \\times \\dfrac{9}{4}$ を計算する",
+              "相似比が $2 : 3$ なので、$16 \\times \\dfrac{3}{2}$ を計算する",
+              "面積比は $4 : 9$ なので、$16 \\times \\dfrac{4}{9}$ を計算する"
+            ],
+            correct: 0,
+            hint: "まず面積比 $4 : 9$ を出し、小さい方（$4$）から大きい方（$9$）へ拡大するので $\\dfrac{9}{4}$ 倍します！",
+            explanation: "その通り！面積比 $4 : 9$ を使い、$16 \\times \\dfrac{9}{4} = 36\\text{ cm}^2$ と求めます。"
+          },
+          {
+            type: "実践チェック",
+            q: "【類題2】相似比が $1 : 4$ の2つの相似な図形で、小さい図形の面積が $5\\text{ cm}^2$ のとき、大きい図形の面積は？",
+            options: [
+              "$20\\text{ cm}^2$",
+              "$80\\text{ cm}^2$",
+              "$40\\text{ cm}^2$"
+            ],
+            correct: 1,
+            hint: "相似比 $1 : 4 \\rightarrow$ 面積比は $1^2 : 4^2 = 1 : 16$ です！$5\\text{ cm}^2$ の $16$ 倍は？",
+            explanation: "正解！面積は $16$ 倍になるので、$5 \\times 16 = 80\\text{ cm}^2$ です。"
+          },
+          {
+            type: "実践チェック",
+            q: "【類題3】相似比が $3 : 5$ で、小さい図形の面積が $18\\text{ cm}^2$ のとき、大きい図形の面積は？",
+            options: [
+              "$30\\text{ cm}^2$",
+              "$50\\text{ cm}^2$",
+              "$45\\text{ cm}^2$"
+            ],
+            correct: 1,
+            hint: "面積比は $3^2 : 5^2 = 9 : 25$ です。$9$ にあたる面積が $18\\text{ cm}^2$（ちょうど $2$ 倍！）なので、$25$ にあたる面積は？",
+            explanation: "バッチリ！$18 \\times \\dfrac{25}{9} = 2 \\times 25 = 50\\text{ cm}^2$ です！"
+          }
+        ]
+      },
+      {
+        id: 10,
+        badge: "問10",
+        title: "確率（玉を戻さずに2回引く）",
+        shortTitle: "確率：戻さず2回",
+        icon: "🎱",
+        mistake: "「戻さずに続けて引く」のに2回目の分母も1回目と同じにしてしまう。また「異なる色が出る」で片方の順番（赤 $\\rightarrow$ 青だけ）しか計算しない。",
+        essence: "1個引いて外に置いたままにするので、2回目は【袋の中の全体の数が $1$ 個減り、引いた色の玉も $1$ 個減る】のがポイント！さらに「赤 $\\rightarrow$ 青」と「青 $\\rightarrow$ 赤」の2つのルートを足します。",
+        owlTip: "実験ラボで1個引いたあとの袋の中を見てごらん！玉が $1$ 個減っているから分母も $1$ 小さくなるんだね。",
+        quizzes: [
+          {
+            type: "なぜ？理解",
+            q: "赤玉 $3$ 個・青玉 $2$ 個（計 $5$ 個）入った袋から、玉を「戻さずに」2個続けて引くとき、2回目の確率の分母が「$5$」ではなく「$4$」になるのはなぜ？",
+            options: [
+              "1回目に引いた玉を袋に戻さないため、2回目を引くときには袋の中に玉が $4$ 個しか残っていないから",
+              "確率の問題では2回目は必ず分母を $1$ 減らす公式だから",
+              "青玉が $2$ 個しかないから"
+            ],
+            correct: 0,
+            hint: "$5$ 個あった袋から $1$ 個取り出して手元に置いたら、袋の中には何個残っているかな？",
+            explanation: "大正解！当たり前のことのようですが、式を立てるときにうっかり $\\dfrac{3}{5} \\times \\dfrac{2}{5}$ と書いてしまうミスがとても多いので、袋の残りをイメージすることが大切です。"
+          },
+          {
+            type: "なぜ？理解",
+            q: "「1個ずつ2回引いて、2個とも異なる色が出る確率」を求めるとき、（1回目に赤・2回目に青の確率）を $2$ 倍（または足し算）するのはなぜ？",
+            options: [
+              "異なる色になる出方には「1回目赤 $\\rightarrow$ 2回目青」のルートと「1回目青 $\\rightarrow$ 2回目赤」のルートの2通りがあるから",
+              "玉を2回引くから無条件で $2$ 倍する決まりだから",
+              "赤と青の個数が違うから"
+            ],
+            correct: 0,
+            hint: "「色が違うペア」になる順番は「赤 $\\rightarrow$ 青」だけかな？逆の順番はどうだろう？",
+            explanation: "その通り！「赤 $\\rightarrow$ 青」と「青 $\\rightarrow$ 赤」はどちらも同じ確率になり、互いに別々のケースなので2つを足します（同じ値なので $\\times 2$ で計算できます）。"
+          },
+          {
+            type: "実践チェック",
+            q: "【類題1】赤 $2$ 個・青 $3$ 個（計 $5$ 個）から戻さずに2個続けて引くとき、異なる色が出る確率は？",
+            options: [
+              "$\\dfrac{3}{10}$",
+              "$\\dfrac{3}{5}$",
+              "$\\dfrac{6}{25}$"
+            ],
+            correct: 1,
+            hint: "「赤 $\\rightarrow$ 青」は $\\dfrac{2}{5}\\times\\dfrac{3}{4} = \\dfrac{6}{20} = \\dfrac{3}{10}$。「青 $\\rightarrow$ 赤」も $\\dfrac{3}{5}\\times\\dfrac{2}{4} = \\dfrac{3}{10}$。この2つを合わせると？",
+            explanation: "正解！$\\dfrac{2}{5}\\times\\dfrac{3}{4}\\times 2 = \\dfrac{12}{20} = \\dfrac{3}{5}$ です！"
+          },
+          {
+            type: "実践チェック",
+            q: "【類題2】赤 $4$ 個・青 $2$ 個（計 $6$ 個）から戻さずに2個続けて引くとき、異なる色が出る確率は？",
+            options: [
+              "$\\dfrac{8}{15}$",
+              "$\\dfrac{4}{15}$",
+              "$\\dfrac{4}{9}$"
+            ],
+            correct: 0,
+            hint: "1回目は計 $6$ 個、2回目は計 $5$ 個です。$\\dfrac{4}{6}\\times\\dfrac{2}{5}\\times 2$ を計算して約分しよう！",
+            explanation: "バッチリ！$\\dfrac{4}{6}\\times\\dfrac{2}{5}\\times 2 = \\dfrac{16}{30} = \\dfrac{8}{15}$ となります！"
+          }
+        ]
+      },
+      {
+        id: 11,
+        badge: "問11",
+        title: "三平方の定理",
+        shortTitle: "三平方の定理",
+        icon: "📐",
+        mistake: "どの辺が「斜辺（一番長い辺）」か確かめずに、問題に出てきた2つの数字を何でも2乗して足してしまう。",
+        essence: "直角の向かい側にある「斜辺 $c$」が一番大きなボス！『小さい正方形2つの面積の和 ($a^2 + b^2$) ＝ ボスの正方形の面積 ($c^2$)』なので、短い辺を求めるときは【引き算 ($c^2 - a^2$)】になります。",
+        owlTip: "式を立てる前に「求めたいのは一番長い斜辺？それとも短い辺？」と確認するだけで、足し算と引き算のミスがゼロになるよ！",
+        quizzes: [
+          {
+            type: "なぜ？理解",
+            q: "直角三角形で「斜辺が $10$、他の1辺が $6$」のとき、残りの1辺 $x$ を求めるのに「$10^2 + 6^2$」ではなく「$10^2 - 6^2$」と引き算をするのはなぜ？",
+            options: [
+              "斜辺 $10$ が一番長い辺（$x^2 + 6^2 = 10^2$）であり、合計の $10^2$ から片方の $6^2$ を引くことで残りの $x^2$ が求まるから",
+              "$10$ と $6$ が偶数だから引き算にする決まりだから",
+              "三平方の定理はいつも引き算を使う定理だから"
+            ],
+            correct: 0,
+            hint: "$a^2 + b^2 = c^2$ の「$c$」には必ず一番長い斜辺（ここでは $10$）が入ります！",
+            explanation: "大正解！$x^2 + 6^2 = 10^2$ という関係なので、$x^2$ を求めるには $10^2 - 6^2 = 100 - 36 = 64$ と引き算になり、$x = \\sqrt{64} = 8$ とわかります。"
+          },
+          {
+            type: "なぜ？理解",
+            q: "図形の中でどれが「斜辺 $c$」かを一瞬で見分ける確実な方法はどれですか？",
+            options: [
+              "直角（$90^\\circ$ のマーク）の真っすぐ向かい側にある辺を探す",
+              "図の中で一番下に描かれている水平な辺を選ぶ",
+              "問題文で最後に書かれている数字を選ぶ"
+            ],
+            correct: 0,
+            hint: "直角三角形で一番大きな角（$90^\\circ$）の向かい側にある辺が必ず一番長くなります。",
+            explanation: "その通り！図がどんな向きに描かれていても、「直角の向かい側＝斜辺（最長）」は絶対に変わりません。"
+          },
+          {
+            type: "実践チェック",
+            q: "【類題2】斜辺が $17$、ほかの1辺が $8$ の直角三角形で、残りの辺の長さはいくつですか？",
+            options: [
+              "$15$",
+              "$9$",
+              "$\\sqrt{353}$"
+            ],
+            correct: 0,
+            hint: "求めるのは斜辺ではないので引き算！$17^2 - 8^2 = 289 - 64 = 225$。$\\sqrt{225}$ はいくつ？",
+            explanation: "正解！$\\sqrt{289 - 64} = \\sqrt{225} = 15$ です。（$8 : 15 : 17$ はよく出る直角三角形のトリオです！）"
+          },
+          {
+            type: "実践チェック",
+            q: "【類題3】直角をはさむ2辺が $5$ と $12$ の直角三角形で、斜辺の長さはいくつですか？",
+            options: [
+              "$13$",
+              "$17$",
+              "$\\sqrt{119}$"
+            ],
+            correct: 0,
+            hint: "今回は「斜辺（一番長い辺）」を求めるので足し算！$5^2 + 12^2 = 25 + 144 = 169$ です。",
+            explanation: "バッチリ！$\\sqrt{25 + 144} = \\sqrt{169} = 13$ です！"
+          }
+        ]
+      },
+      {
+        id: 12,
+        badge: "問12",
+        title: "二次関数の最大・最小の応用",
+        shortTitle: "二次関数の最大（図形）",
+        icon: "🪢",
+        mistake: "周の長さが $20\\text{ cm}$ のとき、タテを $x$ と置いてヨコを「$20 - x$」としてしまう（本当は半分の $10 - x$）。また $x$ のとりうる範囲（両方プラス）を確認しない。",
+        essence: "周の長さ（タテ2本＋ヨコ2本）が $20\\text{ cm}$ なら、【タテ1本＋ヨコ1本＝半分の $10\\text{ cm}$】！タテを伸ばすとヨコが縮む関係にあり、ちょうど真ん中（正方形）のときに面積が最大（頂点）になります。",
+        owlTip: "実験ラボでヒモの長方形を動かしてみて！細長いときより、タテとヨコが同じ長さ（正方形）になった瞬間に面積が最大になるよ！",
+        quizzes: [
+          {
+            type: "なぜ？理解",
+            q: "周の長さが $20\\text{ cm}$ の長方形で、縦の長さを $x\\text{ cm}$ としたとき、横の長さが「$(20 - x)\\text{ cm}$」ではなく「$(10 - x)\\text{ cm}$」になるのはなぜ？",
+            options: [
+              "周の $20\\text{ cm}$ は「縦2本＋横2本」の合計なので、「縦1本＋横1本」の合計はその半分の $10\\text{ cm}$ になるから",
+              "二次関数の問題ではいつも数字を半分にする決まりだから",
+              "面積を求めるときに $2$ で割るから"
+            ],
+            correct: 0,
+            hint: "長方形には「縦」が2本、「横」も2本あります。縦1本と横1本だけを足したら何 $\\text{cm}$ になるかな？",
+            explanation: "超重要ポイント！縦＋横＋縦＋横 $= 20\\text{ cm}$ なので、縦＋横 $= 10\\text{ cm}$ です。だから横の長さは $(10 - x)\\text{ cm}$ と表せます。"
+          },
+          {
+            type: "なぜ？理解",
+            q: "縦 $x\\text{ cm}$、横 $(10 - x)\\text{ cm}$ の長方形を作るとき、$x$ の範囲が「$0 < x < 10$」に制限されるのはなぜですか？",
+            options: [
+              "辺の長さである「縦 $x$」も「横 $10 - x$」も、$0$ 以下になると長方形が潰れて存在できなくなる（両方とも正の数である必要がある）から",
+              "$x$ が $10$ を超えると計算が大変になるから",
+              "面積が $10$ 以上にならないといけないから"
+            ],
+            correct: 0,
+            hint: "もし $x = 0$ や $x = 12$ だったら、縦や横の長さは何 $\\text{cm}$ になってしまうかな？",
+            explanation: "正解！図形の辺の長さは必ずプラス（$x > 0$ かつ $10 - x > 0$）なので、$0 < x < 10$ の範囲で考えます。"
+          },
+          {
+            type: "実践チェック",
+            q: "【類題2】周の長さが $28\\text{ cm}$ の長方形をつくるとき、面積の最大値とそのときの縦・横の長さは？",
+            options: [
+              "最大面積 $49\\text{ cm}^2$（縦 $7\\text{ cm} \\times$ 横 $7\\text{ cm}$）",
+              "最大面積 $196\\text{ cm}^2$（縦 $14\\text{ cm} \\times$ 横 $14\\text{ cm}$）",
+              "最大面積 $48\\text{ cm}^2$（縦 $6\\text{ cm} \\times$ 横 $8\\text{ cm}$）"
+            ],
+            correct: 0,
+            hint: "周が $28\\text{ cm}$ なので「縦＋横 $= 14\\text{ cm}$」です。面積 $S = x(14 - x) = -(x - 7)^2 + 49$ となります！",
+            explanation: "大正解！縦＋横 $= 14\\text{ cm}$ で、ちょうど半分の $7\\text{ cm} \\times 7\\text{ cm}$ のときに最大面積 $49\\text{ cm}^2$ になります。"
+          },
+          {
+            type: "実践チェック",
+            q: "【類題4】周の長さが $18\\text{ cm}$ の長方形をつくるとき、面積の最大値とそのときの縦・横の長さは？",
+            options: [
+              "最大面積 $\\dfrac{81}{4}\\text{ cm}^2$（縦 $\\dfrac{9}{2}\\text{ cm} \\times$ 横 $\\dfrac{9}{2}\\text{ cm}$）",
+              "最大面積 $81\\text{ cm}^2$（縦 $9\\text{ cm} \\times$ 横 $9\\text{ cm}$）",
+              "最大面積 $20\\text{ cm}^2$（縦 $4\\text{ cm} \\times$ 横 $5\\text{ cm}$）"
+            ],
+            correct: 0,
+            hint: "周が $18\\text{ cm} \\rightarrow$ 縦＋横 $= 9\\text{ cm} \\rightarrow S = x(9 - x) = -\\left(x - \\dfrac{9}{2}\\right)^2 + \\dfrac{81}{4}$ です！",
+            explanation: "バッチリ！縦 $\\dfrac{9}{2}\\text{ cm} \\times$ 横 $\\dfrac{9}{2}\\text{ cm}$ のときに最大面積 $\\dfrac{81}{4}\\text{ cm}^2$ となります！"
+          }
+        ]
+      }
+    ];
+
+    // =========================================================================
+    // STATE MANAGEMENT
+    // =========================================================================
+    let currentTopicId = 1;
+    let currentTab = 'sim'; // 'sim' or 'quiz'
+    let clearedTopics = JSON.parse(localStorage.getItem('suken_pre2_cleared') || '{}');
+    let quizAnswers = {}; // { topicId: { qIdx: selectedOptionIdx } }
+
+    function saveProgress() {
+      localStorage.setItem('suken_pre2_cleared', JSON.stringify(clearedTopics));
+      updateHeaderProgress();
+      renderNavList();
+    }
+
+    function resetProgress() {
+      clearedTopics = {};
+      quizAnswers = {};
+      localStorage.removeItem('suken_pre2_cleared');
+      updateHeaderProgress();
+      renderNavList();
+      loadTopic(currentTopicId);
+    }
+
+    function updateHeaderProgress() {
+      const count = Object.keys(clearedTopics).filter(k => clearedTopics[k]).length;
+      const pct = Math.round((count / TOPICS.length) * 100);
+      document.getElementById('progressText').textContent = `${count} / ${TOPICS.length} 問クリア`;
+      document.getElementById('progressBar').style.width = `${pct}%`;
+    }
+
+    function renderNavList() {
+      const nav = document.getElementById('navList');
+      nav.innerHTML = TOPICS.map(t => {
+        const isActive = t.id === currentTopicId;
+        const isCleared = !!clearedTopics[t.id];
+        return `
+          <button onclick="loadTopic(${t.id})" class="w-full text-left px-3.5 py-2.5 rounded-2xl transition flex items-center justify-between gap-2 ${
+            isActive
+              ? 'bg-blue-600 text-white font-extrabold shadow-md'
+              : 'bg-slate-50 hover:bg-blue-50 text-slate-700 font-bold border border-slate-200/70'
+          }">
+            <div class="flex items-center gap-2 min-w-0">
+              <span class="text-xs px-2 py-0.5 rounded-lg ${isActive ? 'bg-white/20 text-white' : 'bg-blue-100 text-blue-700'} font-extrabold shrink-0">
+                ${t.badge}
+              </span>
+              <span class="truncate text-xs md:text-sm">${t.shortTitle}</span>
+            </div>
+            <span class="shrink-0 text-sm">${isCleared ? '🌟' : ''}</span>
+          </button>
+        `;
+      }).join('');
+    }
+
+    function switchTab(tab) {
+      currentTab = tab;
+      const simSec = document.getElementById('simSection');
+      const quizSec = document.getElementById('quizSection');
+      const simBtn = document.getElementById('tabSimBtn');
+      const quizBtn = document.getElementById('tabQuizBtn');
+
+      if (tab === 'sim') {
+        simSec.classList.remove('hidden');
+        quizSec.classList.add('hidden');
+        simBtn.className = "flex-1 py-3.5 px-4 rounded-2xl font-extrabold text-sm md:text-base transition flex items-center justify-center gap-2 bg-blue-600 text-white shadow-md";
+        quizBtn.className = "flex-1 py-3.5 px-4 rounded-2xl font-extrabold text-sm md:text-base transition flex items-center justify-center gap-2 bg-white text-slate-600 hover:bg-blue-50 border border-blue-100";
+      } else {
+        simSec.classList.add('hidden');
+        quizSec.classList.remove('hidden');
+        quizBtn.className = "flex-1 py-3.5 px-4 rounded-2xl font-extrabold text-sm md:text-base transition flex items-center justify-center gap-2 bg-amber-500 text-white shadow-md";
+        simBtn.className = "flex-1 py-3.5 px-4 rounded-2xl font-extrabold text-sm md:text-base transition flex items-center justify-center gap-2 bg-white text-slate-600 hover:bg-blue-50 border border-blue-100";
+        renderQuiz(currentTopicId);
+      }
+    }
+
+    function nextTopic() {
+      const nextId = currentTopicId < TOPICS.length ? currentTopicId + 1 : 1;
+      loadTopic(nextId);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function loadTopic(id) {
+      currentTopicId = id;
+      const topic = TOPICS.find(t => t.id === id);
+      document.getElementById('topicBadge').textContent = topic.badge;
+      document.getElementById('topicTitle').textContent = topic.title;
+      document.getElementById('topicMistake').textContent = topic.mistake;
+      document.getElementById('topicEssence').textContent = topic.essence;
+      document.getElementById('owlMessage').textContent = topic.owlTip;
+
+      const clearBadge = document.getElementById('topicClearBadge');
+      if (clearedTopics[id]) {
+        clearBadge.classList.remove('hidden');
+        clearBadge.classList.add('inline-flex');
+      } else {
+        clearBadge.classList.add('hidden');
+        clearBadge.classList.remove('inline-flex');
+      }
+
+      renderNavList();
+      switchTab('sim');
+      renderSimulator(id);
+      renderMath();
+    }
+
+    // =========================================================================
+    // QUIZ RENDERER & INTERACTION
+    // =========================================================================
+    function renderQuiz(topicId) {
+      const topic = TOPICS.find(t => t.id === topicId);
+      if (!quizAnswers[topicId]) quizAnswers[topicId] = {};
+      const userAns = quizAnswers[topicId];
+
+      let correctCount = 0;
+      topic.quizzes.forEach((q, idx) => {
+        if (userAns[idx] === q.correct) correctCount++;
+      });
+
+      const scoreBadge = document.getElementById('quizScoreBadge');
+      scoreBadge.textContent = `現在の正解数: ${correctCount} / ${topic.quizzes.length}`;
+      if (correctCount >= 3) {
+        scoreBadge.className = "bg-emerald-100 text-emerald-800 font-extrabold px-4 py-2 rounded-2xl text-sm";
+      } else {
+        scoreBadge.className = "bg-blue-50 text-blue-700 font-extrabold px-4 py-2 rounded-2xl text-sm";
+      }
+
+      const mount = document.getElementById('quizMount');
+      mount.innerHTML = topic.quizzes.map((q, qIdx) => {
+        const selected = userAns[qIdx];
+        const isAnswered = selected !== undefined;
+        const isCorrect = selected === q.correct;
+
+        return `
+          <div class="rounded-2xl border-2 p-5 transition ${
+            !isAnswered
+              ? 'border-slate-200 bg-slate-50/50'
+              : isCorrect
+              ? 'border-emerald-300 bg-emerald-50/40'
+              : 'border-rose-300 bg-rose-50/40'
+          }">
+            <div class="flex items-center justify-between gap-2 mb-2">
+              <span class="text-xs font-extrabold px-2.5 py-1 rounded-lg ${
+                q.type.includes('なぜ') ? 'bg-indigo-100 text-indigo-700' : 'bg-amber-100 text-amber-800'
+              }">
+                Q${qIdx + 1}・${q.type}
+              </span>
+              <button onclick="toggleHint(${topicId}, ${qIdx})" class="text-xs font-bold text-blue-600 hover:underline flex items-center gap-1">
+                <span>💡 ヒントを見る</span>
+              </button>
+            </div>
+
+            <p class="font-extrabold text-slate-800 text-sm md:text-base mb-3">${q.q}</p>
+
+            <div id="hint-${topicId}-${qIdx}" class="hidden mb-3 bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs text-amber-900 font-medium">
+              💡 <strong>ヒント：</strong>${q.hint}
+            </div>
+
+            <div class="space-y-2">
+              ${q.options.map((opt, oIdx) => {
+                let btnStyle = "bg-white hover:bg-blue-50 border-slate-200 text-slate-700";
+                let icon = "⚪";
+                if (isAnswered) {
+                  if (oIdx === q.correct) {
+                    btnStyle = "bg-emerald-100 border-emerald-400 text-emerald-950 font-extrabold";
+                    icon = "✅";
+                  } else if (oIdx === selected) {
+                    btnStyle = "bg-rose-100 border-rose-400 text-rose-950 font-bold";
+                    icon = "❌";
+                  } else {
+                    btnStyle = "bg-white/60 border-slate-200 text-slate-400";
+                  }
+                }
+                return `
+                  <button onclick="selectQuizOption(${topicId}, ${qIdx}, ${oIdx})" class="w-full text-left p-3.5 rounded-xl border-2 transition flex items-start gap-2.5 text-xs md:text-sm font-bold ${btnStyle}">
+                    <span class="shrink-0">${icon}</span>
+                    <span>${opt}</span>
+                  </button>
+                `;
+              }).join('')}
+            </div>
+
+            ${isAnswered ? `
+              <div class="mt-3 p-3.5 rounded-xl text-xs md:text-sm leading-relaxed ${
+                isCorrect ? 'bg-emerald-100/80 text-emerald-950' : 'bg-rose-100/80 text-rose-950'
+              }">
+                <span class="font-extrabold">${isCorrect ? '🎉 正解！' : '💪 おしい！もう一度確認しよう：'}</span>
+                ${q.explanation}
+              </div>
+            ` : ''}
+          </div>
+        `;
+      }).join('');
+      renderMath(mount);
+    }
+
+    function toggleHint(topicId, qIdx) {
+      const el = document.getElementById(`hint-${topicId}-${qIdx}`);
+      if (el) el.classList.toggle('hidden');
+    }
+
+    function selectQuizOption(topicId, qIdx, oIdx) {
+      if (!quizAnswers[topicId]) quizAnswers[topicId] = {};
+      quizAnswers[topicId][qIdx] = oIdx;
+
+      const topic = TOPICS.find(t => t.id === topicId);
+      let correctCount = 0;
+      topic.quizzes.forEach((q, idx) => {
+        if (quizAnswers[topicId][idx] === q.correct) correctCount++;
+      });
+
+      if (correctCount >= 3) {
+        clearedTopics[topicId] = true;
+        saveProgress();
+        const clearBadge = document.getElementById('topicClearBadge');
+        clearBadge.classList.remove('hidden');
+        clearBadge.classList.add('inline-flex');
+      }
+
+      renderQuiz(topicId);
+    }
+
+    // =========================================================================
+    // INTERACTIVE SIMULATORS FOR ALL 12 QUESTIONS
+    // =========================================================================
+    function renderSimulator(id) {
+      const mount = document.getElementById('simulatorMount');
+      switch (id) {
+        case 1: renderSim1(mount); break;
+        case 2: renderSim2(mount); break;
+        case 3: renderSim3(mount); break;
+        case 4: renderSim4(mount); break;
+        case 5: renderSim5(mount); break;
+        case 6: renderSim6(mount); break;
+        case 7: renderSim7(mount); break;
+        case 8: renderSim8(mount); break;
+        case 9: renderSim9(mount); break;
+        case 10: renderSim10(mount); break;
+        case 11: renderSim11(mount); break;
+        case 12: renderSim12(mount); break;
+      }
+      renderMath(mount);
+    }
+
+    // -------------------------------------------------------------------------
+    // 問1: 根号の展開 (Area Model Visualizer)
+    // -------------------------------------------------------------------------
+    let sim1State = { pairIdx: 0, showMiddle: true };
+    const sim1Pairs = [
+      { a: 3, b: 2, label: "$(\\sqrt{3} + \\sqrt{2})^2$" },
+      { a: 5, b: 2, label: "$(\\sqrt{5} + \\sqrt{2})^2 - 2\\sqrt{10}$", cancel: true },
+      { a: 7, b: 3, label: "$(\\sqrt{7} + \\sqrt{3})^2 - 2\\sqrt{21}$", cancel: true }
+    ];
+
+    function renderSim1(mount) {
+      const p = sim1Pairs[sim1State.pairIdx];
+      const ab = p.a * p.b;
+      const sumSq = p.a + p.b;
+
+      mount.innerHTML = `
+        <div class="space-y-6">
+          <div class="flex flex-wrap items-center justify-between gap-3 bg-blue-50/70 p-4 rounded-2xl border border-blue-100">
+            <div>
+              <span class="text-xs font-extrabold text-blue-600 uppercase">実験テーマ</span>
+              <h3 class="text-base md:text-lg font-extrabold text-slate-800">なぜ $(a + b)^2$ は $a^2 + b^2$ だけではダメなの？正方形の面積で確かめよう！</h3>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              ${sim1Pairs.map((item, idx) => `
+                <button onclick="sim1State.pairIdx=${idx}; renderSim1(document.getElementById('simulatorMount'))" class="px-3 py-1.5 rounded-xl text-xs font-extrabold transition ${
+                  sim1State.pairIdx === idx ? 'bg-blue-600 text-white shadow' : 'bg-white text-slate-600 border border-slate-200'
+                }">${item.label}</button>
+              `).join('')}
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+            <!-- Left Visual Square -->
+            <div class="md:col-span-6 flex flex-col items-center">
+              <div class="text-xs font-bold text-slate-500 mb-2">タテ $(\\sqrt{${p.a}} + \\sqrt{${p.b}}) \\times$ ヨコ $(\\sqrt{${p.a}} + \\sqrt{${p.b}})$ の正方形</div>
+              <div class="w-64 h-64 md:w-72 md:h-72 grid grid-cols-5 grid-rows-5 gap-1.5 p-2 bg-slate-200 rounded-2xl shadow-inner">
+                <!-- a^2 (3x3) -->
+                <div class="col-span-3 row-span-3 bg-blue-500 text-white rounded-xl flex flex-col items-center justify-center p-2 text-center shadow">
+                  <span class="text-xs opacity-90">$(\\sqrt{${p.a}})^2$</span>
+                  <span class="text-2xl font-extrabold mt-1">$= ${p.a}$</span>
+                </div>
+                <!-- ab top-right (2x3) -->
+                <div class="col-span-2 row-span-3 rounded-xl flex flex-col items-center justify-center p-2 text-center transition-all duration-300 ${
+                  sim1State.showMiddle ? 'bg-amber-400 text-slate-900 shadow' : 'bg-rose-100 border-2 border-dashed border-rose-500 text-rose-600 animate-pulse'
+                }">
+                  <span class="text-xs font-bold">${sim1State.showMiddle ? `$\\sqrt{${p.a}}\\times\\sqrt{${p.b}}$` : '⚠️スキマ！'}</span>
+                  <span class="text-lg font-extrabold mt-1">${sim1State.showMiddle ? `$= \\sqrt{${ab}}$` : '忘れちゃダメ'}</span>
+                </div>
+                <!-- ab bottom-left (3x2) -->
+                <div class="col-span-3 row-span-2 rounded-xl flex flex-col items-center justify-center p-2 text-center transition-all duration-300 ${
+                  sim1State.showMiddle ? 'bg-amber-400 text-slate-900 shadow' : 'bg-rose-100 border-2 border-dashed border-rose-500 text-rose-600 animate-pulse'
+                }">
+                  <span class="text-xs font-bold">${sim1State.showMiddle ? `$\\sqrt{${p.a}}\\times\\sqrt{${p.b}}$` : '⚠️スキマ！'}</span>
+                  <span class="text-lg font-extrabold mt-1">${sim1State.showMiddle ? `$= \\sqrt{${ab}}$` : '忘れちゃダメ'}</span>
+                </div>
+                <!-- b^2 (2x2) -->
+                <div class="col-span-2 row-span-2 bg-indigo-500 text-white rounded-xl flex flex-col items-center justify-center p-2 text-center shadow">
+                  <span class="text-xs opacity-90">$(\\sqrt{${p.b}})^2$</span>
+                  <span class="text-xl font-extrabold mt-1">$= ${p.b}$</span>
+                </div>
+              </div>
+
+              <!-- Toggle Switch -->
+              <div class="mt-4 flex flex-wrap justify-center gap-2">
+                <button onclick="sim1State.showMiddle=true; renderSim1(document.getElementById('simulatorMount'))" class="px-4 py-2 rounded-xl text-xs font-extrabold transition ${
+                  sim1State.showMiddle ? 'bg-emerald-600 text-white shadow' : 'bg-slate-100 text-slate-600'
+                }">⭕ 正しい展開（4部屋ぜんぶ）</button>
+                <button onclick="sim1State.showMiddle=false; renderSim1(document.getElementById('simulatorMount'))" class="px-4 py-2 rounded-xl text-xs font-extrabold transition ${
+                  !sim1State.showMiddle ? 'bg-rose-600 text-white shadow' : 'bg-slate-100 text-slate-600'
+                }">❌ よくある間違い（$a^2 + b^2$ だけ）</button>
+              </div>
+            </div>
+
+            <!-- Right Formula Explanation -->
+            <div class="md:col-span-6 space-y-4">
+              <div class="bg-slate-50 rounded-2xl p-5 border border-slate-200 space-y-3">
+                <div class="text-xs font-extrabold text-slate-400 uppercase">式の変化を見てみよう</div>
+                <div class="text-base md:text-lg font-extrabold text-slate-800">
+                  $(\\sqrt{${p.a}} + \\sqrt{${p.b}})^2$ ${p.cancel ? `<span class="text-purple-600">$- 2\\sqrt{${ab}}$</span>` : ''}
+                </div>
+                <div class="p-3 rounded-xl bg-white border border-slate-200 text-sm md:text-base font-bold">
+                  $= $ <span class="text-blue-600">$${p.a}$</span>
+                  ${sim1State.showMiddle
+                    ? `$+$ <span class="bg-amber-200 px-2 py-0.5 rounded-lg text-slate-900">$2\\sqrt{${ab}}$</span>`
+                    : `$+$ <span class="bg-rose-100 text-rose-600 px-2 py-0.5 rounded-lg line-through">$2\\sqrt{${ab}}$（抜け！）</span>`
+                  }
+                  $+ $ <span class="text-indigo-600">$${p.b}$</span>
+                  ${p.cancel ? `<span class="text-purple-600"> $- 2\\sqrt{${ab}}$</span>` : ''}
+                </div>
+
+                ${sim1State.showMiddle ? `
+                  <div class="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-950 text-sm font-bold">
+                    ✨ <strong>答え：$${p.cancel ? `${sumSq}` : `${sumSq} + 2\\sqrt{${ab}}$`}$</strong><br>
+                    <span class="text-xs font-normal">
+                      ${p.cancel
+                        ? `黄色い2つの部屋「$+2\\sqrt{${ab}}$」がちゃんとあるから、後ろの「$-2\\sqrt{${ab}}$」と気持ちよく打ち消し合って整数の <strong>$${sumSq}$</strong> になります！`
+                        : `青($${p.a}$)と紫($${p.b}$)を足して $${sumSq}$、さらに黄色い部屋2つ分の「$+2\\sqrt{${ab}}$」を合わせて完成です！`
+                      }
+                    </span>
+                  </div>
+                ` : `
+                  <div class="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-950 text-sm font-bold">
+                    💥 <strong>注意！右上と左下の長方形（$\\sqrt{${ab}}$ が2個分）が抜けています！</strong><br>
+                    <span class="text-xs font-normal">
+                      ${p.cancel
+                        ? `もし最初に $2\\sqrt{${ab}}$ を書き忘れると、後ろの「$-2\\sqrt{${ab}}$」が消えずに残ってしまい、間違った答え（$${sumSq} - 2\\sqrt{${ab}}$）になってしまいます。`
+                        : `正方形の面積にするには、必ず真ん中の $2ab$（$2\\sqrt{${ab}}$）が必要です！`
+                      }
+                    </span>
+                  </div>
+                `}
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      renderMath(mount);
+    }
+
+    // -------------------------------------------------------------------------
+    // 問2: 置き換えによる因数分解 (Box Replacement Simulator)
+    // -------------------------------------------------------------------------
+    let sim2State = { step: 0, probIdx: 0 };
+    const sim2Probs = [
+      { expr: "(x + 1)^2 - 5(x + 1) + 6", inside: "x + 1", b: "- 5", c: "+ 6", p: -2, q: -3, final1: "x - 1", final2: "x - 2" },
+      { expr: "(x + 3)^2 - 7(x + 3) + 10", inside: "x + 3", b: "- 7", c: "+ 10", p: -5, q: -2, final1: "x - 2", final2: "x + 1" },
+      { expr: "(x - 2)^2 + 5(x - 2) + 6", inside: "x - 2", b: "+ 5", c: "+ 6", p: 2, q: 3, final1: "x", final2: "x + 1" }
+    ];
+
+    function renderSim2(mount) {
+      const pr = sim2Probs[sim2State.probIdx];
+      const pStr = pr.p > 0 ? `+ ${pr.p}` : `- ${Math.abs(pr.p)}`;
+      const qStr = pr.q > 0 ? `+ ${pr.q}` : `- ${Math.abs(pr.q)}`;
+
+      mount.innerHTML = `
+        <div class="space-y-6">
+          <div class="flex flex-wrap items-center justify-between gap-3 bg-blue-50/70 p-4 rounded-2xl border border-blue-100">
+            <div>
+              <span class="text-xs font-extrabold text-blue-600 uppercase">実験テーマ</span>
+              <h3 class="text-base md:text-lg font-extrabold text-slate-800">同じカッコの塊を「箱 📦 $t$」に詰めたり開けたりしてみよう！</h3>
+            </div>
+            <div class="flex gap-2">
+              ${sim2Probs.map((item, idx) => `
+                <button onclick="sim2State.probIdx=${idx}; sim2State.step=0; renderSim2(document.getElementById('simulatorMount'))" class="px-3 py-1.5 rounded-xl text-xs font-extrabold transition ${
+                  sim2State.probIdx === idx ? 'bg-blue-600 text-white shadow' : 'bg-white text-slate-600 border border-slate-200'
+                }">例題${idx + 1}</button>
+              `).join('')}
+            </div>
+          </div>
+
+          <!-- Stepper Buttons -->
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+            ${[
+              "① 元の式を見る",
+              "② 箱 $t$ に詰める",
+              "③ $t$ で因数分解",
+              "④ 箱を開けて $x$ に戻す！"
+            ].map((label, idx) => `
+              <button onclick="sim2State.step=${idx}; renderSim2(document.getElementById('simulatorMount'))" class="py-3 px-3 rounded-2xl font-extrabold text-xs md:text-sm border-2 transition ${
+                sim2State.step === idx
+                  ? 'bg-blue-600 text-white border-blue-600 shadow-md'
+                  : sim2State.step > idx
+                  ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                  : 'bg-white text-slate-500 border-slate-200'
+              }">${label}</button>
+            `).join('')}
+          </div>
+
+          <!-- Stage Display -->
+          <div class="bg-slate-50 rounded-3xl p-6 md:p-8 border border-slate-200 text-center space-y-5">
+            ${sim2State.step === 0 ? `
+              <div class="text-xs font-bold text-slate-500">同じ塊「$(${pr.inside})$」が2か所にあります！</div>
+              <div class="text-xl md:text-3xl font-extrabold tracking-wide">
+                <span class="bg-amber-200 px-3 py-1 rounded-xl border-2 border-amber-400">$(${pr.inside})$</span>$^2$
+                $${pr.b}$
+                <span class="bg-amber-200 px-3 py-1 rounded-xl border-2 border-amber-400">$(${pr.inside})$</span>
+                $${pr.c}$
+              </div>
+              <p class="text-sm text-slate-600">これを全部展開するのは大変… そこで黄色い塊を1つの箱 <strong>📦 $t$</strong> に入れよう！</p>
+              <button onclick="sim2State.step=1; renderSim2(document.getElementById('simulatorMount'))" class="pop-btn bg-blue-600 text-white font-extrabold px-6 py-3 rounded-2xl shadow">
+                📦 箱 $t$ に詰める ➔
+              </button>
+            ` : sim2State.step === 1 ? `
+              <div class="text-xs font-bold text-blue-600">$t = ${pr.inside}$ と置き換えました！</div>
+              <div class="text-2xl md:text-4xl font-extrabold tracking-wide">
+                <span class="bg-blue-600 text-white px-3.5 py-1 rounded-xl shadow">📦 $t$</span>$^2$
+                $${pr.b}$
+                <span class="bg-blue-600 text-white px-3.5 py-1 rounded-xl shadow">📦 $t$</span>
+                $${pr.c}$
+              </div>
+              <p class="text-sm text-slate-600">一気にスッキリ！これなら普通の因数分解（足して $${pr.b.replace(' ','')}$、掛けて $${pr.c.replace('+ ','')}$）ができますね。</p>
+              <button onclick="sim2State.step=2; renderSim2(document.getElementById('simulatorMount'))" class="pop-btn bg-blue-600 text-white font-extrabold px-6 py-3 rounded-2xl shadow">
+                $t$ のまま因数分解する ➔
+              </button>
+            ` : sim2State.step === 2 ? `
+              <div class="text-xs font-bold text-rose-600">⚠️ ここで終わると減点！まだ箱 $t$ のままです</div>
+              <div class="text-2xl md:text-4xl font-extrabold tracking-wide">
+                $($ <span class="bg-blue-600 text-white px-3 py-1 rounded-xl">📦 $t$</span> $${pStr} )($ <span class="bg-blue-600 text-white px-3 py-1 rounded-xl">📦 $t$</span> $${qStr} )$
+              </div>
+              <p class="text-sm text-slate-600">最後に必ず箱 <strong>📦 $t$</strong> を開けて、中身の「<strong>$${pr.inside}$</strong>」を取り出します！</p>
+              <button onclick="sim2State.step=3; renderSim2(document.getElementById('simulatorMount'))" class="pop-btn bg-emerald-600 text-white font-extrabold px-6 py-3 rounded-2xl shadow">
+                🎁 箱を開けて $x$ に戻す！ ➔
+              </button>
+            ` : `
+              <div class="text-xs font-bold text-emerald-600">✨ 箱を開けて $(${pr.inside})$ に戻し、数字を計算して完成！</div>
+              <div class="text-lg md:text-2xl font-bold text-slate-600">
+                $($ <span class="bg-amber-200 px-2 py-0.5 rounded-lg">$${pr.inside}$</span> $${pStr} )($ <span class="bg-amber-200 px-2 py-0.5 rounded-lg">$${pr.inside}$</span> $${qStr} )$
+              </div>
+              <div class="text-2xl md:text-4xl font-extrabold text-emerald-700 mt-2">
+                $= ${pr.final1 === 'x' ? 'x' : `(${pr.final1})`}(${pr.final2})$
+              </div>
+              <p class="text-sm text-emerald-900 bg-emerald-50 p-3 rounded-xl inline-block border border-emerald-200">
+                🎉 バッチリ！最後に $t$ が残っていないか確認するクセをつけよう！
+              </p>
+            `}
+          </div>
+        </div>
+      `;
+      renderMath(mount);
+    }
+
+    // -------------------------------------------------------------------------
+    // 問3: 二次方程式 (Zero Product Balance Tester)
+    // -------------------------------------------------------------------------
+    let sim3X = 3;
+    function renderSim3(mount) {
+      const testValues = [-1, 0, 0.5, 1, 2, 3];
+      const leftFactor = 2 * sim3X - 1;
+      const rightFactor = sim3X - 3;
+      const product = leftFactor * rightFactor;
+      const isZero = Math.abs(product) < 0.001;
+
+      const formatFrac = (val) => {
+        if (Math.abs(val - 0.5) < 0.001) return '\\dfrac{1}{2}';
+        if (Math.abs(val + 2.5) < 0.001) return '-\\dfrac{5}{2}';
+        return String(val);
+      };
+
+      const xTex = formatFrac(sim3X);
+      const rightTex = formatFrac(rightFactor);
+      const prodTex = formatFrac(product);
+
+      mount.innerHTML = `
+        <div class="space-y-6">
+          <div class="bg-blue-50/70 p-4 rounded-2xl border border-blue-100">
+            <span class="text-xs font-extrabold text-blue-600 uppercase">実験テーマ</span>
+            <h3 class="text-base md:text-lg font-extrabold text-slate-800">$2x^2 - 7x + 3 = 0 \\rightarrow (2x - 1)(x - 3) = 0$ になる $x$ を探そう！</h3>
+            <p class="text-xs text-slate-600 mt-1">下のボタンで $x$ にいろんな数を入れて、掛け算の結果が「$0$」になる瞬間を確かめてみよう。</p>
+          </div>
+
+          <!-- Value Selector -->
+          <div class="flex flex-wrap items-center justify-center gap-2">
+            <span class="text-sm font-extrabold text-slate-600 mr-2">$x$ に代入する数：</span>
+            ${testValues.map(v => {
+              const label = v === 0.5 ? '$x = \\dfrac{1}{2}$' : `$x = ${v}$`;
+              const active = sim3X === v;
+              return `
+                <button onclick="sim3X=${v}; renderSim3(document.getElementById('simulatorMount'))" class="px-4 py-2 rounded-2xl font-extrabold text-sm transition ${
+                  active ? 'bg-blue-600 text-white shadow-md scale-105' : 'bg-slate-100 hover:bg-blue-50 text-slate-700'
+                }">${label}</button>
+              `;
+            }).join('')}
+          </div>
+
+          <!-- Visual Zero Maker -->
+          <div class="grid grid-cols-1 md:grid-cols-11 gap-3 items-center bg-slate-50 p-6 rounded-3xl border border-slate-200 text-center">
+            <div class="md:col-span-4 p-4 rounded-2xl border-2 ${Math.abs(leftFactor) < 0.001 ? 'bg-emerald-100 border-emerald-400' : 'bg-white border-slate-200'}">
+              <div class="text-xs font-bold text-slate-500">左のカッコ $(2x - 1)$</div>
+              <div class="text-lg font-bold mt-1">$2 \\times \\left(${xTex}\\right) - 1$</div>
+              <div class="text-2xl font-extrabold mt-1 ${Math.abs(leftFactor) < 0.001 ? 'text-emerald-600' : 'text-slate-800'}">
+                $= ${leftFactor}$
+              </div>
+              ${Math.abs(leftFactor) < 0.001 ? '<span class="text-xs font-extrabold text-emerald-700">🎯 こっちが $0$ になった！</span>' : ''}
+            </div>
+
+            <div class="md:col-span-1 text-2xl font-extrabold text-slate-400">$\\times$</div>
+
+            <div class="md:col-span-4 p-4 rounded-2xl border-2 ${Math.abs(rightFactor) < 0.001 ? 'bg-emerald-100 border-emerald-400' : 'bg-white border-slate-200'}">
+              <div class="text-xs font-bold text-slate-500">右のカッコ $(x - 3)$</div>
+              <div class="text-lg font-bold mt-1">$\\left(${xTex}\\right) - 3$</div>
+              <div class="text-2xl font-extrabold mt-1 ${Math.abs(rightFactor) < 0.001 ? 'text-emerald-600' : 'text-slate-800'}">
+                $= ${rightTex}$
+              </div>
+              ${Math.abs(rightFactor) < 0.001 ? '<span class="text-xs font-extrabold text-emerald-700">🎯 こっちが $0$ になった！</span>' : ''}
+            </div>
+
+            <div class="md:col-span-2 p-4 rounded-2xl ${isZero ? 'bg-amber-400 text-slate-900 shadow-md' : 'bg-slate-200 text-slate-600'}">
+              <div class="text-xs font-bold">掛け算の結果</div>
+              <div class="text-2xl font-extrabold mt-1">$= ${prodTex}$</div>
+              <div class="text-xs font-extrabold mt-1">${isZero ? '⭕ 等式成立！' : '❌ $0$ じゃない'}</div>
+            </div>
+          </div>
+
+          <div class="bg-indigo-50 border border-indigo-200 rounded-2xl p-4 text-xs md:text-sm text-indigo-950 leading-relaxed">
+            💡 <strong>発見ポイント：</strong><br>
+            掛け算して <strong>$0$</strong> になるのは、左のカッコが $0$ になるとき（<strong>$x = \\dfrac{1}{2}$</strong>）と、右のカッコが $0$ になるとき（<strong>$x = 3$</strong>）の<strong>2か所</strong>あります！<br>
+            片方が $0$ になれば、もう片方がどんな数字でも「$0 \\times \\bigcirc = 0$」になるから解が2つ出てくるんですね。
+          </div>
+        </div>
+      `;
+      renderMath(mount);
+    }
+
+    // -------------------------------------------------------------------------
+    // 問4: 絶対値 (Number Line Distance Explorer)
+    // -------------------------------------------------------------------------
+    let sim4Center = 2;
+    let sim4Dist = 4;
+
+    function renderSim4(mount) {
+      const rightSol = sim4Center + sim4Dist;
+      const leftSol = sim4Center - sim4Dist;
+      const insideExpr = sim4Center >= 0 ? `x - ${sim4Center}` : `x + ${Math.abs(sim4Center)}`;
+
+      mount.innerHTML = `
+        <div class="space-y-6">
+          <div class="bg-blue-50/70 p-4 rounded-2xl border border-blue-100">
+            <span class="text-xs font-extrabold text-blue-600 uppercase">実験テーマ</span>
+            <h3 class="text-base md:text-lg font-extrabold text-slate-800">$|${insideExpr}| = ${sim4Dist}$ は「基準点 $${sim4Center}$ から距離が $${sim4Dist}$ の場所」を探すこと！</h3>
+          </div>
+
+          <!-- Sliders -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-200">
+            <div>
+              <label class="text-xs font-extrabold text-slate-600 flex justify-between">
+                <span>📍 基準の点（スタート地点）：$${sim4Center}$</span>
+              </label>
+              <input type="range" min="-3" max="5" step="1" value="${sim4Center}" oninput="sim4Center=Number(this.value); renderSim4(document.getElementById('simulatorMount'))" class="w-full mt-2">
+            </div>
+            <div>
+              <label class="text-xs font-extrabold text-slate-600 flex justify-between">
+                <span>📏 絶対値（離れる距離）：$${sim4Dist}$</span>
+              </label>
+              <input type="range" min="1" max="5" step="1" value="${sim4Dist}" oninput="sim4Dist=Number(this.value); renderSim4(document.getElementById('simulatorMount'))" class="w-full mt-2">
+            </div>
+          </div>
+
+          <!-- Number Line SVG -->
+          <div class="bg-white border-2 border-slate-200 rounded-3xl p-4 overflow-x-auto">
+            <svg viewBox="0 0 700 180" class="w-full min-w-[500px] h-auto">
+              <!-- Main axis -->
+              <line x1="30" y1="110" x2="670" y2="110" stroke="#334155" stroke-width="3" />
+              ${Array.from({ length: 21 }, (_, i) => i - 9).map(num => {
+                const x = 350 + num * 28;
+                const isCenter = num === sim4Center;
+                const isSol = num === rightSol || num === leftSol;
+                return `
+                  <g>
+                    <line x1="${x}" y1="103" x2="${x}" y2="117" stroke="#475569" stroke-width="2" />
+                    <text x="${x}" y="138" text-anchor="middle" font-size="13" font-weight="${isCenter || isSol ? '800' : '500'}" fill="${isSol ? '#e11d48' : isCenter ? '#2563eb' : '#64748b'}">${num}</text>
+                  </g>
+                `;
+              }).join('')}
+
+              <!-- Right Jump Arc -->
+              <path d="M ${350 + sim4Center * 28} 105 Q ${350 + (sim4Center + sim4Dist / 2) * 28} 35 ${350 + rightSol * 28} 105" fill="none" stroke="#10b981" stroke-width="4" stroke-dasharray="6,4" />
+              <text x="${350 + (sim4Center + sim4Dist / 2) * 28}" y="52" text-anchor="middle" font-size="13" font-weight="800" fill="#059669">右へ +${sim4Dist}</text>
+
+              <!-- Left Jump Arc -->
+              <path d="M ${350 + sim4Center * 28} 105 Q ${350 + (sim4Center - sim4Dist / 2) * 28} 35 ${350 + leftSol * 28} 105" fill="none" stroke="#f59e0b" stroke-width="4" stroke-dasharray="6,4" />
+              <text x="${350 + (sim4Center - sim4Dist / 2) * 28}" y="52" text-anchor="middle" font-size="13" font-weight="800" fill="#d97706">左へ -${sim4Dist}</text>
+
+              <!-- Center Point -->
+              <circle cx="${350 + sim4Center * 28}" cy="110" r="8" fill="#2563eb" />
+              <text x="${350 + sim4Center * 28}" y="162" text-anchor="middle" font-size="12" font-weight="800" fill="#2563eb">基準 (${sim4Center})</text>
+
+              <!-- Two Solution Points -->
+              <circle cx="${350 + rightSol * 28}" cy="110" r="9" fill="#10b981" />
+              <text x="${350 + rightSol * 28}" y="162" text-anchor="middle" font-size="12" font-weight="800" fill="#059669">x = ${rightSol}</text>
+
+              <circle cx="${350 + leftSol * 28}" cy="110" r="9" fill="#f59e0b" />
+              <text x="${350 + leftSol * 28}" y="162" text-anchor="middle" font-size="12" font-weight="800" fill="#d97706">x = ${leftSol}</text>
+            </svg>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="bg-emerald-50 border border-emerald-200 p-4 rounded-2xl">
+              <span class="text-xs font-extrabold text-emerald-700">① 右側へ $${sim4Dist}$ 進む式（$+$ の方）</span>
+              <div class="text-base font-extrabold text-emerald-950 mt-1">
+                $${insideExpr} = +${sim4Dist} \\implies x = ${rightSol}$
+              </div>
+            </div>
+            <div class="bg-amber-50 border border-amber-200 p-4 rounded-2xl">
+              <span class="text-xs font-extrabold text-amber-700">② 左側へ $${sim4Dist}$ 進む式（$-$ の方・忘れやすい！）</span>
+              <div class="text-base font-extrabold text-amber-950 mt-1">
+                $${insideExpr} = -${sim4Dist} \\implies x = ${leftSol}$
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      renderMath(mount);
+    }
+
+    // -------------------------------------------------------------------------
+    // 問5: 平方完成と頂点 (Why is vertex +p and not -p?)
+    // -------------------------------------------------------------------------
+    let sim5P = 3;
+    let sim5Q = -4;
+    let sim5TestX = 3;
+
+    function renderSim5(mount) {
+      const sqPart = Math.pow(sim5TestX - sim5P, 2);
+      const yVal = sqPart + sim5Q;
+      const isVertex = sim5TestX === sim5P;
+      const pSignStr = sim5P >= 0 ? `- ${sim5P}` : `+ ${Math.abs(sim5P)}`;
+
+      mount.innerHTML = `
+        <div class="space-y-6">
+          <div class="bg-blue-50/70 p-4 rounded-2xl border border-blue-100">
+            <span class="text-xs font-extrabold text-blue-600 uppercase">実験テーマ</span>
+            <h3 class="text-base md:text-lg font-extrabold text-slate-800">なぜ $y = (x ${pSignStr})^2 ${sim5Q >= 0 ? `+ ${sim5Q}` : `- ${Math.abs(sim5Q)}`}$ の頂点の $x$ 座標は「$${sim5P}$」なの？</h3>
+            <p class="text-xs text-slate-600 mt-1">$x$ の値をスライダーで動かして、2乗の部分「$(x ${pSignStr})^2$」がいつ一番小さくなるか観察しよう！</p>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+            <!-- Left Controls & Meter -->
+            <div class="md:col-span-6 space-y-4">
+              <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                <label class="text-sm font-extrabold text-blue-700 flex justify-between">
+                  <span>🔍 試してみる $x$ の値：$x = ${sim5TestX}$</span>
+                  <span class="text-xs text-slate-500">（左右に動かしてみよう）</span>
+                </label>
+                <input type="range" min="-2" max="6" step="1" value="${sim5TestX}" oninput="sim5TestX=Number(this.value); renderSim5(document.getElementById('simulatorMount'))" class="w-full mt-2">
+                <div class="flex flex-wrap gap-2 mt-3">
+                  <button onclick="sim5P=3; sim5Q=-4; sim5TestX=3; renderSim5(document.getElementById('simulatorMount'))" class="text-xs px-3 py-1.5 rounded-xl font-bold ${sim5P===3 ? 'bg-blue-600 text-white' : 'bg-white border'}">$y = (x - 3)^2 - 4$</button>
+                  <button onclick="sim5P=-2; sim5Q=-3; sim5TestX=-2; renderSim5(document.getElementById('simulatorMount'))" class="text-xs px-3 py-1.5 rounded-xl font-bold ${sim5P===-2 ? 'bg-blue-600 text-white' : 'bg-white border'}">$y = (x + 2)^2 - 3$</button>
+                </div>
+              </div>
+
+              <!-- Breakdown Box -->
+              <div class="p-5 rounded-2xl border-2 transition ${isVertex ? 'bg-emerald-50 border-emerald-400' : 'bg-white border-slate-200'} space-y-3">
+                <div class="flex flex-wrap items-center justify-between gap-2 text-sm font-bold">
+                  <span>① 2乗の塊：$(x ${pSignStr})^2 = (${sim5TestX} ${pSignStr})^2$</span>
+                  <span class="text-base font-extrabold px-2.5 py-0.5 rounded-lg ${sqPart === 0 ? 'bg-emerald-600 text-white' : 'bg-amber-100 text-amber-900'}">
+                    $= ${sqPart}$ ${sqPart === 0 ? '（最小の $0$！）' : '（プラスが増える）'}
+                  </span>
+                </div>
+                <div class="flex items-center justify-between text-sm font-bold border-t border-slate-200 pt-2">
+                  <span>② 全体の高さ：$y = ${sqPart} ${sim5Q >= 0 ? `+ ${sim5Q}` : `- ${Math.abs(sim5Q)}`}$</span>
+                  <span class="text-xl font-extrabold ${isVertex ? 'text-emerald-700' : 'text-slate-800'}">
+                    $y = ${yVal}$
+                  </span>
+                </div>
+                <p class="text-xs leading-relaxed ${isVertex ? 'text-emerald-900 font-bold' : 'text-slate-600'}">
+                  ${isVertex
+                    ? `🎯 大発見！$x = ${sim5P}$ のとき、カッコの中がちょうど $0$ になり、$y$ が一番低い底（最小値 $${sim5Q}$）になります！だから頂点は $(${sim5P}, ${sim5Q})$ です！`
+                    : `💡 $x = ${sim5TestX}$ だと、2乗の部分が $+${sqPart}$ になってしまうので、底（$${sim5Q}$）より高くなります。カッコの中を $0$ にするには $x = ${sim5P}$ にしよう！`
+                  }
+                </p>
+              </div>
+            </div>
+
+            <!-- Right SVG Graph -->
+            <div class="md:col-span-6 bg-slate-50 rounded-2xl p-4 border border-slate-200 flex flex-col items-center">
+              <svg viewBox="0 0 320 240" class="w-full max-w-[320px] h-auto bg-white rounded-xl border border-slate-200">
+                <!-- Axes -->
+                <line x1="20" y1="140" x2="300" y2="140" stroke="#94a3b8" stroke-width="1.5" />
+                <line x1="140" y1="15" x2="140" y2="225" stroke="#94a3b8" stroke-width="1.5" />
+                <!-- Parabola Path -->
+                <path d="${(() => {
+                  let d = '';
+                  for (let px = -3.5; px <= 6.5; px += 0.2) {
+                    const py = Math.pow(px - sim5P, 2) + sim5Q;
+                    const sx = 140 + px * 22;
+                    const sy = 140 - py * 14;
+                    if (sy >= 5 && sy <= 235) {
+                      d += (d === '' ? 'M ' : ' L ') + `${sx.toFixed(1)} ${sy.toFixed(1)}`;
+                    }
+                  }
+                  return d;
+                })()}" fill="none" stroke="#3b82f6" stroke-width="3" />
+
+                <!-- Vertex Point -->
+                <circle cx="${140 + sim5P * 22}" cy="${140 - sim5Q * 14}" r="5" fill="#10b981" />
+                <text x="${140 + sim5P * 22}" y="${140 - sim5Q * 14 + 18}" text-anchor="middle" font-size="11" font-weight="800" fill="#059669">頂点(${sim5P}, ${sim5Q})</text>
+
+                <!-- Current Test Point -->
+                <circle cx="${140 + sim5TestX * 22}" cy="${140 - yVal * 14}" r="7" fill="#f43f5e" />
+                <text x="${140 + sim5TestX * 22}" y="${Math.max(18, 140 - yVal * 14 - 10)}" text-anchor="middle" font-size="11" font-weight="800" fill="#e11d48">現在(${sim5TestX}, ${yVal})</text>
+              </svg>
+            </div>
+          </div>
+        </div>
+      `;
+      renderMath(mount);
+    }
+
+    // -------------------------------------------------------------------------
+    // 問6: 二次関数とx軸の交点 (Water Level y=0 Intersection)
+    // -------------------------------------------------------------------------
+    let sim6Idx = 0;
+    const sim6List = [
+      { label: "$y = x^2 - 4x + 3$", rhs: "x^2 - 4x + 3", a: 1, b: -4, c: 3, roots: [1, 3], factor: "(x - 1)(x - 3) = 0" },
+      { label: "$y = x^2 - 5x + 6$", rhs: "x^2 - 5x + 6", a: 1, b: -5, c: 6, roots: [2, 3], factor: "(x - 2)(x - 3) = 0" },
+      { label: "$y = x^2 - 4$", rhs: "x^2 - 4", a: 1, b: 0, c: -4, roots: [-2, 2], factor: "(x + 2)(x - 2) = 0" }
+    ];
+
+    function renderSim6(mount) {
+      const item = sim6List[sim6Idx];
+      mount.innerHTML = `
+        <div class="space-y-6">
+          <div class="flex flex-wrap items-center justify-between gap-3 bg-blue-50/70 p-4 rounded-2xl border border-blue-100">
+            <div>
+              <span class="text-xs font-extrabold text-blue-600 uppercase">実験テーマ</span>
+              <h3 class="text-base md:text-lg font-extrabold text-slate-800">$x$ 軸は「高さ $y = 0$ の海面ライン」！交点の住所を $(x, 0)$ で読み取ろう</h3>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              ${sim6List.map((it, idx) => `
+                <button onclick="sim6Idx=${idx}; renderSim6(document.getElementById('simulatorMount'))" class="px-3 py-1.5 rounded-xl text-xs font-extrabold transition ${
+                  sim6Idx === idx ? 'bg-blue-600 text-white shadow' : 'bg-white text-slate-600 border'
+                }">${it.label}</button>
+              `).join('')}
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+            <div class="md:col-span-6 bg-slate-50 p-4 rounded-2xl border border-slate-200 flex justify-center">
+              <svg viewBox="0 0 340 220" class="w-full max-w-[340px] h-auto bg-white rounded-xl border border-slate-200">
+                <!-- Water below x-axis -->
+                <rect x="0" y="130" width="340" height="90" fill="#e0f2fe" opacity="0.6" />
+                <!-- x-axis (y=0 line) -->
+                <line x1="15" y1="130" x2="325" y2="130" stroke="#0284c7" stroke-width="3" />
+                <text x="285" y="122" font-size="11" font-weight="800" fill="#0284c7">x軸 (高さ y = 0)</text>
+                <!-- y-axis -->
+                <line x1="140" y1="15" x2="140" y2="205" stroke="#94a3b8" stroke-width="1.5" />
+
+                <!-- Parabola -->
+                <path d="${(() => {
+                  let d = '';
+                  for (let px = -3; px <= 5; px += 0.15) {
+                    const py = item.a * px * px + item.b * px + item.c;
+                    const sx = 140 + px * 32;
+                    const sy = 130 - py * 18;
+                    if (sy >= 5 && sy <= 215) {
+                      d += (d === '' ? 'M ' : ' L ') + `${sx.toFixed(1)} ${sy.toFixed(1)}`;
+                    }
+                  }
+                  return d;
+                })()}" fill="none" stroke="#4f46e5" stroke-width="3" />
+
+                <!-- Intersection Points -->
+                ${item.roots.map(r => `
+                  <g>
+                    <circle cx="${140 + r * 32}" cy="130" r="7" fill="#e11d48" stroke="#fff" stroke-width="2" />
+                    <rect x="${140 + r * 32 - 28}" y="142" width="56" height="22" rx="6" fill="#be123c" />
+                    <text x="${140 + r * 32}" y="157" text-anchor="middle" font-size="11" font-weight="800" fill="#fff">(${r}, 0)</text>
+                  </g>
+                `).join('')}
+              </svg>
+            </div>
+
+            <div class="md:col-span-6 space-y-4">
+              <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-3">
+                <div class="text-xs font-extrabold text-blue-600">ステップ①：$x$ 軸上は高さ $y = 0$ だから $y$ に $0$ を代入</div>
+                <div class="p-3 bg-white rounded-xl border text-base font-extrabold">
+                  $${item.rhs} =$ <span class="text-sky-600">$0$</span>
+                </div>
+                <div class="text-xs font-extrabold text-blue-600">ステップ②：因数分解して $x$ を求める</div>
+                <div class="p-3 bg-white rounded-xl border text-base font-extrabold">
+                  $${item.factor} \\implies x = ${item.roots[0]},\\, ${item.roots[1]}$
+                </div>
+                <div class="text-xs font-extrabold text-rose-600">ステップ③：【最重要】座標 $(x, 0)$ の形で書く！</div>
+                <div class="p-3.5 bg-emerald-50 border border-emerald-300 rounded-xl text-lg font-extrabold text-emerald-900">
+                  答え：$(${item.roots[0]},\\, 0),\\quad (${item.roots[1]},\\, 0)$
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      renderMath(mount);
+    }
+
+    // -------------------------------------------------------------------------
+    // 問7: 集合の和集合 (Number Tile Stamp Board)
+    // -------------------------------------------------------------------------
+    let sim7Mode = 0;
+    const sim7Configs = [
+      { max: 30, a: 3, b: 5, lcm: 15, title: "$1\\sim 30$ で「$3$ または $5$ の倍数」" },
+      { max: 40, a: 4, b: 6, lcm: 12, title: "$1\\sim 40$ で「$4$ または $6$ の倍数」（公倍数は $12$！）" }
+    ];
+
+    function renderSim7(mount) {
+      const cfg = sim7Configs[sim7Mode];
+      const countA = Math.floor(cfg.max / cfg.a);
+      const countB = Math.floor(cfg.max / cfg.b);
+      const countLCM = Math.floor(cfg.max / cfg.lcm);
+      const total = countA + countB - countLCM;
+
+      mount.innerHTML = `
+        <div class="space-y-6">
+          <div class="flex flex-wrap items-center justify-between gap-3 bg-blue-50/70 p-4 rounded-2xl border border-blue-100">
+            <div>
+              <span class="text-xs font-extrabold text-blue-600 uppercase">実験テーマ</span>
+              <h3 class="text-base md:text-lg font-extrabold text-slate-800">なぜ「両方に含まれる数 $n(A \\cap B)$」を引くの？スタンプボードで見てみよう！</h3>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              ${sim7Configs.map((c, idx) => `
+                <button onclick="sim7Mode=${idx}; renderSim7(document.getElementById('simulatorMount'))" class="px-3 py-1.5 rounded-xl text-xs font-extrabold transition ${
+                  sim7Mode === idx ? 'bg-blue-600 text-white shadow' : 'bg-white text-slate-600 border'
+                }">${c.title}</button>
+              `).join('')}
+            </div>
+          </div>
+
+          <!-- Legend -->
+          <div class="flex flex-wrap gap-3 text-xs font-extrabold">
+            <span class="px-3 py-1.5 rounded-xl bg-sky-100 text-sky-800 border border-sky-300">🔵 $${cfg.a}$ の倍数（$${countA}$ 個）</span>
+            <span class="px-3 py-1.5 rounded-xl bg-amber-100 text-amber-800 border border-amber-300">🟡 $${cfg.b}$ の倍数（$${countB}$ 個）</span>
+            <span class="px-3 py-1.5 rounded-xl bg-emerald-500 text-white shadow">🌟 両方の倍数＝$${cfg.lcm}$ の倍数（$${countLCM}$ 個・2回スタンプが押された数！）</span>
+          </div>
+
+          <!-- Number Grid -->
+          <div class="grid grid-cols-6 sm:grid-cols-10 gap-2 bg-slate-50 p-4 rounded-3xl border border-slate-200">
+            ${Array.from({ length: cfg.max }, (_, i) => i + 1).map(n => {
+              const isA = n % cfg.a === 0;
+              const isB = n % cfg.b === 0;
+              const isBoth = isA && isB;
+              let cls = "bg-white text-slate-400 border-slate-200";
+              let badge = "";
+              if (isBoth) {
+                cls = "bg-emerald-500 text-white border-emerald-600 font-extrabold shadow-md scale-105";
+                badge = "🔵🟡2回!";
+              } else if (isA) {
+                cls = "bg-sky-100 text-sky-900 border-sky-300 font-extrabold";
+                badge = "🔵";
+              } else if (isB) {
+                cls = "bg-amber-100 text-amber-900 border-amber-300 font-extrabold";
+                badge = "🟡";
+              }
+              return `
+                <div class="h-12 rounded-xl border flex flex-col items-center justify-center text-xs transition ${cls}">
+                  <span>$${n}$</span>
+                  <span class="text-[10px]">${badge}</span>
+                </div>
+              `;
+            }).join('')}
+          </div>
+
+          <!-- Formula Summary -->
+          <div class="bg-emerald-50 border border-emerald-200 p-4 rounded-2xl flex flex-wrap items-center justify-between gap-4">
+            <div class="text-xs md:text-sm text-emerald-950 leading-relaxed">
+              💡 <strong>なぜ引くのか：</strong>緑色のマス（$${cfg.lcm}$ の倍数）には🔵と🟡の<strong>2回スタンプが押されている</strong>ので、単純に $${countA} + ${countB}$ と足すと2重カウントになります。だから1回分（$${countLCM}$ 個）を引きます！
+            </div>
+            <div class="text-base md:text-xl font-extrabold bg-white px-4 py-2.5 rounded-xl border border-emerald-300 text-emerald-900 shrink-0">
+              $${countA} + ${countB} -$ <span class="text-rose-600">$${countLCM}$</span> $= ${total}$ 個
+            </div>
+          </div>
+        </div>
+      `;
+      renderMath(mount);
+    }
+
+    // -------------------------------------------------------------------------
+    // 問8: 三角比 (Angle Perspective Switcher)
+    // -------------------------------------------------------------------------
+    let sim8Corner = 'bottomLeft';
+    let sim8TriIdx = 0;
+    const sim8Tris = [
+      { a: 3, b: 4, c: 5, label: "$3 : 4 : 5$ の直角三角形" },
+      { a: 5, b: 12, c: 13, label: "$5 : 12 : 13$ の直角三角形" }
+    ];
+
+    function renderSim8(mount) {
+      const t = sim8Tris[sim8TriIdx];
+      const opp = sim8Corner === 'bottomLeft' ? t.a : t.b;
+      const adj = sim8Corner === 'bottomLeft' ? t.b : t.a;
+      const hyp = t.c;
+
+      mount.innerHTML = `
+        <div class="space-y-6">
+          <div class="flex flex-wrap items-center justify-between gap-3 bg-blue-50/70 p-4 rounded-2xl border border-blue-100">
+            <div>
+              <span class="text-xs font-extrabold text-blue-600 uppercase">実験テーマ</span>
+              <h3 class="text-base md:text-lg font-extrabold text-slate-800">どの角 $\\theta$ に立つかで「対辺（向かい）」と「隣辺（となり）」が入れ替わる！</h3>
+            </div>
+            <div class="flex gap-2">
+              ${sim8Tris.map((tr, idx) => `
+                <button onclick="sim8TriIdx=${idx}; renderSim8(document.getElementById('simulatorMount'))" class="px-3 py-1.5 rounded-xl text-xs font-extrabold transition ${
+                  sim8TriIdx === idx ? 'bg-blue-600 text-white shadow' : 'bg-white text-slate-600 border'
+                }">${tr.label}</button>
+              `).join('')}
+            </div>
+          </div>
+
+          <div class="flex flex-wrap justify-center gap-3">
+            <button onclick="sim8Corner='bottomLeft'; renderSim8(document.getElementById('simulatorMount'))" class="px-5 py-2.5 rounded-2xl font-extrabold text-xs md:text-sm transition ${
+              sim8Corner === 'bottomLeft' ? 'bg-indigo-600 text-white shadow-md' : 'bg-slate-100 text-slate-700'
+            }">👀 左下の角を $\\theta$ にする（標準）</button>
+            <button onclick="sim8Corner='topRight'; renderSim8(document.getElementById('simulatorMount'))" class="px-5 py-2.5 rounded-2xl font-extrabold text-xs md:text-sm transition ${
+              sim8Corner === 'topRight' ? 'bg-indigo-600 text-white shadow-md' : 'bg-slate-100 text-slate-700'
+            }">👀 右上の角を $\\theta$ にする（視点チェンジ！）</button>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+            <div class="md:col-span-6 bg-slate-50 p-4 rounded-3xl border border-slate-200 flex justify-center">
+              <svg viewBox="0 0 340 230" class="w-full max-w-[340px] h-auto">
+                <polygon points="50,185 260,185 260,35" fill="#f8fafc" stroke="#334155" stroke-width="3" />
+                <polyline points="242,185 242,167 260,167" fill="none" stroke="#64748b" stroke-width="2" />
+
+                ${sim8Corner === 'bottomLeft' ? `
+                  <circle cx="50" cy="185" r="28" fill="#6366f1" opacity="0.2" />
+                  <text x="90" y="175" font-size="16" font-weight="800" fill="#4f46e5">👀 θ</text>
+                ` : `
+                  <circle cx="260" cy="35" r="28" fill="#6366f1" opacity="0.2" />
+                  <text x="225" y="78" font-size="16" font-weight="800" fill="#4f46e5">👀 θ</text>
+                `}
+
+                <text x="135" y="95" text-anchor="middle" font-size="14" font-weight="800" fill="#0284c7">斜辺 = ${t.c}（一番長い）</text>
+
+                <text x="298" y="115" text-anchor="middle" font-size="14" font-weight="800" fill="${sim8Corner === 'bottomLeft' ? '#e11d48' : '#059669'}">
+                  ${sim8Corner === 'bottomLeft' ? `対辺 = ${t.a}` : `隣辺 = ${t.a}`}
+                </text>
+
+                <text x="155" y="212" text-anchor="middle" font-size="14" font-weight="800" fill="${sim8Corner === 'bottomLeft' ? '#059669' : '#e11d48'}">
+                  ${sim8Corner === 'bottomLeft' ? `隣辺 = ${t.b}` : `対辺 = ${t.b}`}
+                </text>
+              </svg>
+            </div>
+
+            <div class="md:col-span-6 space-y-3">
+              <div class="p-4 rounded-2xl bg-rose-50 border border-rose-200 flex items-center justify-between">
+                <div>
+                  <div class="text-sm font-extrabold text-rose-700">$\\sin\\theta = \\dfrac{\\text{対辺}}{\\text{斜辺}}$</div>
+                  <div class="text-xs text-rose-900 mt-1">（$\\theta$ の向かいの辺と斜辺の比）</div>
+                </div>
+                <div class="text-2xl font-extrabold text-rose-700">$\\dfrac{${opp}}{${hyp}}$</div>
+              </div>
+
+              <div class="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-between">
+                <div>
+                  <div class="text-sm font-extrabold text-emerald-700">$\\cos\\theta = \\dfrac{\\text{隣辺}}{\\text{斜辺}}$</div>
+                  <div class="text-xs text-emerald-900 mt-1">（$\\theta$ のとなりの辺と斜辺の比）</div>
+                </div>
+                <div class="text-2xl font-extrabold text-emerald-700">$\\dfrac{${adj}}{${hyp}}$</div>
+              </div>
+
+              <div class="p-4 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-between">
+                <div>
+                  <div class="text-sm font-extrabold text-amber-800">$\\tan\\theta = \\dfrac{\\text{対辺}}{\\text{隣辺}}$</div>
+                  <div class="text-xs text-amber-900 mt-1">（斜辺は使わない！隣辺と対辺の比）</div>
+                </div>
+                <div class="text-2xl font-extrabold text-amber-800">$\\dfrac{${opp}}{${adj}}$</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      renderMath(mount);
+    }
+
+    // -------------------------------------------------------------------------
+    // 問9: 相似比と面積比 (2D Grid Scaling Visualizer)
+    // -------------------------------------------------------------------------
+    let sim9Scale = 3;
+    let sim9BaseArea = 5;
+
+    function renderSim9(mount) {
+      const areaRatio = sim9Scale * sim9Scale;
+      const bigArea = sim9BaseArea * areaRatio;
+
+      mount.innerHTML = `
+        <div class="space-y-6">
+          <div class="bg-blue-50/70 p-4 rounded-2xl border border-blue-100">
+            <span class="text-xs font-extrabold text-blue-600 uppercase">実験テーマ</span>
+            <h3 class="text-base md:text-lg font-extrabold text-slate-800">長さが $${sim9Scale}$ 倍になると、なぜ面積は「$${sim9Scale} \\times ${sim9Scale} = ${areaRatio}$ 倍」になるの？</h3>
+          </div>
+
+          <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 flex flex-wrap items-center justify-between gap-4">
+            <div class="flex-1 min-w-[220px]">
+              <label class="text-sm font-extrabold text-blue-700">🔍 相似比を $1 : ${sim9Scale}$ に変えてみよう</label>
+              <input type="range" min="2" max="5" step="1" value="${sim9Scale}" oninput="sim9Scale=Number(this.value); renderSim9(document.getElementById('simulatorMount'))" class="w-full mt-2">
+            </div>
+            <div class="flex gap-2">
+              <span class="text-xs font-bold text-slate-500 self-center">元の面積：</span>
+              ${[5, 12, 16].map(a => `
+                <button onclick="sim9BaseArea=${a}; renderSim9(document.getElementById('simulatorMount'))" class="px-3 py-1.5 rounded-xl text-xs font-extrabold ${
+                  sim9BaseArea === a ? 'bg-blue-600 text-white' : 'bg-white border text-slate-700'
+                }">$${a}\\text{ cm}^2$</button>
+              `).join('')}
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+            <!-- Small vs Scaled Grid -->
+            <div class="md:col-span-7 bg-white p-5 rounded-3xl border border-slate-200 flex flex-wrap items-center justify-around gap-6">
+              <div class="text-center">
+                <div class="text-xs font-extrabold text-slate-500 mb-2">元の図形（相似比 $1$）</div>
+                <div class="w-16 h-16 bg-blue-500 text-white rounded-xl flex items-center justify-center font-extrabold text-xs shadow">
+                  $${sim9BaseArea}\\text{ cm}^2$
+                </div>
+                <div class="text-xs font-bold text-slate-500 mt-2">タイル $1$ 個分</div>
+              </div>
+
+              <div class="text-2xl font-extrabold text-slate-400">➔</div>
+
+              <div class="text-center">
+                <div class="text-xs font-extrabold text-blue-600 mb-2">タテ $${sim9Scale}$ 倍 $\\times$ ヨコ $${sim9Scale}$ 倍</div>
+                <div class="grid gap-1 bg-slate-200 p-2 rounded-2xl shadow-inner" style="grid-template-columns: repeat(${sim9Scale}, minmax(0, 1fr)); width: ${Math.min(220, sim9Scale * 46)}px; height: ${Math.min(220, sim9Scale * 46)}px;">
+                  ${Array.from({ length: areaRatio }).map(() => `
+                    <div class="bg-amber-400 text-slate-900 rounded-lg flex items-center justify-center font-extrabold text-[11px] shadow-sm">
+                      $${sim9BaseArea}$
+                    </div>
+                  `).join('')}
+                </div>
+                <div class="text-xs font-extrabold text-amber-700 mt-2">
+                  タイルが $${sim9Scale} \\times ${sim9Scale} = ${areaRatio}$ 個分！
+                </div>
+              </div>
+            </div>
+
+            <div class="md:col-span-5 space-y-3">
+              <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+                <div class="text-xs font-bold text-slate-500">長さの比（相似比）</div>
+                <div class="text-xl font-extrabold text-slate-800">$1 : ${sim9Scale}$</div>
+                <div class="text-xs font-bold text-blue-600 pt-2">面積の比（2乗の比！）</div>
+                <div class="text-2xl font-extrabold text-blue-700">$1^2 : ${sim9Scale}^2 = 1 : ${areaRatio}$</div>
+                <div class="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-sm font-extrabold text-emerald-900 mt-2">
+                  大きい面積 $= ${sim9BaseArea} \\times ${areaRatio} = ${bigArea}\\text{ cm}^2$
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      renderMath(mount);
+    }
+
+    // -------------------------------------------------------------------------
+    // 問10: 確率（戻さず2回引く） (Bag Draw without Replacement)
+    // -------------------------------------------------------------------------
+    let sim10Red = 2;
+    let sim10Blue = 3;
+
+    function renderSim10(mount) {
+      const total1 = sim10Red + sim10Blue;
+      const total2 = total1 - 1;
+      const numDiff = sim10Red * sim10Blue * 2;
+      const denDiff = total1 * total2;
+
+      function gcd(a, b) { return b === 0 ? a : gcd(b, a % b); }
+      const g = gcd(numDiff, denDiff);
+
+      mount.innerHTML = `
+        <div class="space-y-6">
+          <div class="flex flex-wrap items-center justify-between gap-3 bg-blue-50/70 p-4 rounded-2xl border border-blue-100">
+            <div>
+              <span class="text-xs font-extrabold text-blue-600 uppercase">実験テーマ</span>
+              <h3 class="text-base md:text-lg font-extrabold text-slate-800">「戻さずに2個引く」とき、袋の中の玉と分母がどう変化するか見てみよう！</h3>
+            </div>
+            <div class="flex gap-2">
+              <button onclick="sim10Red=2; sim10Blue=3; renderSim10(document.getElementById('simulatorMount'))" class="px-3 py-1.5 rounded-xl text-xs font-extrabold ${sim10Red===2 && sim10Blue===3 ? 'bg-blue-600 text-white' : 'bg-white border'}">赤 $2$・青 $3$</button>
+              <button onclick="sim10Red=4; sim10Blue=2; renderSim10(document.getElementById('simulatorMount'))" class="px-3 py-1.5 rounded-xl text-xs font-extrabold ${sim10Red===4 && sim10Blue===2 ? 'bg-blue-600 text-white' : 'bg-white border'}">赤 $4$・青 $2$</button>
+              <button onclick="sim10Red=3; sim10Blue=3; renderSim10(document.getElementById('simulatorMount'))" class="px-3 py-1.5 rounded-xl text-xs font-extrabold ${sim10Red===3 && sim10Blue===3 ? 'bg-blue-600 text-white' : 'bg-white border'}">赤 $3$・青 $3$</button>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Route 1: Red -> Blue -->
+            <div class="bg-slate-50 p-5 rounded-3xl border border-slate-200 space-y-3">
+              <div class="text-xs font-extrabold bg-rose-100 text-rose-800 px-3 py-1 rounded-full inline-block">
+                パターン①：1回目に🔴赤 $\\rightarrow$ 2回目に🔵青
+              </div>
+              <div class="flex items-center justify-between bg-white p-3.5 rounded-2xl border">
+                <div>
+                  <div class="text-xs font-bold text-slate-500">1回目（袋に計 $${total1}$ 個）</div>
+                  <div class="flex gap-1 mt-1">
+                    ${'🔴'.repeat(sim10Red)}${'🔵'.repeat(sim10Blue)}
+                  </div>
+                </div>
+                <div class="text-xl font-extrabold text-rose-600">$\\dfrac{${sim10Red}}{${total1}}$</div>
+              </div>
+              <div class="text-center text-xs font-extrabold text-amber-700">⬇ 1個引いて戻さないから、袋の残りは $${total2}$ 個に減る！</div>
+              <div class="flex items-center justify-between bg-white p-3.5 rounded-2xl border">
+                <div>
+                  <div class="text-xs font-bold text-slate-500">2回目（袋に計 $${total2}$ 個）</div>
+                  <div class="flex gap-1 mt-1">
+                    ${'🔴'.repeat(sim10Red - 1)}${'🔵'.repeat(sim10Blue)}
+                  </div>
+                </div>
+                <div class="text-xl font-extrabold text-blue-600">$\\dfrac{${sim10Blue}}{${total2}}$</div>
+              </div>
+              <div class="text-sm font-extrabold text-right text-slate-700">
+                確率 $= \\dfrac{${sim10Red}}{${total1}} \\times \\dfrac{${sim10Blue}}{${total2}} = \\dfrac{${sim10Red * sim10Blue}}{${denDiff}}$
+              </div>
+            </div>
+
+            <!-- Route 2: Blue -> Red -->
+            <div class="bg-slate-50 p-5 rounded-3xl border border-slate-200 space-y-3">
+              <div class="text-xs font-extrabold bg-sky-100 text-sky-800 px-3 py-1 rounded-full inline-block">
+                パターン②：1回目に🔵青 $\\rightarrow$ 2回目に🔴赤
+              </div>
+              <div class="flex items-center justify-between bg-white p-3.5 rounded-2xl border">
+                <div>
+                  <div class="text-xs font-bold text-slate-500">1回目（袋に計 $${total1}$ 個）</div>
+                  <div class="flex gap-1 mt-1">
+                    ${'🔴'.repeat(sim10Red)}${'🔵'.repeat(sim10Blue)}
+                  </div>
+                </div>
+                <div class="text-xl font-extrabold text-blue-600">$\\dfrac{${sim10Blue}}{${total1}}$</div>
+              </div>
+              <div class="text-center text-xs font-extrabold text-amber-700">⬇ 1個引いて戻さないから、袋の残りは $${total2}$ 個に減る！</div>
+              <div class="flex items-center justify-between bg-white p-3.5 rounded-2xl border">
+                <div>
+                  <div class="text-xs font-bold text-slate-500">2回目（袋に計 $${total2}$ 個）</div>
+                  <div class="flex gap-1 mt-1">
+                    ${'🔴'.repeat(sim10Red)}${'🔵'.repeat(sim10Blue - 1)}
+                  </div>
+                </div>
+                <div class="text-xl font-extrabold text-rose-600">$\\dfrac{${sim10Red}}{${total2}}$</div>
+              </div>
+              <div class="text-sm font-extrabold text-right text-slate-700">
+                確率 $= \\dfrac{${sim10Blue}}{${total1}} \\times \\dfrac{${sim10Red}}{${total2}} = \\dfrac{${sim10Red * sim10Blue}}{${denDiff}}$
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-emerald-50 border border-emerald-200 p-4 rounded-2xl flex flex-wrap items-center justify-between gap-3">
+            <div class="text-xs md:text-sm text-emerald-950 font-bold">
+              ✨ 「異なる色が出る」のはパターン①とパターン②の<strong>2通り（どちらも同じ確率）</strong>あるので $2$ 倍します！
+            </div>
+            <div class="text-base md:text-xl font-extrabold bg-white px-4 py-2 rounded-xl border border-emerald-300 text-emerald-900">
+              $\\dfrac{${sim10Red}}{${total1}} \\times \\dfrac{${sim10Blue}}{${total2}} \\times 2 = \\dfrac{${numDiff / g}}{${denDiff / g}}$
+            </div>
+          </div>
+        </div>
+      `;
+      renderMath(mount);
+    }
+
+    // -------------------------------------------------------------------------
+    // 問11: 三平方の定理 (Add vs Subtract Mode Switcher)
+    // -------------------------------------------------------------------------
+    let sim11Mode = 'findLeg';
+    function renderSim11(mount) {
+      mount.innerHTML = `
+        <div class="space-y-6">
+          <div class="bg-blue-50/70 p-4 rounded-2xl border border-blue-100">
+            <span class="text-xs font-extrabold text-blue-600 uppercase">実験テーマ</span>
+            <h3 class="text-base md:text-lg font-extrabold text-slate-800">いつ「足し算」で、いつ「引き算」になるの？正方形の面積パズル $a^2 + b^2 = c^2$ で納得しよう！</h3>
+          </div>
+
+          <div class="flex flex-wrap justify-center gap-3">
+            <button onclick="sim11Mode='findHyp'; renderSim11(document.getElementById('simulatorMount'))" class="px-5 py-2.5 rounded-2xl font-extrabold text-xs md:text-sm transition ${
+              sim11Mode === 'findHyp' ? 'bg-blue-600 text-white shadow-md' : 'bg-slate-100 text-slate-700'
+            }">➕ 斜辺（一番長いボス辺 $c$）を求めるとき</button>
+            <button onclick="sim11Mode='findLeg'; renderSim11(document.getElementById('simulatorMount'))" class="px-5 py-2.5 rounded-2xl font-extrabold text-xs md:text-sm transition ${
+              sim11Mode === 'findLeg' ? 'bg-rose-600 text-white shadow-md' : 'bg-slate-100 text-slate-700'
+            }">➖ 残りの短い辺 $x$ を求めるとき（要注意！）</button>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-center bg-slate-50 p-6 rounded-3xl border border-slate-200">
+            <div class="md:col-span-6 flex justify-center">
+              <svg viewBox="0 0 320 220" class="w-full max-w-[320px] h-auto bg-white rounded-2xl border p-2">
+                <polygon points="60,170 240,170 240,40" fill="#f1f5f9" stroke="#334155" stroke-width="3" />
+                <polyline points="222,170 222,152 240,152" fill="none" stroke="#64748b" stroke-width="2" />
+
+                <text x="130" y="92" text-anchor="middle" font-size="15" font-weight="800" fill="#e11d48">
+                  ${sim11Mode === 'findHyp' ? '斜辺 c = ? (最大)' : '斜辺 c = 10 (最大)'}
+                </text>
+                <text x="150" y="198" text-anchor="middle" font-size="14" font-weight="800" fill="#2563eb">
+                  ${sim11Mode === 'findHyp' ? '辺 a = 5' : '残りの辺 x = ?'}
+                </text>
+                <text x="275" y="110" text-anchor="middle" font-size="14" font-weight="800" fill="#059669">
+                  ${sim11Mode === 'findHyp' ? '辺 b = 12' : '辺 a = 6'}
+                </text>
+              </svg>
+            </div>
+
+            <div class="md:col-span-6 space-y-4">
+              ${sim11Mode === 'findHyp' ? `
+                <div class="bg-blue-50 border border-blue-200 p-5 rounded-2xl space-y-2">
+                  <span class="text-xs font-extrabold text-blue-700">直角の向かい側（一番大きい斜辺 $c$）を知りたい！</span>
+                  <div class="text-lg font-extrabold text-slate-800">
+                    小さい2つの2乗を<span class="text-blue-600 underline">足し算</span>する！
+                  </div>
+                  <div class="p-3 bg-white rounded-xl border text-base font-extrabold leading-relaxed">
+                    $c^2 = 5^2 + 12^2 = 25 + 144 = 169$<br>
+                    $\\implies c = \\sqrt{169} =$ <span class="text-blue-600 text-xl">$13$</span>
+                  </div>
+                </div>
+              ` : `
+                <div class="bg-rose-50 border border-rose-200 p-5 rounded-2xl space-y-2">
+                  <span class="text-xs font-extrabold text-rose-700">一番大きい斜辺（$10$）がすでに分かっている！</span>
+                  <div class="text-lg font-extrabold text-slate-800">
+                    ボスの2乗（$10^2$）から片方の2乗（$6^2$）を<span class="text-rose-600 underline">引き算</span>する！
+                  </div>
+                  <div class="p-3 bg-white rounded-xl border text-base font-extrabold leading-relaxed">
+                    $x^2 = 10^2 - 6^2 = 100 - 36 = 64$<br>
+                    $\\implies x = \\sqrt{64} =$ <span class="text-rose-600 text-xl">$8$</span>
+                  </div>
+                  <p class="text-xs text-rose-900">※うっかり $10^2 + 6^2 = 136$ と足してしまうと、斜辺 $10$ より長い辺（$\\sqrt{136}$）になってしまい矛盾します！</p>
+                </div>
+              `}
+            </div>
+          </div>
+        </div>
+      `;
+      renderMath(mount);
+    }
+
+    // -------------------------------------------------------------------------
+    // 問12: 二次関数の最大（周の長さが一定の長方形） (Fixed Perimeter Rope Simulator)
+    // -------------------------------------------------------------------------
+    let sim12Perim = 20;
+    let sim12X = 5;
+
+    function renderSim12(mount) {
+      const halfP = sim12Perim / 2;
+      if (sim12X >= halfP) sim12X = halfP - 1;
+      const widthY = halfP - sim12X;
+      const area = sim12X * widthY;
+      const maxX = halfP / 2;
+      const maxArea = maxX * maxX;
+      const isMax = Math.abs(sim12X - maxX) < 0.01;
+
+      mount.innerHTML = `
+        <div class="space-y-6">
+          <div class="flex flex-wrap items-center justify-between gap-3 bg-blue-50/70 p-4 rounded-2xl border border-blue-100">
+            <div>
+              <span class="text-xs font-extrabold text-blue-600 uppercase">実験テーマ</span>
+              <h3 class="text-base md:text-lg font-extrabold text-slate-800">周の長さ $${sim12Perim}\\text{ cm}$ のヒモで作る長方形！縦 $x$ を変えると横と面積はどう変わる？</h3>
+            </div>
+            <div class="flex gap-2">
+              ${[20, 28, 32].map(p => `
+                <button onclick="sim12Perim=${p}; sim12X=${p/4}; renderSim12(document.getElementById('simulatorMount'))" class="px-3 py-1.5 rounded-xl text-xs font-extrabold ${
+                  sim12Perim === p ? 'bg-blue-600 text-white shadow' : 'bg-white text-slate-700 border'
+                }">周 $${p}\\text{ cm}$</button>
+              `).join('')}
+            </div>
+          </div>
+
+          <!-- Slider for Vertical length x -->
+          <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200">
+            <div class="flex flex-wrap justify-between items-center text-sm font-extrabold text-slate-700">
+              <span>📏 縦の長さ $x =$ <span class="text-blue-600 text-lg">$${sim12X}\\text{ cm}$</span></span>
+              <span>📐 横の長さ $(${halfP} - x) =$ <span class="text-indigo-600 text-lg">$${widthY}\\text{ cm}$</span></span>
+              <span>合計（縦＋横）$=$ 必ず $${halfP}\\text{ cm}$（周 $${sim12Perim}\\text{ cm}$ の半分！）</span>
+            </div>
+            <input type="range" min="1" max="${halfP - 1}" step="1" value="${sim12X}" oninput="sim12X=Number(this.value); renderSim12(document.getElementById('simulatorMount'))" class="w-full mt-3">
+            <div class="flex justify-between text-[11px] font-bold text-slate-400 mt-1">
+              <span>$x = 0$（潰れて消える）</span>
+              <span class="text-emerald-600 font-extrabold">★ $x = ${maxX}\\text{ cm}$（正方形で面積最大！）</span>
+              <span>$x = ${halfP}$（横が $0$ になり潰れる）</span>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+            <!-- Left Dynamic Rectangle -->
+            <div class="md:col-span-6 bg-white border-2 border-slate-200 rounded-3xl p-4 flex flex-col items-center justify-center min-h-[250px]">
+              <div class="text-xs font-bold text-slate-400 mb-2">ヒモで作った長方形の形</div>
+              <div class="flex items-center justify-center transition-all duration-200 rounded-xl border-4 ${
+                isMax ? 'bg-emerald-100 border-emerald-500 text-emerald-950 shadow-lg' : 'bg-blue-50 border-blue-500 text-blue-950'
+              }" style="width: ${Math.max(36, (widthY / halfP) * 240)}px; height: ${Math.max(36, (sim12X / halfP) * 240)}px;">
+                <div class="text-center p-1">
+                  <div class="text-xs font-bold">$${sim12X}\\text{ cm} \\times ${widthY}\\text{ cm}$</div>
+                  <div class="text-base md:text-lg font-extrabold">$${area}\\text{ cm}^2$</div>
+                </div>
+              </div>
+              ${isMax ? `<span class="mt-3 text-xs font-extrabold bg-amber-400 text-slate-900 px-3 py-1 rounded-full">👑 正方形のとき面積が最大の $${maxArea}\\text{ cm}^2$！</span>` : ''}
+            </div>
+
+            <!-- Right Formula & Parabola Explanation -->
+            <div class="md:col-span-6 space-y-3">
+              <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-2.5 text-sm">
+                <div class="font-extrabold text-slate-700">① なぜ横が $(${halfP} - x)\\text{ cm}$ になるの？</div>
+                <p class="text-xs text-slate-600">
+                  周が $${sim12Perim}\\text{ cm}$ なので「縦＋横 $=$ 半分の $${halfP}\\text{ cm}$」。だから横は <strong>$${halfP} - x$</strong> です（$0 < x < ${halfP}$）。
+                </p>
+                <div class="font-extrabold text-slate-700 pt-1">② 面積 $S$ の式を平方完成すると：</div>
+                <div class="p-3 bg-white rounded-xl border font-extrabold text-sm md:text-base leading-relaxed">
+                  $S = x(${halfP} - x) = -x^2 + ${halfP}x$<br>
+                  $= $ <span class="text-blue-600">$-(x - ${maxX})^2 + ${maxArea}$</span>
+                </div>
+                <div class="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-950 font-extrabold text-xs md:text-sm">
+                  ✨ グラフは上に凸（山型）なので、頂点 <strong>$x = ${maxX}\\text{ cm}$（縦 $${maxX}\\text{ cm}$・横 $${maxX}\\text{ cm}$）</strong>のときに<strong>最大面積 $${maxArea}\\text{ cm}^2$</strong> になります！
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      renderMath(mount);
+    }
+
+    // Initialize on load
+    window.addEventListener('DOMContentLoaded', () => {
+      updateHeaderProgress();
+      loadTopic(1);
+    });
+  </script>
+</body>
+</html>

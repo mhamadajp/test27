@@ -1,0 +1,1757 @@
+<!DOCTYPE html>
+<html lang="ja" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>三角不等式の本質・応用マスター</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- KaTeX for beautiful math rendering -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-100 dark:bg-slate-900 text-slate-800 dark:text-slate-100 min-h-screen flex flex-col transition-colors duration-200">
+
+    <!-- ヘッダー -->
+    <header class="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 py-4 px-6 shadow-sm">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center space-x-3">
+                <div class="bg-indigo-600 text-white p-2.5 rounded-xl shadow-lg flex items-center justify-center">
+                    <i class="fa-solid fa-compass text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold tracking-tight">三角不等式の本質・応用マスター</h1>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">「点」から「角度の範囲」へ ―― 単位円とグラフで疑問をスッキリ解決</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center space-x-3">
+                <!-- ナビゲーションタブ -->
+                <nav class="flex bg-slate-100 dark:bg-slate-900 p-1 rounded-xl border border-slate-200 dark:border-slate-700 overflow-x-auto max-w-full">
+                    <button onclick="switchTab('explore')" id="btn-explore" class="px-3 py-2 text-xs sm:text-sm font-medium rounded-lg transition-all bg-indigo-600 text-white shadow whitespace-nowrap">
+                        <i class="fa-solid fa-shapes mr-1"></i> 動かして探究
+                    </button>
+                    <button onclick="switchTab('steps')" id="btn-steps" class="px-3 py-2 text-xs sm:text-sm font-medium rounded-lg transition-all text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white whitespace-nowrap">
+                        <i class="fa-solid fa-list-ol mr-1"></i> 3ステップ思考法
+                    </button>
+                    <button onclick="switchTab('lab')" id="btn-lab" class="px-3 py-2 text-xs sm:text-sm font-medium rounded-lg transition-all text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white whitespace-nowrap">
+                        <i class="fa-solid fa-circle-question mr-1"></i> つまずき解消ラボ
+                    </button>
+                    <button onclick="switchTab('quiz')" id="btn-quiz" class="px-3 py-2 text-xs sm:text-sm font-medium rounded-lg transition-all text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white whitespace-nowrap">
+                        <i class="fa-solid fa-brain mr-1"></i> 実戦・応用問題
+                    </button>
+                </nav>
+
+                <!-- テーマ切り替え -->
+                <button onclick="toggleTheme()" class="p-2.5 rounded-xl bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-300 dark:hover:bg-slate-600 transition flex-shrink-0" title="テーマ切り替え">
+                    <i id="themeIcon" class="fa-solid fa-moon"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- メインコンテンツ -->
+    <main class="flex-grow max-w-7xl w-full mx-auto p-4 sm:p-6">
+
+        <!-- ================= 1. 動かして探究タブ ================= -->
+        <section id="tab-explore" class="space-y-6">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                
+                <!-- 左サイド: 操作＆数式パネル (5 cols) -->
+                <div class="lg:col-span-5 bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xl flex flex-col justify-between space-y-5">
+                    <div class="space-y-5">
+                        <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 pb-3">
+                            <h2 class="text-base font-bold text-indigo-600 dark:text-indigo-400 flex items-center gap-2">
+                                <i class="fa-solid fa-sliders"></i> 不等式の条件を設定
+                            </h2>
+                            <span class="text-xs bg-slate-100 dark:bg-slate-900 px-2.5 py-1 rounded-full border border-slate-200 dark:border-slate-700 font-mono">
+                                \(0 \le \theta < 2\pi\)
+                            </span>
+                        </div>
+
+                        <!-- 1. 三角関数の選択 (sin / cos / tan) -->
+                        <div class="space-y-1.5">
+                            <label class="text-xs font-semibold text-slate-500 dark:text-slate-400">① 調べる三角関数:</label>
+                            <div class="grid grid-cols-3 gap-2">
+                                <button onclick="setFunc('sin')" id="btnFunc-sin" class="py-2 rounded-xl text-xs font-bold transition bg-indigo-600 text-white shadow">
+                                    \(\sin\theta\)（高さ）
+                                </button>
+                                <button onclick="setFunc('cos')" id="btnFunc-cos" class="py-2 rounded-xl text-xs font-medium transition bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200">
+                                    \(\cos\theta\)（横座標）
+                                </button>
+                                <button onclick="setFunc('tan')" id="btnFunc-tan" class="py-2 rounded-xl text-xs font-medium transition bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200">
+                                    \(\tan\theta\)（傾き）
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- 2. 不等号の選択 -->
+                        <div class="space-y-1.5">
+                            <label class="text-xs font-semibold text-slate-500 dark:text-slate-400">② 不等号（等号を含むか？）：</label>
+                            <div class="grid grid-cols-4 gap-2">
+                                <button onclick="setIneq('ge')" id="btnIneq-ge" class="py-2 rounded-xl text-sm font-bold transition bg-indigo-600 text-white shadow">\(\ge\)</button>
+                                <button onclick="setIneq('gt')" id="btnIneq-gt" class="py-2 rounded-xl text-sm font-medium transition bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200">&gt;</button>
+                                <button onclick="setIneq('le')" id="btnIneq-le" class="py-2 rounded-xl text-sm font-medium transition bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200">\(\le\)</button>
+                                <button onclick="setIneq('lt')" id="btnIneq-lt" class="py-2 rounded-xl text-sm font-medium transition bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200">&lt;</button>
+                            </div>
+                        </div>
+
+                        <!-- 3. 基準値の選択 -->
+                        <div class="space-y-1.5">
+                            <label class="text-xs font-semibold text-slate-500 dark:text-slate-400">③ 基準となる値:</label>
+                            <div class="grid grid-cols-4 gap-1.5" id="valButtonContainer">
+                                <!-- JS で動的挿入 (1/2, √3/2, 0, 1 など) -->
+                            </div>
+                        </div>
+
+                        <!-- 指導案の核心: 任意の角でテスト検証 -->
+                        <div class="pt-3 border-t border-slate-200 dark:border-slate-700 space-y-2">
+                            <div class="flex justify-between items-center">
+                                <label for="testAngleSlider" class="text-xs font-semibold text-amber-600 dark:text-amber-400 flex items-center gap-1">
+                                    <i class="fa-solid fa-magnifying-glass"></i> 【テスト検証】角 \(\theta\) を代入して試す:
+                                </label>
+                                <span id="testAngleDisplay" class="font-mono text-xs font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/60 px-2 py-0.5 rounded border border-amber-200 dark:border-amber-800">
+                                    \(\theta = \frac{\pi}{2}\) (90°)
+                                </span>
+                            </div>
+                            <input type="range" id="testAngleSlider" min="0" max="360" step="15" value="90"
+                                class="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-amber-500">
+                            
+                            <!-- テスト判定結果バッジ -->
+                            <div id="testResultBox" class="p-2.5 rounded-xl border text-xs font-semibold flex items-center justify-between transition-colors">
+                                <!-- JSで更新 -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 総合判定・数式表示カード -->
+                    <div class="mt-4 p-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 space-y-2.5">
+                        <div class="text-xs text-slate-500 dark:text-slate-400 font-medium">現在解いている不等式：</div>
+                        <div id="currentFormulaDisplay" class="text-lg font-bold text-indigo-600 dark:text-indigo-400 text-center py-1">
+                            <!-- JS で更新 -->
+                        </div>
+                        <div class="border-t border-slate-200 dark:border-slate-800 pt-2 flex flex-col gap-1 text-xs">
+                            <div class="flex justify-between">
+                                <span class="text-slate-500">境界の角（方程式の解）:</span>
+                                <span id="boundaryAngleText" class="font-mono font-bold text-rose-600 dark:text-rose-400"></span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-slate-500">不等式の解（角度の範囲）:</span>
+                                <span id="solutionRangeText" class="font-mono font-bold text-emerald-600 dark:text-emerald-400 text-right"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 右サイド: 単位円 ＆ グラフ表示キャンバス (7 cols) -->
+                <div class="lg:col-span-7 bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xl flex flex-col">
+                    <div class="flex justify-between items-center mb-3">
+                        <h2 class="text-base font-bold flex items-center gap-2">
+                            <i class="fa-solid fa-circle-notch text-indigo-600 dark:text-indigo-400"></i> 単位円による「弧（角度の範囲）」の決定
+                        </h2>
+                        <div class="flex items-center space-x-3 text-xs flex-wrap gap-y-1">
+                            <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block"></span> 境界の点</span>
+                            <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span> 満たす範囲（弧）</span>
+                            <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block"></span> テスト動点 \(\theta\)</span>
+                        </div>
+                    </div>
+
+                    <!-- キャンバス（親の高さを固定し、Canvasは絶対配置にして親を押し広げない構造に変更） -->
+                    <div class="relative w-full h-[380px] sm:h-[420px] bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden flex items-center justify-center">
+                        <canvas id="trigCanvas" class="absolute inset-0 w-full h-full block"></canvas>
+                    </div>
+
+                    <!-- 本質解説フッター -->
+                    <div id="insightText" class="mt-3 bg-slate-50 dark:bg-slate-900/60 p-3.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                        <!-- JS で更新 -->
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ================= 2. 3ステップ思考法タブ ================= -->
+        <section id="tab-steps" class="hidden space-y-6">
+            <div class="bg-white dark:bg-slate-800 p-6 sm:p-8 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xl space-y-6">
+                <div class="border-b border-slate-200 dark:border-slate-700 pb-4">
+                    <h2 class="text-xl font-bold flex items-center gap-2.5">
+                        <i class="fa-solid fa-list-ol text-indigo-600 dark:text-indigo-400"></i> 「点」から「範囲」へ導く3ステップ思考法
+                    </h2>
+                    <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                        「先に等号で境界を見つけ、条件に合う場所を選び、最後にその範囲を表す」という絶対的ルーティンを身につけよう。
+                    </p>
+                </div>
+
+                <!-- 題材セレクタ -->
+                <div class="flex flex-wrap gap-2 items-center">
+                    <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 mr-2">考える例題:</span>
+                    <button onclick="setStepExample(1)" id="btnStepEx-1" class="px-3 py-1.5 rounded-lg text-xs font-bold transition bg-indigo-600 text-white shadow">
+                        例題 1: \(\sin\theta \ge \frac{1}{2}\)（基本）
+                    </button>
+                    <button onclick="setStepExample(2)" id="btnStepEx-2" class="px-3 py-1.5 rounded-lg text-xs font-medium transition bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200">
+                        例題 2: \(\cos\theta \ge \frac{1}{2}\)（範囲が分かれる）
+                    </button>
+                    <button onclick="setStepExample(3)" id="btnStepEx-3" class="px-3 py-1.5 rounded-lg text-xs font-medium transition bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200">
+                        例題 3: \(\tan\theta > 1\)（直線の傾き）
+                    </button>
+                </div>
+
+                <!-- ステップ切り替えボタンバー -->
+                <div class="grid grid-cols-3 gap-2 sm:gap-4 pt-1">
+                    <button onclick="setStepNumber(1)" id="stepTabBtn-1" class="py-2.5 px-3 rounded-xl border text-xs sm:text-sm font-semibold transition flex flex-col sm:flex-row items-center justify-center gap-1.5 bg-indigo-600 text-white border-indigo-600 shadow">
+                        <span class="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center text-[11px]">1</span>
+                        <span>Step 1: 境界の点</span>
+                    </button>
+                    <button onclick="setStepNumber(2)" id="stepTabBtn-2" class="py-2.5 px-3 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 text-xs sm:text-sm font-semibold transition flex flex-col sm:flex-row items-center justify-center gap-1.5">
+                        <span class="w-5 h-5 rounded-full bg-slate-200 dark:bg-slate-600 flex items-center justify-center text-[11px]">2</span>
+                        <span>Step 2: 1点でテスト</span>
+                    </button>
+                    <button onclick="setStepNumber(3)" id="stepTabBtn-3" class="py-2.5 px-3 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 text-xs sm:text-sm font-semibold transition flex flex-col sm:flex-row items-center justify-center gap-1.5">
+                        <span class="w-5 h-5 rounded-full bg-slate-200 dark:bg-slate-600 flex items-center justify-center text-[11px]">3</span>
+                        <span>Step 3: 端点と範囲</span>
+                    </button>
+                </div>
+
+                <!-- 3ステップ表示カード（クリックでそのStepにジャンプ可能） -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    
+                    <!-- Step 1 Card -->
+                    <div onclick="setStepNumber(1)" id="stepCard-1" class="cursor-pointer bg-slate-50 dark:bg-slate-900/80 p-4 rounded-2xl border-2 border-indigo-500 shadow-md transition-all flex flex-col justify-between space-y-3">
+                        <div class="space-y-2">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-6 h-6 rounded-full bg-rose-500 text-white flex items-center justify-center text-xs font-bold">1</span>
+                                    <h3 class="font-bold text-sm text-slate-800 dark:text-slate-100">等号で「境界」を見つける</h3>
+                                </div>
+                                <span class="text-[10px] bg-rose-100 dark:bg-rose-950 text-rose-600 dark:text-rose-300 font-bold px-2 py-0.5 rounded">方程式</span>
+                            </div>
+                            <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed" id="step1Desc">
+                                <!-- JSで更新 -->
+                            </p>
+                        </div>
+                        <div id="step1Formula" class="p-2.5 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 text-center text-xs font-mono font-bold text-rose-600 dark:text-rose-400">
+                            <!-- JSで更新 -->
+                        </div>
+                    </div>
+
+                    <!-- Step 2 Card -->
+                    <div onclick="setStepNumber(2)" id="stepCard-2" class="cursor-pointer bg-slate-50 dark:bg-slate-900/80 p-4 rounded-2xl border-2 border-transparent hover:border-slate-300 dark:hover:border-slate-600 transition-all flex flex-col justify-between space-y-3">
+                        <div class="space-y-2">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-6 h-6 rounded-full bg-amber-500 text-white flex items-center justify-center text-xs font-bold">2</span>
+                                    <h3 class="font-bold text-sm text-slate-800 dark:text-slate-100">途中の1つの角でテストする</h3>
+                                </div>
+                                <span class="text-[10px] bg-amber-100 dark:bg-amber-950 text-amber-600 dark:text-amber-300 font-bold px-2 py-0.5 rounded">検証</span>
+                            </div>
+                            <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed" id="step2Desc">
+                                <!-- JSで更新 -->
+                            </p>
+                        </div>
+                        <div id="step2Formula" class="p-2.5 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 text-center text-xs font-mono font-bold text-amber-600 dark:text-amber-400">
+                            <!-- JSで更新 -->
+                        </div>
+                    </div>
+
+                    <!-- Step 3 Card -->
+                    <div onclick="setStepNumber(3)" id="stepCard-3" class="cursor-pointer bg-slate-50 dark:bg-slate-900/80 p-4 rounded-2xl border-2 border-transparent hover:border-slate-300 dark:hover:border-slate-600 transition-all flex flex-col justify-between space-y-3">
+                        <div class="space-y-2">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs font-bold">3</span>
+                                    <h3 class="font-bold text-sm text-slate-800 dark:text-slate-100">端点・全体の範囲を照合</h3>
+                                </div>
+                                <span class="text-[10px] bg-emerald-100 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-300 font-bold px-2 py-0.5 rounded">完成</span>
+                            </div>
+                            <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed" id="step3Desc">
+                                <!-- JSで更新 -->
+                            </p>
+                        </div>
+                        <div id="step3Formula" class="p-2.5 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 text-center text-xs font-mono font-bold text-emerald-600 dark:text-emerald-400">
+                            <!-- JSで更新 -->
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- ステップ解説のグラフィカル図解 ＆ 注意すべき落とし穴 -->
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+                    
+                    <!-- キャンバス (7 cols) -->
+                    <div class="lg:col-span-7 bg-slate-50 dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 flex flex-col items-center justify-center h-[340px] sm:h-[380px] relative overflow-hidden">
+                        <canvas id="stepCanvas" class="absolute inset-0 w-full h-full block"></canvas>
+                    </div>
+
+                    <!-- ステップごとの着眼点 ＆ 注意点解説カード (5 cols) -->
+                    <div class="lg:col-span-5 bg-slate-50 dark:bg-slate-900/60 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 flex flex-col justify-between space-y-4">
+                        <div class="space-y-3">
+                            <div class="flex items-center gap-2">
+                                <span id="stepFocusBadge" class="text-xs font-bold px-2.5 py-1 rounded-full bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-300">
+                                    Step 1 の着眼点
+                                </span>
+                                <h4 id="stepFocusHeading" class="font-bold text-sm sm:text-base text-slate-800 dark:text-slate-100">
+                                    基準線との交点を正確に捉える
+                                </h4>
+                            </div>
+
+                            <!-- 図の着眼点 -->
+                            <div id="stepFocusDesc" class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                                <!-- JSで更新 -->
+                            </div>
+
+                            <!-- ここに注意！の落とし穴ボックス -->
+                            <div id="stepWarningBox" class="p-3.5 rounded-xl border text-xs leading-relaxed">
+                                <!-- JSで更新 -->
+                            </div>
+                        </div>
+
+                        <!-- 前へ / 次へ ナビゲーションボタン -->
+                        <div class="flex items-center justify-between pt-2 border-t border-slate-200 dark:border-slate-700">
+                            <button id="prevStepNavBtn" onclick="prevStepNumber()" class="text-xs px-3 py-1.5 rounded-lg bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 transition disabled:opacity-40 disabled:cursor-not-allowed">
+                                <i class="fa-solid fa-arrow-left mr-1"></i> 前のStepへ
+                            </button>
+                            <span id="stepProgressIndicator" class="text-xs font-mono text-slate-400">Step 1 / 3</span>
+                            <button id="nextStepNavBtn" onclick="nextStepNumber()" class="text-xs px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-medium transition shadow disabled:opacity-40 disabled:cursor-not-allowed">
+                                次のStepへ <i class="fa-solid fa-arrow-right ml-1"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ================= 3. つまずき解消ラボ ================= -->
+        <section id="tab-lab" class="hidden space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                <!-- 疑問 1: なぜ境界角が分かっても終わらないのか？ -->
+                <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xl space-y-3">
+                    <div class="flex items-center gap-2 text-indigo-600 dark:text-indigo-400 font-bold text-base">
+                        <i class="fa-solid fa-circle-question"></i>
+                        <span>なぜ境界角が2つ出ても、不等式は終わらないの？</span>
+                    </div>
+                    <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                        方程式（\(=\)）は「ぴったりその高さになる点」を探すので、境界の角（例: \(\frac{\pi}{6}, \frac{5\pi}{6}\)）だけで完了します。<br>
+                        しかし不等式は「その高さ<strong>より上（または下）にある場所全体</strong>」を求めるため、境界で区切られた円周のどちら側の弧を採用するのかを選ばなければ答えになりません。
+                    </p>
+                    <div class="p-3 bg-indigo-50 dark:bg-indigo-950/40 rounded-xl border border-indigo-200 dark:border-indigo-900 text-xs font-semibold text-indigo-700 dark:text-indigo-300">
+                        💡 <strong>合言葉：</strong>方程式は「点」、不等式は「点と点をつなぐ弧（角度の帯）」！
+                    </div>
+                </div>
+
+                <!-- 疑問 2: 「角度が大きい＝値が大きい」という勘違い -->
+                <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xl space-y-3">
+                    <div class="flex items-center gap-2 text-rose-600 dark:text-rose-400 font-bold text-base">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        <span>「不等号が大きいから角度も大きい方？」という誤解</span>
+                    </div>
+                    <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                        「\(\sin\theta \ge \frac{1}{2}\) だから \(\theta\) が大きい方を選べばいい」と考えてしまうのは危険です！<br>
+                        大きいのは「角そのもの」ではなく「\(\sin\theta\) の値（単位円での高さ）」です。<br>
+                        例えば \(\theta = 180^\circ (\pi)\) は \(\theta = 90^\circ (\frac{\pi}{2})\) より角は大きいですが、高さは \(\sin\pi = 0\) で低くなってしまいます。
+                    </p>
+                    <div class="p-3 bg-rose-50 dark:bg-rose-950/40 rounded-xl border border-rose-200 dark:border-rose-900 text-xs font-semibold text-rose-700 dark:text-rose-300">
+                        ⚠️ <strong>注意：</strong>右回しに進んだ角度と、その位置の「高さ・横」は比例しません！
+                    </div>
+                </div>
+
+                <!-- 疑問 3: cosθ ≧ 1/2 の答えがなぜ2つに分かれるのか？ -->
+                <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xl space-y-3">
+                    <div class="flex items-center gap-2 text-amber-500 font-bold text-base">
+                        <i class="fa-solid fa-code-fork"></i>
+                        <span>なぜ \(\cos\theta \ge \frac{1}{2}\) の答えは2つに分かれるの？</span>
+                    </div>
+                    <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                        多くの人が「\(\frac{\pi}{3} \le \theta \le \frac{5\pi}{3}\)」と書いて間違えます。しかしその真ん中にある \(\theta = \pi\) を試すと \(\cos\pi = -1 < \frac{1}{2}\) で条件を満たしません！<br>
+                        単位円の右側にある弧は \(\theta = 0\) のスタート地点をまたいでいるため、角の約束（\(0 \le \theta < 2\pi\)）に従うと「\(0\) から \(\frac{\pi}{3}\)」と「\(\frac{5\pi}{3}\) から \(2\pi\)」の2本の区間に分かれて書く必要があります。
+                    </p>
+                    <div class="p-3 bg-amber-50 dark:bg-amber-950/40 rounded-xl border border-amber-200 dark:border-amber-900 text-xs font-semibold text-amber-700 dark:text-amber-300">
+                        🔍 <strong>解：</strong>\(0 \le \theta \le \frac{\pi}{3}\) または \(\frac{5\pi}{3} \le \theta < 2\pi\)
+                    </div>
+                </div>
+
+                <!-- 疑問 4: tan で π/2 や 3π/2 を除外する理由 -->
+                <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xl space-y-3">
+                    <div class="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-bold text-base">
+                        <i class="fa-solid fa-ban"></i>
+                        <span>なぜ \(\tan\) では \(\frac{\pi}{2}, \frac{3\pi}{2}\) を絶対に含めないのか？</span>
+                    </div>
+                    <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                        \(\tan\theta = \frac{y}{x}\)（直線の傾き）です。真上（\(\frac{\pi}{2}\)）と真下（\(\frac{3\pi}{2}\)）では、横座標が \(x = 0\) になってしまいます。<br>
+                        数学では「0で割ること」が禁止されているため、これらの角では \(\tan\) の値そのものが定義されません。<br>
+                        不等号に等号（\(\ge\) や \(\le\)）がついていても、\(\frac{\pi}{2}\) と \(\frac{3\pi}{2}\) には絶対に等号をつけてはいけません！
+                    </p>
+                    <div class="p-3 bg-emerald-50 dark:bg-emerald-950/40 rounded-xl border border-emerald-200 dark:border-emerald-900 text-xs font-semibold text-emerald-700 dark:text-emerald-300">
+                        🛡️ <strong>鉄則：</strong>\(\tan\) の不等式では垂直線（\(y\) 軸）の角に常に白丸（\(<\)）！
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ================= 4. 実戦・応用チャレンジタブ ================= -->
+        <section id="tab-quiz" class="hidden space-y-6">
+            <div class="bg-white dark:bg-slate-800 p-6 sm:p-8 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xl max-w-3xl mx-auto space-y-6">
+                <div class="flex justify-between items-center border-b border-slate-200 dark:border-slate-700 pb-4">
+                    <h2 class="text-xl font-bold flex items-center gap-2">
+                        <i class="fa-solid fa-brain text-indigo-600 dark:text-indigo-400"></i> 三角不等式 実戦・応用テスト
+                    </h2>
+                    <span id="quizBadge" class="text-xs bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-200 px-3 py-1 rounded-full font-medium">問題 1 / 5</span>
+                </div>
+
+                <!-- 問題出題コンテナ -->
+                <div id="quizContainer" class="space-y-5">
+                    <div id="quizQuestion" class="text-base sm:text-lg font-semibold text-slate-800 dark:text-slate-100 leading-snug">
+                        <!-- JS で挿入 -->
+                    </div>
+                    <div id="quizOptions" class="grid grid-cols-1 gap-2.5">
+                        <!-- 選択肢 -->
+                    </div>
+                </div>
+
+                <!-- 解説・フィードバック -->
+                <div id="feedbackContainer" class="hidden bg-slate-50 dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-700 space-y-3">
+                    <div id="feedbackTitle" class="font-bold text-base"></div>
+                    <div id="feedbackBody" class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed"></div>
+                    <button onclick="nextQuiz()" class="w-full mt-2 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-medium transition shadow">
+                        次の問題へ <i class="fa-solid fa-arrow-right ml-1"></i>
+                    </button>
+                </div>
+
+                <!-- 全問完了画面 -->
+                <div id="quizComplete" class="hidden text-center space-y-4 py-8">
+                    <div class="text-4xl">🎉</div>
+                    <h3 class="text-2xl font-bold">全問クリア！</h3>
+                    <p id="quizScoreText" class="text-slate-600 dark:text-slate-300 text-base"></p>
+                    <p class="text-xs text-slate-400">境界の決定、中間の角の検証、そして端点の扱いが完璧に理解できました！</p>
+                    <button onclick="restartQuiz()" class="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-medium transition shadow">
+                        もう一度挑戦する
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- フッター -->
+    <footer class="bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 py-4 text-center text-xs text-slate-500 dark:text-slate-400 mt-auto">
+        <p>数学Ⅱ 三角不等式の本質・応用マスター &copy; 2026 - 「点」から「角度の範囲」へ</p>
+    </footer>
+
+    <!-- スクリプト -->
+    <script>
+        // テーマ切り替え
+        function toggleTheme() {
+            const html = document.documentElement;
+            const themeIcon = document.getElementById('themeIcon');
+            if (html.classList.contains('dark')) {
+                html.classList.remove('dark');
+                themeIcon.className = "fa-solid fa-sun";
+            } else {
+                html.classList.add('dark');
+                themeIcon.className = "fa-solid fa-moon";
+            }
+            if (!document.getElementById('tab-explore').classList.contains('hidden')) {
+                drawTrigModel();
+            } else if (!document.getElementById('tab-steps').classList.contains('hidden')) {
+                drawStepCanvas();
+            }
+        }
+
+        // タブ切り替え
+        function switchTab(tabId) {
+            ['explore', 'steps', 'lab', 'quiz'].forEach(t => {
+                document.getElementById(`tab-${t}`).classList.add('hidden');
+                document.getElementById(`btn-${t}`).className = "px-3 py-2 text-xs sm:text-sm font-medium rounded-lg transition-all text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white whitespace-nowrap";
+            });
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+            document.getElementById(`btn-${tabId}`).className = "px-3 py-2 text-xs sm:text-sm font-medium rounded-lg transition-all bg-indigo-600 text-white shadow whitespace-nowrap";
+
+            if (tabId === 'explore') {
+                resizeTrigCanvas();
+                drawTrigModel();
+            } else if (tabId === 'steps') {
+                resizeStepCanvas();
+                drawStepCanvas();
+            }
+        }
+
+        // KaTeX レンダリング共通関数
+        function renderMath(targetElement) {
+            if (!targetElement) return;
+            if (window.renderMathInElement) {
+                renderMathInElement(targetElement, {
+                    delimiters: [
+                        { left: '$$', right: '$$', display: true },
+                        { left: '$', right: '$', display: false },
+                        { left: '\\(', right: '\\)', display: false },
+                        { left: '\\[', right: '\\]', display: true }
+                    ],
+                    throwOnError: false
+                });
+            }
+        }
+
+        // ================= 1. 動かして探究ロジック =================
+        const trigCanvas = document.getElementById('trigCanvas');
+        const trigCtx = trigCanvas.getContext('2d');
+        const testSlider = document.getElementById('testAngleSlider');
+        const testAngleDisplay = document.getElementById('testAngleDisplay');
+        const testResultBox = document.getElementById('testResultBox');
+        const currentFormulaDisplay = document.getElementById('currentFormulaDisplay');
+        const boundaryAngleText = document.getElementById('boundaryAngleText');
+        const solutionRangeText = document.getElementById('solutionRangeText');
+        const insightText = document.getElementById('insightText');
+
+        let currentFunc = 'sin'; // 'sin' | 'cos' | 'tan'
+        let currentIneq = 'ge';  // 'ge' (>=), 'gt' (>), 'le' (<=), 'lt' (<)
+        let currentValKey = '1/2';
+        let testDeg = 90;
+
+        // 利用可能な有名値の定義
+        const funcValues = {
+            sin: [
+                { key: '1/2', label: '1/2', latex: '\\frac{1}{2}', num: 0.5 },
+                { key: 'sqrt2/2', label: '√2/2', latex: '\\frac{\\sqrt{2}}{2}', num: Math.SQRT2 / 2 },
+                { key: 'sqrt3/2', label: '√3/2', latex: '\\frac{\\sqrt{3}}{2}', num: Math.sqrt(3) / 2 },
+                { key: '0', label: '0', latex: '0', num: 0 },
+                { key: '-1/2', label: '-1/2', latex: '-\\frac{1}{2}', num: -0.5 },
+                { key: '-sqrt3/2', label: '-√3/2', latex: '-\\frac{\\sqrt{3}}{2}', num: -Math.sqrt(3) / 2 },
+                { key: '1', label: '1', latex: '1', num: 1 },
+                { key: '-1', label: '-1', latex: '-1', num: -1 }
+            ],
+            cos: [
+                { key: '1/2', label: '1/2', latex: '\\frac{1}{2}', num: 0.5 },
+                { key: 'sqrt2/2', label: '√2/2', latex: '\\frac{\\sqrt{2}}{2}', num: Math.SQRT2 / 2 },
+                { key: 'sqrt3/2', label: '√3/2', latex: '\\frac{\\sqrt{3}}{2}', num: Math.sqrt(3) / 2 },
+                { key: '0', label: '0', latex: '0', num: 0 },
+                { key: '-1/2', label: '-1/2', latex: '-\\frac{1}{2}', num: -0.5 },
+                { key: '-sqrt3/2', label: '-√3/2', latex: '-\\frac{\\sqrt{3}}{2}', num: -Math.sqrt(3) / 2 },
+                { key: '1', label: '1', latex: '1', num: 1 },
+                { key: '-1', label: '-1', latex: '-1', num: -1 }
+            ],
+            tan: [
+                { key: '1', label: '1', latex: '1', num: 1 },
+                { key: '1/sqrt3', label: '1/√3', latex: '\\frac{1}{\\sqrt{3}}', num: 1 / Math.sqrt(3) },
+                { key: 'sqrt3', label: '√3', latex: '\\sqrt{3}', num: Math.sqrt(3) },
+                { key: '0', label: '0', latex: '0', num: 0 },
+                { key: '-1', label: '-1', latex: '-1', num: -1 },
+                { key: '-sqrt3', label: '-√3', latex: '-\\sqrt{3}', num: -Math.sqrt(3) }
+            ]
+        };
+
+        function setFunc(fn) {
+            currentFunc = fn;
+            ['sin', 'cos', 'tan'].forEach(f => {
+                const btn = document.getElementById(`btnFunc-${f}`);
+                if (f === fn) {
+                    btn.className = "py-2 rounded-xl text-xs font-bold transition bg-indigo-600 text-white shadow";
+                } else {
+                    btn.className = "py-2 rounded-xl text-xs font-medium transition bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200";
+                }
+            });
+            // デフォルトの基準値を選択
+            currentValKey = (fn === 'tan') ? '1' : '1/2';
+            updateValButtons();
+            updateAll();
+        }
+
+        function setIneq(inq) {
+            currentIneq = inq;
+            ['ge', 'gt', 'le', 'lt'].forEach(i => {
+                const btn = document.getElementById(`btnIneq-${i}`);
+                if (i === inq) {
+                    btn.className = "py-2 rounded-xl text-sm font-bold transition bg-indigo-600 text-white shadow";
+                } else {
+                    btn.className = "py-2 rounded-xl text-sm font-medium transition bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200";
+                }
+            });
+            updateAll();
+        }
+
+        function setVal(key) {
+            currentValKey = key;
+            updateValButtons();
+            updateAll();
+        }
+
+        function updateValButtons() {
+            const container = document.getElementById('valButtonContainer');
+            container.innerHTML = '';
+            const list = funcValues[currentFunc];
+            list.forEach(item => {
+                const btn = document.createElement('button');
+                const isSelected = (item.key === currentValKey);
+                btn.className = isSelected 
+                    ? "py-1.5 rounded-lg text-xs font-bold transition bg-indigo-600 text-white shadow"
+                    : "py-1.5 rounded-lg text-xs font-medium transition bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-200";
+                btn.innerHTML = `\\(${item.latex}\\)`;
+                btn.onclick = () => setVal(item.key);
+                container.appendChild(btn);
+            });
+            renderMath(container);
+        }
+
+        testSlider.addEventListener('input', () => {
+            testDeg = parseInt(testSlider.value);
+            updateTestDisplay();
+            drawTrigModel();
+        });
+
+        function updateTestDisplay() {
+            // テスト角のラジアン表示
+            const radStr = degToRadString(testDeg);
+            testAngleDisplay.innerHTML = `$\\theta = ${radStr}$ (${testDeg}°)`;
+            renderMath(testAngleDisplay);
+
+            // テスト角が不等式を満たすか判定
+            const curValObj = funcValues[currentFunc].find(v => v.key === currentValKey) || funcValues[currentFunc][0];
+            const targetVal = curValObj.num;
+            const rad = testDeg * (Math.PI / 180);
+            let actualVal = 0;
+            let isValid = true;
+
+            if (currentFunc === 'sin') actualVal = Math.sin(rad);
+            else if (currentFunc === 'cos') actualVal = Math.cos(rad);
+            else if (currentFunc === 'tan') {
+                if (testDeg === 90 || testDeg === 270) {
+                    isValid = false;
+                } else {
+                    actualVal = Math.tan(rad);
+                }
+            }
+
+            let satisfies = false;
+            const eps = 1e-6;
+            if (isValid) {
+                if (currentIneq === 'ge') satisfies = (actualVal >= targetVal - eps);
+                else if (currentIneq === 'gt') satisfies = (actualVal > targetVal + eps);
+                else if (currentIneq === 'le') satisfies = (actualVal <= targetVal + eps);
+                else if (currentIneq === 'lt') satisfies = (actualVal < targetVal - eps);
+            }
+
+            if (!isValid) {
+                testResultBox.className = "p-2.5 rounded-xl border border-rose-300 dark:border-rose-800 bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 text-xs font-semibold flex items-center justify-between";
+                testResultBox.innerHTML = `<span>$\\tan ${radStr}$ は定義されない（分母 $x=0$）</span><span class="text-rose-600 font-bold">✕ 不適</span>`;
+            } else if (satisfies) {
+                testResultBox.className = "p-2.5 rounded-xl border border-emerald-300 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 text-xs font-semibold flex items-center justify-between";
+                testResultBox.innerHTML = `<span>$\\${currentFunc}${radStr} \\approx ${actualVal.toFixed(2)}$ は条件に合う！</span><span class="text-emerald-600 font-bold">◯ 条件を満たす</span>`;
+            } else {
+                testResultBox.className = "p-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-semibold flex items-center justify-between";
+                testResultBox.innerHTML = `<span>$\\${currentFunc}${radStr} \\approx ${actualVal.toFixed(2)}$ は条件を満たさない</span><span class="text-slate-400 font-bold">✕ 範囲外</span>`;
+            }
+            renderMath(testResultBox);
+        }
+
+        function degToRadString(deg) {
+            if (deg === 0 || deg === 360) return "0";
+            if (deg === 30) return "\\frac{\\pi}{6}";
+            if (deg === 45) return "\\frac{\\pi}{4}";
+            if (deg === 60) return "\\frac{\\pi}{3}";
+            if (deg === 90) return "\\frac{\\pi}{2}";
+            if (deg === 120) return "\\frac{2\\pi}{3}";
+            if (deg === 135) return "\\frac{3\\pi}{4}";
+            if (deg === 150) return "\\frac{5\\pi}{6}";
+            if (deg === 180) return "\\pi";
+            if (deg === 210) return "\\frac{7\\pi}{6}";
+            if (deg === 225) return "\\frac{5\\pi}{4}";
+            if (deg === 240) return "\\frac{4\\pi}{3}";
+            if (deg === 270) return "\\frac{3\\pi}{2}";
+            if (deg === 300) return "\\frac{5\\pi}{3}";
+            if (deg === 315) return "\\frac{7\\pi}{4}";
+            if (deg === 330) return "\\frac{11\\pi}{6}";
+            return `${deg}^\\circ`;
+        }
+
+        // 不等式記号のLaTeX文字
+        function ineqToLatex(inq) {
+            if (inq === 'ge') return '\\ge';
+            if (inq === 'gt') return '>';
+            if (inq === 'le') return '\\le';
+            if (inq === 'lt') return '<';
+            return '=';
+        }
+
+        function updateAll() {
+            const curValObj = funcValues[currentFunc].find(v => v.key === currentValKey) || funcValues[currentFunc][0];
+            const ineqSymbol = ineqToLatex(currentIneq);
+
+            // 不等式表示（ディスプレイ数式 $$...$$ を使用）
+            currentFormulaDisplay.innerHTML = `$$\\${currentFunc}\\theta ${ineqSymbol} ${curValObj.latex}$$`;
+            renderMath(currentFormulaDisplay);
+
+            // 境界角と解の範囲のテキスト計算
+            calculateSolution(currentFunc, currentIneq, curValObj);
+            updateTestDisplay();
+            drawTrigModel();
+        }
+
+        function calculateSolution(fn, inq, valObj) {
+            let bText = "";
+            let sText = "";
+            let insText = "";
+
+            if (fn === 'sin' && valObj.key === '1/2') {
+                bText = "$\\theta = \\frac{\\pi}{6}, \\; \\frac{5\\pi}{6}$";
+                if (inq === 'ge') {
+                    sText = "$\\frac{\\pi}{6} \\le \\theta \\le \\frac{5\\pi}{6}$";
+                    insText = "<strong>【sin ＝ 高さ】</strong> 水平線 $y = \\frac{1}{2}$ より上側（高い部分）の弧を選びます。等号を含むので境界の両端は塗りつぶし（黒丸）です。";
+                } else if (inq === 'gt') {
+                    sText = "$\\frac{\\pi}{6} < \\theta < \\frac{5\\pi}{6}$";
+                    insText = "<strong>【sin ＝ 高さ】</strong> 水平線 $y = \\frac{1}{2}$ より厳密に高い部分です。等号を含まないため両端は白丸です。";
+                } else if (inq === 'le') {
+                    sText = "$0 \\le \\theta \\le \\frac{\\pi}{6}, \\; \\frac{5\\pi}{6} \\le \\theta < 2\\pi$";
+                    insText = "<strong>【sin ＝ 高さ】</strong> 水平線 $y = \\frac{1}{2}$ より下側の弧です。$0 \\le \\theta < 2\\pi$ の始点 $0$ をまたぐため、2つの区間に分かれます。$2\\pi$ は範囲外のため白丸です。";
+                } else {
+                    sText = "$0 \\le \\theta < \\frac{\\pi}{6}, \\; \\frac{5\\pi}{6} < \\theta < 2\\pi$";
+                    insText = "<strong>【sin ＝ 高さ】</strong> 水平線 $y = \\frac{1}{2}$ より厳密に下側の弧です。";
+                }
+            } else if (fn === 'cos' && valObj.key === '1/2') {
+                bText = "$\\theta = \\frac{\\pi}{3}, \\; \\frac{5\\pi}{3}$";
+                if (inq === 'ge') {
+                    sText = "$0 \\le \\theta \\le \\frac{\\pi}{3}, \\; \\frac{5\\pi}{3} \\le \\theta < 2\\pi$";
+                    insText = "<strong>【cos ＝ 横座標】</strong> 垂直線 $x = \\frac{1}{2}$ より右側の弧です！$\\theta = 0$ をまたぐため、必ず2つの区間に分けて表します（真ん中の $\\pi$ は不適）。";
+                } else if (inq === 'gt') {
+                    sText = "$0 \\le \\theta < \\frac{\\pi}{3}, \\; \\frac{5\\pi}{3} < \\theta < 2\\pi$";
+                    insText = "<strong>【cos ＝ 横座標】</strong> 垂直線 $x = \\frac{1}{2}$ より右側の弧です（境界は白丸）。";
+                } else if (inq === 'le') {
+                    sText = "$\\frac{\\pi}{3} \\le \\theta \\le \\frac{5\\pi}{3}$";
+                    insText = "<strong>【cos ＝ 横座標】</strong> 垂直線 $x = \\frac{1}{2}$ より左側（小さい部分）の弧です。この場合は1つの区間につながります。";
+                } else {
+                    sText = "$\\frac{\\pi}{3} < \\theta < \\frac{5\\pi}{3}$";
+                    insText = "<strong>【cos ＝ 横座標】</strong> 垂直線 $x = \\frac{1}{2}$ より厳密に左側の弧です。";
+                }
+            } else if (fn === 'tan' && valObj.key === '1') {
+                bText = "$\\theta = \\frac{\\pi}{4}, \\; \\frac{5\\pi}{4}$";
+                if (inq === 'gt' || inq === 'ge') {
+                    const eq1 = (inq === 'ge') ? '\\le' : '<';
+                    sText = `$\\frac{\\pi}{4} ${eq1} \\theta < \\frac{\\pi}{2}, \\; \\frac{5\\pi}{4} ${eq1} \\theta < \\frac{3\\pi}{2}$`;
+                    insText = "<strong>【tan ＝ 直線の傾き】</strong> 傾き 1 より急な直線になる範囲です。注意！真上 $\\frac{\\pi}{2}$ と真下 $\\frac{3\\pi}{2}$ は $\\tan$ が定義されないため、絶対に等号を含めず白丸（$<$）にします。";
+                } else {
+                    const eq1 = (inq === 'le') ? '\\le' : '<';
+                    sText = `$0 \\le \\theta ${eq1} \\frac{\\pi}{4}, \\; \\frac{\\pi}{2} < \\theta ${eq1} \\frac{5\\pi}{4}, \\; \\frac{3\\pi}{2} < \\theta < 2\\pi$`;
+                    insText = "<strong>【tan ＝ 直線の傾き】</strong> 傾き 1 以下の範囲です。$\\frac{\\pi}{2}, \\; \\frac{3\\pi}{2}$ は必ず除外されます。";
+                }
+            } else if (fn === 'sin' && valObj.key === '0' && inq === 'le') {
+                bText = "$\\theta = 0, \\; \\pi$";
+                sText = "$\\theta = 0, \\; \\pi \\le \\theta < 2\\pi$";
+                insText = "<strong>【重要注意点】</strong> $\\sin\\theta \\le 0$ では、下半分の弧 $\\pi \\le \\theta < 2\\pi$ に加えて、始点 $\\theta = 0$（$\\sin 0 = 0$）が条件を満たします！この孤立した「点 $\\theta = 0$」を忘れないようにしましょう。";
+            } else {
+                bText = "図の赤丸の点";
+                sText = "図の緑色の弧を参照";
+                insText = `<strong>【${fn} の見方】</strong> 基準値との大小関係から、条件を満たす弧（緑色の帯）を読み取ります。`;
+            }
+
+            boundaryAngleText.innerHTML = bText;
+            solutionRangeText.innerHTML = sText;
+            insightText.innerHTML = insText;
+
+            renderMath(boundaryAngleText);
+            renderMath(solutionRangeText);
+            renderMath(insightText);
+        }
+
+        // ResizeObserverの通知ループエラー（無害なブラウザ仕様の通知）を安全に捕捉・抑制
+        window.addEventListener('error', (event) => {
+            if (event.message && (
+                event.message.includes('ResizeObserver loop completed with undelivered notifications') ||
+                event.message.includes('ResizeObserver loop limit exceeded')
+            )) {
+                event.stopImmediatePropagation();
+                event.preventDefault();
+            }
+        });
+
+        // リサイズ時の無限ループを防ぐため、前回のサイズを保持
+        let lastTrigW = 0, lastTrigH = 0;
+
+        function resizeTrigCanvas() {
+            const container = trigCanvas.parentElement;
+            if (!container) return;
+            const width = Math.floor(container.clientWidth);
+            const height = Math.floor(container.clientHeight);
+            if (width === 0 || height === 0) return;
+            // サイズ変化がない場合は無限ループ防止のためスキップ
+            if (width === lastTrigW && height === lastTrigH) return;
+
+            lastTrigW = width;
+            lastTrigH = height;
+            const dpr = window.devicePixelRatio || 1;
+
+            // 内部バッファ解像度のみを設定（style に px を設定しないことで親を押し広げない）
+            trigCanvas.width = width * dpr;
+            trigCanvas.height = height * dpr;
+            trigCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        }
+
+        // requestAnimationFrame を用いた安全なリサイズ監視
+        let rafResizeId = null;
+        const resizeObserver = new ResizeObserver((entries) => {
+            if (rafResizeId) cancelAnimationFrame(rafResizeId);
+            rafResizeId = requestAnimationFrame(() => {
+                for (const entry of entries) {
+                    if (entry.target === trigCanvas.parentElement) {
+                        if (!document.getElementById('tab-explore').classList.contains('hidden')) {
+                            resizeTrigCanvas();
+                            drawTrigModel();
+                        }
+                    } else if (entry.target === stepCanvas.parentElement) {
+                        if (!document.getElementById('tab-steps').classList.contains('hidden')) {
+                            resizeStepCanvas();
+                            drawStepCanvas();
+                        }
+                    }
+                }
+            });
+        });
+
+        window.addEventListener('resize', () => {
+            if (rafResizeId) cancelAnimationFrame(rafResizeId);
+            rafResizeId = requestAnimationFrame(() => {
+                if (!document.getElementById('tab-explore').classList.contains('hidden')) {
+                    resizeTrigCanvas();
+                    drawTrigModel();
+                } else if (!document.getElementById('tab-steps').classList.contains('hidden')) {
+                    resizeStepCanvas();
+                    drawStepCanvas();
+                }
+            });
+        });
+
+        // 単位円モデルの描画
+        function drawTrigModel() {
+            if (!trigCtx) return;
+            const w = lastTrigW || (trigCanvas.width / (window.devicePixelRatio || 1));
+            const h = lastTrigH || (trigCanvas.height / (window.devicePixelRatio || 1));
+            if (w <= 0 || h <= 0) return;
+            trigCtx.clearRect(0, 0, w, h);
+
+            const isDark = document.documentElement.classList.contains('dark');
+            const gridColor = isDark ? '#334155' : '#cbd5e1';
+            const axisColor = isDark ? '#64748b' : '#94a3b8';
+            const textColor = isDark ? '#e2e8f0' : '#334155';
+
+            const radius = Math.min(w, h) * 0.35;
+            const cx = w / 2;
+            const cy = h / 2;
+
+            const curValObj = funcValues[currentFunc].find(v => v.key === currentValKey) || funcValues[currentFunc][0];
+            const targetVal = curValObj.num;
+
+            // 1. 座標軸
+            trigCtx.strokeStyle = axisColor;
+            trigCtx.lineWidth = 1.5;
+            trigCtx.beginPath();
+            trigCtx.moveTo(cx - radius * 1.35, cy);
+            trigCtx.lineTo(cx + radius * 1.35, cy);
+            trigCtx.moveTo(cx, cy - radius * 1.35);
+            trigCtx.lineTo(cx, cy + radius * 1.35);
+            trigCtx.stroke();
+
+            // 軸ラベル
+            trigCtx.fillStyle = textColor;
+            trigCtx.font = '12px Inter, sans-serif';
+            trigCtx.fillText('x', cx + radius * 1.38, cy + 4);
+            trigCtx.fillText('y', cx + 6, cy - radius * 1.38 + 10);
+            trigCtx.fillText('O', cx - 12, cy + 14);
+
+            // 2. 単位円本体
+            trigCtx.strokeStyle = gridColor;
+            trigCtx.lineWidth = 2;
+            trigCtx.beginPath();
+            trigCtx.arc(cx, cy, radius, 0, Math.PI * 2);
+            trigCtx.stroke();
+
+            // 3. 基準線の描画（破線）
+            trigCtx.setLineDash([4, 4]);
+            if (currentFunc === 'sin') {
+                // 水平線 y = targetVal
+                const lineY = cy - targetVal * radius;
+                trigCtx.strokeStyle = '#f43f5e';
+                trigCtx.lineWidth = 2;
+                trigCtx.beginPath();
+                trigCtx.moveTo(cx - radius * 1.25, lineY);
+                trigCtx.lineTo(cx + radius * 1.25, lineY);
+                trigCtx.stroke();
+
+                trigCtx.fillStyle = '#f43f5e';
+                trigCtx.font = 'bold 11px Inter, sans-serif';
+                trigCtx.fillText(`y = ${curValObj.label}`, cx + radius * 0.6, lineY - 6);
+            } else if (currentFunc === 'cos') {
+                // 垂直線 x = targetVal
+                const lineX = cx + targetVal * radius;
+                trigCtx.strokeStyle = '#f43f5e';
+                trigCtx.lineWidth = 2;
+                trigCtx.beginPath();
+                trigCtx.moveTo(lineX, cy - radius * 1.25);
+                trigCtx.lineTo(lineX, cy + radius * 1.25);
+                trigCtx.stroke();
+
+                trigCtx.fillStyle = '#f43f5e';
+                trigCtx.font = 'bold 11px Inter, sans-serif';
+                trigCtx.fillText(`x = ${curValObj.label}`, lineX + 6, cy - radius * 0.9);
+            } else if (currentFunc === 'tan') {
+                // 直線 y = targetVal * x (傾き)
+                trigCtx.strokeStyle = '#f43f5e';
+                trigCtx.lineWidth = 1.5;
+                trigCtx.beginPath();
+                trigCtx.moveTo(cx - radius * 1.2, cy + targetVal * radius * 1.2);
+                trigCtx.lineTo(cx + radius * 1.2, cy - targetVal * radius * 1.2);
+                trigCtx.stroke();
+
+                // 補助線 x = 1
+                trigCtx.strokeStyle = '#94a3b8';
+                trigCtx.beginPath();
+                trigCtx.moveTo(cx + radius, cy - radius * 1.3);
+                trigCtx.lineTo(cx + radius, cy + radius * 1.3);
+                trigCtx.stroke();
+
+                trigCtx.fillStyle = '#f43f5e';
+                trigCtx.font = 'bold 11px Inter, sans-serif';
+                trigCtx.fillText(`傾き = ${curValObj.label}`, cx + radius + 6, cy - targetVal * radius);
+            }
+            trigCtx.setLineDash([]);
+
+            // 4. 不等式を満たす弧（緑色の太線）の判定と描画
+            trigCtx.strokeStyle = '#10b981';
+            trigCtx.lineWidth = 5;
+
+            const step = 0.5; // 度数法刻み
+            let inArc = false;
+            let currentPath = [];
+            const includeEq = (currentIneq === 'ge' || currentIneq === 'le');
+
+            for (let d = 0; d < 360; d += step) {
+                const r = d * (Math.PI / 180);
+                let val = 0;
+                let valid = true;
+                if (currentFunc === 'sin') val = Math.sin(r);
+                else if (currentFunc === 'cos') val = Math.cos(r);
+                else if (currentFunc === 'tan') {
+                    if (Math.abs(d - 90) < 0.5 || Math.abs(d - 270) < 0.5) valid = false;
+                    else val = Math.tan(r);
+                }
+
+                let sat = false;
+                if (valid) {
+                    if (currentIneq === 'ge') sat = (val >= targetVal - 1e-5);
+                    else if (currentIneq === 'gt') sat = (val > targetVal + 1e-5);
+                    else if (currentIneq === 'le') sat = (val <= targetVal + 1e-5);
+                    else if (currentIneq === 'lt') sat = (val < targetVal - 1e-5);
+                }
+
+                if (sat) {
+                    currentPath.push(r);
+                } else {
+                    if (currentPath.length > 0) {
+                        drawArcSegment(trigCtx, cx, cy, radius, currentPath);
+                        currentPath = [];
+                    }
+                }
+            }
+            if (currentPath.length > 0) {
+                drawArcSegment(trigCtx, cx, cy, radius, currentPath);
+            }
+
+            // 5. 境界点の描画（赤色丸: 含むなら黒丸、含まないなら白丸）
+            drawBoundaryPoints(trigCtx, cx, cy, radius, targetVal, includeEq, isDark);
+
+            // 6. テスト動点 θ の描画
+            const testRad = testDeg * (Math.PI / 180);
+            const tx = cx + radius * Math.cos(testRad);
+            const ty = cy - radius * Math.sin(testRad);
+
+            // 動径
+            trigCtx.strokeStyle = '#f59e0b';
+            trigCtx.lineWidth = 2;
+            trigCtx.beginPath();
+            trigCtx.moveTo(cx, cy);
+            trigCtx.lineTo(tx, ty);
+            trigCtx.stroke();
+
+            // テスト点
+            trigCtx.fillStyle = '#f59e0b';
+            trigCtx.beginPath();
+            trigCtx.arc(tx, ty, 6, 0, Math.PI * 2);
+            trigCtx.fill();
+            trigCtx.strokeStyle = isDark ? '#0f172a' : '#ffffff';
+            trigCtx.lineWidth = 2;
+            trigCtx.stroke();
+
+            // テスト点ラベル
+            trigCtx.fillStyle = '#f59e0b';
+            trigCtx.font = 'bold 12px Inter, sans-serif';
+            trigCtx.fillText(`θ = ${testDeg}°`, tx + 10, ty - 6);
+        }
+
+        function drawArcSegment(ctx, cx, cy, r, radArray) {
+            if (radArray.length < 2) return;
+            ctx.beginPath();
+            // Canvas は y 軸が下向きなので角度は負にする
+            ctx.arc(cx, cy, r, -radArray[0], -radArray[radArray.length - 1], true);
+            ctx.stroke();
+        }
+
+        function drawBoundaryPoints(ctx, cx, cy, radius, targetVal, includeEq, isDark) {
+            let angles = [];
+
+            if (currentFunc === 'sin') {
+                if (Math.abs(targetVal) <= 1) {
+                    const a1 = Math.asin(targetVal);
+                    const a2 = Math.PI - a1;
+                    angles.push((a1 + 2 * Math.PI) % (2 * Math.PI));
+                    angles.push((a2 + 2 * Math.PI) % (2 * Math.PI));
+                }
+            } else if (currentFunc === 'cos') {
+                if (Math.abs(targetVal) <= 1) {
+                    const a1 = Math.acos(targetVal);
+                    const a2 = 2 * Math.PI - a1;
+                    angles.push(a1);
+                    angles.push(a2);
+                }
+            } else if (currentFunc === 'tan') {
+                const a1 = Math.atan(targetVal);
+                angles.push((a1 + 2 * Math.PI) % (2 * Math.PI));
+                angles.push((a1 + Math.PI) % (2 * Math.PI));
+
+                // tan では 90° と 270° は絶対に白丸（含まない）
+                drawCircleNode(ctx, cx, cy - radius, false, '#64748b', isDark);
+                drawCircleNode(ctx, cx, cy + radius, false, '#64748b', isDark);
+            }
+
+            angles.forEach(ang => {
+                const px = cx + radius * Math.cos(ang);
+                const py = cy - radius * Math.sin(ang);
+                drawCircleNode(ctx, px, py, includeEq, '#f43f5e', isDark);
+            });
+        }
+
+        function drawCircleNode(ctx, x, y, isFilled, color, isDark) {
+            ctx.beginPath();
+            ctx.arc(x, y, 5.5, 0, Math.PI * 2);
+            if (isFilled) {
+                ctx.fillStyle = color;
+                ctx.fill();
+                ctx.strokeStyle = isDark ? '#0f172a' : '#ffffff';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            } else {
+                ctx.fillStyle = isDark ? '#0f172a' : '#ffffff';
+                ctx.fill();
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 2.5;
+                ctx.stroke();
+            }
+        }
+
+        // ================= 2. 3ステップ思考法ロジック =================
+        const stepCanvas = document.getElementById('stepCanvas');
+        const stepCtx = stepCanvas.getContext('2d');
+        let currentStepExample = 1; // 1: sin >= 1/2, 2: cos >= 1/2, 3: tan > 1
+        let currentStepNumber = 1;  // 1: 境界, 2: テスト, 3: 範囲と端点
+
+        const stepExamples = {
+            1: {
+                title: "\\sin\\theta \\ge \\frac{1}{2}",
+                s1Desc: "まずは不等号を等号（＝）に変えた方程式 $\\sin\\theta = \\frac{1}{2}$ を解きます。<br>$\\sin$ は高さなので、水平線 $y = \\frac{1}{2}$ と単位円の交点を求めます。",
+                s1Formula: "\\sin\\theta = \\frac{1}{2} \\implies \\theta = \\frac{\\pi}{6}, \\; \\frac{5\\pi}{6}",
+                s2Desc: "境界で区切られた上側の真ん中にある角 $\\theta = \\frac{\\pi}{2}$（90°）を代入してテストします。<br>$\\sin\\frac{\\pi}{2} = 1 \\ge \\frac{1}{2}$ で正しいため、上側の弧を採用します！",
+                s2Formula: "\\theta = \\frac{\\pi}{2} \\text{ で検証}: 1 \\ge \\frac{1}{2} \\; (\\text{適合!})",
+                s3Desc: "不等号が「$\\ge$」なので境界の2点を含めます（黒丸 ●）。反時計回りに範囲を書いて完成です！",
+                s3Formula: "\\frac{\\pi}{6} \\le \\theta \\le \\frac{5\\pi}{6}",
+                
+                // 各ステップ固有の着眼点と注意すべき落とし穴
+                focus: [
+                    {
+                        heading: "高さ $y = \\frac{1}{2}$ の水平線と交点を探す",
+                        desc: "図の赤い破線（$y = \\frac{1}{2}$）と単位円が交わる2つの点が境界です。<br>反時計回りに測ると、第1象限の $\\frac{\\pi}{6}$（30°）と第2象限の $\\frac{5\\pi}{6}$（150°）になります。",
+                        warningHtml: `<div class="font-bold text-rose-600 dark:text-rose-400 mb-1 flex items-center gap-1.5"><i class="fa-solid fa-triangle-exclamation"></i> ここに注意！</div>
+                                      <p class="text-slate-600 dark:text-slate-300">「不等式だから」といきなり範囲を暗記で書こうとしないこと！まずは方程式として<strong>境界となる2つの点（角度）を確実に固定すること</strong>が全ての出発点です。</p>`,
+                        boxClass: "bg-rose-50 dark:bg-rose-950/40 border-rose-200 dark:border-rose-900"
+                    },
+                    {
+                        heading: "「上」か「下」かを途中の1角で白黒つける",
+                        desc: "境界によって円周は『上の弧』と『下の弧』に2分割されます。<br>上の弧の代表角 $\\theta = \\frac{\\pi}{2}$ を代入すると、$\\sin\\frac{\\pi}{2} = 1 \\ge \\frac{1}{2}$ で条件を満たすため、上の弧を採用します。",
+                        warningHtml: `<div class="font-bold text-amber-600 dark:text-amber-400 mb-1 flex items-center gap-1.5"><i class="fa-solid fa-lightbulb"></i> ここに注意！（よくある勘違い）</div>
+                                      <p class="text-slate-600 dark:text-slate-300">「不等号が大きいから角度も大きい方？」と勘違いしてはいけません！大きいのは角度ではなく<strong>『高さ（$\\sin$ の値）』</strong>です。迷ったら真ん中の角を1つ代入すれば絶対に間違えません。</p>`,
+                        boxClass: "bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-900"
+                    },
+                    {
+                        heading: "端点の黒丸・白丸と範囲の表記",
+                        desc: "採用した上の弧を緑色で塗ります。元の不等号が『$\\ge$』なので、境界の2点は塗りつぶし（黒丸 ●）で含めます。<br>解は $\\frac{\\pi}{6} \\le \\theta \\le \\frac{5\\pi}{6}$ と1本の区間で表せます。",
+                        warningHtml: `<div class="font-bold text-emerald-600 dark:text-emerald-400 mb-1 flex items-center gap-1.5"><i class="fa-solid fa-circle-check"></i> ここに注意！</div>
+                                      <p class="text-slate-600 dark:text-slate-300">もし問題が『$\\sin\\theta > \\frac{1}{2}$』なら、境界は白丸（○）になり、不等号も $\\frac{\\pi}{6} < \\theta < \\frac{5\\pi}{6}$ と小なりになります。</p>`,
+                        boxClass: "bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-900"
+                    }
+                ]
+            },
+            2: {
+                title: "\\cos\\theta \\ge \\frac{1}{2}",
+                s1Desc: "等号 $\\cos\\theta = \\frac{1}{2}$ を解きます。$\\cos$ は横座標なので、垂直線 $x = \\frac{1}{2}$ と円の交点を求めます。",
+                s1Formula: "\\cos\\theta = \\frac{1}{2} \\implies \\theta = \\frac{\\pi}{3}, \\; \\frac{5\\pi}{3}",
+                s2Desc: "左側の角 $\\theta = \\pi$ を試すと $\\cos\\pi = -1 < \\frac{1}{2}$ で不適！<br>右端の角 $\\theta = 0$ を試すと $\\cos 0 = 1 \\ge \\frac{1}{2}$ で適合！したがって右側の弧を採用します。",
+                s2Formula: "\\theta = 0 \\text{ で検証}: 1 \\ge \\frac{1}{2} \\; (\\text{適合!})",
+                s3Desc: "右側の弧は始点 $\\theta = 0$ をまたぎます！$0 \\le \\theta < 2\\pi$ の約束に従い、必ず2つの区間に分けて書きます。",
+                s3Formula: "0 \\le \\theta \\le \\frac{\\pi}{3}, \\quad \\frac{5\\pi}{3} \\le \\theta < 2\\pi",
+
+                focus: [
+                    {
+                        heading: "横座標 $x = \\frac{1}{2}$ の垂直線を見る",
+                        desc: "図の赤い破線（$x = \\frac{1}{2}$）との交点です。第1象限の $\\frac{\\pi}{3}$（60°）と第4象限の $\\frac{5\\pi}{3}$（300°）が境界になります。",
+                        warningHtml: `<div class="font-bold text-rose-600 dark:text-rose-400 mb-1 flex items-center gap-1.5"><i class="fa-solid fa-triangle-exclamation"></i> ここに注意！</div>
+                                      <p class="text-slate-600 dark:text-slate-300">$\\cos$ を見るときに水平線を引いてしまうミスが多発します！<strong>『$\\cos$ は $x$ 座標（横の長さ）』</strong>なので、必ず垂直線を引いて境界を特定しましょう。</p>`,
+                        boxClass: "bg-rose-50 dark:bg-rose-950/40 border-rose-200 dark:border-rose-900"
+                    },
+                    {
+                        heading: "左右どちらの弧か？ $\\theta = \\pi$ の反例で暴く",
+                        desc: "垂直線より右側の弧が条件を満たします。真ん中にある $\\theta = \\pi$ を代入すると $\\cos\\pi = -1$ となり明らかにアウト！右端の $\\theta = 0$ は $\\cos 0 = 1 \\ge \\frac{1}{2}$ でセーフです。",
+                        warningHtml: `<div class="font-bold text-amber-600 dark:text-amber-400 mb-1 flex items-center gap-1.5"><i class="fa-solid fa-bomb"></i> 超頻出の落とし穴！</div>
+                                      <p class="text-slate-600 dark:text-slate-300">多くの人が何も考えずに『$\\frac{\\pi}{3} \\le \\theta \\le \\frac{5\\pi}{3}$』と書いてしまいます！しかしその範囲のド真ん中にある $\\pi$（180°）は不適合です。必ずテスト角で検証しましょう！</p>`,
+                        boxClass: "bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-900"
+                    },
+                    {
+                        heading: "なぜ答えが2つに分かれるのか？",
+                        desc: "単位円の右側の弧は、角度のスタート地点 $\\theta = 0$ をまたいでいます。<br>角の範囲は $0 \\le \\theta < 2\\pi$ と決められているため、$0$ から $\\frac{\\pi}{3}$、そして $\\frac{5\\pi}{3}$ から $2\\pi$ の2本に切り分けて書きます。",
+                        warningHtml: `<div class="font-bold text-emerald-600 dark:text-emerald-400 mb-1 flex items-center gap-1.5"><i class="fa-solid fa-circle-exclamation"></i> ここに注意！（$2\\pi$ の等号）</div>
+                                      <p class="text-slate-600 dark:text-slate-300">問題の前提が $0 \\le \\theta < 2\\pi$ なので、<strong>$2\\pi$ には絶対に等号をつけません（白丸 ○）</strong>！$0$ には等号が付きます（黒丸 ●）。この差はテストで減点されやすいポイントです。</p>`,
+                        boxClass: "bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-900"
+                    }
+                ]
+            },
+            3: {
+                title: "\\tan\\theta > 1",
+                s1Desc: "等号 $\\tan\\theta = 1$ を解きます。$\\tan$ は直線の傾きなので、原点を通る傾き 1（45°方向）の直線との交点を求めます。",
+                s1Formula: "\\tan\\theta = 1 \\implies \\theta = \\frac{\\pi}{4}, \\; \\frac{5\\pi}{4}",
+                s2Desc: "傾き 1 より急な直線になる範囲を探します。反時計回りに垂直線（$y$ 軸）へ近づくほど傾きは急激に大きくなります。",
+                s2Formula: "\\text{傾きが 1 より急になる第1・第3象限の弧を選択}",
+                s3Desc: "超注意！$\\theta = \\frac{\\pi}{2}, \\frac{3\\pi}{2}$（真上・真下）は $\\tan$ が定義されないため、絶対に白丸（除外）にします。",
+                s3Formula: "\\frac{\\pi}{4} < \\theta < \\frac{\\pi}{2}, \\quad \\frac{5\\pi}{4} < \\theta < \\frac{3\\pi}{2}",
+
+                focus: [
+                    {
+                        heading: "傾き 1 の直線（45°方向）を引く",
+                        desc: "原点 $O$ を通り、傾きが 1 となる直線を引きます。単位円との交点は第1象限の $\\frac{\\pi}{4}$（45°）と第3象限の $\\frac{5\\pi}{4}$（225°）です。",
+                        warningHtml: `<div class="font-bold text-rose-600 dark:text-rose-400 mb-1 flex items-center gap-1.5"><i class="fa-solid fa-triangle-exclamation"></i> ここに注意！</div>
+                                      <p class="text-slate-600 dark:text-slate-300">$\\tan$ は高さでも横でもなく<strong>『直線の傾き』</strong>です。右側の補助線 $x = 1$ 上で高さ 1 になる点と原点を結ぶ直線をイメージしましょう。</p>`,
+                        boxClass: "bg-rose-50 dark:bg-rose-950/40 border-rose-200 dark:border-rose-900"
+                    },
+                    {
+                        heading: "傾きが「1 より急」になる方向を見定める",
+                        desc: "傾きが 1 より大きいとは、坂道がより急になることです。第1象限では $\\frac{\\pi}{4}$ から真上（$y$ 軸）へ向かうほど傾きは急になります。第3象限でも同様に真下へ向かう方向です。",
+                        warningHtml: `<div class="font-bold text-amber-600 dark:text-amber-400 mb-1 flex items-center gap-1.5"><i class="fa-solid fa-lightbulb"></i> ここに注意！</div>
+                                      <p class="text-slate-600 dark:text-slate-300">第2象限や第4象限は右下がりの直線なので、傾きは負（マイナス）になります。したがって今回は第1象限と第3象限だけを見れば十分です。</p>`,
+                        boxClass: "bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-900"
+                    },
+                    {
+                        heading: "最大の急所！ $\\frac{\\pi}{2}, \\frac{3\\pi}{2}$ を絶対に除外する",
+                        desc: "直角（$\\frac{\\pi}{2}$）や $270^\\circ$（$\\frac{3\\pi}{2}$）では直線が真垂直になり、$x = 0$ となって傾きが定義できません！<br>そのため、この2点には必ず白丸（○）をつけて除外します。",
+                        warningHtml: `<div class="font-bold text-emerald-600 dark:text-emerald-400 mb-1 flex items-center gap-1.5"><i class="fa-solid fa-ban"></i> 鉄則中の鉄則！</div>
+                                      <p class="text-slate-600 dark:text-slate-300">問題がたとえ『$\\tan\\theta \\ge 1$』と等号付きであっても、<strong>$\\frac{\\pi}{2}$ や $\\frac{3\\pi}{2}$ には絶対に等号をつけてはいけません（白丸）</strong>！</p>`,
+                        boxClass: "bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-900"
+                    }
+                ]
+            }
+        };
+
+        function setStepExample(num) {
+            currentStepExample = num;
+            for (let i = 1; i <= 3; i++) {
+                const btn = document.getElementById(`btnStepEx-${i}`);
+                if (i === num) {
+                    btn.className = "px-3 py-1.5 rounded-lg text-xs font-bold transition bg-indigo-600 text-white shadow";
+                } else {
+                    btn.className = "px-3 py-1.5 rounded-lg text-xs font-medium transition bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200";
+                }
+            }
+            updateStepView();
+        }
+
+        function setStepNumber(step) {
+            currentStepNumber = step;
+            updateStepView();
+        }
+
+        function nextStepNumber() {
+            if (currentStepNumber < 3) setStepNumber(currentStepNumber + 1);
+        }
+
+        function prevStepNumber() {
+            if (currentStepNumber > 1) setStepNumber(currentStepNumber - 1);
+        }
+
+        function updateStepView() {
+            const data = stepExamples[currentStepExample];
+
+            // 1. 3枚のカードのテキスト更新
+            document.getElementById('step1Desc').innerHTML = data.s1Desc;
+            document.getElementById('step1Formula').innerHTML = `$$${data.s1Formula}$$`;
+            document.getElementById('step2Desc').innerHTML = data.s2Desc;
+            document.getElementById('step2Formula').innerHTML = `$$${data.s2Formula}$$`;
+            document.getElementById('step3Desc').innerHTML = data.s3Desc;
+            document.getElementById('step3Formula').innerHTML = `$$${data.s3Formula}$$`;
+
+            // 2. ステップ切り替えボタンのスタイル更新
+            for (let i = 1; i <= 3; i++) {
+                const tabBtn = document.getElementById(`stepTabBtn-${i}`);
+                const card = document.getElementById(`stepCard-${i}`);
+                if (i === currentStepNumber) {
+                    tabBtn.className = "py-2.5 px-3 rounded-xl border text-xs sm:text-sm font-semibold transition flex flex-col sm:flex-row items-center justify-center gap-1.5 bg-indigo-600 text-white border-indigo-600 shadow";
+                    card.className = "cursor-pointer bg-slate-50 dark:bg-slate-900/80 p-4 rounded-2xl border-2 border-indigo-500 shadow-lg ring-2 ring-indigo-500/20 transition-all flex flex-col justify-between space-y-3";
+                } else {
+                    tabBtn.className = "py-2.5 px-3 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 text-xs sm:text-sm font-semibold transition flex flex-col sm:flex-row items-center justify-center gap-1.5";
+                    card.className = "cursor-pointer bg-slate-50 dark:bg-slate-900/80 p-4 rounded-2xl border-2 border-transparent hover:border-slate-300 dark:hover:border-slate-600 transition-all flex flex-col justify-between space-y-3";
+                }
+            }
+
+            // 3. 右側解説枠（着眼点 ＆ 注意点）の更新
+            const focusData = data.focus[currentStepNumber - 1];
+            document.getElementById('stepFocusBadge').innerText = `Step ${currentStepNumber} の着眼点`;
+            document.getElementById('stepFocusHeading').innerHTML = focusData.heading;
+            document.getElementById('stepFocusDesc').innerHTML = focusData.desc;
+
+            const warnBox = document.getElementById('stepWarningBox');
+            warnBox.className = `p-3.5 rounded-xl border text-xs leading-relaxed ${focusData.boxClass}`;
+            warnBox.innerHTML = focusData.warningHtml;
+
+            // 4. 前へ/次へボタンの制御
+            document.getElementById('prevStepNavBtn').disabled = (currentStepNumber === 1);
+            document.getElementById('nextStepNavBtn').disabled = (currentStepNumber === 3);
+            document.getElementById('stepProgressIndicator').innerText = `Step ${currentStepNumber} / 3`;
+
+            // 数式レンダリング
+            renderMath(document.getElementById('tab-steps'));
+
+            // キャンバス描画
+            drawStepCanvas();
+        }
+
+        let lastStepW = 0, lastStepH = 0;
+
+        function resizeStepCanvas() {
+            const container = stepCanvas.parentElement;
+            if (!container) return;
+            const width = Math.floor(container.clientWidth);
+            const height = Math.floor(container.clientHeight);
+            if (width === 0 || height === 0) return;
+            if (width === lastStepW && height === lastStepH) return;
+
+            lastStepW = width;
+            lastStepH = height;
+            const dpr = window.devicePixelRatio || 1;
+
+            stepCanvas.width = width * dpr;
+            stepCanvas.height = height * dpr;
+            stepCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        }
+
+        function drawStepCanvas() {
+            if (!stepCtx) return;
+            const w = lastStepW || (stepCanvas.width / (window.devicePixelRatio || 1));
+            const h = lastStepH || (stepCanvas.height / (window.devicePixelRatio || 1));
+            if (w <= 0 || h <= 0) return;
+            stepCtx.clearRect(0, 0, w, h);
+
+            const isDark = document.documentElement.classList.contains('dark');
+            const gridColor = isDark ? '#334155' : '#cbd5e1';
+            const axisColor = isDark ? '#64748b' : '#94a3b8';
+            const textColor = isDark ? '#e2e8f0' : '#334155';
+            const radius = Math.min(w, h) * 0.36;
+            const cx = w / 2;
+            const cy = h / 2;
+
+            // 1. 座標軸
+            stepCtx.strokeStyle = axisColor;
+            stepCtx.lineWidth = 1.5;
+            stepCtx.beginPath();
+            stepCtx.moveTo(cx - radius * 1.35, cy);
+            stepCtx.lineTo(cx + radius * 1.35, cy);
+            stepCtx.moveTo(cx, cy - radius * 1.35);
+            stepCtx.lineTo(cx, cy + radius * 1.35);
+            stepCtx.stroke();
+
+            // 軸ラベル
+            stepCtx.fillStyle = textColor;
+            stepCtx.font = '12px Inter, sans-serif';
+            stepCtx.fillText('x', cx + radius * 1.38, cy + 4);
+            stepCtx.fillText('y', cx + 6, cy - radius * 1.38 + 10);
+            stepCtx.fillText('O', cx - 12, cy + 14);
+
+            // 2. 単位円本体
+            stepCtx.strokeStyle = gridColor;
+            stepCtx.lineWidth = 2;
+            stepCtx.beginPath();
+            stepCtx.arc(cx, cy, radius, 0, Math.PI * 2);
+            stepCtx.stroke();
+
+            // 例題ごとのパラメータ
+            if (currentStepExample === 1) {
+                // 例題1: sinθ >= 1/2
+                drawStepSin(stepCtx, cx, cy, radius, isDark, textColor);
+            } else if (currentStepExample === 2) {
+                // 例題2: cosθ >= 1/2
+                drawStepCos(stepCtx, cx, cy, radius, isDark, textColor);
+            } else if (currentStepExample === 3) {
+                // 例題3: tanθ > 1
+                drawStepTan(stepCtx, cx, cy, radius, isDark, textColor);
+            }
+        }
+
+        // --- 例題1: sinθ >= 1/2 の Step描画 ---
+        function drawStepSin(ctx, cx, cy, radius, isDark, textColor) {
+            const ly = cy - 0.5 * radius;
+            const ang1 = Math.PI / 6;
+            const ang2 = 5 * Math.PI / 6;
+            const p1x = cx + radius * Math.cos(ang1);
+            const p1y = cy - radius * Math.sin(ang1);
+            const p2x = cx + radius * Math.cos(ang2);
+            const p2y = cy - radius * Math.sin(ang2);
+
+            // 基準線 y = 1/2
+            ctx.strokeStyle = '#f43f5e';
+            ctx.setLineDash([4, 4]);
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(cx - radius * 1.25, ly);
+            ctx.lineTo(cx + radius * 1.25, ly);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            ctx.fillStyle = '#f43f5e';
+            ctx.font = 'bold 11px Inter, sans-serif';
+            ctx.fillText('y = 1/2', cx + radius * 0.65, ly - 6);
+
+            if (currentStepNumber === 1) {
+                // Step 1: 境界点と動径のみ
+                ctx.strokeStyle = '#f43f5e';
+                ctx.lineWidth = 1.5;
+                ctx.setLineDash([2, 2]);
+                ctx.beginPath();
+                ctx.moveTo(cx, cy); ctx.lineTo(p1x, p1y);
+                ctx.moveTo(cx, cy); ctx.lineTo(p2x, p2y);
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                drawCircleNode(ctx, p1x, p1y, true, '#f43f5e', isDark);
+                drawCircleNode(ctx, p2x, p2y, true, '#f43f5e', isDark);
+
+                ctx.fillStyle = textColor;
+                ctx.font = 'bold 12px Inter, sans-serif';
+                ctx.fillText('π/6 (30°)', p1x + 8, p1y - 6);
+                ctx.fillText('5π/6 (150°)', p2x - 70, p2y - 6);
+            } 
+            else if (currentStepNumber === 2) {
+                // Step 2: テスト点 θ = π/2 (90°) を強調
+                drawCircleNode(ctx, p1x, p1y, false, '#f43f5e', isDark);
+                drawCircleNode(ctx, p2x, p2y, false, '#f43f5e', isDark);
+
+                // テスト角 θ = π/2
+                const testX = cx;
+                const testY = cy - radius;
+                ctx.strokeStyle = '#f59e0b';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(cx, cy);
+                ctx.lineTo(testX, testY);
+                ctx.stroke();
+
+                drawCircleNode(ctx, testX, testY, true, '#f59e0b', isDark);
+
+                ctx.fillStyle = '#f59e0b';
+                ctx.font = 'bold 12px Inter, sans-serif';
+                ctx.fillText('テスト: θ = π/2 (高さ = 1)', testX + 10, testY + 14);
+
+                // 適合マークバッジ
+                ctx.fillStyle = '#10b981';
+                ctx.font = 'bold 13px Inter, sans-serif';
+                ctx.fillText('1 ≧ 1/2 ◯ 上の弧を採用！', cx - 75, cy - radius * 0.6);
+            } 
+            else if (currentStepNumber === 3) {
+                // Step 3: 上の弧を緑色で強調、境界は黒丸
+                ctx.strokeStyle = '#10b981';
+                ctx.lineWidth = 6;
+                ctx.beginPath();
+                ctx.arc(cx, cy, radius, -ang1, -ang2, true);
+                ctx.stroke();
+
+                drawCircleNode(ctx, p1x, p1y, true, '#10b981', isDark);
+                drawCircleNode(ctx, p2x, p2y, true, '#10b981', isDark);
+
+                ctx.fillStyle = '#10b981';
+                ctx.font = 'bold 12px Inter, sans-serif';
+                ctx.fillText('● π/6 (含む)', p1x + 8, p1y - 6);
+                ctx.fillText('● 5π/6 (含む)', p2x - 85, p2y - 6);
+
+                ctx.font = 'bold 13px Inter, sans-serif';
+                ctx.fillText('解: π/6 ≦ θ ≦ 5π/6', cx - 60, cy - radius * 1.12);
+            }
+        }
+
+        // --- 例題2: cosθ >= 1/2 の Step描画 ---
+        function drawStepCos(ctx, cx, cy, radius, isDark, textColor) {
+            const lx = cx + 0.5 * radius;
+            const ang1 = Math.PI / 3;
+            const ang2 = 5 * Math.PI / 3;
+            const p1x = cx + radius * Math.cos(ang1);
+            const p1y = cy - radius * Math.sin(ang1);
+            const p2x = cx + radius * Math.cos(ang2);
+            const p2y = cy - radius * Math.sin(ang2);
+
+            // 基準線 x = 1/2 (垂直線)
+            ctx.strokeStyle = '#f43f5e';
+            ctx.setLineDash([4, 4]);
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(lx, cy - radius * 1.25);
+            ctx.lineTo(lx, cy + radius * 1.25);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            ctx.fillStyle = '#f43f5e';
+            ctx.font = 'bold 11px Inter, sans-serif';
+            ctx.fillText('x = 1/2', lx + 6, cy - radius * 0.95);
+
+            if (currentStepNumber === 1) {
+                // Step 1: 境界点2つ
+                ctx.strokeStyle = '#f43f5e';
+                ctx.lineWidth = 1.5;
+                ctx.setLineDash([2, 2]);
+                ctx.beginPath();
+                ctx.moveTo(cx, cy); ctx.lineTo(p1x, p1y);
+                ctx.moveTo(cx, cy); ctx.lineTo(p2x, p2y);
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                drawCircleNode(ctx, p1x, p1y, true, '#f43f5e', isDark);
+                drawCircleNode(ctx, p2x, p2y, true, '#f43f5e', isDark);
+
+                ctx.fillStyle = textColor;
+                ctx.font = 'bold 12px Inter, sans-serif';
+                ctx.fillText('π/3 (60°)', p1x + 8, p1y - 4);
+                ctx.fillText('5π/3 (300°)', p2x + 8, p2y + 14);
+            } 
+            else if (currentStepNumber === 2) {
+                // Step 2: テスト角の比較 (θ = π は ✕、θ = 0 は ◯)
+                drawCircleNode(ctx, p1x, p1y, false, '#f43f5e', isDark);
+                drawCircleNode(ctx, p2x, p2y, false, '#f43f5e', isDark);
+
+                // 反例: θ = π (左端)
+                const piX = cx - radius;
+                const piY = cy;
+                ctx.strokeStyle = '#f43f5e';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(cx, cy); ctx.lineTo(piX, piY);
+                ctx.stroke();
+                drawCircleNode(ctx, piX, piY, true, '#f43f5e', isDark);
+                ctx.fillStyle = '#f43f5e';
+                ctx.font = 'bold 11px Inter, sans-serif';
+                ctx.fillText('θ = π: cosπ = -1 (✕ 不適)', piX - 110, piY + 4);
+
+                // 正例: θ = 0 (右端)
+                const zeroX = cx + radius;
+                const zeroY = cy;
+                ctx.strokeStyle = '#10b981';
+                ctx.lineWidth = 2.5;
+                ctx.beginPath();
+                ctx.moveTo(cx, cy); ctx.lineTo(zeroX, zeroY);
+                ctx.stroke();
+                drawCircleNode(ctx, zeroX, zeroY, true, '#10b981', isDark);
+                ctx.fillStyle = '#10b981';
+                ctx.font = 'bold 11px Inter, sans-serif';
+                ctx.fillText('θ = 0: cos0 = 1 ≧ 1/2 (◯ 適合!)', zeroX - 10, zeroY - 14);
+            } 
+            else if (currentStepNumber === 3) {
+                // Step 3: 右側の2本の弧、θ = 0 の切れ目を明示
+                ctx.strokeStyle = '#10b981';
+                ctx.lineWidth = 6;
+                // 0 から π/3
+                ctx.beginPath();
+                ctx.arc(cx, cy, radius, 0, -ang1, true);
+                ctx.stroke();
+                // 5π/3 から 2π
+                ctx.beginPath();
+                ctx.arc(cx, cy, radius, -ang2, 0, true);
+                ctx.stroke();
+
+                drawCircleNode(ctx, p1x, p1y, true, '#10b981', isDark);
+                drawCircleNode(ctx, p2x, p2y, true, '#10b981', isDark);
+
+                // θ = 0 のスタートライン (黒丸) と 2π (白丸) の切れ目演出
+                ctx.fillStyle = '#f59e0b';
+                ctx.font = 'bold 11px Inter, sans-serif';
+                ctx.fillText('θ=0 で切れる！', cx + radius + 8, cy + 4);
+
+                ctx.fillStyle = '#10b981';
+                ctx.font = 'bold 12px Inter, sans-serif';
+                ctx.fillText('0 ≦ θ ≦ π/3', cx + radius * 0.4, cy - radius * 0.7);
+                ctx.fillText('5π/3 ≦ θ < 2π', cx + radius * 0.35, cy + radius * 0.75);
+            }
+        }
+
+        // --- 例題3: tanθ > 1 の Step描画 ---
+        function drawStepTan(ctx, cx, cy, radius, isDark, textColor) {
+            const ang1 = Math.PI / 4;
+            const ang2 = 5 * Math.PI / 4;
+            const p1x = cx + radius * Math.cos(ang1);
+            const p1y = cy - radius * Math.sin(ang1);
+            const p2x = cx + radius * Math.cos(ang2);
+            const p2y = cy - radius * Math.sin(ang2);
+
+            // 傾き 1 の直線 (45度)
+            ctx.strokeStyle = '#f43f5e';
+            ctx.setLineDash([4, 4]);
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(cx - radius * 1.25, cy + radius * 1.25);
+            ctx.lineTo(cx + radius * 1.25, cy - radius * 1.25);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            ctx.fillStyle = '#f43f5e';
+            ctx.font = 'bold 11px Inter, sans-serif';
+            ctx.fillText('傾き = 1', cx + radius * 0.8, cy - radius * 0.95);
+
+            if (currentStepNumber === 1) {
+                // Step 1: 傾き1の直線と交点
+                drawCircleNode(ctx, p1x, p1y, false, '#f43f5e', isDark);
+                drawCircleNode(ctx, p2x, p2y, false, '#f43f5e', isDark);
+
+                ctx.fillStyle = textColor;
+                ctx.font = 'bold 12px Inter, sans-serif';
+                ctx.fillText('π/4 (45°)', p1x + 8, p1y - 4);
+                ctx.fillText('5π/4 (225°)', p2x - 75, p2y + 16);
+            } 
+            else if (currentStepNumber === 2) {
+                // Step 2: 傾きが急になる方向を示す矢印
+                drawCircleNode(ctx, p1x, p1y, false, '#f43f5e', isDark);
+                drawCircleNode(ctx, p2x, p2y, false, '#f43f5e', isDark);
+
+                // 矢印: 45°から90°へ
+                ctx.strokeStyle = '#f59e0b';
+                ctx.lineWidth = 2.5;
+                ctx.beginPath();
+                ctx.arc(cx, cy, radius * 0.6, -Math.PI / 4, -Math.PI / 2, true);
+                ctx.stroke();
+
+                ctx.fillStyle = '#f59e0b';
+                ctx.font = 'bold 11px Inter, sans-serif';
+                ctx.fillText('垂直に近づくほど急！', cx + 15, cy - radius * 0.45);
+            } 
+            else if (currentStepNumber === 3) {
+                // Step 3: 条件を満たす弧、真上真下は除外（白丸）
+                ctx.strokeStyle = '#10b981';
+                ctx.lineWidth = 6;
+                // 第1象限: π/4 to π/2
+                ctx.beginPath();
+                ctx.arc(cx, cy, radius, -ang1, -Math.PI / 2, true);
+                ctx.stroke();
+                // 第3象限: 5π/4 to 3π/2
+                ctx.beginPath();
+                ctx.arc(cx, cy, radius, -ang2, -3 * Math.PI / 2, true);
+                ctx.stroke();
+
+                // 境界は白丸
+                drawCircleNode(ctx, p1x, p1y, false, '#10b981', isDark);
+                drawCircleNode(ctx, p2x, p2y, false, '#10b981', isDark);
+
+                // π/2, 3π/2 は絶対に白丸！
+                drawCircleNode(ctx, cx, cy - radius, false, '#f43f5e', isDark);
+                drawCircleNode(ctx, cx, cy + radius, false, '#f43f5e', isDark);
+
+                ctx.fillStyle = '#f43f5e';
+                ctx.font = 'bold 11px Inter, sans-serif';
+                ctx.fillText('○ π/2 (未定義・除外)', cx + 8, cy - radius + 14);
+                ctx.fillText('○ 3π/2 (未定義・除外)', cx + 8, cy + radius - 6);
+
+                ctx.fillStyle = '#10b981';
+                ctx.font = 'bold 12px Inter, sans-serif';
+                ctx.fillText('π/4 < θ < π/2', cx + radius * 0.45, cy - radius * 0.7);
+                ctx.fillText('5π/4 < θ < 3π/2', cx - radius * 0.9, cy + radius * 0.7);
+            }
+        }
+
+        // ================= 4. 実戦・応用問題ロジック =================
+        const quizData = [
+            {
+                question: "\\(0 \\le \\theta < 2\\pi\\) のとき、不等式 \\(\\sin\\theta \\ge \\frac{1}{2}\\) の解として正しいものはどれですか？",
+                options: [
+                    "\\(\\frac{\\pi}{6} \\le \\theta \\le \\frac{5\\pi}{6}\\)",
+                    "\\(0 \\le \\theta \\le \\frac{\\pi}{6}, \\; \\frac{5\\pi}{6} \\le \\theta < 2\\pi\\)",
+                    "\\(\\frac{\\pi}{6} < \\theta < \\frac{5\\pi}{6}\\)",
+                    "\\(\\theta = \\frac{\\pi}{6}, \\; \\frac{5\\pi}{6}\\)"
+                ],
+                answer: 0,
+                explanation: "<strong>正解！</strong><br>境界は \\(\\sin\\theta = \\frac{1}{2}\\) より \\(\\theta = \\frac{\\pi}{6}, \\frac{5\\pi}{6}\\) です。\\(\\sin\\) は「高さ」なので、水平線より高い上側の弧 \\(\\frac{\\pi}{6} \\le \\theta \\le \\frac{5\\pi}{6}\\) が解になります。"
+            },
+            {
+                question: "\\(0 \\le \\theta < 2\\pi\\) のとき、不等式 \\(\\cos\\theta < 0\\) の解として正しいものはどれですか？",
+                options: [
+                    "\\(0 \\le \\theta < \\pi\\)",
+                    "\\(\\frac{\\pi}{2} < \\theta < \\frac{3\\pi}{2}\\)",
+                    "\\(\\pi < \\theta < 2\\pi\\)",
+                    "\\(0 \\le \\theta < \\frac{\\pi}{2}, \\; \\frac{3\\pi}{2} < \\theta < 2\\pi\\)"
+                ],
+                answer: 1,
+                explanation: "<strong>正解！</strong><br>\\(\\cos\\) は単位円の「横座標」です。\\(\\cos\\theta < 0\\) は垂直線 \\(x = 0\\)（\\(y\\) 軸）より左側半分全体を指すため、\\(\\frac{\\pi}{2} < \\theta < \\frac{3\\pi}{2}\\) となります。"
+            },
+            {
+                question: "\\(0 \\le \\theta < 2\\pi\\) のとき、\\(2\\cos\\theta - 1 > 0\\) を解く正しい手順と解はどれですか？",
+                options: [
+                    "\\(\\cos\\theta > \\frac{1}{2}\\) と変形し、解は \\(\\frac{\\pi}{3} < \\theta < \\frac{5\\pi}{3}\\)",
+                    "\\(\\cos\\theta > \\frac{1}{2}\\) と変形し、解は \\(0 \\le \\theta < \\frac{\\pi}{3}, \\; \\frac{5\\pi}{3} < \\theta < 2\\pi\\)",
+                    "\\(\\cos\\theta < \\frac{1}{2}\\) と変形し、解は \\(0 \\le \\theta < \\frac{\\pi}{3}\\)",
+                    "不等式は解けない"
+                ],
+                answer: 1,
+                explanation: "<strong>正解！</strong><br>まず変形して \\(\\cos\\theta > \\frac{1}{2}\\) とします。単位円で \\(x > \\frac{1}{2}\\)（垂直線より右側）を選ぶと始点 \\(0\\) をまたぐため、\\(0 \\le \\theta < \\frac{\\pi}{3}\\) と \\(\\frac{5\\pi}{3} < \\theta < 2\\pi\\) の2つに分かれます。"
+            },
+            {
+                question: "【引っかかり注意】\\(0 \\le \\theta < 2\\pi\\) のとき、\\(\\sin\\theta \\le 0\\) の解として最も適切なものは？",
+                options: [
+                    "\\(\\pi \\le \\theta < 2\\pi\\) のみ",
+                    "\\(\\pi \\le \\theta \\le 2\\pi\\)",
+                    "\\(\\theta = 0, \\; \\pi \\le \\theta < 2\\pi\\)",
+                    "すべての実数"
+                ],
+                answer: 2,
+                explanation: "<strong>お見事！完璧です。</strong><br>下半分の弧 \\(\\pi \\le \\theta < 2\\pi\\) に加えて、始点 \\(\\theta = 0\\) においても \\(\\sin 0 = 0 \\le 0\\) を満たすため、孤立した点 \\(\\theta = 0\\) を取り落としてはいけません！"
+            },
+            {
+                question: "\\(0 \\le \\theta < 2\\pi\\) のとき、\\(\\tan\\theta \\ge 1\\) の解における \\(\\frac{\\pi}{2}\\) の扱いとして正しいものはどれですか？",
+                options: [
+                    "等号が含まれているので \\(\\frac{\\pi}{4} \\le \\theta \\le \\frac{\\pi}{2}\\) と含めてよい",
+                    "\\(\\tan\\frac{\\pi}{2}\\) は定義されないため、必ず \\(\\frac{\\pi}{4} \\le \\theta < \\frac{\\pi}{2}\\) と除外しなければならない",
+                    "\\(\\tan\\) の不等式では境界角は常に答えに含まない",
+                    "\\(\\frac{\\pi}{2}\\) の代わりに \\(\\pi\\) を使う"
+                ],
+                answer: 1,
+                explanation: "<strong>大正解！</strong><br>\\(\\tan\\theta = \\frac{y}{x}\\) であり、\\(\\theta = \\frac{\\pi}{2}\\) では分母が \\(x = 0\\) になるため値が定義されません。したがって、不等式に等号があっても \\(\\frac{\\pi}{2}\\) には決して等号をつけてはいけません。"
+            }
+        ];
+
+        let currentQuizIndex = 0;
+        let score = 0;
+
+        function loadQuiz() {
+            const q = quizData[currentQuizIndex];
+            document.getElementById('quizBadge').innerText = `問題 ${currentQuizIndex + 1} / ${quizData.length}`;
+            const qElem = document.getElementById('quizQuestion');
+            qElem.innerHTML = q.question;
+
+            const optContainer = document.getElementById('quizOptions');
+            optContainer.innerHTML = '';
+
+            q.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = "w-full text-left p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:border-indigo-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition font-medium flex items-center justify-between text-slate-700 dark:text-slate-200 text-sm";
+                btn.innerHTML = `<span>${opt}</span><i class="fa-solid fa-chevron-right text-slate-400 text-xs"></i>`;
+                btn.onclick = () => selectQuizAnswer(idx);
+                optContainer.appendChild(btn);
+            });
+
+            document.getElementById('feedbackContainer').classList.add('hidden');
+            document.getElementById('quizContainer').classList.remove('hidden');
+
+            renderMath(qElem);
+            renderMath(optContainer);
+        }
+
+        function selectQuizAnswer(selectedIndex) {
+            const q = quizData[currentQuizIndex];
+            const feedbackContainer = document.getElementById('feedbackContainer');
+            const feedbackTitle = document.getElementById('feedbackTitle');
+            const feedbackBody = document.getElementById('feedbackBody');
+
+            document.getElementById('quizContainer').classList.add('hidden');
+            feedbackContainer.classList.remove('hidden');
+
+            if (selectedIndex === q.answer) {
+                score++;
+                feedbackTitle.innerHTML = '<span class="text-emerald-500 font-bold"><i class="fa-solid fa-circle-check mr-1.5"></i> 正解！その通りです</span>';
+            } else {
+                feedbackTitle.innerHTML = '<span class="text-rose-500 font-bold"><i class="fa-solid fa-circle-xmark mr-1.5"></i> 惜しい！不正解です</span>';
+            }
+            feedbackBody.innerHTML = q.explanation;
+
+            renderMath(feedbackBody);
+
+            if (currentQuizIndex === quizData.length - 1) {
+                feedbackContainer.querySelector('button').innerHTML = '結果を見る <i class="fa-solid fa-flag-checkered ml-1"></i>';
+            } else {
+                feedbackContainer.querySelector('button').innerHTML = '次の問題へ <i class="fa-solid fa-arrow-right ml-1"></i>';
+            }
+        }
+
+        function nextQuiz() {
+            currentQuizIndex++;
+            if (currentQuizIndex < quizData.length) {
+                loadQuiz();
+            } else {
+                document.getElementById('feedbackContainer').classList.add('hidden');
+                document.getElementById('quizComplete').classList.remove('hidden');
+                document.getElementById('quizScoreText').innerText = `${quizData.length} 問中 ${score} 問 正解しました！`;
+            }
+        }
+
+        function restartQuiz() {
+            currentQuizIndex = 0;
+            score = 0;
+            document.getElementById('quizComplete').classList.add('hidden');
+            loadQuiz();
+        }
+
+        // 初期化実行
+        window.onload = function() {
+            if (window.renderMathInElement) {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        { left: '$$', right: '$$', display: true },
+                        { left: '$', right: '$', display: false },
+                        { left: '\\(', right: '\\)', display: false },
+                        { left: '\\[', right: '\\]', display: true }
+                    ],
+                    throwOnError: false
+                });
+            }
+
+            // Canvas の監視を登録
+            if (trigCanvas && trigCanvas.parentElement) {
+                resizeObserver.observe(trigCanvas.parentElement);
+            }
+            if (stepCanvas && stepCanvas.parentElement) {
+                resizeObserver.observe(stepCanvas.parentElement);
+            }
+
+            resizeTrigCanvas();
+            updateValButtons();
+            updateAll();
+            resizeStepCanvas();
+            setStepExample(1);
+            setStepNumber(1);
+            loadQuiz();
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,1066 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>マンションの広さから価格を予測できるか？ 〜データの傾向と数学的モデル化〜</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- MathJax for rendering LaTeX math formulas -->
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']]
+      },
+      svg: {
+        fontCache: 'global'
+      }
+    };
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" async></script>
+  <style>
+    .tab-btn.active {
+      background-color: #4f46e5;
+      color: #ffffff;
+      font-weight: 700;
+      border-color: #4f46e5;
+    }
+    .tab-content {
+      display: none;
+    }
+    .tab-content.active {
+      display: block;
+      animation: fadeIn 0.25s ease-in-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen font-sans flex flex-col">
+
+  <!-- Header -->
+  <header class="bg-indigo-900 text-white shadow-md sticky top-0 z-50">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-2">
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="text-[11px] font-bold uppercase tracking-wider bg-indigo-700 text-indigo-200 px-2 py-0.5 rounded">高校数学B 統計的な推測</span>
+          <span class="text-xs text-amber-300 font-semibold">🔰 数学が苦手でもスッキリわかる解説付き</span>
+        </div>
+        <h1 class="text-base md:text-xl font-bold mt-1">マンションの広さから価格を予測できるか？</h1>
+      </div>
+      <div class="flex items-center gap-3 text-xs md:text-sm">
+        <span class="text-slate-300">達成度:</span>
+        <div class="w-28 md:w-40 bg-indigo-950 rounded-full h-3 p-0.5 overflow-hidden">
+          <div id="progress-bar" class="bg-amber-400 h-full rounded-full transition-all duration-300" style="width: 14%;"></div>
+        </div>
+        <span id="progress-text" class="font-bold text-amber-300">STEP 1 / 6</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Notification Toast Box (alertの完全撤廃) -->
+  <div id="toast-box" class="fixed top-16 right-4 z-50 transform transition-all duration-300 opacity-0 pointer-events-none translate-y-[-10px] max-w-sm bg-indigo-950 text-white text-xs px-4 py-3 rounded-lg shadow-xl border border-indigo-700 flex items-start gap-2">
+    <span class="text-base font-bold text-amber-400">💡</span>
+    <span id="toast-message" class="flex-1 font-medium leading-relaxed"></span>
+  </div>
+
+  <!-- Main Container -->
+  <main class="max-w-6xl mx-auto p-3 md:p-6 flex-1 w-full grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+    <!-- Left Column: Interactive Simulation & Graph (常に表示・直感的に連動) -->
+    <div class="lg:col-span-5 flex flex-col gap-4">
+      <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 sticky top-20">
+        <div class="flex items-center justify-between mb-2">
+          <h2 class="font-bold text-slate-800 flex items-center gap-1.5 text-sm md:text-base">
+            <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path></svg>
+            散布図 & 予測直線グラフ
+          </h2>
+          <span id="graph-mode-badge" class="text-[11px] bg-indigo-50 text-indigo-700 font-bold px-2 py-0.5 rounded border border-indigo-200">直線シミュレーション中</span>
+        </div>
+
+        <!-- Canvas Container -->
+        <div class="relative w-full aspect-[4/3] bg-slate-900 rounded-lg overflow-hidden border border-slate-300 shadow-inner">
+          <canvas id="mainCanvas" class="w-full h-full block cursor-crosshair"></canvas>
+          <div id="canvas-tooltip" class="absolute hidden bg-black/90 text-white text-[11px] px-2 py-1 rounded pointer-events-none transform -translate-x-1/2 -translate-y-8 transition-all shadow-lg border border-slate-700"></div>
+        </div>
+
+        <!-- Interactive Controls (直線の傾き・切片スライダー) -->
+        <div class="mt-3 p-3 bg-slate-50 border border-indigo-100 rounded-lg text-xs space-y-2.5">
+          <div class="flex justify-between items-center border-b border-slate-200 pb-1.5">
+            <span class="font-bold text-slate-800 flex items-center gap-1">
+              <span class="w-2 h-2 rounded-full bg-indigo-600"></span>
+              直線の式（予測ルール）
+            </span>
+            <span id="current-model-eq" class="font-mono text-indigo-700 font-bold bg-white px-2 py-0.5 rounded border border-indigo-200">$y = 70x + 400$</span>
+          </div>
+
+          <!-- Explanation for math beginners -->
+          <p class="text-[11px] text-slate-600 leading-tight">
+            スライダーを左右に動かすと、グラフ内の<strong>青い直線</strong>が動きます。白丸の点（物件データ）の真ん中を一番きれいに通る位置を探してみましょう！
+          </p>
+
+          <div class="space-y-2 pt-1" id="slider-group">
+            <div class="flex items-center gap-2">
+              <label class="w-24 font-bold text-slate-700 text-[11px]">傾き（坂の急さ）:</label>
+              <input id="slope-slider" type="range" min="30" max="100" step="1" value="70" class="flex-1 accent-indigo-600 cursor-pointer h-2 bg-slate-200 rounded-lg">
+              <span id="slope-val" class="w-16 text-right font-mono font-bold text-indigo-700 bg-white border px-1 py-0.5 rounded text-[11px]">70 万円/㎡</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <label class="w-24 font-bold text-slate-700 text-[11px]">切片（上下位置）:</label>
+              <input id="intercept-slider" type="range" min="-500" max="1500" step="20" value="400" class="flex-1 accent-indigo-600 cursor-pointer h-2 bg-slate-200 rounded-lg">
+              <span id="intercept-val" class="w-16 text-right font-mono font-bold text-indigo-700 bg-white border px-1 py-0.5 rounded text-[11px]">400 万円</span>
+            </div>
+          </div>
+
+          <!-- Live stats preview -->
+          <div class="grid grid-cols-2 gap-2 pt-1">
+            <div class="bg-white p-2 rounded border border-slate-200">
+              <span class="text-slate-500 block text-[10px]">75㎡の予測価格:</span>
+              <span id="preview-75-price" class="text-sm font-extrabold text-emerald-600">5650 万円</span>
+            </div>
+            <div class="bg-white p-2 rounded border border-slate-200">
+              <span class="text-slate-500 block text-[10px]">点とのズレ合計 (残差二乗和):</span>
+              <span id="preview-rss" class="text-sm font-extrabold text-amber-600">計算中...</span>
+            </div>
+          </div>
+
+          <!-- Quick Buttons -->
+          <div class="pt-2 border-t border-slate-200 flex flex-wrap gap-1.5">
+            <button id="btn-show-line-2pt" class="px-2 py-1 rounded bg-indigo-50 text-indigo-800 font-semibold hover:bg-indigo-100 transition border border-indigo-200 text-[11px]">
+              ① 2点を通る直線 ($y=70x+400$)
+            </button>
+            <button id="btn-show-regression" class="px-2 py-1 rounded bg-amber-50 text-amber-900 font-semibold hover:bg-amber-100 transition border border-amber-200 text-[11px]">
+              ② 回帰直線 ($y=68x+520$)
+            </button>
+            <button id="btn-toggle-residuals" class="px-2 py-1 rounded bg-slate-200 text-slate-800 font-semibold hover:bg-slate-300 transition text-[11px]">
+              ズレ線表示: <span id="res-status" class="text-indigo-600 font-bold">OFF</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Raw data table in accordion -->
+        <div class="mt-2 text-xs">
+          <details class="text-slate-600">
+            <summary class="cursor-pointer font-semibold text-indigo-600 hover:text-indigo-800 select-none py-1">
+              ▼ 調査したマンション8件のデータ表を見る
+            </summary>
+            <div class="overflow-x-auto mt-1 border border-slate-200 rounded text-[11px]">
+              <table class="w-full text-center border-collapse">
+                <thead class="bg-slate-100 text-slate-700 font-bold border-b">
+                  <tr><th class="p-1">物件</th><th>A</th><th>B</th><th>C</th><th>D</th><th>E</th><th>F</th><th>G</th><th>H</th></tr>
+                </thead>
+                <tbody class="divide-y divide-slate-200 font-mono">
+                  <tr><td class="p-1 font-sans font-bold bg-slate-50">床面積(㎡)</td><td>40</td><td>45</td><td>50</td><td>55</td><td>60</td><td>65</td><td>70</td><td>80</td></tr>
+                  <tr><td class="p-1 font-sans font-bold bg-slate-50">価格(万円)</td><td>3200</td><td>3700</td><td>3900</td><td>4400</td><td>4600</td><td>5100</td><td>5000</td><td>6100</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </details>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Right Column: Tab Navigation & Step Content -->
+    <div class="lg:col-span-7 flex flex-col gap-4">
+
+      <!-- Navigation Tabs (タブで各段階にすぐ移動可能) -->
+      <div class="bg-white p-1.5 rounded-xl border border-slate-200 shadow-sm flex flex-wrap gap-1">
+        <button onclick="switchTab(1)" id="tab-btn-1" class="tab-btn active flex-1 min-w-[70px] text-xs py-2 px-1 rounded-lg border border-transparent font-medium text-slate-600 hover:bg-slate-100 transition text-center">
+          ① 直感予想
+        </button>
+        <button onclick="switchTab(2)" id="tab-btn-2" class="tab-btn flex-1 min-w-[70px] text-xs py-2 px-1 rounded-lg border border-transparent font-medium text-slate-600 hover:bg-slate-100 transition text-center">
+          ② 散布図と相関
+        </button>
+        <button onclick="switchTab(3)" id="tab-btn-3" class="tab-btn flex-1 min-w-[70px] text-xs py-2 px-1 rounded-lg border border-transparent font-medium text-slate-600 hover:bg-slate-100 transition text-center">
+          ③ 直線の式を作る
+        </button>
+        <button onclick="switchTab(4)" id="tab-btn-4" class="tab-btn flex-1 min-w-[70px] text-xs py-2 px-1 rounded-lg border border-transparent font-medium text-slate-600 hover:bg-slate-100 transition text-center">
+          ④ 回帰直線とズレ
+        </button>
+        <button onclick="switchTab(5)" id="tab-btn-5" class="tab-btn flex-1 min-w-[70px] text-xs py-2 px-1 rounded-lg border border-transparent font-medium text-slate-600 hover:bg-slate-100 transition text-center">
+          ⑤ モデルの改善
+        </button>
+        <button onclick="switchTab(6)" id="tab-btn-6" class="tab-btn flex-1 min-w-[70px] text-xs py-2 px-1 rounded-lg border border-transparent font-medium text-slate-600 hover:bg-slate-100 transition text-center bg-amber-50 text-amber-800">
+          ⑥ 入試演習
+        </button>
+      </div>
+
+      <!-- TAB 1: 直感予想と数学的モデル化の動機 -->
+      <div id="tab-content-1" class="tab-content active bg-white rounded-xl shadow-sm border border-slate-200 p-5 space-y-4">
+        <div class="flex items-center justify-between border-b pb-2">
+          <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
+            <span class="w-6 h-6 rounded-full bg-indigo-600 text-white flex items-center justify-center text-xs">1</span>
+            広さが分かれば、価格をいくらと予想できる？
+          </h3>
+          <span class="text-xs text-indigo-600 font-semibold">目標: 「モデル化」の意義を知る</span>
+        </div>
+
+        <!-- 易しい解説コラム -->
+        <div class="bg-indigo-50/70 border-l-4 border-indigo-600 p-3 rounded-r-lg text-xs leading-relaxed text-indigo-950 space-y-1">
+          <p class="font-bold text-indigo-900">【ここからスタート！】なぜ数学を使うの？</p>
+          <p>
+            「数学って公式を覚えて計算するだけでしょ？」と思っていませんか？実は数学の本当の面白さは、<strong class="text-indigo-700">「まだ誰も知らない未来の数字を、納得のいく根拠をもって予測する」</strong>ところにあります！
+          </p>
+        </div>
+
+        <p class="text-sm text-slate-700 leading-relaxed">
+          あなたがマンションを買うと想像してください。ある街で販売されているマンションの広さが <strong class="text-indigo-700 text-base">75㎡</strong> だと分かったとき、販売価格は何万円くらいだと思いますか？
+        </p>
+
+        <div class="bg-slate-50 p-4 rounded-lg border border-slate-200 space-y-2">
+          <label class="block text-xs font-bold text-slate-700">あなたの直感予想（万円）を入力してみよう：</label>
+          <div class="flex flex-wrap gap-2">
+            <input id="step1-guess" type="number" step="100" placeholder="例: 5500" class="border border-slate-300 rounded px-3 py-2 text-sm w-44 font-mono focus:ring-2 focus:ring-indigo-400 focus:outline-none">
+            <button id="btn-submit-step1" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs px-4 py-2 rounded shadow transition">予想を確定する</button>
+          </div>
+        </div>
+
+        <div id="step1-feedback" class="hidden text-xs space-y-3 bg-amber-50 border border-amber-200 p-4 rounded-lg text-slate-800">
+          <p class="font-bold text-amber-900 text-sm">いい予想ですね！でも...人に説明できますか？</p>
+          <p class="leading-relaxed">
+            もし友達や親に「なんでその値段だと思ったの？」と聞かれたら、どう答えますか？「なんとなく勘で」では説得力がありませんよね。
+          </p>
+          <div class="bg-white p-3 rounded border border-amber-200 leading-relaxed">
+            <p class="font-bold text-slate-800 mb-1">💡 数学的モデル化（すうがくてきモデルか）とは？</p>
+            <p class="text-slate-600">
+              現実の世界で集めたデータをもとに、規則性をグラフや数式で表して、「こういうルールがあるから、75㎡なら〇〇万円になるはずだ！」と<strong>誰もが納得できる理由をつくること</strong>を指します。
+            </p>
+          </div>
+          <button onclick="switchTab(2)" class="w-full mt-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs py-2.5 rounded shadow transition">
+            次のステップへ：左のグラフ（散布図）のデータを見てみよう ➜
+          </button>
+        </div>
+      </div>
+
+      <!-- TAB 2: 散布図と相関・例外の考え方 -->
+      <div id="tab-content-2" class="tab-content bg-white rounded-xl shadow-sm border border-slate-200 p-5 space-y-4">
+        <div class="flex items-center justify-between border-b pb-2">
+          <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
+            <span class="w-6 h-6 rounded-full bg-indigo-600 text-white flex items-center justify-center text-xs">2</span>
+            散布図の読み取りと「相関」の意味
+          </h3>
+          <span class="text-xs text-indigo-600 font-semibold">目標: 傾向と例外を区別する</span>
+        </div>
+
+        <div class="bg-slate-50 border-l-4 border-indigo-500 p-3 rounded-r text-xs text-slate-700 leading-relaxed">
+          <p class="font-bold text-slate-800 mb-1">【やさしい解説】散布図（さんぷず）ってなに？</p>
+          <p>
+            横軸に「広さ」、縦軸に「価格」をとって、1件ずつのマンションを「点（ドット）」として打ったグラフです。左の黒い画面に白い丸が8個並んでいますね！
+          </p>
+        </div>
+
+        <div class="space-y-3 text-xs md:text-sm">
+          <div class="p-3 bg-slate-50 rounded-lg border border-slate-200 space-y-2">
+            <p class="font-bold text-slate-800">Q1. 白い点は全体としてどんな並び方をしていますか？</p>
+            <div class="space-y-1 text-xs" id="q2-options">
+              <label class="flex items-center gap-2 cursor-pointer p-1.5 hover:bg-white rounded">
+                <input type="radio" name="q2_trend" value="up" class="accent-indigo-600">
+                <span>右肩上がりに並んでいる（<strong>正の相関</strong>：広くなるほど価格も高くなる傾向）</span>
+              </label>
+              <label class="flex items-center gap-2 cursor-pointer p-1.5 hover:bg-white rounded">
+                <input type="radio" name="q2_trend" value="down" class="accent-indigo-600">
+                <span>右肩下がりに並んでいる（<strong>負の相関</strong>：広くなるほど価格が下がる傾向）</span>
+              </label>
+              <label class="flex items-center gap-2 cursor-pointer p-1.5 hover:bg-white rounded">
+                <input type="radio" name="q2_trend" value="none" class="accent-indigo-600">
+                <span>完全にバラバラで何もルールが見当たらない（相関なし）</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="p-3 bg-slate-50 rounded-lg border border-slate-200 space-y-2">
+            <p class="font-bold text-slate-800">
+              Q2. 【入試で超狙われるポイント！】
+              <br><span class="font-normal text-xs text-slate-600">物件F (65㎡で5100万円) と 物件G (70㎡で5000万円) を見ると、広くなっているのに100万円安くなっています。この例外について、正しい説明はどれ？</span>
+            </p>
+            <div class="space-y-1 text-xs" id="q2_2-options">
+              <label class="flex items-start gap-2 cursor-pointer p-1.5 hover:bg-white rounded">
+                <input type="radio" name="q2_rule" value="wrong" class="mt-0.5 accent-indigo-600">
+                <span>1件でも安くなっている例外がある以上、「正の相関がある」と言ってはいけない。</span>
+              </label>
+              <label class="flex items-start gap-2 cursor-pointer p-1.5 hover:bg-white rounded">
+                <input type="radio" name="q2_rule" value="correct" class="mt-0.5 accent-indigo-600">
+                <span>相関とは「全体のゆるやかな傾向」のことなので、多少の例外があっても「正の相関がある」と言ってよい。</span>
+              </label>
+              <label class="flex items-start gap-2 cursor-pointer p-1.5 hover:bg-white rounded">
+                <input type="radio" name="q2_rule" value="all" class="mt-0.5 accent-indigo-600">
+                <span>「正の相関」とは、どの部屋でも例外なく絶対に広ければ高いという物理法則のことである。</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <button id="btn-check-step2" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs py-2.5 rounded transition">
+          答え合わせをする
+        </button>
+
+        <div id="step2-feedback" class="hidden text-xs space-y-2 bg-emerald-50 border border-emerald-200 p-4 rounded-lg text-slate-800 leading-relaxed">
+          <p class="font-bold text-emerald-800 text-sm">大正解！すばらしい読解力です！</p>
+          <p>
+            「相関がある」とは、あくまで<strong>「全体として〜の傾向がある」</strong>という意味です。「例外なく100%必ずそうなる」という意味ではありません。
+            大学入試の選択肢でも「必ず」「すべて」という単語が入った引っ掛け選択肢がよく出題されます！
+          </p>
+          <button onclick="switchTab(3)" class="w-full mt-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs py-2 rounded shadow transition">
+            次のステップへ：直線の式を作ってみよう ➜
+          </button>
+        </div>
+      </div>
+
+      <!-- TAB 3: 1次関数の式を求める（数学嫌いでもわかる解説） -->
+      <div id="tab-content-3" class="tab-content bg-white rounded-xl shadow-sm border border-slate-200 p-5 space-y-4">
+        <div class="flex items-center justify-between border-b pb-2">
+          <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
+            <span class="w-6 h-6 rounded-full bg-indigo-600 text-white flex items-center justify-center text-xs">3</span>
+            直線の式（一次関数）で予測式を作る
+          </h3>
+          <span class="text-xs text-indigo-600 font-semibold">目標: 傾き・切片の意味を掴む</span>
+        </div>
+
+        <div class="bg-indigo-50/70 border-l-4 border-indigo-600 p-3 rounded-r text-xs leading-relaxed text-indigo-950 space-y-1">
+          <p class="font-bold text-indigo-900">【なぜ直線を使うの？】</p>
+          <p>
+            点全体の並び方に沿って「ものさし」を1本当ててあげれば、<strong>データのない「75㎡」の場所でも、ものさしの目盛りを読むだけで値段が計算できる</strong>ようになります！
+          </p>
+        </div>
+
+        <p class="text-xs text-slate-700">
+          計算しやすい2つの物件、<strong class="text-indigo-700">点A (40㎡, 3200万円)</strong> と <strong class="text-indigo-700">点E (60㎡, 4600万円)</strong> を通る直線の式 $y = ax + b$ を順番に作ってみましょう。
+        </p>
+
+        <div class="space-y-3 bg-slate-50 p-3.5 rounded-lg border border-slate-200 text-xs">
+          <!-- ① 傾き -->
+          <div class="space-y-1">
+            <div class="font-bold text-slate-800">
+              ① 傾き $a$ を求める
+              <span class="font-normal text-slate-500">（広さが 1㎡ 増えたら、何万円アップするか？）</span>
+            </div>
+            <p class="text-slate-600">
+              40㎡から60㎡へ（20㎡増えたとき）、価格は3200万円から4600万円へ（1400万円増えた）：
+            </p>
+            <div class="flex items-center gap-1.5 font-mono">
+              <span>$a = \frac{4600 - 3200}{60 - 40} = \frac{1400}{20} =$</span>
+              <input id="step3-slope" type="number" placeholder="?" class="border border-slate-300 rounded px-2 py-1 w-16 text-center font-bold text-indigo-700">
+              <span class="text-slate-600 font-sans">万円/㎡</span>
+            </div>
+          </div>
+
+          <!-- ② 切片 -->
+          <div class="space-y-1 pt-2 border-t border-slate-200">
+            <div class="font-bold text-slate-800">
+              ② 切片 $b$ を求める
+              <span class="font-normal text-slate-500">（直線の基準の高さ）</span>
+            </div>
+            <p class="text-slate-600">
+              式 $y = 70x + b$ に、点Aの数字（$x=40, y=3200$）を当てはめます：
+            </p>
+            <div class="flex items-center gap-1.5 font-mono">
+              <span>$3200 = 70 \times 40 + b \implies 3200 = 2800 + b \implies b =$</span>
+              <input id="step3-intercept" type="number" placeholder="?" class="border border-slate-300 rounded px-2 py-1 w-16 text-center font-bold text-indigo-700">
+              <span class="text-slate-600 font-sans">万円</span>
+            </div>
+          </div>
+
+          <!-- ③ 75m2の予測 -->
+          <div class="space-y-1 pt-2 border-t border-slate-200">
+            <div class="font-bold text-slate-800">
+              ③ 求めた式 $y = 70x + 400$ で 75㎡ の価格を計算する！
+            </div>
+            <div class="flex items-center gap-1.5 font-mono">
+              <span>$y = 70 \times 75 + 400 =$</span>
+              <input id="step3-pred" type="number" placeholder="?" class="border border-slate-300 rounded px-2 py-1 w-20 text-center font-bold text-emerald-700">
+              <span class="text-slate-700 font-sans font-bold">万円</span>
+            </div>
+          </div>
+        </div>
+
+        <button id="btn-check-step3" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs py-2.5 rounded transition">
+          計算を確認する
+        </button>
+
+        <div id="step3-feedback" class="hidden text-xs space-y-3 bg-indigo-50 border border-indigo-200 p-4 rounded-lg text-slate-800 leading-relaxed">
+          <p class="font-bold text-indigo-900 text-sm">正解！ 式：$y = 70x + 400$ ｜ 予測：5650万円</p>
+          <p>
+            これで見事に<strong>「75㎡なら5650万円になるはずだ」</strong>という客観的な予測ができました！
+          </p>
+          <div class="bg-white p-3 rounded border border-indigo-200 space-y-1">
+            <p class="font-bold text-amber-800">🤔 ここでちょっと考えてみよう：切片「400」って現実には何？</p>
+            <p class="text-slate-600">
+              数学のルールでは $x=0$（床面積が0㎡）のときの価格です。でも「広さ0㎡のマンションが400万円」なんて現実にはあり得ないですよね？
+              これは<strong>「40〜80㎡のあたりを大まかに直線でつないだだけだから、極端な端っこでは意味をなさない」</strong>というモデルの限界を示しています。
+            </p>
+          </div>
+          <button onclick="switchTab(4)" class="w-full mt-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs py-2 rounded shadow transition">
+            次のステップへ：もっと良い直線はないの？（回帰直線へ） ➜
+          </button>
+        </div>
+      </div>
+
+      <!-- TAB 4: 回帰直線と残差（ズレの正体） -->
+      <div id="tab-content-4" class="tab-content bg-white rounded-xl shadow-sm border border-slate-200 p-5 space-y-4">
+        <div class="flex items-center justify-between border-b pb-2">
+          <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
+            <span class="w-6 h-6 rounded-full bg-indigo-600 text-white flex items-center justify-center text-xs">4</span>
+            どの直線が一番いい？「回帰直線」と「残差」
+          </h3>
+          <span class="text-xs text-indigo-600 font-semibold">目標: 残差の意味を理解する</span>
+        </div>
+
+        <div class="bg-amber-50 border-l-4 border-amber-500 p-3 rounded-r text-xs leading-relaxed text-amber-950 space-y-1">
+          <p class="font-bold text-amber-900">【大事な疑問】2点だけで線を引いて本当にいいの？</p>
+          <p>
+            さっきはAとEの2点を使いましたが、別の2点（例えばCとH）を使ったら直線の傾きも切片も変わってしまいます。「適当に2点を選ぶのではなく、<strong>8件すべての点から見て一番公平なベストの直線</strong>」を引きたいですよね！
+          </p>
+        </div>
+
+        <div class="bg-slate-50 p-3.5 rounded-lg border border-slate-200 text-xs space-y-2">
+          <p class="font-bold text-slate-800">★ 残差（ざんさ）＝「実際の価格」引く「直線の予測価格」</p>
+          <p class="text-slate-600 leading-relaxed">
+            直線から点までの<strong>「上下のズレの長さ」</strong>を残差と呼びます。
+            すべての点についてこのズレを2乗して足し算し、その<strong>ズレの合計が一番小さくなるようにコンピューター等で求めた理想の直線</strong>を「<strong>回帰直線（かいきちょくせん）</strong>」と呼びます。
+          </p>
+        </div>
+
+        <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg text-xs space-y-2.5">
+          <p class="font-bold text-slate-800">
+            練習問題：回帰直線が $y = 68x + 520$ だとします。
+          </p>
+          <p class="text-slate-600">
+            広さ60㎡のマンションで、実際の価格は <strong>4600万円</strong> でした。
+          </p>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">直線の予測価格：</label>
+              <div class="flex items-center gap-1 font-mono">
+                <span class="text-[11px]">$68 \times 60 + 520 =$</span>
+                <input id="step4-calc-pred" type="number" placeholder="4600" class="border rounded px-2 py-1 w-20 text-center font-bold">
+                <span>万円</span>
+              </div>
+            </div>
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">残差（実際 － 予測）：</label>
+              <div class="flex items-center gap-1 font-mono">
+                <span class="text-[11px]">$4600 - 4600 =$</span>
+                <input id="step4-calc-res" type="number" placeholder="0" class="border rounded px-2 py-1 w-16 text-center font-bold">
+                <span>万円</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <button id="btn-check-step4" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs py-2.5 rounded transition">
+          残差の答えを確認する
+        </button>
+
+        <div id="step4-feedback" class="hidden text-xs space-y-2.5 bg-emerald-50 border border-emerald-200 p-4 rounded-lg text-slate-800 leading-relaxed">
+          <p class="font-bold text-emerald-800 text-sm">正解！残差は 0 万円（ピタッと一致）でした！</p>
+          <p>
+            左の操作パネルにある「<strong>ズレ線表示: OFF</strong>」のボタンを押してみてください。グラフ上に各点から直線までの縦の点線（残差）が現れます。スライダーを回すと、ズレが広がったり縮んだりするのが一目瞭然です！
+          </p>
+          <button onclick="switchTab(5)" class="w-full mt-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs py-2 rounded shadow transition">
+            次のステップへ：広さだけで全部決まる？ ➜
+          </button>
+        </div>
+      </div>
+
+      <!-- TAB 5: モデルの改善（条件の追加） -->
+      <div id="tab-content-5" class="tab-content bg-white rounded-xl shadow-sm border border-slate-200 p-5 space-y-4">
+        <div class="flex items-center justify-between border-b pb-2">
+          <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
+            <span class="w-6 h-6 rounded-full bg-indigo-600 text-white flex items-center justify-center text-xs">5</span>
+            価格は広さだけで決まる？「モデルの改善」
+          </h3>
+          <span class="text-xs text-indigo-600 font-semibold">目標: 複数要因とモデルの考え方</span>
+        </div>
+
+        <p class="text-xs text-slate-700 leading-relaxed">
+          同じ70㎡の部屋でも、値段が全然違うことがありますよね。なぜでしょうか？
+          <br>「駅から歩いて何分か？」「何階の部屋か？」「築年数は？」など、<strong>広さ以外の条件</strong>がたくさんあるからです。
+        </p>
+
+        <!-- 2本の直線の比較 -->
+        <div class="p-3.5 bg-indigo-50 border border-indigo-200 rounded-lg text-xs space-y-2">
+          <p class="font-bold text-indigo-900">駅からの距離でデータを2つに分けて作ったモデル式：</p>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] font-mono">
+            <div class="bg-white p-2.5 rounded border border-indigo-200">
+              <span class="text-indigo-700 font-bold block mb-1">🚶 駅近（徒歩5分以内）</span>
+              $y = 75x + 600$<br>
+              <span class="text-slate-600 font-sans">70㎡の予測: $75 \times 70 + 600 =$ <strong>5850万円</strong></span>
+            </div>
+            <div class="bg-white p-2.5 rounded border border-indigo-200">
+              <span class="text-amber-700 font-bold block mb-1">🚌 駅遠（徒歩15分以上）</span>
+              $y = 65x + 300$<br>
+              <span class="text-slate-600 font-sans">70㎡の予測: $65 \times 70 + 300 =$ <strong>4850万円</strong></span>
+            </div>
+          </div>
+          <p class="text-slate-600 font-sans leading-relaxed">
+            このように、「駅からの距離」という条件を1つくわえるだけで、同じ70㎡でも<strong>1000万円の価格差</strong>をきれいに説明できるようになります！
+          </p>
+        </div>
+
+        <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg text-xs space-y-2">
+          <p class="font-bold text-slate-800">Q. 条件を10個も20個も増やせば、完璧な予測ができるようになる？</p>
+          <div class="space-y-1.5" id="q5-options">
+            <label class="flex items-start gap-2 cursor-pointer p-1">
+              <input type="radio" name="q5" value="a" class="mt-0.5 accent-indigo-600">
+              <span>はい。条件を細かく増やせば増やすほど、どんなマンションでも絶対に100%正確に予測できる。</span>
+            </label>
+            <label class="flex items-start gap-2 cursor-pointer p-1">
+              <input type="radio" name="q5" value="b" class="mt-0.5 accent-indigo-600">
+              <span>いいえ。条件を細かくしすぎるとデータが足りなくなったり、たまたま集めたデータだけに偏ってしまい、新しい物件の予測が狂うことがある。</span>
+            </label>
+          </div>
+        </div>
+
+        <button id="btn-check-step5" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs py-2.5 rounded transition">
+          答え合わせをする
+        </button>
+
+        <div id="step5-feedback" class="hidden text-xs space-y-2 bg-emerald-50 border border-emerald-200 p-4 rounded-lg text-slate-800 leading-relaxed">
+          <p class="font-bold text-emerald-800 text-sm">その通り！「シンプルさと精度のバランス」が大切！</p>
+          <p>
+            高校数学や現代のAI（機械学習）でも、「複雑にしすぎるとかえって予測が狂う現象（過学習・過剰適合）」が大きなテーマです。
+          </p>
+          <button onclick="switchTab(6)" class="w-full mt-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs py-2 rounded shadow transition">
+            いよいよラスト！入試実戦問題にチャレンジ ➜
+          </button>
+        </div>
+      </div>
+
+      <!-- TAB 6: 入試対応演習（最初から答えは見えない） -->
+      <div id="tab-content-6" class="tab-content bg-white rounded-xl shadow-sm border border-slate-200 p-5 space-y-4">
+        <div class="flex items-center justify-between border-b pb-2">
+          <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
+            <span class="w-6 h-6 rounded-full bg-amber-500 text-white flex items-center justify-center text-xs">6</span>
+            大学入試・共通テスト形式の実戦演習
+          </h3>
+          <span class="text-xs text-amber-700 font-semibold">目標: 思考力・資料読解力を試す</span>
+        </div>
+
+        <p class="text-xs text-slate-600">
+          今までの知識を使って解いてみましょう。解き終わって「採点」を押すと詳しい解説が現れます。
+        </p>
+
+        <div class="space-y-4 text-xs">
+          <!-- Problem 1 -->
+          <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-lg space-y-2">
+            <div class="flex justify-between items-center font-bold text-slate-800">
+              <span>【問題1】2点から直線の式を導いて予測する</span>
+              <span class="text-indigo-600 text-[11px]">基本〜標準</span>
+            </div>
+            <p class="text-slate-700 leading-relaxed">
+              ある中古マンション市場で、2点 $(45, 3500)$ と $(65, 4900)$ を通る直線で価格を予測することにした。
+              この式を用いて、<strong>75㎡</strong> のマンション価格を予測した値として正しいものはどれか？
+            </p>
+            <div class="grid grid-cols-2 gap-2" id="exam1-opts">
+              <label class="p-2 bg-white rounded border hover:border-indigo-400 cursor-pointer flex items-center gap-1.5">
+                <input type="radio" name="eq1" value="5250" class="accent-indigo-600">
+                <span>ア. 5250 万円</span>
+              </label>
+              <label class="p-2 bg-white rounded border hover:border-indigo-400 cursor-pointer flex items-center gap-1.5">
+                <input type="radio" name="eq1" value="5600" class="accent-indigo-600">
+                <span>イ. 5600 万円</span>
+              </label>
+              <label class="p-2 bg-white rounded border hover:border-indigo-400 cursor-pointer flex items-center gap-1.5">
+                <input type="radio" name="eq1" value="5950" class="accent-indigo-600">
+                <span>ウ. 5950 万円</span>
+              </label>
+              <label class="p-2 bg-white rounded border hover:border-indigo-400 cursor-pointer flex items-center gap-1.5">
+                <input type="radio" name="eq1" value="6100" class="accent-indigo-600">
+                <span>エ. 6100 万円</span>
+              </label>
+            </div>
+            <div id="exam1-ans" class="hidden mt-2 p-2.5 bg-white rounded border border-indigo-200 text-slate-700 leading-relaxed"></div>
+          </div>
+
+          <!-- Problem 2 -->
+          <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-lg space-y-2">
+            <div class="flex justify-between items-center font-bold text-slate-800">
+              <span>【問題2】残差の正負が表す現実の意味</span>
+              <span class="text-indigo-600 text-[11px]">標準〜発展</span>
+            </div>
+            <p class="text-slate-700 leading-relaxed">
+              回帰直線 $y = 80x + 250$ が得られている。床面積60㎡のマンションの<strong>実際の販売価格が5200万円</strong>であったとき、残差（実際の値 － 予測値）と、その解釈として正しい組み合わせを選べ。
+            </p>
+            <div class="space-y-1.5" id="exam2-opts">
+              <label class="p-2 bg-white rounded border hover:border-indigo-400 cursor-pointer flex items-start gap-2">
+                <input type="radio" name="eq2" value="a" class="mt-0.5 accent-indigo-600">
+                <span>残差: $+150$ 万円 ｜ 直線の予測価格よりも実際の価格の方が高かった。</span>
+              </label>
+              <label class="p-2 bg-white rounded border hover:border-indigo-400 cursor-pointer flex items-start gap-2">
+                <input type="radio" name="eq2" value="b" class="mt-0.5 accent-indigo-600">
+                <span>残差: $-150$ 万円 ｜ 直線の予測価格よりも実際の価格の方が安かった。</span>
+              </label>
+              <label class="p-2 bg-white rounded border hover:border-indigo-400 cursor-pointer flex items-start gap-2">
+                <input type="radio" name="eq2" value="c" class="mt-0.5 accent-indigo-600">
+                <span>残差: $+150$ 万円 ｜ 予測が外れたので、この直線には数学的価値が全くない。</span>
+              </label>
+            </div>
+            <div id="exam2-ans" class="hidden mt-2 p-2.5 bg-white rounded border border-indigo-200 text-slate-700 leading-relaxed"></div>
+          </div>
+
+          <!-- Problem 3 -->
+          <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-lg space-y-2">
+            <div class="flex justify-between items-center font-bold text-slate-800">
+              <span>【問題3】データの範囲外を予測する「外挿」の危険性</span>
+              <span class="text-amber-700 text-[11px]">共通テスト・記述型</span>
+            </div>
+            <p class="text-slate-700 leading-relaxed">
+              40〜80㎡のデータから作った式 $y = 70x + 400$ を使って、ある生徒が<strong>「200㎡の超大型豪邸マンションの価格は $70 \times 200 + 400 = 14400$ 万円（1億4400万円）である」</strong>と主張した。この推論に対する数学的な指摘として最も適切なものはどれか？
+            </p>
+            <div class="space-y-1.5" id="exam3-opts">
+              <label class="p-2 bg-white rounded border hover:border-indigo-400 cursor-pointer flex items-start gap-2">
+                <input type="radio" name="eq3" value="wrong1" class="mt-0.5 accent-indigo-600">
+                <span>計算ミスであり、掛け算の順序が間違っている。</span>
+              </label>
+              <label class="p-2 bg-white rounded border hover:border-indigo-400 cursor-pointer flex items-start gap-2">
+                <input type="radio" name="eq3" value="correct" class="mt-0.5 accent-indigo-600">
+                <span>もとのデータ（40〜80㎡）を大きく離れた範囲を予測する「外挿」を行っており、超大型住戸では同じ直線ルールが当てはまらない可能性が高い。</span>
+              </label>
+              <label class="p-2 bg-white rounded border hover:border-indigo-400 cursor-pointer flex items-start gap-2">
+                <input type="radio" name="eq3" value="wrong2" class="mt-0.5 accent-indigo-600">
+                <span>数式に数値を代入した正確な計算であるため、何一つ疑う余地はない。</span>
+              </label>
+            </div>
+            <div id="exam3-ans" class="hidden mt-2 p-2.5 bg-white rounded border border-indigo-200 text-slate-700 leading-relaxed"></div>
+          </div>
+        </div>
+
+        <button id="btn-check-exam" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm py-2.5 rounded shadow transition">
+          実戦演習の採点と詳しい解説を表示する
+        </button>
+
+        <div id="exam-overall-feedback" class="hidden p-4 bg-emerald-50 border border-emerald-300 rounded-lg text-xs space-y-2">
+          <p class="text-sm font-bold text-emerald-900">演習完了！40分間の学習お疲れさまでした！🎉</p>
+          <div class="text-slate-700 leading-relaxed space-y-1 bg-white p-3 rounded border border-emerald-200">
+            <p class="font-bold text-slate-800">【本日のまとめ：自分の言葉で説明できるようになろう】</p>
+            <p>
+              「マンションの広さと価格には<strong>正の相関</strong>（右上がりの傾向）があるため、<strong>一次関数（直線）</strong>を使って未知の価格を根拠をもって予測できる。ただし、価格は広さだけでなく駅距離や階数など様々な要因で決まるため、予測値と実際の値には<strong>残差（ズレ）</strong>が生じる。」
+            </p>
+          </div>
+          <div class="pt-2 flex justify-end">
+            <button onclick="window.print()" class="px-3 py-1.5 bg-white border border-slate-300 rounded text-slate-700 hover:bg-slate-100 font-semibold transition">
+              ページ全体を印刷 / PDF保存
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <footer class="bg-slate-800 text-slate-400 text-center py-4 text-xs mt-8">
+    高校数学B 「統計的な推測」 / 数学的モデル化 単元教材
+  </footer>
+
+  <script>
+    // --- Raw Data Definition ---
+    const rawData = [
+      { name: 'A', area: 40, price: 3200 },
+      { name: 'B', area: 45, price: 3700 },
+      { name: 'C', area: 50, price: 3900 },
+      { name: 'D', area: 55, price: 4400 },
+      { name: 'E', area: 60, price: 4600 },
+      { name: 'F', area: 65, price: 5100 },
+      { name: 'G', area: 70, price: 5000 },
+      { name: 'H', area: 80, price: 6100 },
+    ];
+
+    // State
+    let currentTab = 1;
+    let showResiduals = false;
+    let activeLineType = 'custom';
+    let currentSlope = 70;
+    let currentIntercept = 400;
+
+    // Toast notification function (alert代替)
+    function showToast(msg) {
+      const box = document.getElementById('toast-box');
+      const text = document.getElementById('toast-message');
+      text.textContent = msg;
+      box.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-[-10px]');
+      box.classList.add('opacity-100', 'translate-y-0');
+      setTimeout(() => {
+        box.classList.remove('opacity-100', 'translate-y-0');
+        box.classList.add('opacity-0', 'pointer-events-none', 'translate-y-[-10px]');
+      }, 4000);
+    }
+
+    // Tab Switching Function
+    function switchTab(tabIndex) {
+      currentTab = tabIndex;
+      for (let i = 1; i <= 6; i++) {
+        const btn = document.getElementById(`tab-btn-${i}`);
+        const content = document.getElementById(`tab-content-${i}`);
+        if (i === tabIndex) {
+          btn.classList.add('active');
+          content.classList.add('active');
+        } else {
+          btn.classList.remove('active');
+          content.classList.remove('active');
+        }
+      }
+
+      // Update progress bar
+      const pct = (tabIndex / 6) * 100;
+      document.getElementById('progress-bar').style.width = `${pct}%`;
+      document.getElementById('progress-text').textContent = `STEP ${tabIndex} / 6`;
+
+      // Update Graph Mode Badge
+      const badge = document.getElementById('graph-mode-badge');
+      if (tabIndex === 2) badge.textContent = '相関と散布図モード';
+      else if (tabIndex === 3) badge.textContent = '2点を通る直線 ($y=70x+400$)';
+      else if (tabIndex === 4) badge.textContent = '回帰直線・残差分析モード';
+      else if (tabIndex === 5) badge.textContent = 'モデル改善モード';
+      else badge.textContent = '直線シミュレーション中';
+
+      // Redraw canvas with appropriate highlights
+      drawGraph();
+    }
+
+    // Canvas setup
+    const canvas = document.getElementById('mainCanvas');
+    const ctx = canvas.getContext('2d');
+    const tooltip = document.getElementById('canvas-tooltip');
+
+    const xMin = 30, xMax = 90;
+    const yMin = 2500, yMax = 7000;
+
+    function resizeCanvas() {
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = rect.width * window.devicePixelRatio;
+      canvas.height = rect.height * window.devicePixelRatio;
+      drawGraph();
+    }
+
+    function toScreenX(x) {
+      const padding = 50 * window.devicePixelRatio;
+      const w = canvas.width - padding * 2;
+      return padding + ((x - xMin) / (xMax - xMin)) * w;
+    }
+
+    function toScreenY(y) {
+      const padding = 40 * window.devicePixelRatio;
+      const h = canvas.height - padding * 2;
+      return canvas.height - padding - ((y - yMin) / (yMax - yMin)) * h;
+    }
+
+    function drawGraph() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const dpr = window.devicePixelRatio;
+
+      // 1. Grid & Axes
+      ctx.lineWidth = 1 * dpr;
+      ctx.strokeStyle = '#334155';
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = `${10 * dpr}px sans-serif`;
+
+      for (let x = 40; x <= 80; x += 10) {
+        const sx = toScreenX(x);
+        ctx.beginPath();
+        ctx.moveTo(sx, toScreenY(yMin));
+        ctx.lineTo(sx, toScreenY(yMax));
+        ctx.stroke();
+        ctx.fillText(`${x}㎡`, sx - 10 * dpr, toScreenY(yMin) + 14 * dpr);
+      }
+
+      for (let y = 3000; y <= 6500; y += 1000) {
+        const sy = toScreenY(y);
+        ctx.beginPath();
+        ctx.moveTo(toScreenX(xMin), sy);
+        ctx.lineTo(toScreenX(xMax), sy);
+        ctx.stroke();
+        ctx.fillText(`${y}`, toScreenX(xMin) - 34 * dpr, sy + 4 * dpr);
+      }
+
+      // Axis labels
+      ctx.fillStyle = '#cbd5e1';
+      ctx.font = `bold ${11 * dpr}px sans-serif`;
+      ctx.fillText('床面積 (㎡)', toScreenX(82), toScreenY(yMin) - 6 * dpr);
+      ctx.fillText('価格 (万円)', toScreenX(xMin) + 4 * dpr, toScreenY(6800));
+
+      // 2. Residual lines calculation & display
+      let sumSqResiduals = 0;
+      rawData.forEach(pt => {
+        const predY = currentSlope * pt.area + currentIntercept;
+        const diff = pt.price - predY;
+        sumSqResiduals += diff * diff;
+
+        if (showResiduals) {
+          ctx.lineWidth = 2 * dpr;
+          ctx.strokeStyle = diff >= 0 ? '#10b981' : '#f43f5e';
+          ctx.setLineDash([3 * dpr, 3 * dpr]);
+          ctx.beginPath();
+          ctx.moveTo(toScreenX(pt.area), toScreenY(pt.price));
+          ctx.lineTo(toScreenX(pt.area), toScreenY(predY));
+          ctx.stroke();
+          ctx.setLineDash([]);
+        }
+      });
+
+      const rssEl = document.getElementById('preview-rss');
+      if (rssEl) {
+        rssEl.textContent = Math.round(sumSqResiduals).toLocaleString();
+      }
+
+      // 3. Draw Model Line (常に表示)
+      const p1x = 32;
+      const p1y = currentSlope * p1x + currentIntercept;
+      const p2x = 88;
+      const p2y = currentSlope * p2x + currentIntercept;
+
+      ctx.lineWidth = 3 * dpr;
+      ctx.strokeStyle = activeLineType === 'regression' ? '#f59e0b' : '#6366f1';
+      ctx.beginPath();
+      ctx.moveTo(toScreenX(p1x), toScreenY(p1y));
+      ctx.lineTo(toScreenX(p2x), toScreenY(p2y));
+      ctx.stroke();
+
+      // Line label
+      ctx.fillStyle = activeLineType === 'regression' ? '#f59e0b' : '#6366f1';
+      ctx.font = `bold ${10 * dpr}px sans-serif`;
+      const labelText = activeLineType === 'regression' ? '回帰直線 (最小二乗)' : '予測直線モデル';
+      ctx.fillText(labelText, toScreenX(p2x) - 75 * dpr, toScreenY(p2y) - 8 * dpr);
+
+      // 75m2 prediction point & dotted line
+      const targetX = 75;
+      const targetY = currentSlope * targetX + currentIntercept;
+      ctx.strokeStyle = '#10b981';
+      ctx.lineWidth = 1.5 * dpr;
+      ctx.setLineDash([3 * dpr, 3 * dpr]);
+      ctx.beginPath();
+      ctx.moveTo(toScreenX(targetX), toScreenY(yMin));
+      ctx.lineTo(toScreenX(targetX), toScreenY(targetY));
+      ctx.lineTo(toScreenX(xMin), toScreenY(targetY));
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.fillStyle = '#10b981';
+      ctx.beginPath();
+      ctx.arc(toScreenX(targetX), toScreenY(targetY), 5 * dpr, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 1.5 * dpr;
+      ctx.stroke();
+
+      const priceVal = Math.round(targetY);
+      const prev75 = document.getElementById('preview-75-price');
+      if (prev75) prev75.textContent = `${priceVal} 万円`;
+
+      // 4. Data Points
+      rawData.forEach((pt) => {
+        const sx = toScreenX(pt.area);
+        const sy = toScreenY(pt.price);
+
+        const isHighlight = (currentTab === 3 && (pt.name === 'A' || pt.name === 'E'));
+        const isAnomaly = (currentTab === 2 && (pt.name === 'F' || pt.name === 'G'));
+
+        ctx.fillStyle = isAnomaly ? '#ef4444' : (isHighlight ? '#38bdf8' : '#ffffff');
+        ctx.beginPath();
+        ctx.arc(sx, sy, (isHighlight || isAnomaly ? 6.5 : 5) * dpr, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.lineWidth = 2 * dpr;
+        ctx.strokeStyle = '#0f172a';
+        ctx.stroke();
+
+        ctx.fillStyle = '#f8fafc';
+        ctx.font = `bold ${9.5 * dpr}px sans-serif`;
+        ctx.fillText(pt.name, sx + 7 * dpr, sy - 4 * dpr);
+      });
+    }
+
+    // --- Interactive Sliders ---
+    const slopeSlider = document.getElementById('slope-slider');
+    const interceptSlider = document.getElementById('intercept-slider');
+    const slopeVal = document.getElementById('slope-val');
+    const interceptVal = document.getElementById('intercept-val');
+    const currentModelEq = document.getElementById('current-model-eq');
+
+    function updateLineFromSliders() {
+      currentSlope = parseFloat(slopeSlider.value);
+      currentIntercept = parseFloat(interceptSlider.value);
+      slopeVal.textContent = `${currentSlope} 万円/㎡`;
+      interceptVal.textContent = `${currentIntercept} 万円`;
+      currentModelEq.innerHTML = `$y = ${currentSlope}x ${currentIntercept >= 0 ? '+' : '-'} ${Math.abs(currentIntercept)}$`;
+      if (window.MathJax) MathJax.typesetPromise([currentModelEq]);
+      activeLineType = 'custom';
+      drawGraph();
+    }
+
+    slopeSlider.addEventListener('input', updateLineFromSliders);
+    interceptSlider.addEventListener('input', updateLineFromSliders);
+
+    document.getElementById('btn-show-line-2pt').addEventListener('click', () => {
+      slopeSlider.value = 70;
+      interceptSlider.value = 400;
+      activeLineType = 'twoPoint';
+      updateLineFromSliders();
+      showToast('点A(40,3200)と点E(60,4600)の2点を通る直線 y = 70x + 400 に設定しました！');
+    });
+
+    document.getElementById('btn-show-regression').addEventListener('click', () => {
+      slopeSlider.value = 68;
+      interceptSlider.value = 520;
+      activeLineType = 'regression';
+      updateLineFromSliders();
+      showToast('全データのズレを最小化した回帰直線 y = 68x + 520 に設定しました！');
+    });
+
+    document.getElementById('btn-toggle-residuals').addEventListener('click', () => {
+      showResiduals = !showResiduals;
+      const status = document.getElementById('res-status');
+      status.textContent = showResiduals ? 'ON' : 'OFF';
+      status.className = showResiduals ? 'text-emerald-600 font-bold' : 'text-slate-500 font-bold';
+      drawGraph();
+    });
+
+    // --- Tab 1 Validation ---
+    document.getElementById('btn-submit-step1').addEventListener('click', () => {
+      const val = document.getElementById('step1-guess').value;
+      if (!val) {
+        showToast('数値を入力してください（例: 5500）');
+        return;
+      }
+      document.getElementById('step1-feedback').classList.remove('hidden');
+    });
+
+    // --- Tab 2 Validation ---
+    document.getElementById('btn-check-step2').addEventListener('click', () => {
+      const q1 = document.querySelector('input[name="q2_trend"]:checked');
+      const q2 = document.querySelector('input[name="q2_rule"]:checked');
+      if (!q1 || !q2) {
+        showToast('Q1とQ2の両方を選択してください。');
+        return;
+      }
+      if (q1.value === 'up' && q2.value === 'correct') {
+        document.getElementById('step2-feedback').classList.remove('hidden');
+      } else {
+        showToast('もう一度確認しましょう！ Q1: 全体としては右肩上がり、Q2: 相関は全体の傾向です。');
+      }
+    });
+
+    // --- Tab 3 Validation ---
+    document.getElementById('btn-check-step3').addEventListener('click', () => {
+      const slope = document.getElementById('step3-slope').value;
+      const intercept = document.getElementById('step3-intercept').value;
+      const pred = document.getElementById('step3-pred').value;
+
+      if (parseInt(slope) === 70 && parseInt(intercept) === 400 && parseInt(pred) === 5650) {
+        document.getElementById('step3-feedback').classList.remove('hidden');
+        if (window.MathJax) MathJax.typesetPromise([document.getElementById('step3-feedback')]);
+      } else {
+        showToast('計算をもう一度確認してみよう！ 傾き=(4600-3200)/(60-40)=70, 切片=3200-70×40=400, 予測=70×75+400=5650');
+      }
+    });
+
+    // --- Tab 4 Validation ---
+    document.getElementById('btn-check-step4').addEventListener('click', () => {
+      const pred = parseInt(document.getElementById('step4-calc-pred').value);
+      const res = parseInt(document.getElementById('step4-calc-res').value);
+
+      if (pred === 4600 && res === 0) {
+        document.getElementById('step4-feedback').classList.remove('hidden');
+        showResiduals = true;
+        document.getElementById('res-status').textContent = 'ON';
+        document.getElementById('res-status').className = 'text-emerald-600 font-bold';
+        drawGraph();
+      } else {
+        showToast('計算を確認しましょう！ 予測価格: 68×60+520=4600、残差: 4600-4600=0');
+      }
+    });
+
+    // --- Tab 5 Validation ---
+    document.getElementById('btn-check-step5').addEventListener('click', () => {
+      const q5 = document.querySelector('input[name="q5"]:checked');
+      if (!q5) {
+        showToast('選択肢を選んでください。');
+        return;
+      }
+      if (q5.value === 'b') {
+        document.getElementById('step5-feedback').classList.remove('hidden');
+      } else {
+        showToast('条件を過剰に増やしすぎると「過剰適合」を起こすことがあります。');
+      }
+    });
+
+    // --- Tab 6 (Exam) Validation ---
+    document.getElementById('btn-check-exam').addEventListener('click', () => {
+      const eq1 = document.querySelector('input[name="eq1"]:checked');
+      const eq2 = document.querySelector('input[name="eq2"]:checked');
+      const eq3 = document.querySelector('input[name="eq3"]:checked');
+
+      if (!eq1 || !eq2 || !eq3) {
+        showToast('3問すべての問題を選択してください。');
+        return;
+      }
+
+      const fb1 = document.getElementById('exam1-ans');
+      const fb2 = document.getElementById('exam2-ans');
+      const fb3 = document.getElementById('exam3-ans');
+
+      fb1.classList.remove('hidden');
+      fb2.classList.remove('hidden');
+      fb3.classList.remove('hidden');
+
+      if (eq1.value === '5600') {
+        fb1.innerHTML = '<span class="text-emerald-700 font-bold">⭕ 正解（イ）</span> 傾き $a = \\frac{4900-3500}{65-45} = 70$。$3500 = 70\\times 45 + b \\implies b = 350$。よって式は $y = 70x + 350$。$x=75$ を代入して $70\\times 75 + 350 = 5600$ 万円。';
+      } else {
+        fb1.innerHTML = '<span class="text-rose-600 font-bold">❌ 不正解</span> 正解は「イ. 5600万円」です。傾き70、切片350の式に $x=75$ を代入します。';
+      }
+
+      if (eq2.value === 'a') {
+        fb2.innerHTML = '<span class="text-emerald-700 font-bold">⭕ 正解</span> 予測値 $y = 80\\times 60 + 250 = 5050$ 万円。残差は $5200 - 5050 = +150$ 万円（正の値なので実際の方が高かった）。';
+      } else {
+        fb2.innerHTML = '<span class="text-rose-600 font-bold">❌ 不正解</span> 残差は「実際の値 － 予測値」なので $5200 - 5050 = +150$ 万円となります。';
+      }
+
+      if (eq3.value === 'correct') {
+        fb3.innerHTML = '<span class="text-emerald-700 font-bold">⭕ 正解</span> 観測データの範囲（40〜80㎡）を大きく外れた場所を予測することを「外挿（がいそう）」と呼び、モデルの信頼性が下がる典型例です。';
+      } else {
+        fb3.innerHTML = '<span class="text-rose-600 font-bold">❌ 不正解</span> 観測データの範囲外へ無理に当てはめる「外挿の危険性」を指摘した選択肢が正解です。';
+      }
+
+      if (window.MathJax) MathJax.typesetPromise([fb1, fb2, fb3]);
+      document.getElementById('exam-overall-feedback').classList.remove('hidden');
+    });
+
+    // Tooltip setup
+    canvas.addEventListener('mousemove', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const mouseX = (e.clientX - rect.left) * window.devicePixelRatio;
+      const mouseY = (e.clientY - rect.top) * window.devicePixelRatio;
+
+      let found = null;
+      rawData.forEach(pt => {
+        const sx = toScreenX(pt.area);
+        const sy = toScreenY(pt.price);
+        const dist = Math.hypot(sx - mouseX, sy - mouseY);
+        if (dist < 12 * window.devicePixelRatio) {
+          found = pt;
+        }
+      });
+
+      if (found) {
+        tooltip.style.left = `${e.clientX - rect.left}px`;
+        tooltip.style.top = `${e.clientY - rect.top}px`;
+        tooltip.innerHTML = `<strong>物件 ${found.name}</strong><br>広さ: ${found.area}㎡<br>価格: ${found.price}万円`;
+        tooltip.classList.remove('hidden');
+      } else {
+        tooltip.classList.add('hidden');
+      }
+    });
+
+    canvas.addEventListener('mouseleave', () => {
+      tooltip.classList.add('hidden');
+    });
+
+    window.addEventListener('resize', resizeCanvas);
+    window.addEventListener('load', () => {
+      resizeCanvas();
+      updateLineFromSliders();
+    });
+  </script>
+</body>
+</html>

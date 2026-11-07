@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AI情報見極めドリル｜基礎知識とケーススタディ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans JP', 'Inter', sans-serif;
+            background-color: #f8fafc; /* slate-50 */
+            -webkit-tap-highlight-color: transparent;
+        }
+        .fade-in {
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+        .slide-up {
+            animation: slideUp 0.4s ease-out forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        /* 選択肢ボタンのホバー・アクティブ状態用 */
+        .option-btn {
+            transition: all 0.2s ease;
+        }
+        .option-btn:disabled {
+            cursor: default;
+        }
+        .option-btn:not(:disabled):hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .option-btn:not(:disabled):active {
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden text-slate-800">
+
+    <!-- Header -->
+    <header class="bg-indigo-600 text-white p-4 shadow-md z-10 shrink-0">
+        <div class="max-w-2xl mx-auto flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <span class="text-2xl">🧠</span>
+                <h1 class="font-bold text-sm md:text-base leading-tight">AI情報見極めドリル</h1>
+            </div>
+            <div id="header-progress" class="hidden text-sm font-bold bg-indigo-700 px-3 py-1 rounded-full">
+                Q <span id="current-q-num">1</span>/<span id="total-q-num">8</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 overflow-y-auto p-4 flex flex-col justify-center items-center relative">
+        <div id="app-container" class="w-full max-w-xl mx-auto">
+            
+            <!-- 1. Start Screen -->
+            <div id="start-screen" class="bg-white rounded-3xl p-8 shadow-xl text-center slide-up">
+                <div class="text-6xl mb-6">💡</div>
+                <h2 class="text-2xl font-bold text-slate-800 mb-4">マルチモーダルAIと情報の見極め</h2>
+                <p class="text-slate-600 mb-8 text-sm md:text-base leading-relaxed text-left">
+                    AIが「見えた」「聞こえた」と説明したことは、どこまで信用できるのでしょうか？<br><br>
+                    このドリルでは、全8問のクイズを通じて、画像・音声・動画などからAIが出力した情報を確認する際の「正しい考え方と用語」を学びます。
+                </p>
+                <button onclick="startQuiz()" class="w-full bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-bold py-4 rounded-xl transition-colors shadow-lg text-lg">
+                    テストをはじめる
+                </button>
+            </div>
+
+            <!-- 2. Quiz Screen (Hidden by default) -->
+            <div id="quiz-screen" class="hidden flex-col w-full">
+                <!-- Progress Bar -->
+                <div class="w-full bg-slate-200 rounded-full h-2 mb-6">
+                    <div id="progress-bar" class="bg-indigo-500 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+                </div>
+
+                <!-- Question Card -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 mb-6 slide-up" id="question-card">
+                    <div class="text-xs font-bold text-indigo-500 mb-2" id="q-category">カテゴリー</div>
+                    <h3 class="text-lg md:text-xl font-bold text-slate-800 leading-relaxed" id="question-text">
+                        問題文がここに入ります。
+                    </h3>
+                </div>
+
+                <!-- Options -->
+                <div class="space-y-3 slide-up" id="options-container" style="animation-delay: 0.1s;">
+                    <!-- Options will be generated here by JS -->
+                </div>
+
+                <!-- Result & Explanation (Hidden initially) -->
+                <div id="explanation-container" class="hidden mt-6 p-5 rounded-2xl slide-up">
+                    <div class="flex items-center gap-3 mb-3">
+                        <span id="result-icon" class="text-3xl">⭕️</span>
+                        <h4 id="result-title" class="text-xl font-bold">正解！</h4>
+                    </div>
+                    <p id="explanation-text" class="text-sm md:text-base leading-relaxed text-slate-700 mt-2 p-4 bg-white/60 rounded-xl"></p>
+                    
+                    <button id="next-btn" onclick="nextQuestion()" class="mt-6 w-full bg-slate-800 hover:bg-slate-700 text-white font-bold py-3.5 rounded-xl transition-colors shadow-md">
+                        次の問題へ
+                    </button>
+                </div>
+            </div>
+
+            <!-- 3. Result Screen (Hidden by default) -->
+            <div id="result-screen" class="hidden bg-white rounded-3xl p-8 shadow-xl text-center slide-up">
+                <div class="text-6xl mb-4" id="final-emoji">🏆</div>
+                <h2 class="text-2xl font-bold text-slate-800 mb-2">ドリル完了！</h2>
+                <p class="text-lg text-slate-600 mb-6">あなたの正解数: <span id="score-display" class="font-bold text-indigo-600 text-2xl">0</span> / 8</p>
+                
+                <div class="bg-indigo-50 p-5 rounded-2xl text-left mb-8 border border-indigo-100">
+                    <h3 class="font-bold text-indigo-800 mb-3 flex items-center gap-2"><span class="text-xl">📝</span> 今日の重要キーワード</h3>
+                    <ul class="text-sm text-indigo-900 space-y-3">
+                        <li><span class="font-bold bg-white px-1 rounded">観察と推測の区別</span><br>AIは画像から「事実」だけでなく「推測」も勝手に混ぜて出力することがある。</li>
+                        <li><span class="font-bold bg-white px-1 rounded">文脈の欠落</span><br>文字起こしが正しくても、要約時に重要な条件（日時・雨天時など）が消えると誤情報になる。</li>
+                        <li><span class="font-bold bg-white px-1 rounded">ディープフェイクと文脈</span><br>映像が本物でも、「いつ・どこ」の文脈を偽ればフェイクになる。生成判定ツールだけでは不十分。</li>
+                        <li><span class="font-bold bg-white px-1 rounded">データ最小化と事前同意</span><br>個人情報は目的と送信先を説明し「事前に」同意を得る。不要なデータはAIに渡さない。</li>
+                    </ul>
+                </div>
+                
+                <button onclick="location.reload()" class="w-full bg-slate-800 hover:bg-slate-700 text-white font-bold py-4 rounded-xl transition-colors shadow-lg">
+                    タイトルに戻る
+                </button>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        // --- クイズデータ ---
+        const quizData = [
+            {
+                category: "画像解析",
+                question: "写真に写らない「撮影日」をAIが断定して出力しました。最優先の対応はどれですか？",
+                options: [
+                    "文章を短くするように指示する",
+                    "撮影記録（一次情報）を人間が確認する",
+                    "AIに「自信はどのくらいあるか」聞く"
+                ],
+                correctIndex: 1,
+                explanation: "AIは画像に写っていないこと（昨日撮影した、など）も、文脈から勝手に推測（ハルシネーション）することがあります。AIの出力を鵜呑みにせず、人間が外部情報（撮影記録など）で事実確認することが必須です。"
+            },
+            {
+                category: "音声処理",
+                question: "会議の録音をAIに要約させたら、「雨天時は変更」という条件が消えていました。この問題の中心は何ですか？",
+                options: [
+                    "重要な条件（文脈）の欠落",
+                    "録音の音量が不足していたこと",
+                    "出力された文字数が短すぎること"
+                ],
+                correctIndex: 0,
+                explanation: "音声認識（文字起こし）自体が正しくても、それを要約する際に重要な条件が抜け落ちることがあります。文脈が欠落すると、結果として誤情報となってしまうため注意が必要です。"
+            },
+            {
+                category: "動画・ディープフェイク",
+                question: "本物の古い災害動画を「今日発生した」とSNSで紹介する投稿がありました。ここでの主な問題は何ですか？",
+                options: [
+                    "動画自体が本物なら情報として問題ない",
+                    "文脈（日時や場所）の誤表示",
+                    "AI生成判定ツールを使えば解決できる"
+                ],
+                correctIndex: 1,
+                explanation: "ディープフェイク（合成）ではない本物の映像であっても、日時や場所を偽って拡散することは立派な「誤情報（フェイク）」です。ツールによる生成判定だけでは、こうした文脈の嘘は見抜けません。"
+            },
+            {
+                category: "AIツールの限界",
+                question: "動画が偽物かどうか調べるAI判定ツールを2つ使ったら、結果が割れました。適切な判断はどれですか？",
+                options: [
+                    "本物確率が高い方の結果を採用する",
+                    "2つの結果の平均をとって真偽を判断する",
+                    "ツールの結果だけでなく、出典や撮影状況を追加で確認する"
+                ],
+                correctIndex: 2,
+                explanation: "AI判定ツールは完璧ではなく限界があります。ツールが割れた場合や、結果に関わらず、発信元（一次情報）はどこか、公式発表はあるかなど、人間が他の手段で事実確認を行うことが重要です。"
+            },
+            {
+                category: "個人情報とプライバシー",
+                question: "「撮影許可」だけを得た部員の動画を、自動編集のために外部AIサービスにアップロードします。まず何を確認すべきですか？",
+                options: [
+                    "AIの編集処理速度",
+                    "外部送信の目的・同意と利用条件",
+                    "動画の再生時間"
+                ],
+                correctIndex: 1,
+                explanation: "「身内での撮影を許可した」ことと、「外部のAIサーバーにデータを送る」ことは全く別の行為です。送信前に用途や送信先を説明し、同意を得ることが個人情報保護の鉄則です。"
+            },
+            {
+                category: "情報生成とハルシネーション",
+                question: "これからのイベントの事前告知文をAIに書かせたら、「今年1万人が来場して大成功しました」と書かれました。問題点は何ですか？",
+                options: [
+                    "未来の来場実績（まだ起きていないこと）を断定している",
+                    "文章の敬語や丁寧語が不足している",
+                    "文章の中に写真が含まれていない"
+                ],
+                correctIndex: 0,
+                explanation: "AIは指示が曖昧だと、「成功したと書いて」というプロンプトに従って、根拠のない数値や未来の出来事を断定して嘘（ハルシネーション）をつくり出します。公開前に事実関係を人間が確認する必要があります。"
+            },
+            {
+                category: "情報の公開・運用",
+                question: "学校の公式SNSでAIを使って投稿文を作成する際、適切な運用の仕組みはどれですか？",
+                options: [
+                    "AIが作成したら自動的に公開される設定にする",
+                    "とにかく文字数を長くして詳細に見せる",
+                    "事実確認、権利（個人情報）、承認の手順を必ず挟む"
+                ],
+                correctIndex: 2,
+                explanation: "すべてをAIに任せて自動化すると、誤情報やプライバシー侵害のリスクが高まります。AIの便利さを活かしつつも、最終的な公開前には必ず人間がチェック（事実・権利・承認）するプロセスを設計することが重要です。"
+            },
+            {
+                category: "プロンプト（指示）の工夫",
+                question: "画像に写る人物から「楽しそう」と勝手に感情を断定するAIに対し、出力を改善するための適切な指示（プロンプト）はどれですか？",
+                options: [
+                    "「もっと感動的に書いて」と指示する",
+                    "「観察できる事実と、推測を区別して書いて」と指示する",
+                    "「絵文字を増やして感情を表現して」と指示する"
+                ],
+                correctIndex: 1,
+                explanation: "AIへの指示を改善する時は、「間違えないで」といった曖昧な言葉ではなく、「写っているものだけを書く」「感情は推測しない」など、判定できる具体的な基準（ルール）を渡すことが効果的です。"
+            }
+        ];
+
+        // --- 状態管理 ---
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let isAnswered = false;
+
+        // --- DOM Elements ---
+        const startScreen = document.getElementById('start-screen');
+        const quizScreen = document.getElementById('quiz-screen');
+        const resultScreen = document.getElementById('result-screen');
+        
+        const headerProgress = document.getElementById('header-progress');
+        const currentQNum = document.getElementById('current-q-num');
+        const totalQNum = document.getElementById('total-q-num');
+        const progressBar = document.getElementById('progress-bar');
+        
+        const qCategory = document.getElementById('q-category');
+        const questionText = document.getElementById('question-text');
+        const optionsContainer = document.getElementById('options-container');
+        
+        const explanationContainer = document.getElementById('explanation-container');
+        const resultIcon = document.getElementById('result-icon');
+        const resultTitle = document.getElementById('result-title');
+        const explanationText = document.getElementById('explanation-text');
+        const nextBtn = document.getElementById('next-btn');
+
+        // --- 初期化 ---
+        totalQNum.innerText = quizData.length;
+
+        function startQuiz() {
+            startScreen.classList.add('hidden');
+            quizScreen.classList.remove('hidden');
+            quizScreen.classList.add('flex');
+            headerProgress.classList.remove('hidden');
+            
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            isAnswered = false;
+            explanationContainer.classList.add('hidden');
+            explanationContainer.classList.remove('slide-up'); // アニメーションリセット用
+            
+            const currentQ = quizData[currentQuestionIndex];
+            
+            // プログレス更新
+            currentQNum.innerText = currentQuestionIndex + 1;
+            const progressPercent = ((currentQuestionIndex) / quizData.length) * 100;
+            progressBar.style.width = `${progressPercent}%`;
+
+            // 問題セット
+            qCategory.innerText = `Q${currentQuestionIndex + 1}：${currentQ.category}`;
+            questionText.innerText = currentQ.question;
+            
+            // アニメーション再トリガーのために一度クラスを外してつけ直す
+            const qCard = document.getElementById('question-card');
+            qCard.classList.remove('slide-up');
+            void qCard.offsetWidth; // reflow
+            qCard.classList.add('slide-up');
+
+            // 選択肢生成
+            optionsContainer.innerHTML = '';
+            optionsContainer.classList.remove('slide-up');
+            void optionsContainer.offsetWidth; // reflow
+            optionsContainer.classList.add('slide-up');
+
+            currentQ.options.forEach((option, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn w-full bg-white border-2 border-slate-200 hover:border-indigo-400 text-slate-700 font-semibold py-4 px-5 rounded-xl text-left text-sm md:text-base flex items-center justify-between group';
+                btn.innerHTML = `
+                    <span>${option}</span>
+                    <span class="w-6 h-6 rounded-full border-2 border-slate-200 flex items-center justify-center group-hover:border-indigo-400 transition-colors shrink-0 ml-3 option-indicator"></span>
+                `;
+                btn.onclick = () => selectOption(index, btn);
+                optionsContainer.appendChild(btn);
+            });
+        }
+
+        function selectOption(selectedIndex, selectedBtn) {
+            if (isAnswered) return;
+            isAnswered = true;
+
+            const currentQ = quizData[currentQuestionIndex];
+            const isCorrect = (selectedIndex === currentQ.correctIndex);
+            
+            if (isCorrect) score++;
+
+            // 全ボタンを無効化し、スタイルを更新
+            const buttons = optionsContainer.querySelectorAll('button');
+            buttons.forEach((btn, index) => {
+                btn.disabled = true;
+                const indicator = btn.querySelector('.option-indicator');
+                
+                if (index === currentQ.correctIndex) {
+                    // 正解の選択肢（緑色）
+                    btn.classList.remove('border-slate-200', 'hover:border-indigo-400', 'text-slate-700');
+                    btn.classList.add('border-green-500', 'bg-green-50', 'text-green-800');
+                    indicator.classList.remove('border-slate-200', 'group-hover:border-indigo-400');
+                    indicator.classList.add('bg-green-500', 'border-green-500');
+                    indicator.innerHTML = '<svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>';
+                } else if (index === selectedIndex && !isCorrect) {
+                    // 選んだ間違いの選択肢（赤色）
+                    btn.classList.remove('border-slate-200', 'hover:border-indigo-400', 'text-slate-700');
+                    btn.classList.add('border-red-500', 'bg-red-50', 'text-red-800');
+                    indicator.classList.remove('border-slate-200', 'group-hover:border-indigo-400');
+                    indicator.classList.add('bg-red-500', 'border-red-500');
+                    indicator.innerHTML = '<svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>';
+                } else {
+                    // 選ばれなかった間違いの選択肢（グレーアウト）
+                    btn.classList.add('opacity-50');
+                }
+            });
+
+            // 解説コンテナの表示
+            showExplanation(isCorrect, currentQ.explanation);
+        }
+
+        function showExplanation(isCorrect, text) {
+            explanationContainer.classList.remove('hidden', 'bg-green-100', 'bg-red-100', 'text-green-800', 'text-red-800');
+            explanationText.classList.remove('text-green-900', 'text-red-900');
+            
+            if (isCorrect) {
+                explanationContainer.classList.add('bg-green-100', 'text-green-800');
+                resultIcon.innerText = '⭕️';
+                resultTitle.innerText = '正解！';
+                explanationText.classList.add('text-green-900');
+            } else {
+                explanationContainer.classList.add('bg-red-100', 'text-red-800');
+                resultIcon.innerText = '❌';
+                resultTitle.innerText = '不正解...';
+                explanationText.classList.add('text-red-900');
+            }
+            
+            explanationText.innerText = text;
+            
+            // 最終問題ならボタンのテキストを変更
+            if (currentQuestionIndex === quizData.length - 1) {
+                nextBtn.innerText = '結果を見る';
+                nextBtn.classList.remove('bg-slate-800', 'hover:bg-slate-700');
+                nextBtn.classList.add('bg-indigo-600', 'hover:bg-indigo-700');
+            }
+            
+            // アニメーション
+            void explanationContainer.offsetWidth;
+            explanationContainer.classList.add('slide-up');
+            
+            // 自動スクロール
+            setTimeout(() => {
+                explanationContainer.scrollIntoView({ behavior: 'smooth', block: 'end' });
+            }, 100);
+        }
+
+        function nextQuestion() {
+            if (currentQuestionIndex < quizData.length - 1) {
+                currentQuestionIndex++;
+                loadQuestion();
+            } else {
+                showResult();
+            }
+        }
+
+        function showResult() {
+            quizScreen.classList.remove('flex');
+            quizScreen.classList.add('hidden');
+            headerProgress.classList.add('hidden');
+            
+            resultScreen.classList.remove('hidden');
+            document.getElementById('score-display').innerText = score;
+            
+            const emoji = document.getElementById('final-emoji');
+            if (score === quizData.length) {
+                emoji.innerText = '👑'; // パーフェクト
+            } else if (score >= quizData.length * 0.7) {
+                emoji.innerText = '👏'; // 合格点
+            } else {
+                emoji.innerText = '💪'; // 復習しよう
+            }
+        }
+    </script>
+</body>
+</html>

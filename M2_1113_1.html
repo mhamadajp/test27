@@ -1,0 +1,1307 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>三角方程式・三角不等式 徹底マスター 〜単位円とグラフで見る思考の道筋〜</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- MathJax for high-quality mathematical typography -->
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']]
+      },
+      svg: { fontCache: 'global' }
+    };
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" async></script>
+  <style>
+    .tab-btn.active {
+      background-color: #2563eb;
+      color: #ffffff;
+      font-weight: 700;
+      box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.25);
+    }
+    .step-content {
+      display: none;
+    }
+    .step-content.active {
+      display: block;
+      animation: fadeIn 0.25s ease-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    /* Canvas styling */
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      background: #0f172a;
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen font-sans flex flex-col">
+
+  <!-- Header -->
+  <header class="bg-slate-900 text-white shadow-lg border-b border-slate-800 sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="text-[11px] font-bold uppercase tracking-wider bg-blue-600 text-blue-100 px-2 py-0.5 rounded">高校数学II 三角関数</span>
+          <span class="text-xs text-amber-300 font-semibold whitespace-nowrap">定義域: <span class="font-mono">0 ≦ θ &lt; 2π</span></span>
+        </div>
+        <h1 class="text-base md:text-xl font-bold mt-0.5 text-white flex items-center gap-2">
+          <span>📐 三角方程式・三角不等式を一段ずつ極める</span>
+        </h1>
+      </div>
+      <div class="flex items-center gap-2 text-xs md:text-sm bg-slate-800/80 px-3 py-1.5 rounded-lg border border-slate-700">
+        <span class="text-slate-400">合言葉:</span>
+        <span class="font-bold text-amber-300 whitespace-nowrap">①整理 ➜ ②基本形 ➜ ③単位円で角を特定</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Notification Toast Box -->
+  <div id="toast-box" class="fixed top-16 right-4 z-50 transform transition-all duration-300 opacity-0 pointer-events-none translate-y-[-10px] max-w-sm bg-slate-900 text-white text-xs px-4 py-3 rounded-xl shadow-2xl border border-blue-500/50 flex items-start gap-2.5">
+    <span class="text-lg text-amber-400">💡</span>
+    <span id="toast-message" class="flex-1 font-medium leading-relaxed"></span>
+  </div>
+
+  <!-- Main Container -->
+  <main class="max-w-7xl mx-auto p-3 md:p-6 flex-1 w-full grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+    <!-- Left Column: Synchronized Visualizer (Unit Circle & Waveform Graph) -->
+    <div class="lg:col-span-5 flex flex-col gap-4">
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sticky top-20 space-y-3">
+        
+        <div class="flex items-center justify-between border-b pb-2">
+          <h2 class="font-bold text-slate-800 flex items-center gap-2 text-sm md:text-base">
+            <span class="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
+            何を見るべきか？（視覚ガイド）
+          </h2>
+          <span id="target-mode-pill" class="inline-flex items-center text-[11px] bg-blue-50 text-blue-700 font-bold px-2.5 py-0.5 rounded-full border border-blue-200 whitespace-nowrap">
+            $\sin\theta = \frac{1}{2}$
+          </span>
+        </div>
+
+        <!-- Eye-direction instruction card -->
+        <div id="visual-guide-banner" class="bg-amber-50 border border-amber-300 rounded-xl p-3 text-xs space-y-1">
+          <div class="flex items-center gap-1.5 font-bold text-amber-900">
+            <span class="text-base">👀</span>
+            <span id="guide-title">この問題で見るべきポイント</span>
+          </div>
+          <p id="guide-desc" class="text-slate-700 leading-relaxed font-medium">
+            単位円の高さ（縦座標）が <span class="inline-flex items-center whitespace-nowrap mx-0.5 text-blue-700">$\frac{1}{2}$</span> になる水色の水平線を引きました。
+            <strong class="text-rose-600">円周とぶつかった2つの交点（赤い二重丸）</strong>の角度が「方程式の解」です！
+          </p>
+        </div>
+
+        <!-- Visualizer Area: Split into Unit Circle (top) and Graph (bottom) -->
+        <div class="flex flex-col gap-3 bg-slate-950 p-2.5 rounded-xl border border-slate-800 shadow-inner">
+          
+          <!-- Top: Unit Circle Area -->
+          <div class="flex flex-col gap-1">
+            <!-- Legend bar (OUTSIDE CANVAS to prevent overlap) -->
+            <div class="flex justify-between items-center text-[10px] px-1 text-slate-300">
+              <div class="flex items-center gap-1 whitespace-nowrap">
+                <span>単位円:</span>
+                <span class="text-amber-400 font-bold bg-slate-800/80 px-1.5 py-0.5 rounded">角度 <span class="italic font-serif">θ</span></span>
+                <span>と</span>
+                <span class="text-cyan-400 font-bold bg-slate-800/80 px-1.5 py-0.5 rounded" id="circle-coord-legend">縦座標 <span class="italic font-serif">y</span> = sin <span class="italic font-serif">θ</span></span>
+              </div>
+              <div class="font-mono text-slate-400 bg-slate-800/80 px-1.5 py-0.5 rounded whitespace-nowrap">0 ≦ <span class="italic font-serif">θ</span> &lt; 2π</div>
+            </div>
+            <!-- Canvas -->
+            <div class="relative w-full aspect-[4/3] rounded-lg overflow-hidden border border-slate-700">
+              <canvas id="circleCanvas"></canvas>
+            </div>
+          </div>
+
+          <!-- Bottom: Trigonometric Function Graph Area -->
+          <div class="flex flex-col gap-1 mt-1">
+            <!-- Legend bar -->
+            <div class="flex justify-between items-center text-[10px] px-1 text-slate-300">
+              <div class="flex items-center gap-1 whitespace-nowrap">
+                <span>グラフ:</span>
+                <span class="bg-slate-800/80 px-1.5 py-0.5 rounded">横軸＝角度 <span class="italic font-serif">θ</span></span>
+                <span class="text-slate-500">➜</span>
+                <span class="bg-slate-800/80 px-1.5 py-0.5 rounded">縦軸＝値</span>
+              </div>
+            </div>
+            <!-- Canvas -->
+            <div class="relative w-full aspect-[16/7] rounded-lg overflow-hidden border border-slate-700">
+              <canvas id="waveCanvas"></canvas>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Quick Jump Buttons (解の場所にワンタップで合わせる) -->
+        <div class="bg-blue-50/70 p-2.5 rounded-xl border border-blue-200 space-y-1.5 text-xs">
+          <span class="text-blue-900 font-bold block text-[11px]">⚡ 解の角度に直接ジャンプして確認：</span>
+          <div id="quick-jump-container" class="flex flex-wrap gap-1.5">
+            <!-- Dynamically populated buttons -->
+          </div>
+        </div>
+
+        <!-- Interactive Angle Inspector Slider -->
+        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2 text-xs">
+          <div class="flex justify-between items-center">
+            <label class="font-bold text-slate-700 flex items-center gap-1.5">
+              <span>手動で動径を回す (<span class="italic font-serif">θ</span>):</span>
+            </label>
+            <span id="slider-theta-val" class="inline-flex items-center font-mono font-bold text-blue-700 bg-white border border-blue-200 px-2 py-0.5 rounded whitespace-nowrap">
+              <span class="italic font-serif mr-1">θ</span> = <span id="slider-rad-val">\frac{\pi}{6}</span> <span id="slider-deg-text" class="ml-1">(30°)</span>
+            </span>
+          </div>
+          <div class="flex items-center gap-3">
+            <input id="theta-slider" type="range" min="0" max="360" step="1" value="30" class="flex-1 accent-blue-600 cursor-pointer h-2 bg-slate-200 rounded-lg">
+            <span class="text-slate-500 font-mono text-[11px] w-8 text-right" id="degree-val">30°</span>
+          </div>
+          <div class="grid grid-cols-2 gap-2 pt-1 font-mono text-[11px]">
+            <div class="bg-white p-1.5 rounded border border-slate-200 flex justify-between items-center">
+              <span class="text-slate-500 font-sans">sin<span class="italic font-serif">θ</span> (縦):</span>
+              <span id="current-sin-disp" class="font-bold text-cyan-600">+0.500</span>
+            </div>
+            <div class="bg-white p-1.5 rounded border border-slate-200 flex justify-between items-center">
+              <span class="text-slate-500 font-sans">cos<span class="italic font-serif">θ</span> (横):</span>
+              <span id="current-cos-disp" class="font-bold text-rose-500">+0.866</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Essential Rule Banner (レイアウト崩れ完全解消版) -->
+        <div class="p-3.5 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl space-y-2">
+          <div class="font-bold text-blue-900 flex items-center gap-1 text-sm">
+            <span>🎯 単位円で見るべき「2大鉄則」</span>
+          </div>
+          <div class="space-y-2 text-slate-800 leading-normal text-xs md:text-sm">
+            
+            <div class="flex items-start gap-2 bg-white/90 p-3 rounded-lg border border-blue-100 shadow-sm">
+              <span class="text-cyan-600 font-bold mt-0.5">●</span>
+              <div class="flex-1 leading-loose">
+                <span class="inline-flex items-center font-bold text-slate-900 whitespace-nowrap">sin<span class="italic font-serif mx-0.5">θ</span></span> は、単位円周上の点の
+                <strong class="inline-flex items-center whitespace-nowrap text-cyan-700 bg-cyan-50 px-1.5 py-0.5 rounded border border-cyan-200 mx-1 align-middle">
+                  「縦座標（<span class="mx-0.5 italic font-serif">y</span>座標）」
+                </strong>を見る！
+              </div>
+            </div>
+
+            <div class="flex items-start gap-2 bg-white/90 p-3 rounded-lg border border-blue-100 shadow-sm">
+              <span class="text-rose-600 font-bold mt-0.5">●</span>
+              <div class="flex-1 leading-loose">
+                <span class="inline-flex items-center font-bold text-slate-900 whitespace-nowrap">cos<span class="italic font-serif mx-0.5">θ</span></span> は、単位円周上の点の
+                <strong class="inline-flex items-center whitespace-nowrap text-rose-700 bg-rose-50 px-1.5 py-0.5 rounded border border-rose-200 mx-1 align-middle">
+                  「横座標（<span class="mx-0.5 italic font-serif">x</span>座標）」
+                </strong>を見る！
+              </div>
+            </div>
+
+            <div class="flex items-start gap-2 bg-amber-50/90 p-3 rounded-lg border border-amber-200 text-amber-950 shadow-sm">
+              <span class="text-amber-600 font-bold mt-0.5">⚠️</span>
+              <div class="flex-1 leading-loose">
+                定義域 <span class="inline-flex items-center font-bold whitespace-nowrap mx-1">0 ≦ <span class="italic font-serif">θ</span> &lt; 2π</span> より、
+                <strong class="inline-flex items-center text-slate-900 bg-slate-200/50 px-1.5 py-0.5 rounded border border-slate-300 whitespace-nowrap mx-1 align-middle">
+                  <span class="italic font-serif mr-0.5">θ</span> = 0 は含む（塗りつぶし）
+                </strong>が、
+                <strong class="inline-flex items-center text-rose-700 bg-rose-50 px-1.5 py-0.5 rounded border border-rose-200 whitespace-nowrap mx-1 align-middle">
+                  <span class="italic font-serif mr-0.5">θ</span> = 2π は含まない（白丸）
+                </strong>！
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Right Column: Step-by-Step Educational Progression (Tabs) -->
+    <div class="lg:col-span-7 flex flex-col gap-4">
+
+      <!-- Navigation Tabs -->
+      <div class="bg-white p-1.5 rounded-2xl border border-slate-200 shadow-sm flex flex-wrap gap-1">
+        <button onclick="switchTab(0)" id="tab-btn-0" class="tab-btn active flex-1 min-w-[70px] text-xs py-2 px-1 rounded-xl border border-transparent font-medium text-slate-600 hover:bg-slate-100 transition text-center whitespace-nowrap">
+          導入: 基本形
+        </button>
+        <button onclick="switchTab(1)" id="tab-btn-1" class="tab-btn flex-1 min-w-[70px] text-xs py-2 px-1 rounded-xl border border-transparent font-medium text-slate-600 hover:bg-slate-100 transition text-center whitespace-nowrap">
+          段階A: 1次方程式
+        </button>
+        <button onclick="switchTab(2)" id="tab-btn-2" class="tab-btn flex-1 min-w-[70px] text-xs py-2 px-1 rounded-xl border border-transparent font-medium text-slate-600 hover:bg-slate-100 transition text-center whitespace-nowrap">
+          段階B: 2次方程式
+        </button>
+        <button onclick="switchTab(3)" id="tab-btn-3" class="tab-btn flex-1 min-w-[70px] text-xs py-2 px-1 rounded-xl border border-transparent font-medium text-slate-600 hover:bg-slate-100 transition text-center whitespace-nowrap">
+          段階C: 1次不等式
+        </button>
+        <button onclick="switchTab(4)" id="tab-btn-4" class="tab-btn flex-1 min-w-[70px] text-xs py-2 px-1 rounded-xl border border-transparent font-medium text-slate-600 hover:bg-slate-100 transition text-center whitespace-nowrap">
+          段階D: 積の不等式
+        </button>
+        <button onclick="switchTab(5)" id="tab-btn-5" class="tab-btn flex-1 min-w-[70px] text-xs py-2 px-1 rounded-xl border border-transparent font-medium text-amber-800 bg-amber-50 hover:bg-amber-100 transition text-center font-bold whitespace-nowrap">
+          まとめ確認
+        </button>
+      </div>
+
+      <!-- STEP 0: 導入 (基本形) -->
+      <div id="step-content-0" class="step-content active bg-white rounded-2xl shadow-sm border border-slate-200 p-5 space-y-4">
+        <div class="flex items-center justify-between border-b pb-2">
+          <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
+            <span class="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs">0</span>
+            すべての原点：「基本形」を単位円で解く
+          </h3>
+          <span class="text-xs text-blue-600 font-semibold">目標: 5分</span>
+        </div>
+
+        <div class="bg-blue-50/70 border-l-4 border-blue-600 p-3 rounded-r-lg text-xs leading-relaxed text-blue-950 space-y-2">
+          <p class="font-bold text-blue-900 text-sm">【発問】この方程式なら解けますか？</p>
+          <div class="text-center py-2 text-base font-mono font-bold text-blue-800 bg-white rounded-lg border border-blue-200">
+            $\sin\theta = \frac{1}{2} \quad (0 \leqq \theta < 2\pi)$
+          </div>
+          <p class="leading-relaxed">
+            「角を暗記しているけれど、いつもど忘れする…」という人は、左の図を見てください。<br>
+            <span class="inline-flex items-center whitespace-nowrap font-bold">sin<span class="font-serif italic mx-0.5">θ</span></span> は単位円の<strong class="text-blue-800">「縦の高さ」</strong>です。高さが <span class="inline-flex items-center whitespace-nowrap font-bold mx-0.5">$\frac{1}{2}$</span> になる水色の線を横に引くと、<strong>円周と2回ぶつかります（赤い二重丸）</strong>。このときの角度が答えです！
+          </p>
+        </div>
+
+        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3 text-xs">
+          <p class="font-bold text-slate-800 leading-normal">
+            左の単位円で赤い二重丸がついている2つの角 <span class="italic font-serif mx-0.5 text-blue-800">θ</span> は、それぞれ何度（何ラジアン）でしょう？
+          </p>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2" id="step0-choices">
+            <label class="p-2.5 bg-white rounded-lg border hover:border-blue-400 cursor-pointer flex items-center gap-2">
+              <input type="radio" name="step0_ans" value="wrong1" class="accent-blue-600">
+              <span class="inline-flex items-center whitespace-nowrap">$\theta = \frac{\pi}{3}, \frac{2\pi}{3}\ (60^\circ, 120^\circ)$</span>
+            </label>
+            <label class="p-2.5 bg-white rounded-lg border border-blue-300 bg-blue-50/30 hover:border-blue-400 cursor-pointer flex items-center gap-2">
+              <input type="radio" name="step0_ans" value="correct" class="accent-blue-600">
+              <span class="inline-flex items-center font-bold text-blue-700 whitespace-nowrap">$\theta = \frac{\pi}{6}, \frac{5\pi}{6}\ (30^\circ, 150^\circ)$</span>
+            </label>
+            <label class="p-2.5 bg-white rounded-lg border hover:border-blue-400 cursor-pointer flex items-center gap-2">
+              <input type="radio" name="step0_ans" value="wrong2" class="accent-blue-600">
+              <span class="inline-flex items-center whitespace-nowrap">$\theta = \frac{\pi}{6}, \frac{7\pi}{6}\ (30^\circ, 210^\circ)$</span>
+            </label>
+            <label class="p-2.5 bg-white rounded-lg border hover:border-blue-400 cursor-pointer flex items-center gap-2">
+              <input type="radio" name="step0_ans" value="wrong3" class="accent-blue-600">
+              <span class="inline-flex items-center whitespace-nowrap">$\theta = \frac{\pi}{4}, \frac{3\pi}{4}\ (45^\circ, 135^\circ)$</span>
+            </label>
+          </div>
+          <button id="btn-check-step0" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-lg transition shadow">
+            答え合わせをして単位円で確認する
+          </button>
+        </div>
+
+        <div id="step0-feedback" class="hidden text-xs space-y-2 bg-emerald-50 border border-emerald-200 p-4 rounded-xl text-slate-800 leading-relaxed">
+          <p class="inline-flex items-center font-bold text-emerald-800 text-sm">正解！ $\theta = \frac{\pi}{6}, \frac{5\pi}{6}$ です！</p>
+          <p>
+            左の画面にある「⚡ 解の角度に直接ジャンプ」のボタンを押してみてください。動径がピタッと交点に合わさり、下のグラフでも波が高さ <span class="inline-flex items-center whitespace-nowrap mx-0.5 text-blue-800">$\frac{1}{2}$</span> を通っているのが分かりますね。
+          </p>
+          <div class="bg-white p-2.5 rounded border border-emerald-200 font-semibold text-slate-700">
+            今日の合言葉：<strong>「問題が難しくなるのではなく、この基本形に戻すための手順が増えるだけ」</strong>です！
+          </div>
+          <button onclick="switchTab(1)" class="w-full mt-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-lg transition">
+            段階Aへ進む：式を整理する ➜
+          </button>
+        </div>
+      </div>
+
+      <!-- STEP 1: 段階A (係数と定数の整理) -->
+      <div id="step-content-1" class="step-content bg-white rounded-2xl shadow-sm border border-slate-200 p-5 space-y-4">
+        <div class="flex items-center justify-between border-b pb-2">
+          <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
+            <span class="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs">A</span>
+            係数と定数の整理（一次方程式）
+          </h3>
+          <span class="text-xs text-blue-600 font-semibold">目標: 7分</span>
+        </div>
+
+        <div class="bg-slate-50 border-l-4 border-indigo-500 p-3 rounded-r text-xs text-slate-700 leading-relaxed space-y-1">
+          <p class="inline-flex items-center font-bold text-slate-800">【例題】 $2\sin\theta - 1 = 0 \quad (0 \leqq \theta < 2\pi)$</p>
+          <p class="leading-relaxed">
+            何が邪魔で基本形に見えないでしょうか？「<span class="font-mono font-bold text-blue-800">-1</span>」と「<span class="font-mono font-bold text-blue-800">sin</span> の前の <span class="font-mono font-bold text-blue-800">2</span>」ですね。中学生の一次方程式 <span class="whitespace-nowrap font-mono bg-white px-1 border rounded">2x - 1 = 0</span> と全く同じ手順で式を整理します！
+          </p>
+        </div>
+
+        <!-- 3ステップ変形カード -->
+        <div class="space-y-2 text-xs">
+          <div class="p-3 bg-white border border-slate-200 rounded-xl flex items-center justify-between gap-2 flex-wrap">
+            <span class="font-bold text-slate-700">① まず定数項を移項する：</span>
+            <span class="inline-flex items-center text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded border border-blue-200 whitespace-nowrap">$2\sin\theta = 1$</span>
+          </div>
+          <div class="p-3 bg-white border border-slate-200 rounded-xl flex items-center justify-between gap-2 flex-wrap">
+            <span class="font-bold text-slate-700">② 両辺を 2 で割る（基本形！）：</span>
+            <span class="inline-flex items-center text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded border border-blue-200 whitespace-nowrap">$\sin\theta = \frac{1}{2}$</span>
+          </div>
+          <div class="p-3 bg-white border border-slate-200 rounded-xl flex items-center justify-between gap-2 flex-wrap">
+            <span class="font-bold text-slate-700">③ 単位円で交点の角を決める：</span>
+            <span class="inline-flex items-center font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded border border-emerald-200 whitespace-nowrap">$\theta = \frac{\pi}{6}, \frac{5\pi}{6}$</span>
+          </div>
+        </div>
+
+        <!-- 即時練習問 -->
+        <div class="bg-amber-50 p-4 rounded-xl border border-amber-200 text-xs space-y-2.5">
+          <p class="font-bold text-amber-900">
+            ✍️ その場で1問トライ！ 次の方程式を解いてみよう：
+          </p>
+          <div class="text-center font-bold text-sm text-slate-800 bg-white py-2 rounded border border-amber-300">
+            $3\cos\theta + 3 = 0 \quad (0 \leqq \theta < 2\pi)$
+          </div>
+          <div class="flex flex-wrap items-center gap-2 pt-1">
+            <span class="font-bold text-slate-700 whitespace-nowrap">整理すると <span class="font-mono">cos<span class="font-serif italic">θ</span> =</span> </span>
+            <input id="step1-cos-val" type="text" placeholder="-1" class="w-16 border rounded px-2 py-1 text-center font-mono font-bold focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+            <span class="font-bold text-slate-700 whitespace-nowrap">➜ 解 $\theta =$ </span>
+            <select id="step1-theta-select" class="border rounded px-2 py-1 font-mono font-bold bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+              <option value="">選ぶ</option>
+              <option value="0">0</option>
+              <option value="pi/2">π/2</option>
+              <option value="pi">π</option>
+              <option value="3pi/2">3π/2</option>
+            </select>
+            <button id="btn-check-step1" class="bg-amber-600 hover:bg-amber-700 text-white font-bold px-3 py-1 rounded transition whitespace-nowrap">判定</button>
+          </div>
+          <div id="step1-feedback" class="hidden text-slate-700 font-medium bg-white p-2.5 rounded border border-amber-300 leading-relaxed">
+            <span class="inline-flex items-center">⭕ <strong>完璧です！</strong> <span class="whitespace-nowrap mx-1">$3\cos\theta = -3$</span> より <span class="whitespace-nowrap mx-1">$\cos\theta = -1$</span> 。</span><br>
+            左の単位円を見てください！ <span class="font-mono font-bold text-blue-800">cos</span> なので今度は<strong class="text-rose-700">横座標（$x$ 座標）</strong>を見ます。<br>
+            赤色の縦線 <span class="inline-flex items-center text-rose-700 font-serif italic mx-0.5 font-bold">x = -1</span> と円が接する角は <strong class="inline-flex items-center text-blue-700 whitespace-nowrap">$\theta = \pi$</strong> の1つだけです！
+            <br><span class="text-rose-600 font-bold">※「答えは角 <span class="italic font-serif mx-0.5">θ</span> 」。<span class="font-mono">cos<span class="font-serif italic mx-0.5">θ</span> = -1</span> で止めないこと！</span>
+          </div>
+        </div>
+
+        <button onclick="switchTab(2)" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-lg transition text-xs">
+          段階Bへ進む：二次式を因数分解して解く ➜
+        </button>
+      </div>
+
+      <!-- STEP 2: 段階B (三角比の二次式と置き換え) -->
+      <div id="step-content-2" class="step-content bg-white rounded-2xl shadow-sm border border-slate-200 p-5 space-y-4">
+        <div class="flex items-center justify-between border-b pb-2">
+          <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
+            <span class="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs">B</span>
+            三角比の二次式と「文字の置き換え」
+          </h3>
+          <span class="text-xs text-blue-600 font-semibold">目標: 10分</span>
+        </div>
+
+        <div class="bg-slate-50 border-l-4 border-blue-600 p-3 rounded-r text-xs leading-relaxed text-slate-700 space-y-1">
+          <p class="inline-flex items-center font-bold text-slate-800">【例題】 $2\sin^2\theta - \sin\theta - 1 = 0 \quad (0 \leqq \theta < 2\pi)$</p>
+          <p class="leading-relaxed">
+            「<span class="font-mono font-bold text-blue-800">sin</span> の2乗が出てきて難しそう…」と思うかもしれませんが、<span class="whitespace-nowrap font-mono font-bold text-blue-800">sin<span class="font-serif italic mx-0.5">θ</span></span> をひとまとまりの文字 <span class="font-serif italic font-bold">t</span> と置けば、<strong>高校1年で学んだ普通の二次方程式</strong>に変身します！
+          </p>
+        </div>
+
+        <!-- 置き換え手順のアニメーション風展開 -->
+        <div class="bg-blue-50/50 p-4 rounded-xl border border-blue-200 space-y-3 text-xs">
+          <div class="flex flex-wrap items-center justify-between border-b border-blue-200 pb-2 gap-2">
+            <span class="font-bold text-blue-900">① 置き換えと変域の確認（超重要！）：</span>
+            <span class="inline-flex items-center bg-white px-2 py-0.5 rounded border text-blue-700 font-bold whitespace-nowrap">$t = \sin\theta \quad (-1 \leqq t \leqq 1)$</span>
+          </div>
+
+          <div class="space-y-1 text-slate-700">
+            <p>② 式を <span class="font-serif italic">t</span> で書き換えて因数分解する：</p>
+            <div class="text-center text-sm bg-white p-2.5 rounded-lg border border-blue-100 font-bold">
+              $2t^2 - t - 1 = 0 \implies (2t + 1)(t - 1) = 0$
+            </div>
+          </div>
+
+          <div class="space-y-1 text-slate-700">
+            <p>③ <span class="font-serif italic">t</span> の値を求める：</p>
+            <div class="text-center text-sm bg-white p-2.5 rounded-lg border border-blue-100 font-bold">
+              $t = -\frac{1}{2} \quad \text{または} \quad t = 1$
+            </div>
+            <p class="text-amber-800 font-semibold text-[11px] leading-relaxed">
+              ⚠️ ここで終わってはダメ！ <span class="italic font-serif mx-0.5 font-bold">t</span> は自分が勝手に置いた仮の文字。必ず角 <span class="italic font-serif mx-0.5 font-bold text-rose-700">θ</span> に戻します！
+            </p>
+          </div>
+
+          <div class="space-y-1 bg-white p-3 rounded-lg border border-blue-200">
+            <p class="font-bold text-slate-800">④ 2本の基本形に分けて単位円で角を求める：</p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-center mt-1">
+              <div class="p-2 bg-slate-50 rounded border flex flex-col items-center">
+                <span class="inline-flex items-center text-cyan-700 font-bold mb-1 whitespace-nowrap">$\sin\theta = -\frac{1}{2}$ <span class="font-sans text-xs ml-1 font-normal text-slate-600">(下側の線)</span></span>
+                <span class="text-[11px] text-slate-600">交点は第3・第4象限</span>
+                <span class="inline-flex items-center font-bold text-blue-800 whitespace-nowrap mt-1">$\theta = \frac{7\pi}{6}, \frac{11\pi}{6}$</span>
+              </div>
+              <div class="p-2 bg-slate-50 rounded border flex flex-col items-center">
+                <span class="inline-flex items-center text-cyan-700 font-bold mb-1 whitespace-nowrap">$\sin\theta = 1$ <span class="font-sans text-xs ml-1 font-normal text-slate-600">(最頂点の線)</span></span>
+                <span class="text-[11px] text-slate-600">単位円のてっぺん</span>
+                <span class="inline-flex items-center font-bold text-blue-800 whitespace-nowrap mt-1">$\theta = \frac{\pi}{2}$</span>
+              </div>
+            </div>
+            <p class="inline-flex items-center justify-center w-full text-[11px] text-slate-600 pt-2 text-center font-bold">
+              まとめの解： $\theta = \frac{\pi}{2}, \quad \frac{7\pi}{6}, \quad \frac{11\pi}{6}$
+            </p>
+          </div>
+        </div>
+
+        <!-- つまずき防止の注意喚起 -->
+        <div class="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs space-y-1">
+          <p class="font-bold text-rose-900">🚨 絶対にやってはいけないNG答案！</p>
+          <p class="text-slate-700 leading-relaxed">
+            方程式 <span class="inline-flex items-center font-bold whitespace-nowrap bg-white px-1.5 py-0.5 border rounded">$\cos^2\theta - \cos\theta = 0$</span> の問題で、<strong>「両辺を <span class="font-mono">cos<span class="font-serif italic">θ</span></span> で割って <span class="inline-flex items-center whitespace-nowrap mx-0.5"><span class="font-mono">cos<span class="font-serif italic mx-0.5">θ</span></span> - 1 = 0</span> にする」のは大間違い</strong>です！
+            <span class="font-mono font-bold">cos<span class="font-serif italic">θ</span> = 0</span> の解<span class="inline-flex items-center whitespace-nowrap font-bold text-blue-700 px-0.5">（<span class="italic font-serif mx-0.5">θ</span> = π/2, 3π/2）</span>が消滅してしまいます。必ず<strong>共通因数でくくる <span class="inline-flex items-center whitespace-nowrap font-bold mx-0.5"><span class="font-mono">cos<span class="font-serif italic mx-0.5">θ</span></span>(<span class="font-mono">cos<span class="font-serif italic mx-0.5">θ</span></span> - 1) = 0</span></strong> を行いましょう！
+          </p>
+        </div>
+
+        <button onclick="switchTab(3)" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-lg transition text-xs">
+          段階Cへ進む：不等式へステップアップ ➜
+        </button>
+      </div>
+
+      <!-- STEP 3: 段階C (一次の三角不等式と境界角) -->
+      <div id="step-content-3" class="step-content bg-white rounded-2xl shadow-sm border border-slate-200 p-5 space-y-4">
+        <div class="flex items-center justify-between border-b pb-2">
+          <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
+            <span class="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs">C</span>
+            一次の三角不等式：答えは角の「区間（範囲）」！
+          </h3>
+          <span class="text-xs text-blue-600 font-semibold">目標: 8分</span>
+        </div>
+
+        <div class="bg-indigo-50/70 border-l-4 border-indigo-600 p-3 rounded-r text-xs leading-relaxed text-indigo-950 space-y-1">
+          <p class="font-bold text-indigo-900">【方程式との決定的な違い】</p>
+          <p>
+            方程式の解は「点（特定の角）」でしたが、不等式の解は<strong>「連続する区間（角の範囲）」</strong>になります。
+          </p>
+        </div>
+
+        <!-- 例題展開 -->
+        <div class="space-y-3 text-xs">
+          <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
+            <div class="font-bold text-slate-800 flex justify-between items-center flex-wrap gap-2">
+              <span class="inline-flex items-center">【例題】 $2\sin\theta - 1 \geqq 0 \quad (0 \leqq \theta < 2\pi)$</span>
+            </div>
+            
+            <div class="text-slate-700 leading-relaxed space-y-1.5">
+              <div><strong>手順1（整理）</strong> ➜ <span class="inline-flex items-center bg-white px-2 py-0.5 border rounded whitespace-nowrap font-bold">$\sin\theta \geqq \frac{1}{2}$</span></div>
+              <div><strong>手順2（境界角）</strong> ➜ <span class="inline-flex items-center bg-white px-2 py-0.5 border rounded whitespace-nowrap font-bold">$\sin\theta = \frac{1}{2}$</span> となる境界角は <span class="inline-flex items-center whitespace-nowrap font-bold">$\theta = \frac{\pi}{6}, \frac{5\pi}{6}$</span></div>
+              <div><strong>手順3（単位円）</strong> ➜ 左の図を見てください！<strong>高さ <span class="inline-flex items-center whitespace-nowrap px-1 font-bold text-blue-800">$\frac{1}{2}$</span> 以上の青く光るエリアの弧</strong>をなぞります。</div>
+            </div>
+
+            <div class="bg-white p-3 rounded-lg border border-slate-200 flex flex-wrap items-center justify-between gap-2 mt-2">
+              <div>
+                <span class="text-slate-500 block text-[11px]">条件を満たす角の範囲：</span>
+                <span class="inline-flex items-center text-sm font-bold text-blue-700 whitespace-nowrap mt-0.5">$\frac{\pi}{6} \leqq \theta \leqq \frac{5\pi}{6}$</span>
+              </div>
+              <span class="text-[11px] text-slate-500 bg-slate-100 px-2 py-1 rounded font-semibold">
+                ※「≧」なので両端の境界角も含みます
+              </span>
+            </div>
+          </div>
+
+          <!-- チェッククイズ: 端を含むか？ -->
+          <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
+            <p class="inline-flex items-center font-bold text-slate-800 leading-normal flex-wrap">
+              ✍️ 即時練習： $2\cos\theta + 1 < 0 \quad (0 \leqq \theta < 2\pi)$ を解くとどうなる？
+            </p>
+            <p class="text-slate-600 text-[11px] leading-relaxed">
+              整理すると <span class="inline-flex items-center whitespace-nowrap bg-white px-1.5 py-0.5 border rounded">$\cos\theta < -\frac{1}{2}$</span> です。<span class="font-mono font-bold">cos</span> は横座標なので、<span class="inline-flex items-center whitespace-nowrap bg-white px-1.5 py-0.5 border rounded mx-0.5">$x < -\frac{1}{2}$</span> （縦の境界線より左側）の範囲を探します。
+            </p>
+            <div class="space-y-1.5" id="step3-quiz-opts">
+              <label class="p-2 bg-white rounded border hover:border-blue-400 cursor-pointer flex items-center gap-2">
+                <input type="radio" name="step3_q" value="wrong_eq" class="accent-blue-600">
+                <span class="inline-flex items-center whitespace-nowrap">$\frac{2\pi}{3} \leqq \theta \leqq \frac{4\pi}{3}$</span>
+                <span class="text-slate-500">（等号が付いている）</span>
+              </label>
+              <label class="p-2 bg-white rounded border hover:border-blue-400 cursor-pointer flex items-center gap-2 flex-wrap">
+                <input type="radio" name="step3_q" value="correct" class="accent-blue-600">
+                <span class="inline-flex items-center font-bold text-blue-700 whitespace-nowrap">$\frac{2\pi}{3} < \theta < \frac{4\pi}{3}$</span>
+                <span class="text-slate-500 font-bold">（等号は付かない）</span>
+              </label>
+              <label class="p-2 bg-white rounded border hover:border-blue-400 cursor-pointer flex items-center gap-2 flex-wrap">
+                <input type="radio" name="step3_q" value="wrong_side" class="accent-blue-600">
+                <span class="inline-flex items-center whitespace-nowrap">$0 \leqq \theta < \frac{2\pi}{3}, \quad \frac{4\pi}{3} < \theta < 2\pi$</span>
+                <span class="text-slate-500">（逆の右側を答えている）</span>
+              </label>
+            </div>
+            <button id="btn-check-step3-quiz" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-1.5 rounded transition">
+              判定する
+            </button>
+            <div id="step3-quiz-feedback" class="hidden text-slate-800 bg-emerald-50 border border-emerald-200 p-2.5 rounded-lg leading-relaxed">
+              ⭕ <strong>大正解！</strong> 元の不等号が「&lt;（未満）」なので、境界角は含まれず等号なし（&lt;）になります。
+            </div>
+          </div>
+        </div>
+
+        <button onclick="switchTab(4)" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-lg transition text-xs">
+          段階Dへ進む：積の不等式（入試型） ➜
+        </button>
+      </div>
+
+      <!-- STEP 4: 段階D (積の不等式・発展) -->
+      <div id="step-content-4" class="step-content bg-white rounded-2xl shadow-sm border border-slate-200 p-5 space-y-4">
+        <div class="flex items-center justify-between border-b pb-2">
+          <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
+            <span class="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs">D</span>
+            積の不等式：入試頻出の思考プロセス
+          </h3>
+          <span class="text-xs text-blue-600 font-semibold">目標: 7分</span>
+        </div>
+
+        <div class="bg-slate-50 border-l-4 border-amber-500 p-3 rounded-r text-xs leading-relaxed text-slate-700 space-y-1">
+          <p class="inline-flex items-center font-bold text-slate-800">【入試型例題】 $\sin\theta(2\sin\theta - 1) \leqq 0 \quad (0 \leqq \theta < 2\pi)$</p>
+          <p class="leading-relaxed">
+            「2つのものを掛け算して ≦ 0（0以下）」になるのはどんなときでしょうか？
+            <strong>「<span class="font-serif italic font-bold">t</span> <span class="font-mono font-bold">= sin</span><span class="font-serif italic font-bold mx-0.5">θ</span> と置いたときの2次不等式」</strong>として見てみましょう！
+          </p>
+        </div>
+
+        <div class="bg-amber-50/60 p-4 rounded-xl border border-amber-200 space-y-3 text-xs">
+          <div class="space-y-1.5">
+            <p class="font-bold text-amber-900">① まず文字 <span class="font-serif italic mx-0.5">t</span> の不等式として解く：</p>
+            <div class="bg-white p-2.5 rounded-lg border border-amber-300 text-center text-sm text-slate-800 font-bold">
+              $t(2t - 1) \leqq 0 \implies 0 \leqq t \leqq \frac{1}{2}$
+            </div>
+            <p class="text-slate-600 text-[11px] leading-relaxed">
+              つまり、<span class="font-mono font-bold">sin<span class="font-serif italic mx-0.5">θ</span></span> の高さが<strong>「0以上、かつ <span class="inline-flex items-center whitespace-nowrap mx-0.5">$\frac{1}{2}$</span> 以下」</strong>の帯に入る角 <span class="italic font-serif mx-0.5">θ</span> を探します！
+            </p>
+          </div>
+
+          <div class="space-y-1.5">
+            <p class="font-bold text-amber-900">② 境界となる4つの角を単位円でマーク：</p>
+            <ul class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-center font-bold bg-white p-2.5 rounded-lg border border-amber-300 text-slate-800">
+              <li>$\sin\theta = 0 \implies \theta = 0, \pi$</li>
+              <li>$\sin\theta = \frac{1}{2} \implies \theta = \frac{\pi}{6}, \frac{5\pi}{6}$</li>
+            </ul>
+          </div>
+
+          <div class="space-y-1.5">
+            <p class="font-bold text-amber-900">③ 単位円で <span class="inline-flex items-center whitespace-nowrap bg-white px-1.5 py-0.5 border rounded border-amber-300">$0 \leqq y \leqq \frac{1}{2}$</span> の帯の中にある弧をなぞる：</p>
+            <div class="bg-white p-3 rounded-lg border border-amber-300 space-y-2">
+              <p class="text-slate-700 font-sans leading-normal">
+                円周を反時計回りに $0$ から進むと、条件を満たす区間が<strong>2つに分かれて現れます</strong>（左の図の青い2本の弧）：
+              </p>
+              <div class="inline-flex items-center justify-center w-full font-bold text-blue-800 text-center text-sm py-1 bg-blue-50 rounded">
+                $0 \leqq \theta \leqq \frac{\pi}{6} \quad \text{または} \quad \frac{5\pi}{6} \leqq \theta \leqq \pi$
+              </div>
+              <p class="text-[11px] text-rose-700 font-sans font-semibold leading-relaxed mt-2">
+                ⚠️ 注意：<span class="inline-flex items-center whitespace-nowrap mx-0.5"><span class="italic font-serif">θ</span> = 2π</span> は範囲 <span class="inline-flex items-center whitespace-nowrap mx-0.5">0 ≦ <span class="italic font-serif">θ</span> &lt; 2π</span> に含まれないため、<span class="inline-flex items-center whitespace-nowrap mx-0.5">2π</span> を答えに書いてはいけません！
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <button onclick="switchTab(5)" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-2 rounded-lg transition text-xs shadow">
+          仕上げ：確認テスト＆振り返りへ ➜
+        </button>
+      </div>
+
+      <!-- STEP 5: まとめ確認と評価テスト -->
+      <div id="step-content-5" class="step-content bg-white rounded-2xl shadow-sm border border-slate-200 p-5 space-y-4">
+        <div class="flex items-center justify-between border-b pb-2">
+          <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
+            <span class="w-6 h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center text-xs">終</span>
+            確認テスト & 本時の振り返り
+          </h3>
+          <span class="text-xs text-emerald-600 font-semibold">目標: 3分</span>
+        </div>
+
+        <p class="text-xs text-slate-600">
+          今日の授業の総仕上げです。2つの確認問題に挑戦して、理解が定着したかチェックしましょう！
+        </p>
+
+        <!-- Test Problem 1 -->
+        <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-2 text-xs">
+          <div class="inline-flex items-center font-bold text-slate-800 flex-wrap gap-1">
+            <span>【確認問A】 方程式 $2\cos^2\theta - \cos\theta - 1 = 0 \quad (0 \leqq \theta < 2\pi)$ の解は？</span>
+          </div>
+          <div class="space-y-1.5" id="final-qa-opts">
+            <label class="p-2 bg-white rounded border hover:border-blue-400 cursor-pointer flex items-center gap-2">
+              <input type="radio" name="final_qa" value="wrong1" class="accent-blue-600">
+              <span class="inline-flex items-center whitespace-nowrap">$\theta = \frac{\pi}{3}, \frac{5\pi}{3}$</span>
+            </label>
+            <label class="p-2 bg-white rounded border hover:border-blue-400 cursor-pointer flex items-center gap-2">
+              <input type="radio" name="final_qa" value="correct" class="accent-blue-600">
+              <span class="inline-flex items-center font-bold text-blue-700 whitespace-nowrap">$\theta = 0, \frac{2\pi}{3}, \frac{4\pi}{3}$</span>
+            </label>
+            <label class="p-2 bg-white rounded border hover:border-blue-400 cursor-pointer flex items-center gap-2 flex-wrap">
+              <input type="radio" name="final_qa" value="wrong2" class="accent-blue-600">
+              <span class="inline-flex items-center whitespace-nowrap">$\theta = -\frac{1}{2}, 1$</span>
+              <span class="text-slate-500">（三角比の値のままで角に戻していない）</span>
+            </label>
+          </div>
+          <div id="final-qa-ans" class="hidden p-2.5 bg-white rounded border border-blue-200 text-[11px] text-slate-700 leading-relaxed"></div>
+        </div>
+
+        <!-- Test Problem 2 -->
+        <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-2 text-xs">
+          <div class="inline-flex items-center font-bold text-slate-800 flex-wrap gap-1">
+            <span>【確認問B】 不等式 $\sin\theta < -\frac{1}{2} \quad (0 \leqq \theta < 2\pi)$ の解は？</span>
+          </div>
+          <div class="space-y-1.5" id="final-qb-opts">
+            <label class="p-2 bg-white rounded border hover:border-blue-400 cursor-pointer flex items-center gap-2">
+              <input type="radio" name="final_qb" value="wrong1" class="accent-blue-600">
+              <span class="inline-flex items-center whitespace-nowrap">$\frac{\pi}{6} < \theta < \frac{5\pi}{6}$</span>
+            </label>
+            <label class="p-2 bg-white rounded border hover:border-blue-400 cursor-pointer flex items-center gap-2">
+              <input type="radio" name="final_qb" value="correct" class="accent-blue-600">
+              <span class="inline-flex items-center font-bold text-blue-700 whitespace-nowrap">$\frac{7\pi}{6} < \theta < \frac{11\pi}{6}$</span>
+            </label>
+            <label class="p-2 bg-white rounded border hover:border-blue-400 cursor-pointer flex items-center gap-2 flex-wrap">
+              <input type="radio" name="final_qb" value="wrong2" class="accent-blue-600">
+              <span class="inline-flex items-center whitespace-nowrap">$\frac{7\pi}{6} \leqq \theta \leqq \frac{11\pi}{6}$</span>
+              <span class="text-slate-500">（等号が付いている）</span>
+            </label>
+          </div>
+          <div id="final-qb-ans" class="hidden p-2.5 bg-white rounded border border-blue-200 text-[11px] text-slate-700 leading-relaxed"></div>
+        </div>
+
+        <button id="btn-submit-final" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl transition text-xs shadow">
+          解答を送信して解説を確認する
+        </button>
+
+        <!-- Final Wrap-up Box -->
+        <div id="final-feedback-box" class="hidden p-4 bg-emerald-50 border border-emerald-300 rounded-xl text-xs space-y-2.5">
+          <p class="font-bold text-emerald-900 text-sm">40分間の学習お疲れさまでした！🎉</p>
+          <div class="bg-white p-3 rounded-lg border border-emerald-200 leading-relaxed space-y-1">
+            <p class="font-bold text-slate-800">【振り返りの一文（声に出して確認しよう）】</p>
+            <p class="text-slate-700">
+              「どんなに複雑に見える三角方程式・不等式でも、まず<strong>【整理】</strong>をして、<span class="font-mono font-bold bg-slate-100 px-1 rounded">sin<span class="font-serif italic mx-0.5">θ</span> =</span> や <span class="font-mono font-bold bg-slate-100 px-1 rounded">cos<span class="font-serif italic mx-0.5">θ</span> =</span> という<strong>【基本形】</strong>に戻し、最後に<strong>【単位円】</strong>で角を決める！」
+            </p>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-slate-900 text-slate-400 text-center py-4 text-xs mt-8 border-t border-slate-800">
+    高校数学II 三角関数 指導案連動教材 ｜ 0 ≦ θ &lt; 2π
+  </footer>
+
+  <!-- Application Logic -->
+  <script>
+    // --- Application State ---
+    let currentStep = 0;
+    let targetType = 'sin'; // 'sin', 'cos', 'sin_two', 'sin_band'
+    let targetThreshold = 0.5;
+    let targetThreshold2 = null;
+    let targetInequality = 'eq'; // 'eq', 'gte', 'lt', 'band'
+    let currentThetaDeg = 30; // 0 to 360
+
+    // Guide texts per step
+    const guideConfigs = [
+      {
+        title: "STEP 0：高さ 1/2 とぶつかる「2つの交点」を見る！",
+        desc: "単位円の縦の高さ（y座標）が <span class=\"inline-flex items-center whitespace-nowrap mx-0.5 text-blue-700\">$\\frac{1}{2}$</span> になる水色の横線を引きました。円周とぶつかった2つの赤い二重丸（30°と150°）がこの方程式の答えです！",
+        jumps: [{ deg: 30, label: "θ = π/6 (30°)" }, { deg: 150, label: "θ = 5π/6 (150°)" }]
+      },
+      {
+        title: "段階A：横座標 x = -1 と接する「左端の1点」を見る！",
+        desc: "式を整理すると $\\cos\\theta = -1$ です。cos は横の位置なので、単位円の左端（x = -1）にある赤い接点に注目してください。該当する角は 180°（π）だけです！",
+        jumps: [{ deg: 180, label: "θ = π (180°)" }]
+      },
+      {
+        title: "段階B：2本の水平線（y = 1 と y = -1/2）との「3つの交点」を見る！",
+        desc: "因数分解すると $\\sin\\theta = 1$ と $\\sin\\theta = -\\frac{1}{2}$ の2つが出てきます。単位円のてっぺん（90°）と、下側の線と交わる2点（210°、330°）の合計3点が解になります！",
+        jumps: [{ deg: 90, label: "θ = π/2 (90°)" }, { deg: 210, label: "θ = 7π/6 (210°)" }, { deg: 330, label: "θ = 11π/6 (330°)" }]
+      },
+      {
+        title: "段階C：高さ 1/2 より「上側にある青い扇形・弧のエリア全体」を見る！",
+        desc: "不等式 $\\sin\\theta \\geqq \\frac{1}{2}$ の解は1つの点ではなく、高さ <span class=\"inline-flex items-center whitespace-nowrap mx-0.5\">$\\frac{1}{2}$</span> 以上の範囲すべてです。青く光っている円弧全体（π/6 から 5π/6 まで）が答えの区間になります！",
+        jumps: [{ deg: 30, label: "開始角: π/6" }, { deg: 90, label: "中央角: π/2" }, { deg: 150, label: "終了角: 5π/6" }]
+      },
+      {
+        title: "段階D：高さ 0 以上 1/2 以下の「帯の中に入る2つの孤」を見る！",
+        desc: "積の不等式を解くと $0 \\leqq \\sin\\theta \\leqq \\frac{1}{2}$ となります。単位円上で高さが 0 から <span class=\"inline-flex items-center whitespace-nowrap mx-0.5\">$\\frac{1}{2}$</span> の帯の間に入っている「右側の弧（0〜π/6）」と「左側の弧（5π/6〜π）」の2箇所が答えです！",
+        jumps: [{ deg: 0, label: "θ = 0" }, { deg: 30, label: "θ = π/6" }, { deg: 150, label: "θ = 5π/6" }, { deg: 180, label: "θ = π" }]
+      },
+      {
+        title: "確認演習：高さ -1/2 より「下側」にある領域を見る！",
+        desc: "問Bの不等式 $\\sin\\theta < -\\frac{1}{2}$ は、水色の境界線より厳密に下側にある赤い円弧です。境界角は含まれないので「<」になります！",
+        jumps: [{ deg: 210, label: "境界角: 7π/6" }, { deg: 270, label: "真下: 3π/2" }, { deg: 330, label: "境界角: 11π/6" }]
+      }
+    ];
+
+    // Canvas elements & contexts
+    const circleCanvas = document.getElementById('circleCanvas');
+    const circleCtx = circleCanvas.getContext('2d');
+    const waveCanvas = document.getElementById('waveCanvas');
+    const waveCtx = waveCanvas.getContext('2d');
+
+    // UI elements
+    const thetaSlider = document.getElementById('theta-slider');
+    const sliderRadVal = document.getElementById('slider-rad-val');
+    const sliderDegText = document.getElementById('slider-deg-text');
+    const degreeVal = document.getElementById('degree-val');
+    const currentSinDisp = document.getElementById('current-sin-disp');
+    const currentCosDisp = document.getElementById('current-cos-disp');
+    const targetModePill = document.getElementById('target-mode-pill');
+    const circleCoordLegend = document.getElementById('circle-coord-legend');
+    const guideTitle = document.getElementById('guide-title');
+    const guideDesc = document.getElementById('guide-desc');
+    const quickJumpContainer = document.getElementById('quick-jump-container');
+
+    // Toast function
+    function showToast(msg) {
+      const box = document.getElementById('toast-box');
+      const text = document.getElementById('toast-message');
+      text.textContent = msg; // 平文テキスト（MathJax不使用）
+      box.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-[-10px]');
+      box.classList.add('opacity-100', 'translate-y-0');
+      setTimeout(() => {
+        box.classList.remove('opacity-100', 'translate-y-0');
+        box.classList.add('opacity-0', 'pointer-events-none', 'translate-y-[-10px]');
+      }, 4000);
+    }
+
+    // Math helper: Greatest Common Divisor
+    function gcd(a, b) {
+      return b === 0 ? a : gcd(b, a % b);
+    }
+
+    // Helper: Radian label formatting
+    function formatRadian(deg) {
+      if (deg === 0) return '0';
+      
+      const divisor = gcd(deg, 180);
+      const num = deg / divisor;
+      const den = 180 / divisor;
+
+      let numStr = num === 1 ? '\\pi' : `${num}\\pi`;
+
+      if (den === 1) {
+          return numStr; 
+      } else {
+          return `\\frac{${numStr}}{${den}}`;
+      }
+    }
+
+    // Set angle programmatically
+    function setAngle(deg) {
+      currentThetaDeg = deg;
+      thetaSlider.value = deg;
+      degreeVal.textContent = `${deg}°`;
+      
+      if(sliderDegText) {
+        sliderDegText.textContent = `(${deg}°)`;
+      }
+      
+      sliderRadVal.innerHTML = ''; 
+      const fractionMath = `\\(${formatRadian(deg)}\\)`;
+      sliderRadVal.innerHTML = fractionMath;
+      if (window.MathJax) MathJax.typesetPromise([sliderRadVal]);
+
+      const rad = (deg * Math.PI) / 180;
+      const s = Math.sin(rad);
+      const c = Math.cos(rad);
+      currentSinDisp.textContent = (s >= 0 ? '+' : '') + s.toFixed(3);
+      currentCosDisp.textContent = (c >= 0 ? '+' : '') + c.toFixed(3);
+
+      renderAll();
+    }
+
+    // Tab Switching
+    function switchTab(index) {
+      currentStep = index;
+      for (let i = 0; i <= 5; i++) {
+        const btn = document.getElementById(`tab-btn-${i}`);
+        const content = document.getElementById(`step-content-${i}`);
+        if (i === index) {
+          btn.classList.add('active');
+          content.classList.add('active');
+        } else {
+          btn.classList.remove('active');
+          content.classList.remove('active');
+        }
+      }
+
+      // Configure visualizer settings based on step
+      targetThreshold2 = null;
+      if (index === 0) {
+        targetType = 'sin';
+        targetThreshold = 0.5;
+        targetInequality = 'eq';
+        targetModePill.innerHTML = '$\\sin\\theta = \\frac{1}{2}$';
+        circleCoordLegend.innerHTML = '縦座標 <span class="italic font-serif">y</span> = sin <span class="italic font-serif">θ</span>';
+        setAngle(30);
+      } else if (index === 1) {
+        targetType = 'cos';
+        targetThreshold = -1.0;
+        targetInequality = 'eq';
+        targetModePill.innerHTML = '$\\cos\\theta = -1$';
+        circleCoordLegend.innerHTML = '横座標 <span class="italic font-serif">x</span> = cos <span class="italic font-serif">θ</span>';
+        setAngle(180);
+      } else if (index === 2) {
+        targetType = 'sin_two';
+        targetThreshold = 1.0;
+        targetThreshold2 = -0.5;
+        targetInequality = 'eq';
+        targetModePill.innerHTML = '$\\sin\\theta = 1, -\\frac{1}{2}$';
+        circleCoordLegend.innerHTML = '縦座標 <span class="italic font-serif">y</span> = 1, -0.5';
+        setAngle(90);
+      } else if (index === 3) {
+        targetType = 'sin';
+        targetThreshold = 0.5;
+        targetInequality = 'gte';
+        targetModePill.innerHTML = '$\\sin\\theta \\geqq \\frac{1}{2}$ (領域)';
+        circleCoordLegend.innerHTML = '領域 <span class="italic font-serif">y</span> ≧ 0.5';
+        setAngle(60);
+      } else if (index === 4) {
+        targetType = 'sin_band';
+        targetInequality = 'band';
+        targetModePill.innerHTML = '$0 \\leqq \\sin\\theta \\leqq \\frac{1}{2}$';
+        circleCoordLegend.innerHTML = '帯領域 0 ≦ <span class="italic font-serif">y</span> ≦ 0.5';
+        setAngle(30);
+      } else {
+        targetType = 'sin';
+        targetThreshold = -0.5;
+        targetInequality = 'lt';
+        targetModePill.innerHTML = '$\\sin\\theta < -\\frac{1}{2}$ (終末問題)';
+        circleCoordLegend.innerHTML = '領域 <span class="italic font-serif">y</span> &lt; -0.5';
+        setAngle(270);
+      }
+
+      // Update Guide Banner & Jump Buttons
+      const cfg = guideConfigs[index];
+      guideTitle.textContent = cfg.title;
+      guideDesc.innerHTML = cfg.desc;
+
+      quickJumpContainer.innerHTML = '';
+      cfg.jumps.forEach(j => {
+        const b = document.createElement('button');
+        b.className = 'px-2.5 py-1 bg-white border border-blue-300 text-blue-800 font-bold rounded-lg hover:bg-blue-600 hover:text-white transition shadow-sm text-[11px] whitespace-nowrap';
+        b.textContent = j.label;
+        b.onclick = () => setAngle(j.deg);
+        quickJumpContainer.appendChild(b);
+      });
+
+      if (window.MathJax) {
+        MathJax.typesetPromise([targetModePill, guideDesc]);
+      }
+      renderAll();
+    }
+
+    // Canvas Resizing
+    function resizeCanvases() {
+      const cRect = circleCanvas.getBoundingClientRect();
+      circleCanvas.width = cRect.width * window.devicePixelRatio;
+      circleCanvas.height = cRect.height * window.devicePixelRatio;
+
+      const wRect = waveCanvas.getBoundingClientRect();
+      waveCanvas.width = wRect.width * window.devicePixelRatio;
+      waveCanvas.height = wRect.height * window.devicePixelRatio;
+
+      renderAll();
+    }
+
+    // Helper to draw special target intersection circles
+    function drawSolutionMark(cx, cy, label, isCos = false) {
+      const dpr = window.devicePixelRatio;
+      // Outer pulse
+      circleCtx.fillStyle = 'rgba(239, 68, 68, 0.35)';
+      circleCtx.beginPath();
+      circleCtx.arc(cx, cy, 10 * dpr, 0, Math.PI * 2);
+      circleCtx.fill();
+
+      // Red circle
+      circleCtx.strokeStyle = '#ef4444';
+      circleCtx.lineWidth = 2.5 * dpr;
+      circleCtx.beginPath();
+      circleCtx.arc(cx, cy, 6 * dpr, 0, Math.PI * 2);
+      circleCtx.stroke();
+
+      circleCtx.fillStyle = '#ffffff';
+      circleCtx.beginPath();
+      circleCtx.arc(cx, cy, 2.5 * dpr, 0, Math.PI * 2);
+      circleCtx.fill();
+
+      // Label badge
+      circleCtx.fillStyle = '#fef08a';
+      circleCtx.font = `bold ${10 * dpr}px sans-serif`;
+      const offX = cx > circleCanvas.width / 2 ? 10 * dpr : -48 * dpr;
+      const offY = cy > circleCanvas.height / 2 ? 14 * dpr : -10 * dpr;
+      circleCtx.fillText(label, cx + offX, cy + offY);
+    }
+
+    // --- Draw Unit Circle ---
+    function drawCircle() {
+      const w = circleCanvas.width;
+      const h = circleCanvas.height;
+      const dpr = window.devicePixelRatio;
+      circleCtx.clearRect(0, 0, w, h);
+
+      const cx = w / 2;
+      const cy = h / 2;
+      const r = Math.min(w, h) * 0.40;
+
+      // Coordinate axes
+      circleCtx.lineWidth = 1 * dpr;
+      circleCtx.strokeStyle = '#334155';
+      circleCtx.beginPath();
+      circleCtx.moveTo(cx - r * 1.25, cy);
+      circleCtx.lineTo(cx + r * 1.25, cy);
+      circleCtx.moveTo(cx, cy - r * 1.25);
+      circleCtx.lineTo(cx, cy + r * 1.25);
+      circleCtx.stroke();
+
+      // Axis labels
+      circleCtx.fillStyle = '#64748b';
+      circleCtx.font = `${11 * dpr}px monospace`;
+      circleCtx.fillText('x', cx + r * 1.2, cy - 6 * dpr);
+      circleCtx.fillText('y', cx + 6 * dpr, cy - r * 1.2);
+      circleCtx.fillText('O', cx - 12 * dpr, cy + 14 * dpr);
+
+      // Base circle
+      circleCtx.lineWidth = 1.5 * dpr;
+      circleCtx.strokeStyle = '#475569';
+      circleCtx.beginPath();
+      circleCtx.arc(cx, cy, r, 0, Math.PI * 2);
+      circleCtx.stroke();
+
+      // Region shading for inequalities
+      if (targetInequality === 'gte' && targetType === 'sin') {
+        const yLine = cy - targetThreshold * r;
+        circleCtx.fillStyle = 'rgba(14, 165, 233, 0.25)';
+        circleCtx.beginPath();
+        const startAng = Math.PI / 6;
+        const endAng = 5 * Math.PI / 6;
+        circleCtx.arc(cx, cy, r, -endAng, -startAng, false);
+        circleCtx.lineTo(cx + r * Math.cos(startAng), yLine);
+        circleCtx.closePath();
+        circleCtx.fill();
+
+        circleCtx.lineWidth = 5 * dpr;
+        circleCtx.strokeStyle = '#38bdf8';
+        circleCtx.beginPath();
+        circleCtx.arc(cx, cy, r, -endAng, -startAng, false);
+        circleCtx.stroke();
+      } else if (targetInequality === 'band') {
+        circleCtx.lineWidth = 5 * dpr;
+        circleCtx.strokeStyle = '#38bdf8';
+        circleCtx.beginPath();
+        circleCtx.arc(cx, cy, r, -Math.PI / 6, 0, false);
+        circleCtx.stroke();
+        circleCtx.beginPath();
+        circleCtx.arc(cx, cy, r, -Math.PI, -5 * Math.PI / 6, false);
+        circleCtx.stroke();
+
+        circleCtx.fillStyle = 'rgba(14, 165, 233, 0.2)';
+        circleCtx.fillRect(cx - r * 1.2, cy - 0.5 * r, r * 2.4, 0.5 * r);
+      } else if (targetInequality === 'lt' && targetType === 'sin') {
+        const startAng = 7 * Math.PI / 6;
+        const endAng = 11 * Math.PI / 6;
+        circleCtx.lineWidth = 5 * dpr;
+        circleCtx.strokeStyle = '#f43f5e';
+        circleCtx.beginPath();
+        circleCtx.arc(cx, cy, r, -endAng, -startAng, false);
+        circleCtx.stroke();
+
+        circleCtx.fillStyle = 'rgba(244, 63, 94, 0.2)';
+        circleCtx.beginPath();
+        circleCtx.arc(cx, cy, r, -endAng, -startAng, false);
+        circleCtx.closePath();
+        circleCtx.fill();
+      }
+
+      circleCtx.setLineDash([4 * dpr, 3 * dpr]);
+      if (targetType === 'sin' || targetType === 'sin_band') {
+        const yVal = cy - targetThreshold * r;
+        circleCtx.strokeStyle = '#38bdf8';
+        circleCtx.lineWidth = 2 * dpr;
+        circleCtx.beginPath();
+        circleCtx.moveTo(cx - r * 1.25, yVal);
+        circleCtx.lineTo(cx + r * 1.25, yVal);
+        circleCtx.stroke();
+
+        circleCtx.fillStyle = '#38bdf8';
+        circleCtx.font = `bold ${11 * dpr}px sans-serif`;
+        circleCtx.fillText(`y = ${targetThreshold}`, cx + r * 0.75, yVal - 5 * dpr);
+
+        if (targetInequality === 'band') {
+          circleCtx.strokeStyle = '#38bdf8';
+          circleCtx.beginPath();
+          circleCtx.moveTo(cx - r * 1.25, cy);
+          circleCtx.lineTo(cx + r * 1.25, cy);
+          circleCtx.stroke();
+          circleCtx.fillText('y = 0', cx + r * 0.75, cy - 5 * dpr);
+        }
+
+        if (currentStep === 0) {
+          drawSolutionMark(cx + r * Math.cos(Math.PI / 6), cy - r * Math.sin(Math.PI / 6), "解: π/6");
+          drawSolutionMark(cx + r * Math.cos(5 * Math.PI / 6), cy - r * Math.sin(5 * Math.PI / 6), "解: 5π/6");
+        }
+      } else if (targetType === 'cos') {
+        const xVal = cx + targetThreshold * r;
+        circleCtx.strokeStyle = '#f43f5e';
+        circleCtx.lineWidth = 2 * dpr;
+        circleCtx.beginPath();
+        circleCtx.moveTo(xVal, cy - r * 1.25);
+        circleCtx.lineTo(xVal, cy + r * 1.25);
+        circleCtx.stroke();
+
+        circleCtx.fillStyle = '#f43f5e';
+        circleCtx.font = `bold ${11 * dpr}px sans-serif`;
+        circleCtx.fillText(`x = ${targetThreshold}`, xVal + 5 * dpr, cy - r * 0.85);
+
+        if (currentStep === 1) {
+          drawSolutionMark(cx - r, cy, "解: π");
+        }
+      } else if (targetType === 'sin_two') {
+        const yTop = cy - 1.0 * r;
+        const yBot = cy - (-0.5) * r;
+        circleCtx.strokeStyle = '#38bdf8';
+        circleCtx.lineWidth = 2 * dpr;
+
+        circleCtx.beginPath();
+        circleCtx.moveTo(cx - r * 1.2, yTop);
+        circleCtx.lineTo(cx + r * 1.2, yTop);
+        circleCtx.stroke();
+
+        circleCtx.beginPath();
+        circleCtx.moveTo(cx - r * 1.2, yBot);
+        circleCtx.lineTo(cx + r * 1.2, yBot);
+        circleCtx.stroke();
+
+        drawSolutionMark(cx, yTop, "解: π/2");
+        drawSolutionMark(cx + r * Math.cos(7 * Math.PI / 6), cy - r * Math.sin(7 * Math.PI / 6), "解: 7π/6");
+        drawSolutionMark(cx + r * Math.cos(11 * Math.PI / 6), cy - r * Math.sin(11 * Math.PI / 6), "解: 11π/6");
+      }
+      circleCtx.setLineDash([]);
+
+      const rad = (currentThetaDeg * Math.PI) / 180;
+      const px = cx + r * Math.cos(rad);
+      const py = cy - r * Math.sin(rad);
+
+      circleCtx.lineWidth = 2.5 * dpr;
+      circleCtx.strokeStyle = '#fbbf24';
+      circleCtx.beginPath();
+      circleCtx.moveTo(cx, cy);
+      circleCtx.lineTo(px, py);
+      circleCtx.stroke();
+
+      circleCtx.fillStyle = 'rgba(251, 191, 36, 0.2)';
+      circleCtx.beginPath();
+      circleCtx.moveTo(cx, cy);
+      circleCtx.arc(cx, cy, r * 0.28, 0, -rad, true);
+      circleCtx.closePath();
+      circleCtx.fill();
+
+      circleCtx.setLineDash([2 * dpr, 2 * dpr]);
+      circleCtx.lineWidth = 1.2 * dpr;
+      
+      circleCtx.strokeStyle = '#38bdf8';
+      circleCtx.beginPath();
+      circleCtx.moveTo(px, py);
+      circleCtx.lineTo(cx, py);
+      circleCtx.stroke();
+
+      circleCtx.strokeStyle = '#f43f5e';
+      circleCtx.beginPath();
+      circleCtx.moveTo(px, py);
+      circleCtx.lineTo(px, cy);
+      circleCtx.stroke();
+      circleCtx.setLineDash([]);
+
+      circleCtx.fillStyle = '#fbbf24';
+      circleCtx.beginPath();
+      circleCtx.arc(px, py, 6 * dpr, 0, Math.PI * 2);
+      circleCtx.fill();
+      circleCtx.strokeStyle = '#ffffff';
+      circleCtx.lineWidth = 2 * dpr;
+      circleCtx.stroke();
+
+      circleCtx.fillStyle = '#10b981';
+      circleCtx.beginPath();
+      circleCtx.arc(cx + r, cy, 3 * dpr, 0, Math.PI * 2);
+      circleCtx.fill();
+    }
+
+    // --- Draw Trigonometric Waveform Graph ---
+    function drawWave() {
+      const w = waveCanvas.width;
+      const h = waveCanvas.height;
+      const dpr = window.devicePixelRatio;
+      waveCtx.clearRect(0, 0, w, h);
+
+      const padLeft = 45 * dpr;
+      const padRight = 25 * dpr;
+      const padTop = 20 * dpr;
+      const padBottom = 25 * dpr;
+      const graphW = w - padLeft - padRight;
+      const graphH = h - padTop - padBottom;
+      const midY = padTop + graphH / 2;
+
+      waveCtx.lineWidth = 1 * dpr;
+      waveCtx.strokeStyle = '#334155';
+      waveCtx.beginPath();
+      waveCtx.moveTo(padLeft, midY);
+      waveCtx.lineTo(w - padRight, midY); 
+      waveCtx.moveTo(padLeft, padTop);
+      waveCtx.lineTo(padLeft, h - padBottom); 
+      waveCtx.stroke();
+
+      const ticks = [
+        { deg: 0, label: '0' },
+        { deg: 90, label: 'π/2' },
+        { deg: 180, label: 'π' },
+        { deg: 270, label: '3π/2' },
+        { deg: 360, label: '2π' }
+      ];
+
+      waveCtx.fillStyle = '#64748b';
+      waveCtx.font = `${9 * dpr}px monospace`;
+      ticks.forEach(t => {
+        const tx = padLeft + (t.deg / 360) * graphW;
+        waveCtx.beginPath();
+        waveCtx.moveTo(tx, midY - 3 * dpr);
+        waveCtx.lineTo(tx, midY + 3 * dpr);
+        waveCtx.stroke();
+        waveCtx.fillText(t.label, tx - 8 * dpr, midY + 14 * dpr);
+      });
+
+      waveCtx.fillText('+1', padLeft - 22 * dpr, padTop + 6 * dpr);
+      waveCtx.fillText('0', padLeft - 14 * dpr, midY + 3 * dpr);
+      waveCtx.fillText('-1', padLeft - 22 * dpr, h - padBottom);
+
+      const isSin = (targetType !== 'cos');
+      waveCtx.lineWidth = 2.5 * dpr;
+      waveCtx.strokeStyle = isSin ? '#0284c7' : '#e11d48';
+      waveCtx.beginPath();
+      for (let d = 0; d <= 360; d += 2) {
+        const rad = (d * Math.PI) / 180;
+        const val = isSin ? Math.sin(rad) : Math.cos(rad);
+        const x = padLeft + (d / 360) * graphW;
+        const y = midY - val * (graphH / 2);
+        if (d === 0) waveCtx.moveTo(x, y);
+        else waveCtx.lineTo(x, y);
+      }
+      waveCtx.stroke();
+
+      if (isSin) {
+        const refY = midY - targetThreshold * (graphH / 2);
+        waveCtx.setLineDash([4 * dpr, 3 * dpr]);
+        waveCtx.strokeStyle = '#38bdf8';
+        waveCtx.lineWidth = 1.8 * dpr;
+        waveCtx.beginPath();
+        waveCtx.moveTo(padLeft, refY);
+        waveCtx.lineTo(w - padRight, refY);
+        waveCtx.stroke();
+
+        if (targetThreshold2 !== null) {
+          const refY2 = midY - targetThreshold2 * (graphH / 2);
+          waveCtx.beginPath();
+          waveCtx.moveTo(padLeft, refY2);
+          waveCtx.lineTo(w - padRight, refY2);
+          waveCtx.stroke();
+        }
+        waveCtx.setLineDash([]);
+      }
+
+      const curX = padLeft + (currentThetaDeg / 360) * graphW;
+      const curRad = (currentThetaDeg * Math.PI) / 180;
+      const curVal = isSin ? Math.sin(curRad) : Math.cos(curRad);
+      const curY = midY - curVal * (graphH / 2);
+
+      waveCtx.strokeStyle = '#fbbf24';
+      waveCtx.lineWidth = 1.5 * dpr;
+      waveCtx.setLineDash([2 * dpr, 2 * dpr]);
+      waveCtx.beginPath();
+      waveCtx.moveTo(curX, padTop);
+      waveCtx.lineTo(curX, h - padBottom);
+      waveCtx.stroke();
+      waveCtx.setLineDash([]);
+
+      waveCtx.fillStyle = '#fbbf24';
+      waveCtx.beginPath();
+      waveCtx.arc(curX, curY, 5 * dpr, 0, Math.PI * 2);
+      waveCtx.fill();
+      waveCtx.strokeStyle = '#ffffff';
+      waveCtx.lineWidth = 1.5 * dpr;
+      waveCtx.stroke();
+    }
+
+    function renderAll() {
+      drawCircle();
+      drawWave();
+    }
+
+    // --- Slider Event Handling ---
+    thetaSlider.addEventListener('input', (e) => {
+      setAngle(parseInt(e.target.value));
+    });
+
+    // --- STEP 0 Logic ---
+    document.getElementById('btn-check-step0').addEventListener('click', () => {
+      const selected = document.querySelector('input[name="step0_ans"]:checked');
+      if (!selected) {
+        showToast('選択肢を選んでください！');
+        return;
+      }
+      if (selected.value === 'correct') {
+        document.getElementById('step0-feedback').classList.remove('hidden');
+        showToast('正解です！ 単位円上の赤い二重丸（交点）に注目しましょう。');
+      } else {
+        showToast('違います。高さが 1/2 になるのは 30°(π/6) と 150°(5π/6) です！');
+      }
+    });
+
+    // --- STEP 1 Logic ---
+    document.getElementById('btn-check-step1').addEventListener('click', () => {
+      const cosInput = document.getElementById('step1-cos-val').value.trim();
+      const thetaSel = document.getElementById('step1-theta-select').value;
+      if (cosInput === '-1' && thetaSel === 'pi') {
+        document.getElementById('step1-feedback').classList.remove('hidden');
+        setAngle(180);
+        showToast('正解！横座標 x = -1 と接する角は π だけです。');
+      } else {
+        showToast('式を整理すると cosθ = -1 です。横座標 x = -1 となる角を考えましょう！');
+      }
+    });
+
+    // --- STEP 3 Logic ---
+    document.getElementById('btn-check-step3-quiz').addEventListener('click', () => {
+      const selected = document.querySelector('input[name="step3_q"]:checked');
+      if (!selected) {
+        showToast('選択肢を選んでください。');
+        return;
+      }
+      if (selected.value === 'correct') {
+        document.getElementById('step3-quiz-feedback').classList.remove('hidden');
+      } else {
+        showToast('不等号の形に注目してください。「<」には等号が付いていません！');
+      }
+    });
+
+    // --- STEP 5 Final Exam Logic ---
+    document.getElementById('btn-submit-final').addEventListener('click', () => {
+      const qa = document.querySelector('input[name="final_qa"]:checked');
+      const qb = document.querySelector('input[name="final_qb"]:checked');
+
+      if (!qa || !qb) {
+        showToast('両方の問題を選択してください。');
+        return;
+      }
+
+      const fbA = document.getElementById('final-qa-ans');
+      const fbB = document.getElementById('final-qb-ans');
+      fbA.classList.remove('hidden');
+      fbB.classList.remove('hidden');
+
+      if (qa.value === 'correct') {
+        fbA.innerHTML = '<span class="text-emerald-700 font-bold">⭕ 正解！</span> $(2\\cos\\theta + 1)(\\cos\\theta - 1) = 0$ より $\\cos\\theta = -\\frac{1}{2}, 1$。角は $\\theta = 0, \\frac{2\\pi}{3}, \\frac{4\\pi}{3}$ です。';
+      } else {
+        fbA.innerHTML = '<span class="text-rose-600 font-bold">❌ 不正解</span> $\\cos\\theta = -\\frac{1}{2}$ から $\\frac{2\\pi}{3}, \\frac{4\\pi}{3}$、$\\cos\\theta = 1$ から $0$ が得られます。';
+      }
+
+      if (qb.value === 'correct') {
+        fbB.innerHTML = '<span class="text-emerald-700 font-bold">⭕ 正解！</span> 単位円の縦座標が $-\\frac{1}{2}$ より下側にある弧なので、$\\frac{7\\pi}{6} < \\theta < \\frac{11\\pi}{6}$ です。';
+      } else {
+        fbB.innerHTML = '<span class="text-rose-600 font-bold">❌ 不正解</span> 境界角は $\\frac{7\\pi}{6}$ と $\\frac{11\\pi}{6}$ であり、等号を含まないため「$<$」となります。';
+      }
+
+      if (window.MathJax) MathJax.typesetPromise([fbA, fbB]);
+      document.getElementById('final-feedback-box').classList.remove('hidden');
+    });
+
+    // Initialize
+    window.addEventListener('resize', resizeCanvases);
+    window.addEventListener('load', () => {
+      resizeCanvases();
+      switchTab(0);
+    });
+  </script>
+</body>
+</html>

@@ -8,6 +8,9 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Three.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- KaTeX (数式レンダリング用) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
     <!-- Google Fonts: Inter & Noto Sans JP -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
@@ -215,26 +218,26 @@
                     <!-- ステップ1 -->
                     <div class="p-3.5 rounded-xl bg-blue-50/80 border border-blue-200 mb-3">
                         <div class="flex items-center justify-between mb-1">
-                            <span class="text-xs font-bold uppercase tracking-wider text-blue-700 bg-blue-100 px-2 py-0.5 rounded-md">ステップ 1：床の対角線 (x)</span>
+                            <span class="text-xs font-bold uppercase tracking-wider text-blue-700 bg-blue-100 px-2 py-0.5 rounded-md">ステップ 1：床の対角線 (<span class="math-font">x</span>)</span>
                             <span class="text-xs text-blue-600">青い三角形に注目！</span>
                         </div>
                         <p class="text-xs text-slate-600 mb-2">真上から見た長方形の対角線を三平方の定理で求めます。</p>
-                        <div class="bg-white p-2.5 rounded-lg border border-blue-100 text-sm font-mono text-slate-800 overflow-x-auto">
-                            <div id="calc-step1-eq">x² = 3² + 4² = 9 + 16 = 25</div>
-                            <div class="font-bold text-blue-700 mt-1" id="calc-step1-res">x = 5 cm</div>
+                        <div class="bg-white p-2.5 rounded-lg border border-blue-100 text-sm text-slate-800 overflow-x-auto">
+                            <div id="calc-step1-eq" class="min-h-[1.5rem] flex items-center"></div>
+                            <div class="font-bold text-blue-700 mt-1 min-h-[1.5rem] flex items-center" id="calc-step1-res"></div>
                         </div>
                     </div>
 
                     <!-- ステップ2 -->
                     <div class="p-3.5 rounded-xl bg-emerald-50/80 border border-emerald-200 mb-3">
                         <div class="flex items-center justify-between mb-1">
-                            <span class="text-xs font-bold uppercase tracking-wider text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md">ステップ 2：空間対角線 (y)</span>
+                            <span class="text-xs font-bold uppercase tracking-wider text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md">ステップ 2：空間対角線 (<span class="math-font">y</span>)</span>
                             <span class="text-xs text-emerald-600">緑の三角形に注目！</span>
                         </div>
                         <p class="text-xs text-slate-600 mb-2">「床の対角線」と「高さ」で作る直角三角形の斜辺を求めます。</p>
-                        <div class="bg-white p-2.5 rounded-lg border border-emerald-100 text-sm font-mono text-slate-800 overflow-x-auto">
-                            <div id="calc-step2-eq">y² = 25 + 12² = 25 + 144 = 169</div>
-                            <div class="font-bold text-rose-600 text-base mt-1" id="calc-step2-res">空間対角線 y = 13 cm</div>
+                        <div class="bg-white p-2.5 rounded-lg border border-emerald-100 text-sm text-slate-800 overflow-x-auto">
+                            <div id="calc-step2-eq" class="min-h-[1.5rem] flex items-center"></div>
+                            <div class="font-bold text-rose-600 text-base mt-1 min-h-[1.5rem] flex items-center" id="calc-step2-res"></div>
                         </div>
                     </div>
                 </div>
@@ -242,11 +245,12 @@
                 <!-- 裏ワザ公式まとめ -->
                 <div class="p-3.5 rounded-xl bg-slate-800 text-white">
                     <div class="flex items-center justify-between mb-1">
-                        <span class="text-xs font-bold text-amber-400">⚡ 一発で出す公式： √(a² + b² + c²)</span>
+                        <span class="text-xs font-bold text-amber-400 flex items-center gap-1.5">
+                            <span>⚡ 一発で出す公式：</span>
+                            <span id="formula-header-math"></span>
+                        </span>
                     </div>
-                    <div class="text-sm font-mono text-slate-200 mt-1" id="calc-formula">
-                        √(3² + 4² + 12²) = √169 = <span class="text-rose-400 font-bold text-base">13 cm</span>
-                    </div>
+                    <div class="text-sm text-slate-200 mt-1 min-h-[1.75rem] flex items-center" id="calc-formula"></div>
                 </div>
             </div>
 
@@ -276,7 +280,7 @@
 
         // --- 数学ユーティリティ（ルートの簡単化） ---
         function simplifySqrt(n) {
-            if (n <= 0) return { outside: 0, inside: 0, text: "0" };
+            if (n <= 0) return { outside: 0, inside: 0, text: "0", tex: "0" };
             let outside = 1;
             let inside = n;
             for (let i = 2; i * i <= inside; i++) {
@@ -286,11 +290,22 @@
                 }
             }
             if (inside === 1) {
-                return { outside, inside: 1, text: `${outside}` };
+                return { outside, inside: 1, text: `${outside}`, tex: `${outside}` };
             } else if (outside === 1) {
-                return { outside: 1, inside, text: `√${inside}` };
+                return { outside: 1, inside, text: `√${inside}`, tex: `\\sqrt{${inside}}` };
             } else {
-                return { outside, inside, text: `${outside}√${inside}` };
+                return { outside, inside, text: `${outside}√${inside}`, tex: `${outside}\\sqrt{${inside}}` };
+            }
+        }
+
+        // KaTeX 数式レンダリングヘルパー
+        function renderMath(elementId, texString) {
+            const el = document.getElementById(elementId);
+            if (!el) return;
+            if (window.katex) {
+                katex.render(texString, el, { throwOnError: false });
+            } else {
+                el.textContent = texString;
             }
         }
 
@@ -622,23 +637,23 @@
             const x2 = a2 + b2;
             const xSimp = simplifySqrt(x2);
             const xApprox = Math.sqrt(x2).toFixed(2);
-            const xApproxStr = xSimp.inside === 1 ? "" : ` (約 ${xApprox} cm)`;
+            const xApproxTex = xSimp.inside === 1 ? "" : `\\;(\\text{約 } ${xApprox}\\text{ cm})`;
 
-            document.getElementById('calc-step1-eq').textContent = `x² = ${a}² + ${b}² = ${a2} + ${b2} = ${x2}`;
-            document.getElementById('calc-step1-res').textContent = `床の対角線 x = ${xSimp.text} cm${xApproxStr}`;
+            renderMath('calc-step1-eq', `x^2 = ${a}^2 + ${b}^2 = ${a2} + ${b2} = ${x2}`);
+            renderMath('calc-step1-res', `\\text{床の対角線 } x = ${xSimp.tex}\\text{ cm}${xApproxTex}`);
 
             // ステップ2：空間対角線
             const y2 = x2 + c2;
             const ySimp = simplifySqrt(y2);
             const yApprox = Math.sqrt(y2).toFixed(2);
-            const yApproxStr = ySimp.inside === 1 ? "" : ` (約 ${yApprox} cm)`;
+            const yApproxTex = ySimp.inside === 1 ? "" : `\\;(\\text{約 } ${yApprox}\\text{ cm})`;
 
-            document.getElementById('calc-step2-eq').textContent = `y² = ${x2} + ${c}² = ${x2} + ${c2} = ${y2}`;
-            document.getElementById('calc-step2-res').textContent = `空間対角線 y = ${ySimp.text} cm${yApproxStr}`;
+            renderMath('calc-step2-eq', `y^2 = ${x2} + ${c}^2 = ${x2} + ${c2} = ${y2}`);
+            renderMath('calc-step2-res', `\\text{空間対角線 } y = ${ySimp.tex}\\text{ cm}${yApproxTex}`);
 
-            // 公式表示
-            document.getElementById('calc-formula').innerHTML = 
-                `√(${a}² + ${b}² + ${c}²) = √${y2} = <span class="text-rose-400 font-bold text-base">${ySimp.text} cm</span>`;
+            // 公式ヘッダー＆公式計算表示
+            renderMath('formula-header-math', `\\sqrt{a^2 + b^2 + c^2}`);
+            renderMath('calc-formula', `\\sqrt{${a}^2 + ${b}^2 + ${c}^2} = \\sqrt{${y2}} = \\mathbf{${ySimp.tex}\\text{ cm}}`);
         }
 
         function onWindowResize() {
@@ -671,6 +686,7 @@
         // 起動
         window.onload = function() {
             initThree();
+            updateCalculations();
             animate();
         };
     </script>

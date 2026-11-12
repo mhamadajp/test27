@@ -1,0 +1,1186 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数学Ⅱ 加法定理 インタラクティブ・シミュレータ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', 'Noto Sans JP', sans-serif;
+            background-color: #f8fafc;
+            color: #1e293b;
+        }
+        /* 数式風のフォント表現 */
+        .math-font {
+            font-family: 'Times New Roman', Times, serif;
+            font-style: italic;
+        }
+        .math-normal {
+            font-family: 'Times New Roman', Times, serif;
+            font-style: normal;
+        }
+        /* 正式な分数表示用スタイル */
+        .frac {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            vertical-align: middle;
+            margin: 0 2px;
+            font-family: 'Times New Roman', 'Noto Sans JP', serif;
+            font-size: 0.92em;
+            line-height: 1.1;
+        }
+        .frac-num {
+            border-bottom: 1.5px solid currentColor;
+            padding: 0 3px 1px 3px;
+            text-align: center;
+        }
+        .frac-den {
+            padding: 1px 3px 0 3px;
+            text-align: center;
+        }
+        /* 正式なルート（根号）表示用スタイル */
+        .sqrt {
+            display: inline-flex;
+            align-items: baseline;
+            white-space: nowrap;
+        }
+        .sqrt-sign {
+            font-family: 'Times New Roman', serif;
+            margin-right: 0.5px;
+        }
+        .sqrt-body {
+            border-top: 1.3px solid currentColor;
+            padding: 0 1.5px;
+            line-height: 1.05;
+        }
+        /* カスタムレンジスライダー */
+        input[type=range] {
+            -webkit-appearance: none;
+            background: transparent;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 20px;
+            width: 20px;
+            border-radius: 50%;
+            background: #2563eb;
+            cursor: pointer;
+            margin-top: -7px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            transition: transform 0.1s;
+        }
+        input[type=range]::-webkit-slider-thumb:hover {
+            transform: scale(1.15);
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 6px;
+            cursor: pointer;
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+        /* カスタムスクロールバー */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- ヘッダー -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-20 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-bold text-lg shadow-sm">
+                    θ
+                </div>
+                <div>
+                    <h1 class="text-lg sm:text-xl font-bold text-slate-800 leading-tight">数学Ⅱ：三角関数の加法定理</h1>
+                    <p class="text-xs text-slate-500 hidden sm:block">「角度を足すと、横と縦の成分はどう組み合わさるのか？」</p>
+                </div>
+            </div>
+            
+            <!-- 学習ステップナビゲーション -->
+            <nav class="flex space-x-1 sm:space-x-2 bg-slate-100 p-1 rounded-xl overflow-x-auto">
+                <button onclick="switchTab(1)" id="tab-btn-1" class="tab-btn px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-all whitespace-nowrap bg-white text-indigo-600 shadow-sm">
+                    1. 疑問 (75°の罠)
+                </button>
+                <button onclick="switchTab(2)" id="tab-btn-2" class="tab-btn px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-all whitespace-nowrap text-slate-600 hover:text-slate-900">
+                    2. 本質 (成分の回転)
+                </button>
+                <button onclick="switchTab(3)" id="tab-btn-3" class="tab-btn px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-all whitespace-nowrap text-slate-600 hover:text-slate-900">
+                    3. 実践・演習
+                </button>
+                <button onclick="switchTab(4)" id="tab-btn-4" class="tab-btn px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-all whitespace-nowrap text-slate-600 hover:text-slate-900">
+                    4. 理解度チェック
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- メインコンテンツ -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            
+            <!-- 左側：インタラクティブ単位円キャンバス (7カラム) -->
+            <div class="lg:col-span-7 bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-6 flex flex-col">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-100">
+                        <span class="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></span>
+                        単位円シミュレータ (半径 = 1)
+                    </span>
+                    <div id="canvas-legend" class="flex flex-wrap gap-3 text-xs font-medium">
+                        <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-sm bg-blue-600 inline-block"></span>元の横成分 (<span class="math-normal">cos</span><span class="math-font">β</span>)</span>
+                        <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-sm bg-orange-500 inline-block"></span>元の縦成分 (<span class="math-normal">sin</span><span class="math-font">β</span>)</span>
+                        <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-sm bg-emerald-600 inline-block"></span>後の横成分 (<span class="math-normal">cos</span>)</span>
+                        <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-sm bg-purple-600 inline-block"></span>後の縦成分 (<span class="math-normal">sin</span>)</span>
+                    </div>
+                </div>
+
+                <!-- キャンバスコンテナ -->
+                <div id="canvas-container" class="relative w-full h-[360px] sm:h-[440px] mx-auto bg-slate-50 rounded-xl border border-slate-200 overflow-hidden">
+                    <svg id="unitCircleSvg" viewBox="0 0 500 440" class="w-full h-full block select-none"></svg>
+                    
+                    <!-- キャンバス上のフローティング数値表示 -->
+                    <div id="floating-info" class="absolute top-3 left-3 bg-white/90 backdrop-blur-sm p-2.5 rounded-xl border border-slate-200 shadow-sm text-xs space-y-1 pointer-events-none">
+                        <div class="font-bold text-slate-700">合成角 <span class="math-font">α</span> + <span class="math-font">β</span> = <span id="disp-total-angle" class="text-indigo-600 text-sm">75°</span></div>
+                        <div class="text-emerald-700 font-semibold">横 (<span class="math-normal">cos</span>): <span id="disp-cos-val">0.259</span></div>
+                        <div class="text-purple-700 font-semibold">縦 (<span class="math-normal">sin</span>): <span id="disp-sin-val">0.966</span></div>
+                    </div>
+                </div>
+
+                <!-- 角度コントロールパネル -->
+                <div id="angle-controls" class="mt-5 bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <!-- 基準角 β -->
+                        <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-xs">
+                            <div class="flex justify-between items-center mb-1">
+                                <label for="slider-beta" class="text-xs font-bold text-slate-700">
+                                    基準の角 <span class="math-font text-base text-blue-600">β</span> (最初の点P)
+                                </label>
+                                <span id="val-beta" class="text-sm font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md">30°</span>
+                            </div>
+                            <input type="range" id="slider-beta" min="0" max="150" step="5" value="30" class="w-full my-1">
+                            <div class="flex gap-1.5 mt-2">
+                                <button onclick="setBeta(30)" class="flex-1 py-1 text-xs font-semibold bg-slate-100 hover:bg-blue-100 hover:text-blue-700 rounded-md transition">30°</button>
+                                <button onclick="setBeta(45)" class="flex-1 py-1 text-xs font-semibold bg-slate-100 hover:bg-blue-100 hover:text-blue-700 rounded-md transition">45°</button>
+                                <button onclick="setBeta(60)" class="flex-1 py-1 text-xs font-semibold bg-slate-100 hover:bg-blue-100 hover:text-blue-700 rounded-md transition">60°</button>
+                            </div>
+                        </div>
+
+                        <!-- 追加角 α -->
+                        <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-xs">
+                            <div class="flex justify-between items-center mb-1">
+                                <label for="slider-alpha" class="text-xs font-bold text-slate-700">
+                                    回転する角 <span class="math-font text-base text-indigo-600">α</span> (追加の回転)
+                                </label>
+                                <span id="val-alpha" class="text-sm font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md">45°</span>
+                            </div>
+                            <input type="range" id="slider-alpha" min="-60" max="120" step="5" value="45" class="w-full my-1">
+                            <div class="flex gap-1.5 mt-2">
+                                <button onclick="setAlpha(30)" class="flex-1 py-1 text-xs font-semibold bg-slate-100 hover:bg-indigo-100 hover:text-indigo-700 rounded-md transition">30°</button>
+                                <button onclick="setAlpha(45)" class="flex-1 py-1 text-xs font-semibold bg-slate-100 hover:bg-indigo-100 hover:text-indigo-700 rounded-md transition">45°</button>
+                                <button onclick="setAlpha(60)" class="flex-1 py-1 text-xs font-semibold bg-slate-100 hover:bg-indigo-100 hover:text-indigo-700 rounded-md transition">60°</button>
+                                <button onclick="setAlpha(-30)" class="flex-1 py-1 text-xs font-semibold bg-slate-100 hover:bg-rose-100 hover:text-rose-700 rounded-md transition">-30°</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 右側：学習ガイド＆インタラクティブワークスペース (5カラム) -->
+            <div class="lg:col-span-5 space-y-6">
+
+                <!-- ==========================================
+                     TAB 1: 導入・必要性を生み出す (0〜12分)
+                     ========================================== -->
+                <div id="tab-content-1" class="tab-content space-y-5">
+                    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 sm:p-6">
+                        <div class="inline-block px-2.5 py-1 bg-amber-100 text-amber-800 text-xs font-bold rounded-lg mb-2">
+                            STEP 1｜なぜ公式が必要なの？
+                        </div>
+                        <h2 class="text-xl font-bold text-slate-800 mb-3">
+                            <span class="math-normal">sin</span>75° はどうやって求める？
+                        </h2>
+                        <p class="text-sm text-slate-600 leading-relaxed mb-4">
+                            私たちは <span class="font-bold text-slate-800">30°・45°・60°</span> の三角比はすでに知っています。<br>
+                            では、<span class="font-bold text-indigo-600">75° (= 30° + 45°)</span> の <span class="math-normal">sin</span> は、それぞれの値をそのまま足してよいのでしょうか？
+                        </p>
+
+                        <!-- 誤答検証ボックス -->
+                        <div class="bg-rose-50 border border-rose-200 rounded-xl p-4 mb-4">
+                            <h3 class="text-sm font-bold text-rose-800 mb-2 flex items-center gap-1.5">
+                                <span>⚠️</span> よくある間違い：<span class="math-normal">sin</span>(30° + 45°) = <span class="math-normal">sin</span>30° + <span class="math-normal">sin</span>45° ？
+                            </h3>
+                            <div class="bg-white rounded-lg p-3 text-sm border border-rose-100 space-y-2">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-slate-600"><span class="math-normal">sin</span>30° = <span class="frac"><span class="frac-num">1</span><span class="frac-den">2</span></span></span>
+                                    <span class="font-mono font-bold text-slate-800">= 0.500</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-slate-600"><span class="math-normal">sin</span>45° = <span class="frac"><span class="frac-num"><span class="sqrt"><span class="sqrt-sign">√</span><span class="sqrt-body">2</span></span></span><span class="frac-den">2</span></span></span>
+                                    <span class="font-mono font-bold text-slate-800">≈ 0.707</span>
+                                </div>
+                                <div class="border-t border-slate-200 pt-1.5 flex justify-between items-center text-rose-600 font-bold">
+                                    <span>そのまま足すと…</span>
+                                    <span class="font-mono">≈ 1.207 ＞ 1 ！？</span>
+                                </div>
+                            </div>
+                            <p class="text-xs text-rose-700 mt-2.5 leading-relaxed">
+                                <strong>なぜダメなの？</strong><br>
+                                単位円（半径1）において、<span class="math-normal">sin</span> は「点の高さ（y座標）」です。高さが <strong>1 を超えることは絶対にありえません！</strong>（左の図の赤い点線を見てみよう）
+                            </p>
+                        </div>
+
+                        <!-- 本質の気づき -->
+                        <div class="bg-indigo-50 border border-indigo-200 rounded-xl p-4">
+                            <h3 class="text-sm font-bold text-indigo-900 mb-1.5">💡 発想の転換：足すのは「値」ではなく「回転角」！</h3>
+                            <p class="text-xs text-indigo-800 leading-relaxed mb-3">
+                                30°の点に45°を足すと、点全体がぐるっと回転します。<br>
+                                このとき、<strong>「もともと横向きだった長さ（青）」も斜めに回転することで、新しい高さ（紫）を生み出す</strong>のです！
+                            </p>
+                            <button onclick="switchTab(2)" class="w-full py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm rounded-xl shadow-sm transition flex items-center justify-center gap-2">
+                                <span>2本の矢印を回して式をつくろう</span>
+                                <span>→</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ==========================================
+                     TAB 2: 本質・2本の矢印を回す (12〜23分)
+                     ========================================== -->
+                <div id="tab-content-2" class="tab-content hidden space-y-4">
+                    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="px-2.5 py-1 bg-indigo-100 text-indigo-800 text-xs font-bold rounded-lg">
+                                STEP 2｜図から加法定理を導く
+                            </span>
+                            <span class="text-xs text-slate-500">ボタンを押してステップを確認</span>
+                        </div>
+                        <h2 class="text-lg font-bold text-slate-800 mb-3">
+                            2本の成分矢印をそれぞれ <span class="math-font text-indigo-600">α</span> 回転させる
+                        </h2>
+
+                        <!-- 5段階ステップセレクタ -->
+                        <div class="grid grid-cols-5 gap-1 mb-4">
+                            <button onclick="setDerivationStep(0)" id="step-btn-0" class="step-btn py-2 px-1 rounded-xl text-[11px] sm:text-xs font-bold border-2 border-indigo-600 bg-indigo-50 text-indigo-700 transition">
+                                A. 分解
+                            </button>
+                            <button onclick="setDerivationStep(1)" id="step-btn-1" class="step-btn py-2 px-1 rounded-xl text-[11px] sm:text-xs font-bold border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 transition">
+                                B. 青を回す
+                            </button>
+                            <button onclick="setDerivationStep(2)" id="step-btn-2" class="step-btn py-2 px-1 rounded-xl text-[11px] sm:text-xs font-bold border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 transition">
+                                C. 橙を回す
+                            </button>
+                            <button onclick="setDerivationStep(3)" id="step-btn-3" class="step-btn py-2 px-1 rounded-xl text-[11px] sm:text-xs font-bold border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 transition">
+                                D. 縦(sin)
+                            </button>
+                            <button onclick="setDerivationStep(4)" id="step-btn-4" class="step-btn py-2 px-1 rounded-xl text-[11px] sm:text-xs font-bold border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 transition">
+                                E. 横(cos)
+                            </button>
+                        </div>
+
+                        <!-- ステップ解説エリア -->
+                        <div id="step-explanation" class="bg-slate-50 rounded-xl p-4 border border-slate-200 min-h-[215px] flex flex-col justify-between">
+                            <!-- JSで動的に書き換え -->
+                        </div>
+
+                        <!-- 導出された公式カード -->
+                        <div class="mt-4 bg-slate-900 text-white rounded-xl p-4 shadow-inner">
+                            <div class="text-xs text-slate-400 font-semibold mb-2 flex justify-between">
+                                <span>三角関数の加法定理</span>
+                                <span class="text-amber-400">色と項の対応に注目！</span>
+                            </div>
+                            <div class="space-y-2.5 text-sm sm:text-base font-medium">
+                                <div class="p-2 rounded-lg bg-slate-800/80 border border-slate-700">
+                                    <span class="text-purple-400 font-bold"><span class="math-normal">sin</span>(<span class="math-font">α</span> + <span class="math-font">β</span>)</span> = 
+                                    <span class="text-blue-400 font-bold"><span class="math-normal">sin</span><span class="math-font">α</span> <span class="math-normal">cos</span><span class="math-font">β</span></span> + 
+                                    <span class="text-orange-400 font-bold"><span class="math-normal">cos</span><span class="math-font">α</span> <span class="math-normal">sin</span><span class="math-font">β</span></span>
+                                </div>
+                                <div class="p-2 rounded-lg bg-slate-800/80 border border-slate-700">
+                                    <span class="text-emerald-400 font-bold"><span class="math-normal">cos</span>(<span class="math-font">α</span> + <span class="math-font">β</span>)</span> = 
+                                    <span class="text-blue-400 font-bold"><span class="math-normal">cos</span><span class="math-font">α</span> <span class="math-normal">cos</span><span class="math-font">β</span></span> <span class="text-rose-400 font-extrabold text-lg">−</span> 
+                                    <span class="text-orange-400 font-bold"><span class="math-normal">sin</span><span class="math-font">α</span> <span class="math-normal">sin</span><span class="math-font">β</span></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- よくある疑問 Q&A アコーディオン -->
+                        <div class="mt-4 space-y-2">
+                            <details class="group bg-white border border-slate-200 rounded-xl p-3 text-xs">
+                                <summary class="font-bold text-slate-700 cursor-pointer list-none flex justify-between items-center">
+                                    <span>❓ なぜ「掛け算」になるの？</span>
+                                    <span class="text-slate-400 group-open:rotate-180 transition-transform">▼</span>
+                                </summary>
+                                <p class="mt-2 text-slate-600 leading-relaxed border-t border-slate-100 pt-2">
+                                    <span class="math-normal">sin</span><span class="math-font">α</span> は「長さ 1 の矢印を <span class="math-font">α</span> 傾けたときの縦の割合」です。元の矢印の長さが 1 ではなく <span class="text-blue-600 font-bold"><span class="math-normal">cos</span><span class="math-font">β</span></span> なので、実際の縦の長さはその <span class="text-blue-600 font-bold"><span class="math-normal">cos</span><span class="math-font">β</span> 倍</span>（掛け算）になります。
+                                </p>
+                            </details>
+                            <details class="group bg-white border border-slate-200 rounded-xl p-3 text-xs">
+                                <summary class="font-bold text-slate-700 cursor-pointer list-none flex justify-between items-center">
+                                    <span>❓ なぜ <span class="math-normal">cos</span>(<span class="math-font">α</span>+<span class="math-font">β</span>) には「マイナス」があるの？</span>
+                                    <span class="text-slate-400 group-open:rotate-180 transition-transform">▼</span>
+                                </summary>
+                                <p class="mt-2 text-slate-600 leading-relaxed border-t border-slate-100 pt-2">
+                                    もともと上向き（y軸正方向）だった<span class="text-orange-600 font-bold">橙色の矢印</span>を反時計回りに <span class="math-font">α</span> 回転させると、矢印の先端が<strong>y軸を通り越して「左側（x座標がマイナス）」へ倒れ込む</strong>ため、横成分が引き算になります！
+                                </p>
+                            </details>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ==========================================
+                     TAB 3: 実践・演習 (23〜37分)
+                     ========================================== -->
+                <div id="tab-content-3" class="tab-content hidden space-y-4">
+                    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+                        <div class="inline-block px-2.5 py-1 bg-emerald-100 text-emerald-800 text-xs font-bold rounded-lg mb-2">
+                            STEP 3｜既知の角から未知の角を求める
+                        </div>
+                        <h2 class="text-lg font-bold text-slate-800 mb-3">
+                            段階的演習チャレンジ
+                        </h2>
+
+                        <!-- 問題選択ボタン -->
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-1.5 mb-4">
+                            <button onclick="selectExercise(0)" id="ex-btn-0" class="ex-btn py-2 px-2 rounded-xl text-xs font-bold bg-emerald-600 text-white shadow-xs">
+                                例題: sin75°
+                            </button>
+                            <button onclick="selectExercise(1)" id="ex-btn-1" class="ex-btn py-2 px-2 rounded-xl text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">
+                                基本: cos75°
+                            </button>
+                            <button onclick="selectExercise(2)" id="ex-btn-2" class="ex-btn py-2 px-2 rounded-xl text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">
+                                応用: sin15°
+                            </button>
+                            <button onclick="selectExercise(3)" id="ex-btn-3" class="ex-btn py-2 px-2 rounded-xl text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">
+                                発展: 2倍角
+                            </button>
+                        </div>
+
+                        <!-- 演習カード本体 -->
+                        <div id="exercise-container" class="bg-slate-50 rounded-xl p-4 border border-slate-200 space-y-3">
+                            <!-- JSで描画 -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ==========================================
+                     TAB 4: 出口チケット・理解度チェック (37〜40分)
+                     ========================================== -->
+                <div id="tab-content-4" class="tab-content hidden space-y-4">
+                    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+                        <div class="inline-block px-2.5 py-1 bg-purple-100 text-purple-800 text-xs font-bold rounded-lg mb-2">
+                            STEP 4｜出口チケット (振り返り確認)
+                        </div>
+                        <h2 class="text-lg font-bold text-slate-800 mb-1">
+                            自分の言葉と図の理解で説明できるか？
+                        </h2>
+                        <p class="text-xs text-slate-500 mb-4">
+                            公式を丸暗記するだけでなく、図の意味と結びつけて確認しよう！
+                        </p>
+
+                        <div class="space-y-4" id="quiz-container">
+                            <!-- Q1 -->
+                            <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+                                <p class="text-xs font-bold text-slate-800 mb-2">Q1. 加法定理は何のためにある？</p>
+                                <div class="space-y-1.5">
+                                    <label class="flex items-start gap-2 p-2 rounded-lg bg-white border border-slate-200 cursor-pointer hover:bg-indigo-50/50 text-xs">
+                                        <input type="radio" name="q1" value="a" class="mt-0.5">
+                                        <span>30°や45°など、すでに知っている角度の三角比を組み合わせて、75°や15°など未知の角度の値を求めるため。</span>
+                                    </label>
+                                    <label class="flex items-start gap-2 p-2 rounded-lg bg-white border border-slate-200 cursor-pointer hover:bg-indigo-50/50 text-xs">
+                                        <input type="radio" name="q1" value="b" class="mt-0.5">
+                                        <span>sin30° と sin45° をそのまま足し算して、1より大きい三角比を作るため。</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Q2 -->
+                            <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+                                <p class="text-xs font-bold text-slate-800 mb-2">Q2. <span class="math-normal">sin</span>(<span class="math-font">α</span> + <span class="math-font">β</span>) の右辺が2つの項の足し算になる理由は？</p>
+                                <div class="space-y-1.5">
+                                    <label class="flex items-start gap-2 p-2 rounded-lg bg-white border border-slate-200 cursor-pointer hover:bg-indigo-50/50 text-xs">
+                                        <input type="radio" name="q2" value="a" class="mt-0.5">
+                                        <span>回転前の「横成分(青)」と「縦成分(橙)」の両方が回転し、それぞれの矢印から新しい高さ（縦成分）が生まれるため。</span>
+                                    </label>
+                                    <label class="flex items-start gap-2 p-2 rounded-lg bg-white border border-slate-200 cursor-pointer hover:bg-indigo-50/50 text-xs">
+                                        <input type="radio" name="q2" value="b" class="mt-0.5">
+                                        <span>sin と cos を両方使わないと、分母が 0 になってしまうため。</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Q3 -->
+                            <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+                                <p class="text-xs font-bold text-slate-800 mb-2">Q3. <span class="math-normal">cos</span>(<span class="math-font">α</span> + <span class="math-font">β</span>) にマイナス（引き算）が出る理由は？</p>
+                                <div class="space-y-1.5">
+                                    <label class="flex items-start gap-2 p-2 rounded-lg bg-white border border-slate-200 cursor-pointer hover:bg-indigo-50/50 text-xs">
+                                        <input type="radio" name="q3" value="a" class="mt-0.5">
+                                        <span>もともと横向きだった青い矢印が、回転して真下（マイナス方向）を向くため。</span>
+                                    </label>
+                                    <label class="flex items-start gap-2 p-2 rounded-lg bg-white border border-slate-200 cursor-pointer hover:bg-indigo-50/50 text-xs">
+                                        <input type="radio" name="q3" value="b" class="mt-0.5">
+                                        <span>もともと上向きだった縦成分(橙)を反時計回りに回転させると、左側（x軸の負の方向）へ倒れるため。</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <button onclick="checkExitTicket()" class="w-full py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-bold text-sm rounded-xl shadow-sm transition">
+                                理解度を判定する
+                            </button>
+
+                            <div id="quiz-result" class="hidden p-4 rounded-xl text-xs leading-relaxed"></div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // ==========================================
+        // アプリケーション状態管理
+        // ==========================================
+        const state = {
+            currentTab: 1,          // 1:疑問, 2:本質, 3:演習, 4:確認
+            betaDeg: 30,            // 基準角 β (度)
+            alphaDeg: 45,           // 回転角 α (度)
+            derivationStep: 0,      // 0:A(分解), 1:B(青回転), 2:C(橙回転), 3:D(縦), 4:E(横)
+            currentExercise: 0,     // 0:sin75, 1:cos75, 2:sin15, 3:2倍角
+            previewRatio: 0,        // ステップAでのL字型回転プレビュー進捗 (0.0 〜 1.0)
+            showUnitRef: true       // ステップBでの「斜辺1の基準三角形」比較表示
+        };
+
+        let previewAnimId = null;
+
+        // DOM要素の参照
+        const svgEl = document.getElementById('unitCircleSvg');
+        const sliderBeta = document.getElementById('slider-beta');
+        const sliderAlpha = document.getElementById('slider-alpha');
+
+        // ==========================================
+        // 初期化とイベントリスナー
+        // ==========================================
+        function initSimulator() {
+            updateUI();
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initSimulator);
+        } else {
+            initSimulator();
+        }
+
+        sliderBeta.addEventListener('input', (e) => {
+            state.betaDeg = parseInt(e.target.value, 10);
+            updateUI();
+        });
+
+        sliderAlpha.addEventListener('input', (e) => {
+            state.alphaDeg = parseInt(e.target.value, 10);
+            updateUI();
+        });
+
+        function setBeta(deg) {
+            state.betaDeg = deg;
+            sliderBeta.value = deg;
+            updateUI();
+        }
+
+        function setAlpha(deg) {
+            state.alphaDeg = deg;
+            sliderAlpha.value = deg;
+            updateUI();
+        }
+
+        // ==========================================
+        // タブ・ステップ切り替え制御
+        // ==========================================
+        function switchTab(tabNum) {
+            state.currentTab = tabNum;
+
+            // タブボタンのスタイル更新
+            document.querySelectorAll('.tab-btn').forEach((btn, idx) => {
+                if (idx + 1 === tabNum) {
+                    btn.className = 'tab-btn px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-all whitespace-nowrap bg-white text-indigo-600 shadow-sm';
+                } else {
+                    btn.className = 'tab-btn px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-all whitespace-nowrap text-slate-600 hover:text-slate-900';
+                }
+            });
+
+            // コンテンツ表示切替
+            document.querySelectorAll('.tab-content').forEach((content, idx) => {
+                if (idx + 1 === tabNum) {
+                    content.classList.remove('hidden');
+                } else {
+                    content.classList.add('hidden');
+                }
+            });
+
+            // タブに応じた最適な角度プリセットと表示ステップ設定
+            if (tabNum === 1) {
+                setBeta(30);
+                setAlpha(45);
+            } else if (tabNum === 2) {
+                setDerivationStep(state.derivationStep);
+            } else if (tabNum === 3) {
+                selectExercise(state.currentExercise);
+            }
+
+            drawDiagram();
+        }
+
+        function setDerivationStep(step) {
+            if (previewAnimId) {
+                cancelAnimationFrame(previewAnimId);
+                previewAnimId = null;
+            }
+            if (step !== 0) {
+                state.previewRatio = 0;
+            }
+            state.derivationStep = step;
+
+            // ステップボタンの見た目更新
+            document.querySelectorAll('.step-btn').forEach((btn, idx) => {
+                if (idx === step) {
+                    btn.className = 'step-btn py-2 px-1 rounded-xl text-[11px] sm:text-xs font-bold border-2 border-indigo-600 bg-indigo-50 text-indigo-700 transition shadow-xs';
+                } else {
+                    btn.className = 'step-btn py-2 px-1 rounded-xl text-[11px] sm:text-xs font-bold border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 transition';
+                }
+            });
+
+            const expBox = document.getElementById('step-explanation');
+            const explanations = [
+                // Step A: 分解 + L字型一体回転体験
+                `<div>
+                    <div class="text-xs font-bold text-slate-500 mb-1">ステップ A｜なぜ2本の矢印に分けて回すの？</div>
+                    <h3 class="text-sm font-bold text-slate-800 mb-2">直角三角形（L字定規）ごと丸ごと <span class="math-font text-indigo-600">α</span> 回転！</h3>
+                    <p class="text-xs text-slate-600 leading-relaxed space-y-1.5">
+                        斜めの棒 OP をいきなり回しても座標は計算できませんが、<strong>「横の棒(青)」と「縦の棒(橙)」のL字型セット</strong>に分解すると、<strong>元の直角を保ったまま一体となって回転</strong>します！
+                    </p>
+
+                    <!-- インタラクティブ体験ボックス -->
+                    <div class="mt-2.5 bg-indigo-50/90 p-2.5 rounded-xl border border-indigo-200">
+                        <div class="flex items-center justify-between gap-2 mb-1.5">
+                            <span class="text-[11px] font-bold text-indigo-900">🔄 L字セット一体回転を体験：</span>
+                            <button onclick="togglePreviewRotation()" id="btn-preview-rot" class="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] font-bold rounded-lg shadow-xs transition">
+                                ▶ 自動で回転させる
+                            </button>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-[10px] font-bold text-slate-500">0°</span>
+                            <input type="range" id="slider-preview-rot" min="0" max="100" value="${Math.round(state.previewRatio * 100)}" oninput="setPreviewRatio(this.value / 100)" class="flex-1">
+                            <span id="disp-preview-deg" class="text-[11px] font-bold text-indigo-700 w-10 text-right">${Math.round(state.alphaDeg * state.previewRatio)}°</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-3 pt-2 border-t border-slate-200 flex justify-end">
+                    <button onclick="setDerivationStep(1)" class="px-3 py-1.5 bg-indigo-600 text-white text-xs font-bold rounded-lg hover:bg-indigo-700 transition">次へ：青い矢印だけを回す →</button>
+                </div>`,
+
+                // Step B: 青を回す
+                `<div>
+                    <div class="text-xs font-bold text-blue-600 mb-1">ステップ B｜横向き成分（青）を <span class="math-font">α</span> 回転</div>
+                    <h3 class="text-sm font-bold text-slate-800 mb-1.5">「斜辺 1 の三角形」を <span class="text-blue-600"><span class="math-normal">cos</span><span class="math-font">β</span> 倍</span> に縮小コピー！</h3>
+                    <div class="text-xs text-slate-600 leading-relaxed space-y-1.5">
+                        <p>左図の<strong>グレーの点線（斜辺 1）</strong>と<strong>青い三角形（斜辺 <span class="math-normal">cos</span><span class="math-font">β</span>）</strong>は角度 <span class="math-font">α</span> が同じ<strong>相似な直角三角形</strong>です。<br>
+                        斜辺が <span class="text-blue-600 font-bold"><span class="math-normal">cos</span><span class="math-font">β</span> 倍</span>（今なら約 <strong>${Math.cos((state.betaDeg * Math.PI) / 180).toFixed(2)} 倍</strong>）なので、横も縦もすべて同じ倍率になります！</p>
+                        
+                        <label class="flex items-center gap-2 bg-slate-100 hover:bg-slate-200/70 px-2.5 py-1.5 rounded-lg cursor-pointer transition select-none">
+                            <input type="checkbox" ${state.showUnitRef ? 'checked' : ''} onchange="toggleUnitRef(this.checked)" class="rounded text-indigo-600">
+                            <span class="text-[11px] font-bold text-slate-700">左図に「斜辺 1 の基準三角形（点線）」を重ねて比較する</span>
+                        </label>
+
+                        <div class="bg-white p-2 rounded-lg border border-blue-100 space-y-1">
+                            <div>・<span class="text-emerald-700 font-bold">横の長さ</span> = <span class="text-slate-400 text-[11px]">(基準 <span class="math-normal">cos</span><span class="math-font">α</span>) × <span class="math-normal">cos</span><span class="math-font">β</span> =</span> <span class="text-blue-600 font-bold"><span class="math-normal">cos</span><span class="math-font">β</span> · <span class="math-normal">cos</span><span class="math-font">α</span></span></div>
+                            <div>・<span class="text-purple-700 font-bold">縦の高さ</span> = <span class="text-slate-400 text-[11px]">(基準 <span class="math-normal">sin</span><span class="math-font">α</span>) × <span class="math-normal">cos</span><span class="math-font">β</span> =</span> <span class="text-blue-600 font-bold"><span class="math-normal">cos</span><span class="math-font">β</span> · <span class="math-normal">sin</span><span class="math-font">α</span></span></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-3 pt-2 border-t border-slate-200 flex justify-between">
+                    <button onclick="setDerivationStep(0)" class="px-2.5 py-1 text-slate-500 text-xs font-bold hover:text-slate-800">← 戻る</button>
+                    <button onclick="setDerivationStep(2)" class="px-3 py-1.5 bg-indigo-600 text-white text-xs font-bold rounded-lg hover:bg-indigo-700 transition">次へ：橙色の矢印を回す →</button>
+                </div>`,
+
+                // Step C: 橙を回す
+                `<div>
+                    <div class="text-xs font-bold text-orange-600 mb-1">ステップ C｜縦向き成分（橙）を <span class="math-font">α</span> 回転</div>
+                    <h3 class="text-sm font-bold text-slate-800 mb-2">真上（垂直点線）から左へ <span class="math-font">α</span> だけ傾く！</h3>
+                    <div class="text-xs text-slate-600 leading-relaxed space-y-1.5">
+                        <p>橙色の矢印（長さ <span class="text-orange-600 font-bold"><span class="math-normal">sin</span><span class="math-font">β</span></span>）は、もともと<strong>真上</strong>を向いていました。<br>
+                        そこから反時計回りに <span class="math-font">α</span> 傾くので、図のように<strong>左側へ倒れ込みます</strong>！</p>
+                        <div class="bg-white p-2 rounded-lg border border-orange-100 space-y-1">
+                            <div>・<span class="text-rose-600 font-bold">横のずれ</span> = <span class="text-rose-600 font-bold">− <span class="math-normal">sin</span><span class="math-font">β</span> · <span class="math-normal">sin</span><span class="math-font">α</span></span> <span class="text-[11px] text-rose-600">(左向きだからマイナス！)</span></div>
+                            <div>・<span class="text-purple-700 font-bold">縦の高さ</span> = <span class="text-orange-600 font-bold"><span class="math-normal">sin</span><span class="math-font">β</span> · <span class="math-normal">cos</span><span class="math-font">α</span></span> <span class="text-[11px] text-slate-500">(垂直線と角度αをはさむ辺)</span></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-3 pt-2 border-t border-slate-200 flex justify-between">
+                    <button onclick="setDerivationStep(1)" class="px-2.5 py-1 text-slate-500 text-xs font-bold hover:text-slate-800">← 戻る</button>
+                    <button onclick="setDerivationStep(3)" class="px-3 py-1.5 bg-purple-600 text-white text-xs font-bold rounded-lg hover:bg-purple-700 transition">次へ：縦(sin)を合体！ →</button>
+                </div>`,
+
+                // Step D: 縦成分の合体 (sin)
+                `<div>
+                    <div class="text-xs font-bold text-purple-600 mb-1">ステップ D｜高さを合体して <span class="math-normal">sin</span>(<span class="math-font">α</span>+<span class="math-font">β</span>) をつくる</div>
+                    <h3 class="text-sm font-bold text-slate-800 mb-2">2本の矢印の「縦の高さ」を足し算！</h3>
+                    <div class="text-xs text-slate-600 leading-relaxed space-y-1.5">
+                        <p>左図の<strong>紫色の縦棒</strong>を見てください。点 Q の全体の高さは、2つの高さの合計です：</p>
+                        <div class="bg-purple-50 p-2.5 rounded-lg border border-purple-200 text-slate-800 font-medium">
+                            全体の高さ <span class="text-purple-700 font-bold"><span class="math-normal">sin</span>(<span class="math-font">α</span>+<span class="math-font">β</span>)</span><br>
+                            ＝ <span class="text-blue-600 font-bold">(青の高さ)</span> ＋ <span class="text-orange-600 font-bold">(橙の高さ)</span><br>
+                            ＝ <span class="text-blue-600 font-bold"><span class="math-normal">sin</span><span class="math-font">α</span><span class="math-normal">cos</span><span class="math-font">β</span></span> ＋ <span class="text-orange-600 font-bold"><span class="math-normal">cos</span><span class="math-font">α</span><span class="math-normal">sin</span><span class="math-font">β</span></span>
+                        </div>
+                        <p class="text-[11px] text-slate-500">※だから <span class="math-normal">sin</span> の加法定理は「2つの項の足し算」になります！</p>
+                    </div>
+                </div>
+                <div class="mt-3 pt-2 border-t border-slate-200 flex justify-between">
+                    <button onclick="setDerivationStep(2)" class="px-2.5 py-1 text-slate-500 text-xs font-bold hover:text-slate-800">← 戻る</button>
+                    <button onclick="setDerivationStep(4)" class="px-3 py-1.5 bg-emerald-600 text-white text-xs font-bold rounded-lg hover:bg-emerald-700 transition">次へ：横(cos)を合体！ →</button>
+                </div>`,
+
+                // Step E: 横成分の合体 (cos)
+                `<div>
+                    <div class="text-xs font-bold text-emerald-600 mb-1">ステップ E｜横幅を合体して <span class="math-normal">cos</span>(<span class="math-font">α</span>+<span class="math-font">β</span>) をつくる</div>
+                    <h3 class="text-sm font-bold text-slate-800 mb-2">青の横幅から、橙の「左ずれ」を引き算！</h3>
+                    <div class="text-xs text-slate-600 leading-relaxed space-y-1.5">
+                        <p>左図の<strong>緑色の横棒</strong>を見てください。右に進んだ後、左へ少し戻っています：</p>
+                        <div class="bg-emerald-50 p-2.5 rounded-lg border border-emerald-200 text-slate-800 font-medium">
+                            全体の横位置 <span class="text-emerald-700 font-bold"><span class="math-normal">cos</span>(<span class="math-font">α</span>+<span class="math-font">β</span>)</span><br>
+                            ＝ <span class="text-blue-600 font-bold">(青の右進み)</span> <span class="text-rose-600 font-bold">−</span> <span class="text-orange-600 font-bold">(橙の左戻り)</span><br>
+                            ＝ <span class="text-blue-600 font-bold"><span class="math-normal">cos</span><span class="math-font">α</span><span class="math-normal">cos</span><span class="math-font">β</span></span> <span class="text-rose-600 font-bold">−</span> <span class="text-orange-600 font-bold"><span class="math-normal">sin</span><span class="math-font">α</span><span class="math-normal">sin</span><span class="math-font">β</span></span>
+                        </div>
+                        <p class="text-[11px] text-slate-500">※スライダーで α や β を変えて、2本の矢印の動きを観察しよう！</p>
+                    </div>
+                </div>
+                <div class="mt-3 pt-2 border-t border-slate-200 flex justify-between">
+                    <button onclick="setDerivationStep(3)" class="px-2.5 py-1 text-slate-500 text-xs font-bold hover:text-slate-800">← 戻る</button>
+                    <button onclick="switchTab(3)" class="px-3 py-1.5 bg-emerald-600 text-white text-xs font-bold rounded-lg hover:bg-emerald-700 transition">演習問題に挑戦する →</button>
+                </div>`
+            ];
+
+            expBox.innerHTML = explanations[step];
+            drawDiagram();
+        }
+
+        function toggleUnitRef(checked) {
+            state.showUnitRef = checked;
+            drawDiagram();
+        }
+
+        // ステップAでのL字一体回転プレビュー操作
+        function setPreviewRatio(ratio) {
+            state.previewRatio = ratio;
+            const degLabel = document.getElementById('disp-preview-deg');
+            if (degLabel) {
+                degLabel.textContent = `${Math.round(state.alphaDeg * ratio)}°`;
+            }
+            drawDiagram();
+        }
+
+        function togglePreviewRotation() {
+            if (previewAnimId) {
+                cancelAnimationFrame(previewAnimId);
+                previewAnimId = null;
+                const btn = document.getElementById('btn-preview-rot');
+                if (btn) btn.textContent = '▶ 自動で回転させる';
+                return;
+            }
+            const btn = document.getElementById('btn-preview-rot');
+            if (btn) btn.textContent = '⏸ ストップ';
+
+            if (state.previewRatio >= 0.99) {
+                state.previewRatio = 0;
+            }
+
+            let lastTime = performance.now();
+            function animate(now) {
+                const dt = (now - lastTime) / 1000;
+                lastTime = now;
+                state.previewRatio += dt * 0.45; // 約2.2秒でα度まで回転
+                if (state.previewRatio >= 1) {
+                    state.previewRatio = 1;
+                    previewAnimId = null;
+                    if (btn) btn.textContent = '↺ もう一度回す';
+                }
+                const slider = document.getElementById('slider-preview-rot');
+                if (slider) slider.value = Math.round(state.previewRatio * 100);
+                setPreviewRatio(state.previewRatio);
+
+                if (previewAnimId) {
+                    previewAnimId = requestAnimationFrame(animate);
+                }
+            }
+            previewAnimId = requestAnimationFrame(animate);
+        }
+
+        // ==========================================
+        // 演習問題コンテンツ (Tab 3)
+        // ==========================================
+        // 正式な分数・ルートHTMLを生成するヘルパー
+        const f = (num, den) => `<span class="frac"><span class="frac-num">${num}</span><span class="frac-den">${den}</span></span>`;
+        const r = (val) => `<span class="sqrt"><span class="sqrt-sign">√</span><span class="sqrt-body">${val}</span></span>`;
+
+        const exercises = [
+            {
+                title: "例題：sin 75° を求める",
+                beta: 30,
+                alpha: 45,
+                desc: "75° = 45° + 30° として加法定理にあてはめます。",
+                formula: "sin(45° + 30°) = sin45°cos30° + cos45°sin30°",
+                steps: [
+                    `青の矢印由来の高さ： sin45°cos30° = ${f(r(2), 2)} × ${f(r(3), 2)} = ${f(r(6), 4)}`,
+                    `橙の矢印由来の高さ： cos45°sin30° = ${f(r(2), 2)} × ${f(1, 2)} = ${f(r(2), 4)}`,
+                    `合計： ${f(`${r(6)} + ${r(2)}`, 4)}　(≈ 0.966)`
+                ],
+                point: "1より小さい正しい値になりました！2つの成分の高さが足されています。"
+            },
+            {
+                title: "基本：cos 75° を求める",
+                beta: 30,
+                alpha: 45,
+                desc: "cos(45° + 30°) を計算します。マイナスの符号に注目！",
+                formula: "cos(45° + 30°) = cos45°cos30° − sin45°sin30°",
+                steps: [
+                    `青の矢印由来の横位置： cos45°cos30° = ${f(r(2), 2)} × ${f(r(3), 2)} = ${f(r(6), 4)}`,
+                    `橙の矢印由来の左ずれ： − sin45°sin30° = − ${f(r(2), 2)} × ${f(1, 2)} = − ${f(r(2), 4)}`,
+                    `合計： ${f(`${r(6)} − ${r(2)}`, 4)}　(≈ 0.259)`
+                ],
+                point: "左図の緑色の線（横位置）が、青い矢印の横幅から橙色の矢印の左ずれ分だけ短くなっていることを確認しよう！"
+            },
+            {
+                title: "応用：sin 15° を求める（差の公式）",
+                beta: 45,
+                alpha: -30,
+                desc: "15° = 45° + (−30°) と考えます。sin(−30°)=−sin30°、cos(−30°)=cos30° を使うと差の公式になります。",
+                formula: "sin(45° − 30°) = sin45°cos30° − cos45°sin30°",
+                steps: [
+                    `代入： ${f(r(2), 2)} × ${f(r(3), 2)} − ${f(r(2), 2)} × ${f(1, 2)}`,
+                    `計算： ${f(r(6), 4)} − ${f(r(2), 4)}`,
+                    `答え： ${f(`${r(6)} − ${r(2)}`, 4)}　(≈ 0.259)`
+                ],
+                point: "なんと cos75° と全く同じ値になります！（75° + 15° = 90° の関係だからです）"
+            },
+            {
+                title: "発展：2倍角の公式を導く",
+                beta: 30,
+                alpha: 30,
+                desc: "α = θ、β = θ として同じ角度を2回足すと「2倍角の公式」が自然に導けます！",
+                formula: "sin(θ + θ) = sinθcosθ + cosθsinθ = 2sinθcosθ",
+                steps: [
+                    "sin2θ = 2sinθcosθ　（同じ高さの項が2つ分！）",
+                    "cos2θ = cos(θ + θ) = cosθcosθ − sinθsinθ = cos²θ − sin²θ",
+                    `例（θ=30°のとき）： sin60° = 2 × ${f(1, 2)} × ${f(r(3), 2)} = ${f(r(3), 2)}`
+                ],
+                point: "公式を忘れても、加法定理の α と β に同じ角を入れるだけですぐに作れます！"
+            }
+        ];
+
+        function selectExercise(idx) {
+            state.currentExercise = idx;
+            const ex = exercises[idx];
+
+            // ボタンハイライト
+            document.querySelectorAll('.ex-btn').forEach((btn, i) => {
+                if (i === idx) {
+                    btn.className = 'ex-btn py-2 px-2 rounded-xl text-xs font-bold bg-emerald-600 text-white shadow-xs';
+                } else {
+                    btn.className = 'ex-btn py-2 px-2 rounded-xl text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200';
+                }
+            });
+
+            // キャンバスの角度を連動
+            setBeta(ex.beta);
+            setAlpha(ex.alpha);
+            state.derivationStep = 4; // 完成図を表示
+
+            const container = document.getElementById('exercise-container');
+            container.innerHTML = `
+                <div class="flex justify-between items-center">
+                    <h3 class="text-sm font-bold text-slate-800">${ex.title}</h3>
+                    <span class="text-xs font-bold px-2 py-0.5 bg-indigo-100 text-indigo-700 rounded">β=${ex.beta}°, α=${ex.alpha}°</span>
+                </div>
+                <p class="text-xs text-slate-600">${ex.desc}</p>
+                <div class="bg-white p-3 rounded-lg border border-slate-200 font-bold text-xs sm:text-sm text-indigo-700 text-center">
+                    ${ex.formula}
+                </div>
+                <div id="ex-answer-box" class="hidden space-y-2 pt-2 border-t border-slate-200">
+                    <div class="space-y-2 text-xs sm:text-sm text-slate-700 bg-white p-3 rounded-lg border border-emerald-200">
+                        ${ex.steps.map(s => `<div class="flex items-center flex-wrap gap-1"><span>•</span> <span>${s}</span></div>`).join('')}
+                    </div>
+                    <div class="text-xs text-emerald-800 bg-emerald-50 p-2.5 rounded-lg border border-emerald-200">
+                        <strong>💡 ポイント：</strong>${ex.point}
+                    </div>
+                </div>
+                <button onclick="document.getElementById('ex-answer-box').classList.remove('hidden'); this.classList.add('hidden');" class="w-full py-2 bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold rounded-lg transition">
+                    計算過程と答えを見る
+                </button>
+            `;
+        }
+
+        // ==========================================
+        // 出口チケット判定 (Tab 4)
+        // ==========================================
+        function checkExitTicket() {
+            const q1 = document.querySelector('input[name="q1"]:checked')?.value;
+            const q2 = document.querySelector('input[name="q2"]:checked')?.value;
+            const q3 = document.querySelector('input[name="q3"]:checked')?.value;
+            const resBox = document.getElementById('quiz-result');
+
+            if (!q1 || !q2 || !q3) {
+                resBox.className = 'p-4 rounded-xl text-xs bg-amber-50 border border-amber-200 text-amber-800 block';
+                resBox.innerHTML = '⚠️ 3つすべての質問に選択してから判定ボタンを押してください。';
+                return;
+            }
+
+            let score = 0;
+            if (q1 === 'a') score++;
+            if (q2 === 'a') score++;
+            if (q3 === 'b') score++;
+
+            resBox.classList.remove('hidden');
+            if (score === 3) {
+                resBox.className = 'p-4 rounded-xl text-xs bg-emerald-50 border border-emerald-200 text-emerald-900 block';
+                resBox.innerHTML = `
+                    <div class="font-bold text-sm text-emerald-700 mb-1">🎉 評価 A：完璧な理解です！（3 / 3 正解）</div>
+                    <p>加法定理の「必要性」「2つの成分からの構成」「マイナスの符号の理由」をすべて図のイメージと結びつけて理解できています！次の単元（tanの加法定理など）へ自信を持って進みましょう。</p>
+                `;
+            } else {
+                resBox.className = 'p-4 rounded-xl text-xs bg-indigo-50 border border-indigo-200 text-indigo-900 block';
+                resBox.innerHTML = `
+                    <div class="font-bold text-sm text-indigo-700 mb-1">📝 評価 B：あと少し！（${score} / 3 正解）</div>
+                    <p class="mb-2">不正解の項目は、上の「2. 本質 (成分の回転)」タブに戻って、青い矢印と橙色の矢印の動きをもう一度確認してみましょう。</p>
+                    <ul class="list-disc pl-4 space-y-1 text-slate-700">
+                        <li>Q1の正解：既知の角から未知の角を求めるため</li>
+                        <li>Q2の正解：元の横成分(青)と縦成分(橙)の両方から高さが生まれるため</li>
+                        <li>Q3の正解：縦成分(橙)を反時計回りに回すと左側（負の方向）へ倒れるため</li>
+                    </ul>
+                `;
+            }
+        }
+
+        // ==========================================
+        // UI数値更新 & SVG描画
+        // ==========================================
+        function updateUI() {
+            const totalDeg = state.betaDeg + state.alphaDeg;
+            const totalRad = (totalDeg * Math.PI) / 180;
+
+            document.getElementById('val-beta').textContent = `${state.betaDeg}°`;
+            document.getElementById('val-alpha').textContent = `${state.alphaDeg}°`;
+            document.getElementById('disp-total-angle').textContent = `${totalDeg}°`;
+            document.getElementById('disp-cos-val').textContent = Math.cos(totalRad).toFixed(3);
+            document.getElementById('disp-sin-val').textContent = Math.sin(totalRad).toFixed(3);
+
+            if (state.currentTab === 2 && state.derivationStep === 1) {
+                setDerivationStep(1);
+                return;
+            }
+
+            drawDiagram();
+        }
+
+        // SVG矢印文字列を生成するヘルパー
+        function createSvgArrow(fromX, fromY, toX, toY, color, strokeWidth = 3, dashed = false, opacity = 1) {
+            const dx = toX - fromX;
+            const dy = toY - fromY;
+            const len = Math.hypot(dx, dy);
+            if (len < 2) return '';
+
+            const headlen = Math.min(11, len * 0.35);
+            const angle = Math.atan2(dy, dx);
+            const lineEndX = toX - headlen * 0.6 * Math.cos(angle);
+            const lineEndY = toY - headlen * 0.6 * Math.sin(angle);
+
+            const p1x = toX - headlen * Math.cos(angle - Math.PI / 6);
+            const p1y = toY - headlen * Math.sin(angle - Math.PI / 6);
+            const p2x = toX - headlen * Math.cos(angle + Math.PI / 6);
+            const p2y = toY - headlen * Math.sin(angle + Math.PI / 6);
+
+            const dashAttr = dashed ? 'stroke-dasharray="5,4"' : '';
+            return `
+                <g opacity="${opacity}">
+                    <line x1="${fromX}" y1="${fromY}" x2="${lineEndX}" y2="${lineEndY}" stroke="${color}" stroke-width="${strokeWidth}" stroke-linecap="round" ${dashAttr} />
+                    <polygon points="${toX},${toY} ${p1x},${p1y} ${p2x},${p2y}" fill="${color}" />
+                </g>
+            `;
+        }
+
+        // SVG角度アーク文字列を生成するヘルパー
+        function createSvgAngleArc(cx, cy, radius, startRad, endRad, fillColor, label) {
+            if (Math.abs(endRad - startRad) < 0.01) return '';
+            const x1 = cx + radius * Math.cos(startRad);
+            const y1 = cy - radius * Math.sin(startRad);
+            const x2 = cx + radius * Math.cos(endRad);
+            const y2 = cy - radius * Math.sin(endRad);
+            const sweepFlag = endRad > startRad ? 0 : 1;
+            const largeArcFlag = Math.abs(endRad - startRad) > Math.PI ? 1 : 0;
+
+            let labelSvg = '';
+            if (label) {
+                const midRad = (startRad + endRad) / 2;
+                const lr = radius + 15;
+                const lx = cx + lr * Math.cos(midRad);
+                const ly = cy - lr * Math.sin(midRad);
+                labelSvg = `<text x="${lx}" y="${ly}" fill="#334155" font-size="12" font-weight="bold" font-family="Times New Roman, serif" text-anchor="middle" dominant-baseline="middle">${label}</text>`;
+            }
+
+            return `
+                <path d="M ${cx} ${cy} L ${x1} ${y1} A ${radius} ${radius} 0 ${largeArcFlag} ${sweepFlag} ${x2} ${y2} Z" fill="${fillColor}" />
+                ${labelSvg}
+            `;
+        }
+
+        // メインSVG描画関数
+        function drawDiagram() {
+            if (!svgEl) return;
+
+            const w = 500;
+            const h = 440;
+            const cx = 240;
+            const cy = 275;
+            const R = 175;
+
+            let html = '';
+
+            // 1. グリッド線
+            const gridStep = R / 4;
+            for (let x = cx % gridStep; x < w; x += gridStep) {
+                html += `<line x1="${x}" y1="0" x2="${x}" y2="${h}" stroke="#e2e8f0" stroke-width="1" />`;
+            }
+            for (let y = cy % gridStep; y < h; y += gridStep) {
+                html += `<line x1="0" y1="${y}" x2="${w}" y2="${y}" stroke="#e2e8f0" stroke-width="1" />`;
+            }
+
+            // 2. 単位円
+            html += `<circle cx="${cx}" cy="${cy}" r="${R}" fill="rgba(255,255,255,0.55)" stroke="#94a3b8" stroke-width="2" />`;
+
+            // 3. 座標軸
+            html += `<line x1="15" y1="${cy}" x2="${w - 15}" y2="${cy}" stroke="#475569" stroke-width="1.5" />`;
+            html += `<line x1="${cx}" y1="15" x2="${cx}" y2="${h - 15}" stroke="#475569" stroke-width="1.5" />`;
+            html += `<text x="${cx - 14}" y="${cy + 16}" fill="#475569" font-size="12" font-weight="bold">O</text>`;
+            html += `<text x="${cx + R + 6}" y="${cy + 15}" fill="#475569" font-size="12" font-weight="bold">1</text>`;
+            html += `<text x="${cx - R - 18}" y="${cy + 15}" fill="#475569" font-size="12" font-weight="bold">-1</text>`;
+            html += `<text x="${cx - 14}" y="${cy - R - 6}" fill="#475569" font-size="12" font-weight="bold">1</text>`;
+
+            // 角度計算
+            const beta = (state.betaDeg * Math.PI) / 180;
+            const alpha = (state.alphaDeg * Math.PI) / 180;
+            const total = beta + alpha;
+
+            // ==========================================
+            // TAB 1: 75°の罠（単純な足し算との比較）
+            // ==========================================
+            if (state.currentTab === 1) {
+                const pBetaX = cx + R * Math.cos(beta);
+                const pBetaY = cy - R * Math.sin(beta);
+                const pTotalX = cx + R * Math.cos(total);
+                const pTotalY = cy - R * Math.sin(total);
+
+                html += createSvgAngleArc(cx, cy, 38, 0, beta, 'rgba(37, 99, 235, 0.16)', `β=${state.betaDeg}°`);
+                html += createSvgAngleArc(cx, cy, 54, beta, total, 'rgba(79, 70, 229, 0.16)', `α=${state.alphaDeg}°`);
+
+                html += createSvgArrow(cx, cy, pBetaX, pBetaY, '#94a3b8', 2, true);
+                html += createSvgArrow(cx, cy, pTotalX, pTotalY, '#4f46e5', 3);
+
+                // 真の sin 高さ
+                html += `<line x1="${pTotalX}" y1="${cy}" x2="${pTotalX}" y2="${pTotalY}" stroke="#9333ea" stroke-width="3.5" />`;
+
+                // 間違った足し算の高さ
+                const wrongHeight = R * (Math.sin(beta) + Math.sin(alpha));
+                const wrongX = cx + R * 0.25;
+                html += `<line x1="${wrongX}" y1="${cy}" x2="${wrongX}" y2="${cy - wrongHeight}" stroke="#e11d48" stroke-width="3.5" stroke-dasharray="5,3" />`;
+                html += `<line x1="${cx - R * 0.6}" y1="${cy - R}" x2="${cx + R * 0.85}" y2="${cy - R}" stroke="#e11d48" stroke-width="1.5" stroke-dasharray="4,3" />`;
+
+                html += `<text x="${cx + R * 0.52}" y="${cy - R - 7}" fill="#e11d48" font-size="11" font-weight="bold">上限 y = 1</text>`;
+                html += `<text x="${wrongX + 8}" y="${cy - wrongHeight + 12}" fill="#e11d48" font-size="11" font-weight="bold">誤: sin${state.betaDeg}°+sin${state.alphaDeg}° = ${(Math.sin(beta) + Math.sin(alpha)).toFixed(2)} (枠外!)</text>`;
+                html += `<circle cx="${pTotalX}" cy="${pTotalY}" r="5.5" fill="#4f46e5" />`;
+
+                svgEl.innerHTML = html;
+                return;
+            }
+
+            // ==========================================
+            // TAB 2, 3, 4: 2本の矢印の回転モデル
+            // ==========================================
+            const activeStep = state.currentTab === 2 ? state.derivationStep : 4;
+
+            const origX = cx + R * Math.cos(beta);
+            const origY = cy - R * Math.sin(beta);
+
+            html += createSvgAngleArc(cx, cy, 34, 0, beta, 'rgba(37, 99, 235, 0.16)', 'β');
+            html += `<line x1="${cx}" y1="${cy}" x2="${origX}" y2="${origY}" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="4,4" />`;
+
+            // 元の横成分（青）と縦成分（橙）
+            const preOpacity = activeStep === 0 ? 1.0 : 0.3;
+            html += createSvgArrow(cx, cy, origX, cy, '#2563eb', 3.5, false, preOpacity);
+            html += createSvgArrow(origX, cy, origX, origY, '#f97316', 3.5, false, preOpacity);
+
+            if (activeStep === 0) {
+                const curAlpha = alpha * state.previewRatio;
+                const curTotal = beta + curAlpha;
+
+                // 元の直角マーク
+                html += `<polyline points="${origX - 10},${cy} ${origX - 10},${cy - 10} ${origX},${cy - 10}" fill="none" stroke="#64748b" stroke-width="1.5" opacity="${state.previewRatio > 0 ? 0.35 : 1}" />`;
+
+                if (state.previewRatio > 0) {
+                    // 回転途中の斜辺 OP' と L字型（青＋橙）を描画
+                    const rBlue = R * Math.cos(beta);
+                    const rOrange = R * Math.sin(beta);
+
+                    const bEndX = cx + rBlue * Math.cos(curAlpha);
+                    const bEndY = cy - rBlue * Math.sin(curAlpha);
+
+                    const fEndX = cx + R * Math.cos(curTotal);
+                    const fEndY = cy - R * Math.sin(curTotal);
+
+                    // 直角三角形の薄い塗りつぶし（剛体イメージ）
+                    html += `<polygon points="${cx},${cy} ${bEndX},${bEndY} ${fEndX},${fEndY}" fill="rgba(79, 70, 229, 0.1)" stroke="none" />`;
+                    // 回転アーク
+                    html += createSvgAngleArc(cx, cy, 48, 0, curAlpha, 'rgba(79, 70, 229, 0.16)', `${Math.round(state.alphaDeg * state.previewRatio)}°`);
+                    // 斜辺（実線）
+                    html += createSvgArrow(cx, cy, fEndX, fEndY, '#4f46e5', 3);
+                    // 回転するL字の2本（青＋橙）
+                    html += createSvgArrow(cx, cy, bEndX, bEndY, '#2563eb', 4);
+                    html += createSvgArrow(bEndX, bEndY, fEndX, fEndY, '#f97316', 4);
+
+                    // 回転後も保たれている直角マーク
+                    const u1x = -Math.cos(curAlpha) * 10;
+                    const u1y = Math.sin(curAlpha) * 10;
+                    const u2x = -Math.sin(curAlpha) * 10;
+                    const u2y = -Math.cos(curAlpha) * 10;
+                    html += `<polyline points="${bEndX + u1x},${bEndY + u1y} ${bEndX + u1x + u2x},${bEndY + u1y + u2y} ${bEndX + u2x},${bEndY + u2y}" fill="none" stroke="#4f46e5" stroke-width="1.8" />`;
+
+                    html += `<circle cx="${fEndX}" cy="${fEndY}" r="5.5" fill="#4f46e5" />`;
+                    html += `<text x="${fEndX + 8}" y="${fEndY - 8}" fill="#312e81" font-size="12" font-weight="bold">先端も一緒に ${Math.round(state.alphaDeg * state.previewRatio)}° 回転！</text>`;
+                } else {
+                    html += `<polygon points="${cx},${cy} ${origX},${cy} ${origX},${origY}" fill="rgba(79, 70, 229, 0.08)" stroke="none" />`;
+                    html += createSvgArrow(cx, cy, origX, origY, '#4f46e5', 2.5, true);
+                    html += `<circle cx="${origX}" cy="${origY}" r="5" fill="#4f46e5" />`;
+                    html += `<text x="${origX + 8}" y="${origY - 8}" fill="#1e293b" font-size="12" font-weight="bold">P(cos${state.betaDeg}°, sin${state.betaDeg}°)</text>`;
+                    html += `<text x="${(cx + origX) / 2}" y="${cy + 18}" fill="#2563eb" font-size="11" font-weight="bold" text-anchor="middle">① 元の横成分 cosβ</text>`;
+                    html += `<text x="${origX + 8}" y="${(cy + origY) / 2}" fill="#ea580c" font-size="11" font-weight="bold">② 元の縦成分 sinβ</text>`;
+                }
+                svgEl.innerHTML = html;
+                return;
+            }
+
+            // 回転後のベクトル座標
+            const lenBlue = R * Math.cos(beta);
+            const blueEndX = cx + lenBlue * Math.cos(alpha);
+            const blueEndY = cy - lenBlue * Math.sin(alpha);
+
+            const lenOrange = R * Math.sin(beta);
+            const orangeDx = lenOrange * Math.cos(alpha + Math.PI / 2);
+            const orangeDy = -lenOrange * Math.sin(alpha + Math.PI / 2);
+
+            const finalX = blueEndX + orangeDx;
+            const finalY = blueEndY + orangeDy;
+
+            html += createSvgAngleArc(cx, cy, 48, 0, alpha, 'rgba(79, 70, 229, 0.14)', 'α');
+
+            // ステップB以降：青い矢印の回転
+            if (activeStep >= 1) {
+                // ステップBかつ比較ONのとき：斜辺1の基準三角形（グレー点線）を描画して相似を可視化
+                if (activeStep === 1 && state.showUnitRef) {
+                    const unitEndX = cx + R * Math.cos(alpha);
+                    const unitEndY = cy - R * Math.sin(alpha);
+
+                    html += `<polygon points="${cx},${cy} ${unitEndX},${cy} ${unitEndX},${unitEndY}" fill="rgba(148, 163, 184, 0.12)" stroke="none" />`;
+                    html += createSvgArrow(cx, cy, unitEndX, unitEndY, '#64748b', 2, true, 0.75);
+                    html += `<line x1="${unitEndX}" y1="${cy}" x2="${unitEndX}" y2="${unitEndY}" stroke="#64748b" stroke-width="1.8" stroke-dasharray="4,3" />`;
+                    html += `<line x1="${cx}" y1="${cy}" x2="${unitEndX}" y2="${cy}" stroke="#64748b" stroke-width="1.8" stroke-dasharray="4,3" />`;
+                    html += `<polyline points="${unitEndX - 9},${cy} ${unitEndX - 9},${cy - 9} ${unitEndX},${cy - 9}" fill="none" stroke="#64748b" stroke-width="1.2" />`;
+
+                    html += `<text x="${unitEndX + 6}" y="${unitEndY - 6}" fill="#475569" font-size="11" font-weight="bold">基準(斜辺 = 1)</text>`;
+                    html += `<text x="${unitEndX + 6}" y="${(cy + unitEndY) / 2}" fill="#64748b" font-size="10" font-weight="bold">高さ sinα</text>`;
+                    html += `<text x="${(cx + unitEndX) / 2}" y="${cy + 32}" fill="#64748b" font-size="10" font-weight="bold" text-anchor="middle">基準の横 cosα</text>`;
+                }
+
+                html += createSvgArrow(cx, cy, blueEndX, blueEndY, '#2563eb', 4);
+                html += `<line x1="${blueEndX}" y1="${blueEndY}" x2="${blueEndX}" y2="${cy}" stroke="#93c5fd" stroke-width="1.5" stroke-dasharray="3,3" />`;
+
+                if (activeStep === 1) {
+                    html += `<polyline points="${blueEndX - 9},${cy} ${blueEndX - 9},${cy - 9} ${blueEndX},${cy - 9}" fill="none" stroke="#2563eb" stroke-width="1.3" />`;
+                    html += createSvgArrow(cx, cy, blueEndX, cy, '#059669', 3.5);
+                    html += createSvgArrow(blueEndX, cy, blueEndX, blueEndY, '#9333ea', 3.5);
+                    html += `<text x="${(cx + blueEndX) / 2}" y="${cy + 16}" fill="#059669" font-size="11" font-weight="bold" text-anchor="middle">cosβ cosα</text>`;
+                    html += `<text x="${blueEndX - 6}" y="${(cy + blueEndY) / 2}" fill="#9333ea" font-size="11" font-weight="bold" text-anchor="end">cosβ sinα</text>`;
+                }
+            }
+
+            // ステップC以降：橙色の矢印の回転
+            if (activeStep >= 2) {
+                // 橙色の矢印の「回転前の基準線（真上方向）」と回転角 α を表示
+                const refTopY = blueEndY - lenOrange;
+                html += `<line x1="${blueEndX}" y1="${blueEndY}" x2="${blueEndX}" y2="${refTopY}" stroke="#fdba74" stroke-width="1.5" stroke-dasharray="4,3" />`;
+                html += createSvgAngleArc(blueEndX, blueEndY, 32, Math.PI / 2, Math.PI / 2 + alpha, 'rgba(249, 115, 22, 0.18)', 'α');
+
+                html += createSvgArrow(blueEndX, blueEndY, finalX, finalY, '#f97316', 4);
+                html += `<line x1="${blueEndX}" y1="${blueEndY}" x2="${blueEndX}" y2="${finalY}" stroke="#fdba74" stroke-width="1.5" stroke-dasharray="3,3" />`;
+                html += `<line x1="${blueEndX}" y1="${finalY}" x2="${finalX}" y2="${finalY}" stroke="#fdba74" stroke-width="1.5" stroke-dasharray="3,3" />`;
+
+                if (activeStep === 2) {
+                    html += createSvgArrow(blueEndX, blueEndY, blueEndX, finalY, '#9333ea', 3.5);
+                    html += createSvgArrow(blueEndX, finalY, finalX, finalY, '#e11d48', 3.5);
+                    html += `<text x="${blueEndX + 8}" y="${(blueEndY + finalY) / 2}" fill="#9333ea" font-size="11" font-weight="bold">sinβ cosα</text>`;
+                    html += `<text x="${(blueEndX + finalX) / 2}" y="${finalY - 10}" fill="#e11d48" font-size="11" font-weight="bold" text-anchor="middle">-sinβ sinα (左へ倒れる!)</text>`;
+                }
+            }
+
+            // ステップD：縦成分(sin)の合体を強調
+            if (activeStep === 3) {
+                html += createSvgArrow(cx, cy, finalX, finalY, '#94a3b8', 2, true);
+                // 2つの高さの内訳を並べて表示
+                html += createSvgArrow(finalX, cy, finalX, blueEndY, '#2563eb', 4.5);
+                html += createSvgArrow(finalX, blueEndY, finalX, finalY, '#f97316', 4.5);
+                html += `<line x1="${blueEndX}" y1="${blueEndY}" x2="${finalX}" y2="${blueEndY}" stroke="#9333ea" stroke-width="1.5" stroke-dasharray="3,3" />`;
+
+                html += `<text x="${finalX - 8}" y="${(cy + blueEndY) / 2}" fill="#2563eb" font-size="11" font-weight="bold" text-anchor="end">青の高さ: sinα cosβ</text>`;
+                html += `<text x="${finalX - 8}" y="${(blueEndY + finalY) / 2}" fill="#ea580c" font-size="11" font-weight="bold" text-anchor="end">橙の高さ: cosα sinβ</text>`;
+                html += `<text x="${finalX - 8}" y="${finalY - 12}" fill="#7e22ce" font-size="12" font-weight="bold" text-anchor="end">合計の高さ = sin(α+β)</text>`;
+            }
+
+            // ステップE：横成分(cos)の合体を強調（＆全体完成図）
+            if (activeStep === 4) {
+                html += createSvgArrow(cx, cy, finalX, finalY, '#4f46e5', 2.5, true);
+                // 全体の横(緑)と縦(紫)
+                html += createSvgArrow(cx, cy, finalX, cy, '#059669', 4.5);
+                html += createSvgArrow(finalX, cy, finalX, finalY, '#9333ea', 4.5);
+                // 青の横進みと橙の左戻りの差分ガイド
+                html += `<line x1="${cx}" y1="${cy + 7}" x2="${blueEndX}" y2="${cy + 7}" stroke="#2563eb" stroke-width="2.5" opacity="0.7" />`;
+                html += createSvgArrow(blueEndX, cy + 13, finalX, cy + 13, '#e11d48', 2.5);
+
+                html += `<text x="${finalX - 10}" y="${finalY - 12}" fill="#312e81" font-size="12" font-weight="bold" text-anchor="end">Q(cos${state.alphaDeg + state.betaDeg}°, sin${state.alphaDeg + state.betaDeg}°)</text>`;
+                html += `<text x="${(cx + finalX) / 2}" y="${cy - 8}" fill="#059669" font-size="11" font-weight="bold" text-anchor="middle">cos(${state.alphaDeg + state.betaDeg}°)</text>`;
+                html += `<text x="${(blueEndX + finalX) / 2}" y="${cy + 27}" fill="#e11d48" font-size="10" font-weight="bold" text-anchor="middle">−sinα sinβ</text>`;
+                html += `<text x="${finalX - 8}" y="${(cy + finalY) / 2}" fill="#9333ea" font-size="11" font-weight="bold" text-anchor="end">sin(${state.alphaDeg + state.betaDeg}°)</text>`;
+            }
+
+            if (activeStep >= 2) {
+                html += `<circle cx="${finalX}" cy="${finalY}" r="5.5" fill="#4f46e5" />`;
+            }
+
+            svgEl.innerHTML = html;
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,1709 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数学Ⅱ 加法定理 インタラクティブ・シミュレータ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', 'Noto Sans JP', sans-serif;
+            background-color: #f8fafc;
+            color: #1e293b;
+        }
+        /* 数式風のフォント表現 */
+        .math-font {
+            font-family: 'Times New Roman', Times, serif;
+            font-style: italic;
+        }
+        .math-normal {
+            font-family: 'Times New Roman', Times, serif;
+            font-style: normal;
+        }
+        /* 正式な分数表示用スタイル */
+        .frac {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            vertical-align: middle;
+            margin: 0 2px;
+            font-family: 'Times New Roman', 'Noto Sans JP', serif;
+            font-size: 0.92em;
+            line-height: 1.1;
+        }
+        .frac-num {
+            border-bottom: 1.5px solid currentColor;
+            padding: 0 3px 1px 3px;
+            text-align: center;
+        }
+        .frac-den {
+            padding: 1px 3px 0 3px;
+            text-align: center;
+        }
+        /* 正式なルート（根号）表示用スタイル */
+        .sqrt {
+            display: inline-flex;
+            align-items: baseline;
+            white-space: nowrap;
+        }
+        .sqrt-sign {
+            font-family: 'Times New Roman', serif;
+            margin-right: 0.5px;
+        }
+        .sqrt-body {
+            border-top: 1.3px solid currentColor;
+            padding: 0 1.5px;
+            line-height: 1.05;
+        }
+        /* カスタムレンジスライダー */
+        input[type=range] {
+            -webkit-appearance: none;
+            background: transparent;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 20px;
+            width: 20px;
+            border-radius: 50%;
+            background: #2563eb;
+            cursor: pointer;
+            margin-top: -7px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            transition: transform 0.1s;
+        }
+        input[type=range]::-webkit-slider-thumb:hover {
+            transform: scale(1.15);
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 6px;
+            cursor: pointer;
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+        /* カスタムスクロールバー */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- ヘッダー -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-20 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-bold text-lg shadow-sm">
+                    θ
+                </div>
+                <div>
+                    <h1 class="text-lg sm:text-xl font-bold text-slate-800 leading-tight">数学Ⅱ：三角関数の加法定理</h1>
+                    <p class="text-xs text-slate-500 hidden sm:block">「角度を足すと、横と縦の成分はどう組み合わさるのか？」</p>
+                </div>
+            </div>
+            
+            <!-- 学習ステップナビゲーション -->
+            <nav class="flex space-x-1 sm:space-x-2 bg-slate-100 p-1 rounded-xl overflow-x-auto">
+                <button onclick="switchTab(0)" id="tab-btn-0" class="tab-btn px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-all whitespace-nowrap bg-white text-indigo-600 shadow-sm">
+                    0. 導入 (ゲーム体験)
+                </button>
+                <button onclick="switchTab(1)" id="tab-btn-1" class="tab-btn px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-all whitespace-nowrap text-slate-600 hover:text-slate-900">
+                    1. 疑問 (値の罠)
+                </button>
+                <button onclick="switchTab(2)" id="tab-btn-2" class="tab-btn px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-all whitespace-nowrap text-slate-600 hover:text-slate-900">
+                    2. 本質 (成分の回転)
+                </button>
+                <button onclick="switchTab(3)" id="tab-btn-3" class="tab-btn px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-all whitespace-nowrap text-slate-600 hover:text-slate-900">
+                    3. 実践・演習
+                </button>
+                <button onclick="switchTab(4)" id="tab-btn-4" class="tab-btn px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-all whitespace-nowrap text-slate-600 hover:text-slate-900">
+                    4. 理解度チェック
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- メインコンテンツ -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            
+            <!-- 左側：インタラクティブ単位円キャンバス (7カラム) -->
+            <div class="lg:col-span-7 bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-6 flex flex-col">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-100">
+                        <span class="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></span>
+                        単位円シミュレータ (半径 = 1)
+                    </span>
+                    <div id="canvas-legend" class="flex flex-wrap gap-3 text-xs font-medium">
+                        <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-sm bg-blue-600 inline-block"></span>元の横成分 (<span class="math-normal">cos</span><span class="math-font">β</span>)</span>
+                        <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-sm bg-orange-500 inline-block"></span>元の縦成分 (<span class="math-normal">sin</span><span class="math-font">β</span>)</span>
+                        <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-sm bg-emerald-600 inline-block"></span>後の横成分 (<span class="math-normal">cos</span>)</span>
+                        <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-sm bg-purple-600 inline-block"></span>後の縦成分 (<span class="math-normal">sin</span>)</span>
+                    </div>
+                </div>
+
+                <!-- キャンバスコンテナ -->
+                <div id="canvas-container" class="relative w-full h-[360px] sm:h-[440px] mx-auto bg-slate-50 rounded-xl border border-slate-200 overflow-hidden">
+                    <svg id="unitCircleSvg" viewBox="0 0 500 440" class="w-full h-full block select-none"></svg>
+                    
+                    <!-- キャンバス上のフローティング数値表示 -->
+                    <div id="floating-info" class="absolute top-3 left-3 bg-white/90 backdrop-blur-sm p-2.5 rounded-xl border border-slate-200 shadow-sm text-xs space-y-1 pointer-events-none">
+                        <div class="font-bold text-slate-700">合成角 <span class="math-font">α</span> + <span class="math-font">β</span> = <span id="disp-total-angle" class="text-indigo-600 text-sm"><span class="frac"><span class="frac-num">5</span><span class="frac-den">12</span></span><span class="math-font">π</span></span></div>
+                        <div class="text-emerald-700 font-semibold">横 (<span class="math-normal">cos</span>): <span id="disp-cos-val">0.259</span></div>
+                        <div class="text-purple-700 font-semibold">縦 (<span class="math-normal">sin</span>): <span id="disp-sin-val">0.966</span></div>
+                    </div>
+                </div>
+
+                <!-- 角度コントロールパネル -->
+                <div id="angle-controls" class="mt-5 bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <!-- 基準角 β -->
+                        <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-xs">
+                            <div class="flex justify-between items-center mb-1">
+                                <label for="slider-beta" class="text-xs font-bold text-slate-700">
+                                    基準の角 <span class="math-font text-base text-blue-600">β</span> (最初の点P)
+                                </label>
+                                <span id="val-beta" class="text-sm font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md">0</span>
+                            </div>
+                            <input type="range" id="slider-beta" min="0" max="150" step="5" value="0" class="w-full my-1">
+                            <div class="flex gap-1.5 mt-2">
+                                <button onclick="setBeta(0)" class="flex-1 py-1 text-xs font-semibold bg-slate-100 hover:bg-blue-100 hover:text-blue-700 rounded-md transition">0</button>
+                                <button onclick="setBeta(30)" class="flex-1 py-1 text-xs font-semibold bg-slate-100 hover:bg-blue-100 hover:text-blue-700 rounded-md transition"><span class="frac"><span class="frac-num"><span class="math-font">π</span></span><span class="frac-den">6</span></span></button>
+                                <button onclick="setBeta(45)" class="flex-1 py-1 text-xs font-semibold bg-slate-100 hover:bg-blue-100 hover:text-blue-700 rounded-md transition"><span class="frac"><span class="frac-num"><span class="math-font">π</span></span><span class="frac-den">4</span></span></button>
+                                <button onclick="setBeta(60)" class="flex-1 py-1 text-xs font-semibold bg-slate-100 hover:bg-blue-100 hover:text-blue-700 rounded-md transition"><span class="frac"><span class="frac-num"><span class="math-font">π</span></span><span class="frac-den">3</span></span></button>
+                            </div>
+                        </div>
+
+                        <!-- 追加角 α -->
+                        <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-xs">
+                            <div class="flex justify-between items-center mb-1">
+                                <label for="slider-alpha" class="text-xs font-bold text-slate-700">
+                                    回転する角 <span class="math-font text-base text-indigo-600">α</span> (追加の回転)
+                                </label>
+                                <span id="val-alpha" class="text-sm font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md"><span class="frac"><span class="frac-num"><span class="math-font">π</span></span><span class="frac-den">4</span></span></span>
+                            </div>
+                            <input type="range" id="slider-alpha" min="-60" max="120" step="5" value="45" class="w-full my-1">
+                            <div class="flex gap-1.5 mt-2">
+                                <button onclick="setAlpha(30)" class="flex-1 py-1 text-xs font-semibold bg-slate-100 hover:bg-indigo-100 hover:text-indigo-700 rounded-md transition"><span class="frac"><span class="frac-num"><span class="math-font">π</span></span><span class="frac-den">6</span></span></button>
+                                <button onclick="setAlpha(45)" class="flex-1 py-1 text-xs font-semibold bg-slate-100 hover:bg-indigo-100 hover:text-indigo-700 rounded-md transition"><span class="frac"><span class="frac-num"><span class="math-font">π</span></span><span class="frac-den">4</span></span></button>
+                                <button onclick="setAlpha(60)" class="flex-1 py-1 text-xs font-semibold bg-slate-100 hover:bg-indigo-100 hover:text-indigo-700 rounded-md transition"><span class="frac"><span class="frac-num"><span class="math-font">π</span></span><span class="frac-den">3</span></span></button>
+                                <button onclick="setAlpha(-30)" class="flex-1 py-1 text-xs font-semibold bg-slate-100 hover:bg-rose-100 hover:text-rose-700 rounded-md transition">−<span class="frac"><span class="frac-num"><span class="math-font">π</span></span><span class="frac-den">6</span></span></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 右側：学習ガイド＆インタラクティブワークスペース (5カラム) -->
+            <div class="lg:col-span-5 space-y-6">
+
+                <!-- ==========================================
+                     TAB 0: 導入・ゲームキャラの弾発射体験
+                     ========================================== -->
+                <div id="tab-content-0" class="tab-content space-y-4">
+                    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 sm:p-6">
+                        <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                            <span class="px-2.5 py-1 bg-sky-100 text-sky-800 text-xs font-bold rounded-lg">
+                                STEP 0｜ターゲット撃破ミッション！
+                            </span>
+                            <div class="flex items-center gap-2">
+                                <div class="px-2.5 py-1 bg-slate-900 text-amber-400 text-xs font-bold rounded-lg border border-slate-700 flex items-center gap-1.5">
+                                    <span>🏆 SCORE:</span>
+                                    <span id="game-score" class="text-sm">0</span>
+                                </div>
+                                <button onclick="toggleGameSound()" id="btn-sound-toggle" class="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-lg transition" title="効果音オン/オフ">
+                                    🔊
+                                </button>
+                                <button onclick="fireGameBullet('aim')" class="px-3.5 py-1.5 bg-gradient-to-r from-orange-500 to-rose-500 hover:from-orange-600 hover:to-rose-600 active:scale-95 text-white text-xs font-bold rounded-xl shadow-md transition flex items-center gap-1">
+                                    <span>🚀 FIRE!</span>
+                                </button>
+                            </div>
+                        </div>
+                        <h2 class="text-lg sm:text-xl font-bold text-slate-800 mb-1.5">
+                            まずは的（👾）を撃ち落とそう！
+                        </h2>
+                        <p class="text-xs sm:text-sm text-slate-600 leading-relaxed mb-3">
+                            キャラクターの<strong>「今の向き <span class="math-font">β</span>」</strong>と<strong>「追加の回転角 <span class="math-font">α</span>」</strong>を左のスライダーで合わせて、ターゲット（👾）を狙い撃とう！
+                        </p>
+
+                        <!-- ミッションナビゲーションバー（まずはシンプルな角度合わせ） -->
+                        <div class="bg-gradient-to-r from-indigo-950 via-slate-900 to-indigo-950 text-white rounded-xl p-3.5 mb-3 text-xs space-y-2.5 shadow-inner border border-indigo-500/30">
+                            <div class="flex flex-wrap justify-between items-center gap-1 border-b border-slate-700/80 pb-1.5">
+                                <span id="game-mission-title" class="text-amber-300 font-bold flex items-center gap-1">
+                                    <span>👾 ミッション：角度を合わせて的を狙え！</span>
+                                </span>
+                                <span id="game-status-badge" class="px-2 py-0.5 bg-sky-500/20 text-sky-300 border border-sky-500/40 rounded-full text-[10px] font-bold">スライダーで狙って FIRE!</span>
+                            </div>
+                            <div class="grid grid-cols-3 gap-2 pt-0.5 text-center">
+                                <div class="bg-slate-800/90 p-2 rounded-lg border border-slate-700">
+                                    <div class="text-[10px] text-blue-300">① 今の向き <span class="math-font">β</span></div>
+                                    <div id="game-char-angle" class="text-sm font-bold text-white mt-0.5"><span class="frac"><span class="frac-num"><span class="math-font">π</span></span><span class="frac-den">6</span></span></div>
+                                </div>
+                                <div class="bg-slate-800/90 p-2 rounded-lg border border-slate-700">
+                                    <div class="text-[10px] text-indigo-300">② 追加回転 <span class="math-font">α</span></div>
+                                    <div id="game-bullet-angle" class="text-sm font-bold text-indigo-300 mt-0.5"><span class="frac"><span class="frac-num"><span class="math-font">π</span></span><span class="frac-den">4</span></span></div>
+                                </div>
+                                <div class="bg-slate-800/90 p-2 rounded-lg border border-orange-500/40">
+                                    <div class="text-[10px] text-orange-300">③ 発射方向 (<span class="math-font">β</span>+<span class="math-font">α</span>)</div>
+                                    <div id="game-total-angle" class="text-sm font-bold text-orange-400 mt-0.5"><span class="frac"><span class="frac-num">5<span class="math-font">π</span></span><span class="frac-den">12</span></span></div>
+                                </div>
+                            </div>
+                            <div class="flex justify-between text-[11px] font-bold pt-1.5 border-t border-slate-700/70">
+                                <span class="text-emerald-400">弾の横移動 x = <span id="game-dx">2.59</span></span>
+                                <span class="text-purple-400">弾の縦移動 y = <span id="game-dy">9.66</span></span>
+                            </div>
+                        </div>
+
+                        <!-- 撃破後に解放される「開発者からの相談（なぜ加法定理が必要？）」 -->
+                        <div id="dev-challenge-box" class="bg-amber-50 border-2 border-amber-300 rounded-xl p-3.5 mb-3 text-xs space-y-2.5 shadow-xs">
+                            <div class="flex items-center justify-between">
+                                <span class="font-bold text-amber-900 flex items-center gap-1.5">
+                                    <span>💬 ゲーム開発者からの相談（加法定理が必要な理由）</span>
+                                </span>
+                                <span id="dev-unlock-tag" class="px-2 py-0.5 bg-amber-200 text-amber-900 rounded-full text-[10px] font-bold">まずは1回 FIRE! しよう</span>
+                            </div>
+                            <p class="text-slate-700 leading-relaxed">
+                                実は実際のプログラムでは、キャラの向きが「角度」ではなく<strong>「今の横の進み具合(<span class="math-normal">cos</span><span class="math-font">β</span>)と縦の進み具合(<span class="math-normal">sin</span><span class="math-font">β</span>)の数字だけ」</strong>で管理されています。<br>
+                                では、<strong>「元の横・縦」に「回転分の横・縦」をそのまま足し算</strong>して撃ったら、的（👾）に当たるでしょうか？実験してみよう！
+                            </p>
+                            <div class="flex flex-wrap gap-2">
+                                <button onclick="fireGameBullet('naive')" class="flex-1 py-2 px-2.5 bg-rose-600 hover:bg-rose-700 active:scale-95 text-white font-bold rounded-lg shadow-xs transition flex items-center justify-center gap-1">
+                                    <span>🧪 ①そのまま足して撃つ</span>
+                                </button>
+                                <button onclick="fireGameBullet('decompose')" class="flex-1 py-2 px-2.5 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-bold rounded-lg shadow-xs transition flex items-center justify-center gap-1">
+                                    <span>✨ ②横と縦にバラして飛ばす！</span>
+                                </button>
+                            </div>
+                            <div id="naive-experiment-result" class="hidden bg-rose-100 border border-rose-300 text-rose-900 p-2.5 rounded-lg leading-relaxed">
+                                <strong>💥 ①の結果：的を大きく外れてしまった！</strong><br>
+                                横と縦をそのまま足すと距離10を飛び出して外れます。隣の<strong>「✨ ②横と縦にバラして飛ばす！」</strong>を押して、正しい飛び方を見てみよう！
+                            </div>
+                            <div id="decompose-experiment-result" class="hidden bg-indigo-100 border border-indigo-300 text-indigo-950 p-2.5 rounded-lg leading-relaxed">
+                                <strong>🎯 ②の発見：斜めを「真横(青)」と「真上(橙)」にバラして回すと命中！</strong><br>
+                                斜めのまま計算するのは難しいですが、<strong>得意な「真横(青)」と「真上(橙)」の2本に分けてそれぞれ <span class="math-font">α</span> 回転させてつなぐ</strong>と、ピッタリ的の座標に届きます！この2本の動きを式にしたものが<strong>「加法定理」</strong>です。
+                            </div>
+                        </div>
+
+                        <!-- ワークシートの「考える①・②」 -->
+                        <div class="space-y-2 mb-4">
+                            <details class="group bg-sky-50/70 border border-sky-200 rounded-xl p-3 text-xs">
+                                <summary class="font-bold text-sky-900 cursor-pointer list-none flex justify-between items-center">
+                                    <span>【まとめ】なぜ「角度を足す」だけではダメで、加法定理が必要なの？</span>
+                                    <span class="text-sky-500 group-open:rotate-180 transition-transform">▼</span>
+                                </summary>
+                                <div class="mt-2 text-slate-700 leading-relaxed border-t border-sky-200/70 pt-2 space-y-1">
+                                    <div>・<strong>角度を足す理由：</strong>弾の向きが「今の向き <span class="math-font">β</span> からさらに <span class="math-font">α</span> ずれた方向」だから。</div>
+                                    <div>・<strong>加法定理が必要な理由：</strong>画面上で弾を動かすには「横(x)・縦(y)」が必要だが、<strong>横・縦は単純な足し算では求められない</strong>ため、元の成分から回転後の成分を計算する式が必要になるから！</div>
+                                </div>
+                            </details>
+                        </div>
+
+                        <button onclick="switchTab(1)" class="w-full py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm rounded-xl shadow-sm transition flex items-center justify-center gap-2">
+                            <span>次へ：なぜ単純な足し算ではダメなのか詳しく見る</span>
+                            <span>→</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ==========================================
+                     TAB 1: 導入・必要性を生み出す (0〜12分)
+                     ========================================== -->
+                <div id="tab-content-1" class="tab-content hidden space-y-5">
+                    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 sm:p-6">
+                        <div class="inline-block px-2.5 py-1 bg-rose-100 text-rose-800 text-xs font-bold rounded-lg mb-2">
+                            STEP 1｜なぜ単純な足し算ではダメなのか？
+                        </div>
+                        <h2 class="text-lg sm:text-xl font-bold text-slate-800 mb-3">
+                            <span class="math-normal">sin</span><span class="frac"><span class="frac-num">5<span class="math-font">π</span></span><span class="frac-den">12</span></span> は <span class="math-normal">sin</span><span class="frac"><span class="frac-num"><span class="math-font">π</span></span><span class="frac-den">6</span></span> + <span class="math-normal">sin</span><span class="frac"><span class="frac-num"><span class="math-font">π</span></span><span class="frac-den">4</span></span> でよい？
+                        </h2>
+                        <p class="text-xs sm:text-sm text-slate-600 leading-relaxed mb-4">
+                            左の図で赤い破線（<span class="math-normal">sin</span><span class="frac"><span class="frac-num"><span class="math-font">π</span></span><span class="frac-den">6</span></span> + <span class="math-normal">sin</span><span class="frac"><span class="frac-num"><span class="math-font">π</span></span><span class="frac-den">4</span></span> ≈ <strong>1.207</strong>）を見てください。単位円の縦座標（高さ）である <span class="math-normal">sin</span> の値は <strong>1 を超えることができません！</strong>
+                        </p>
+                        <div class="bg-amber-50 border border-amber-200 rounded-xl p-3.5 text-xs text-amber-900 space-y-1.5 mb-4">
+                            <div class="font-bold">💡 ここに無理がある！</div>
+                            <p>角度を足すと点全体が回転するため、<strong>もともとの横の長さ（<span class="math-normal">cos</span>）も回転後は高さ（<span class="math-normal">sin</span>）に影響します</strong>。値をそのまま足すのではなく、回転後の横と縦の成分を求める必要があります。</p>
+                        </div>
+                        <button onclick="switchTab(2)" class="w-full py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm rounded-xl shadow-sm transition flex items-center justify-center gap-2">
+                            <span>次へ：2本の矢印を回して式をつくる</span>
+                            <span>→</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ==========================================
+                     TAB 2: 本質・成分の回転による導出 (12〜23分)
+                     ========================================== -->
+                <div id="tab-content-2" class="tab-content hidden space-y-4">
+                    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+                        <div class="inline-block px-2.5 py-1 bg-indigo-100 text-indigo-800 text-xs font-bold rounded-lg mb-2">
+                            STEP 2｜三角形の回転から成分の公式をつくる
+                        </div>
+                        <h2 class="text-lg font-bold text-slate-800 mb-3">
+                            2本の矢印を <span class="math-font">α</span> 回転させてみよう
+                        </h2>
+
+                        <!-- 6段階ステップ切替ボタン -->
+                        <div class="grid grid-cols-3 sm:grid-cols-6 gap-1.5 mb-4">
+                            <button onclick="setDerivationStep(0)" id="step-btn-0" class="step-btn py-2 px-1 rounded-xl text-[11px] font-bold border-2 border-indigo-600 bg-indigo-50 text-indigo-700 transition shadow-xs">
+                                ① 具体回転
+                            </button>
+                            <button onclick="setDerivationStep(1)" id="step-btn-1" class="step-btn py-2 px-1 rounded-xl text-[11px] font-bold border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 transition">
+                                ② 一般回転
+                            </button>
+                            <button onclick="setDerivationStep(2)" id="step-btn-2" class="step-btn py-2 px-1 rounded-xl text-[11px] font-bold border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 transition">
+                                ③ 青(x)回転
+                            </button>
+                            <button onclick="setDerivationStep(3)" id="step-btn-3" class="step-btn py-2 px-1 rounded-xl text-[11px] font-bold border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 transition">
+                                ④ 橙(y)回転
+                            </button>
+                            <button onclick="setDerivationStep(4)" id="step-btn-4" class="step-btn py-2 px-1 rounded-xl text-[11px] font-bold border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 transition">
+                                ⑤ 縦(sin)
+                            </button>
+                            <button onclick="setDerivationStep(5)" id="step-btn-5" class="step-btn py-2 px-1 rounded-xl text-[11px] font-bold border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 transition">
+                                ⑥ 横(cos)
+                            </button>
+                        </div>
+
+                        <!-- ステップ解説エリア -->
+                        <div id="step-explanation" class="bg-slate-50 rounded-xl p-4 border border-slate-200 flex flex-col justify-between">
+                            <!-- JSで動的に書き換え -->
+                        </div>
+
+                        <!-- 導出された公式カード -->
+                        <div class="mt-4 bg-slate-900 text-white rounded-xl p-4 shadow-inner">
+                            <div class="text-xs text-slate-400 font-semibold mb-2 flex justify-between">
+                                <span>三角関数の加法定理</span>
+                                <span class="text-amber-400">色と項の対応に注目！</span>
+                            </div>
+                            <div class="space-y-2.5 text-sm sm:text-base font-medium">
+                                <div class="p-2 rounded-lg bg-slate-800/80 border border-slate-700">
+                                    <span class="text-purple-400 font-bold"><span class="math-normal">sin</span>(<span class="math-font">α</span> + <span class="math-font">β</span>)</span> = 
+                                    <span class="text-blue-400 font-bold"><span class="math-normal">sin</span><span class="math-font">α</span> <span class="math-normal">cos</span><span class="math-font">β</span></span> + 
+                                    <span class="text-orange-400 font-bold"><span class="math-normal">cos</span><span class="math-font">α</span> <span class="math-normal">sin</span><span class="math-font">β</span></span>
+                                </div>
+                                <div class="p-2 rounded-lg bg-slate-800/80 border border-slate-700">
+                                    <span class="text-emerald-400 font-bold"><span class="math-normal">cos</span>(<span class="math-font">α</span> + <span class="math-font">β</span>)</span> = 
+                                    <span class="text-blue-400 font-bold"><span class="math-normal">cos</span><span class="math-font">α</span> <span class="math-normal">cos</span><span class="math-font">β</span></span> <span class="text-rose-400 font-extrabold text-lg">−</span> 
+                                    <span class="text-orange-400 font-bold"><span class="math-normal">sin</span><span class="math-font">α</span> <span class="math-normal">sin</span><span class="math-font">β</span></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- よくある疑問 Q&A アコーディオン -->
+                        <div class="mt-4 space-y-2">
+                            <details class="group bg-white border border-slate-200 rounded-xl p-3 text-xs">
+                                <summary class="font-bold text-slate-700 cursor-pointer list-none flex justify-between items-center">
+                                    <span>❓ なぜ「掛け算」になるの？</span>
+                                    <span class="text-slate-400 group-open:rotate-180 transition-transform">▼</span>
+                                </summary>
+                                <p class="mt-2 text-slate-600 leading-relaxed border-t border-slate-100 pt-2">
+                                    <span class="math-normal">sin</span><span class="math-font">α</span> は「長さ 1 の矢印を <span class="math-font">α</span> 傾けたときの縦の割合」です。元の矢印の長さが 1 ではなく <span class="text-blue-600 font-bold"><span class="math-normal">cos</span><span class="math-font">β</span></span> なので、実際の縦の長さはその <span class="text-blue-600 font-bold"><span class="math-normal">cos</span><span class="math-font">β</span> 倍</span>（掛け算）になります。
+                                </p>
+                            </details>
+                            <details class="group bg-white border border-slate-200 rounded-xl p-3 text-xs">
+                                <summary class="font-bold text-slate-700 cursor-pointer list-none flex justify-between items-center">
+                                    <span>❓ なぜ <span class="math-normal">cos</span>(<span class="math-font">α</span>+<span class="math-font">β</span>) には「マイナス」があるの？</span>
+                                    <span class="text-slate-400 group-open:rotate-180 transition-transform">▼</span>
+                                </summary>
+                                <p class="mt-2 text-slate-600 leading-relaxed border-t border-slate-100 pt-2">
+                                    もともと上向き（y軸正方向）だった<span class="text-orange-600 font-bold">橙色の矢印</span>を反時計回りに <span class="math-font">α</span> 回転させると、矢印の先端が<strong>y軸を通り越して「左側（x座標がマイナス）」へ倒れ込む</strong>ため、横成分が引き算になります！
+                                </p>
+                            </details>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ==========================================
+                     TAB 3: 実践・演習 (23〜37分)
+                     ========================================== -->
+                <div id="tab-content-3" class="tab-content hidden space-y-4">
+                    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+                        <div class="inline-block px-2.5 py-1 bg-emerald-100 text-emerald-800 text-xs font-bold rounded-lg mb-2">
+                            STEP 3｜既知の角から未知の角を求める
+                        </div>
+                        <h2 class="text-lg font-bold text-slate-800 mb-3">
+                            段階的演習チャレンジ
+                        </h2>
+
+                        <!-- 問題選択ボタン -->
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-1.5 mb-4">
+                            <button onclick="selectExercise(0)" id="ex-btn-0" class="ex-btn py-2 px-1.5 rounded-xl text-xs font-bold bg-emerald-600 text-white shadow-xs">
+                                例題: sin<span class="frac"><span class="frac-num">5</span><span class="frac-den">12</span></span>π
+                            </button>
+                            <button onclick="selectExercise(1)" id="ex-btn-1" class="ex-btn py-2 px-1.5 rounded-xl text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">
+                                基本: cos<span class="frac"><span class="frac-num">5</span><span class="frac-den">12</span></span>π
+                            </button>
+                            <button onclick="selectExercise(2)" id="ex-btn-2" class="ex-btn py-2 px-1.5 rounded-xl text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">
+                                応用: sin<span class="frac"><span class="frac-num">π</span><span class="frac-den">12</span></span>
+                            </button>
+                            <button onclick="selectExercise(3)" id="ex-btn-3" class="ex-btn py-2 px-1.5 rounded-xl text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">
+                                発展: 2倍角
+                            </button>
+                        </div>
+
+                        <!-- 演習カード本体 -->
+                        <div id="exercise-container" class="bg-slate-50 rounded-xl p-4 border border-slate-200 space-y-3">
+                            <!-- JSで描画 -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ==========================================
+                     TAB 4: 出口チケット・理解度チェック (37〜40分)
+                     ========================================== -->
+                <div id="tab-content-4" class="tab-content hidden space-y-4">
+                    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+                        <div class="inline-block px-2.5 py-1 bg-purple-100 text-purple-800 text-xs font-bold rounded-lg mb-2">
+                            STEP 4｜出口チケット (振り返り確認)
+                        </div>
+                        <h2 class="text-lg font-bold text-slate-800 mb-1">
+                            自分の言葉と図の理解で説明できるか？
+                        </h2>
+                        <p class="text-xs text-slate-500 mb-4">
+                            公式を丸暗記するだけでなく、図の意味と結びつけて確認しよう！
+                        </p>
+
+                        <div class="space-y-4" id="quiz-container">
+                            <!-- 自分の言葉でまとめるワーク（資料4の振り返り） -->
+                            <div class="bg-indigo-50/70 p-3.5 rounded-xl border border-indigo-200 space-y-2.5">
+                                <div class="text-xs font-bold text-indigo-900">✍️ 自分の言葉で整理しよう（導入ワークの振り返り）</div>
+                                <div>
+                                    <label class="block text-[11px] font-bold text-slate-700 mb-1">①「角度を足す」理由は？</label>
+                                    <input type="text" id="reflect-angle" placeholder="例：今の向きを基準に、さらに向きを変えるため" class="w-full px-2.5 py-1.5 text-xs bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-indigo-500">
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-bold text-slate-700 mb-1">②「加法定理を学ぶ」理由は？</label>
+                                    <input type="text" id="reflect-theorem" placeholder="例：回転前の横・縦と回転角から、回転後の横・縦を表すため" class="w-full px-2.5 py-1.5 text-xs bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-indigo-500">
+                                </div>
+                                <button onclick="showModelReflection()" class="text-[11px] font-bold text-indigo-700 hover:text-indigo-900 underline">
+                                    模範解答例と比べる
+                                </button>
+                                <div id="model-reflection-box" class="hidden bg-white p-2.5 rounded-lg border border-indigo-200 text-[11px] text-slate-700 space-y-1">
+                                    <div><strong>・角度を足す理由：</strong>「今の向きを基準に、さらに向きを変える」ため。</div>
+                                    <div><strong>・加法定理を学ぶ理由：</strong>「回転前の横・縦と回転角から、回転後の横・縦の成分を説明・計算する」ため。</div>
+                                </div>
+                            </div>
+
+                            <!-- Q1 -->
+                            <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+                                <p class="text-xs font-bold text-slate-800 mb-2">Q1. 加法定理は何のためにある？</p>
+                                <div class="space-y-1.5">
+                                    <label class="flex items-start gap-2 p-2 rounded-lg bg-white border border-slate-200 cursor-pointer hover:bg-indigo-50/50 text-xs">
+                                        <input type="radio" name="q1" value="a" class="mt-0.5">
+                                        <span><span class="frac"><span class="frac-num"><span class="math-font">π</span></span><span class="frac-den">6</span></span> や <span class="frac"><span class="frac-num"><span class="math-font">π</span></span><span class="frac-den">4</span></span> など、すでに知っている角度の三角比を組み合わせて、<span class="frac"><span class="frac-num">5</span><span class="frac-den">12</span></span><span class="math-font">π</span> や <span class="frac"><span class="frac-num"><span class="math-font">π</span></span><span class="frac-den">12</span></span> など未知の角度の値を求めるため。</span>
+                                    </label>
+                                    <label class="flex items-start gap-2 p-2 rounded-lg bg-white border border-slate-200 cursor-pointer hover:bg-indigo-50/50 text-xs">
+                                        <input type="radio" name="q1" value="b" class="mt-0.5">
+                                        <span>sin<span class="frac"><span class="frac-num"><span class="math-font">π</span></span><span class="frac-den">6</span></span> と sin<span class="frac"><span class="frac-num"><span class="math-font">π</span></span><span class="frac-den">4</span></span> をそのまま足し算して、1より大きい三角比を作るため。</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Q2 -->
+                            <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+                                <p class="text-xs font-bold text-slate-800 mb-2">Q2. <span class="math-normal">sin</span>(<span class="math-font">α</span> + <span class="math-font">β</span>) の右辺が2つの項の足し算になる理由は？</p>
+                                <div class="space-y-1.5">
+                                    <label class="flex items-start gap-2 p-2 rounded-lg bg-white border border-slate-200 cursor-pointer hover:bg-indigo-50/50 text-xs">
+                                        <input type="radio" name="q2" value="a" class="mt-0.5">
+                                        <span>回転前の「横成分(青)」と「縦成分(橙)」の両方が回転し、それぞれの矢印から新しい高さ（縦成分）が生まれるため。</span>
+                                    </label>
+                                    <label class="flex items-start gap-2 p-2 rounded-lg bg-white border border-slate-200 cursor-pointer hover:bg-indigo-50/50 text-xs">
+                                        <input type="radio" name="q2" value="b" class="mt-0.5">
+                                        <span>sin と cos を両方使わないと、分母が 0 になってしまうため。</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Q3 -->
+                            <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+                                <p class="text-xs font-bold text-slate-800 mb-2">Q3. <span class="math-normal">cos</span>(<span class="math-font">α</span> + <span class="math-font">β</span>) にマイナス（引き算）が出る理由は？</p>
+                                <div class="space-y-1.5">
+                                    <label class="flex items-start gap-2 p-2 rounded-lg bg-white border border-slate-200 cursor-pointer hover:bg-indigo-50/50 text-xs">
+                                        <input type="radio" name="q3" value="a" class="mt-0.5">
+                                        <span>もともと横向きだった青い矢印が、回転して真下（マイナス方向）を向くため。</span>
+                                    </label>
+                                    <label class="flex items-start gap-2 p-2 rounded-lg bg-white border border-slate-200 cursor-pointer hover:bg-indigo-50/50 text-xs">
+                                        <input type="radio" name="q3" value="b" class="mt-0.5">
+                                        <span>もともと上向きだった縦成分(橙)を反時計回りに回転させると、左側（x軸の負の方向）へ倒れるため。</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <button onclick="checkExitTicket()" class="w-full py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-bold text-sm rounded-xl shadow-sm transition">
+                                理解度を判定する
+                            </button>
+
+                            <div id="quiz-result" class="hidden p-4 rounded-xl text-xs leading-relaxed"></div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // ==========================================
+        // アプリケーション状態管理
+        // ==========================================
+        const state = {
+            currentTab: 0,          // 0:導入(ゲーム), 1:疑問, 2:本質, 3:演習, 4:確認
+            betaDeg: 30,            // 基準角 β (度) - 初期は π/6
+            alphaDeg: 30,           // 回転角 α (度) - 初期は π/6
+            derivationStep: 0,      // 0:具体回転, 1:一般回転, 2:青(x)回転, 3:橙(y)回転, 4:縦(sin), 5:横(cos)
+            currentExercise: 0,     // 0:sin75, 1:cos75, 2:sin15, 3:2倍角
+            previewRatio: 0,        // 三角形回転プレビュー進捗 (0.0 〜 1.0)
+            showUnitRef: true,      // ステップ③での「斜辺1の基準三角形」比較表示
+            bulletProgress: 0,      // ゲーム導入タブでの弾の位置 (0.0 〜 1.0) - 初期は未発射
+            shotMode: 'aim',        // 'aim' (通常の角度発射) | 'naive' (横・縦をそのまま足す実験)
+            targetTotalDeg: 75,     // 敵ターゲット（的）の角度 (度) - 初期は 5π/12 (75°)
+            gameScore: 0,           // ゲームスコア
+            hitEffect: 0,           // 命中エフェクト残量 (0.0 〜 1.0)
+            soundEnabled: true      // 効果音ON/OFF
+        };
+
+        let previewAnimId = null;
+        let bulletAnimId = null;
+        let audioCtx = null;
+        const svgEl = document.getElementById('unitCircleSvg');
+        const sliderBeta = document.getElementById('slider-beta');
+        const sliderAlpha = document.getElementById('slider-alpha');
+
+        // 度数から約分済みのラジアンHTML・SVGテキストへ変換するヘルパー
+        function gcd(a, b) {
+            a = Math.abs(a);
+            b = Math.abs(b);
+            while (b !== 0) {
+                const t = b;
+                b = a % b;
+                a = t;
+            }
+            return a;
+        }
+
+        function degToRadHtml(deg) {
+            if (deg === 0) return '0';
+            const sign = deg < 0 ? '−' : '';
+            const absDeg = Math.abs(deg);
+            const g = gcd(absDeg, 180);
+            const num = absDeg / g;
+            const den = 180 / g;
+            if (den === 1) {
+                return `${sign}${num === 1 ? '' : num}<span class="math-font">π</span>`;
+            }
+            const numStr = num === 1 ? '<span class="math-font">π</span>' : `${num}<span class="math-font">π</span>`;
+            return `${sign}<span class="frac"><span class="frac-num">${numStr}</span><span class="frac-den">${den}</span></span>`;
+        }
+
+        function degToRadSvg(deg) {
+            if (deg === 0) return '0';
+            const sign = deg < 0 ? '-' : '';
+            const absDeg = Math.abs(deg);
+            const g = gcd(absDeg, 180);
+            const num = absDeg / g;
+            const den = 180 / g;
+            if (den === 1) {
+                return `${sign}${num === 1 ? '' : num}π`;
+            }
+            return `${sign}${num === 1 ? '' : num}π/${den}`;
+        }
+
+        // ==========================================
+        // 初期化とイベントリスナー
+        // ==========================================
+        function initSimulator() {
+            updateUI();
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initSimulator);
+        } else {
+            initSimulator();
+        }
+
+        sliderBeta.addEventListener('input', (e) => {
+            state.betaDeg = parseInt(e.target.value, 10);
+            updateUI();
+        });
+
+        sliderAlpha.addEventListener('input', (e) => {
+            state.alphaDeg = parseInt(e.target.value, 10);
+            updateUI();
+        });
+
+        function setBeta(deg) {
+            state.betaDeg = deg;
+            sliderBeta.value = deg;
+            updateUI();
+        }
+
+        function setAlpha(deg) {
+            state.alphaDeg = deg;
+            sliderAlpha.value = deg;
+            updateUI();
+        }
+
+        // ==========================================
+        // タブ・ステップ切り替え制御
+        // ==========================================
+        function switchTab(tabNum) {
+            state.currentTab = tabNum;
+
+            // タブボタンのスタイル更新
+            document.querySelectorAll('.tab-btn').forEach((btn) => {
+                const isTarget = btn.id === `tab-btn-${tabNum}`;
+                if (isTarget) {
+                    btn.className = 'tab-btn px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-all whitespace-nowrap bg-white text-indigo-600 shadow-sm';
+                } else {
+                    btn.className = 'tab-btn px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-all whitespace-nowrap text-slate-600 hover:text-slate-900';
+                }
+            });
+
+            // コンテンツ表示切替
+            document.querySelectorAll('.tab-content').forEach((content) => {
+                if (content.id === `tab-content-${tabNum}`) {
+                    content.classList.remove('hidden');
+                } else {
+                    content.classList.add('hidden');
+                }
+            });
+
+            // タブに応じた最適な角度プリセットと表示ステップ設定
+            if (tabNum === 0) {
+                setBeta(30);
+                setAlpha(30);
+                state.targetTotalDeg = 75;
+                state.shotMode = 'aim';
+                state.bulletProgress = 0;
+                updateUI();
+            } else if (tabNum === 1) {
+                setBeta(30);
+                setAlpha(45);
+            } else if (tabNum === 2) {
+                if (state.derivationStep === 0) {
+                    setBeta(30);
+                    setAlpha(60);
+                }
+                setDerivationStep(state.derivationStep);
+            } else if (tabNum === 3) {
+                selectExercise(state.currentExercise);
+            }
+
+            drawDiagram();
+        }
+
+        // Web Audio API によるシンセ効果音
+        function playGameTone(type) {
+            if (!state.soundEnabled) return;
+            try {
+                if (!audioCtx) {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                const now = audioCtx.currentTime;
+
+                if (type === 'fire') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(520, now);
+                    osc.frequency.exponentialRampToValueAtTime(160, now + 0.16);
+                    gain.gain.setValueAtTime(0.18, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.16);
+                    osc.start(now);
+                    osc.stop(now + 0.17);
+                } else if (type === 'hit') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(587.33, now);       // D5
+                    osc.frequency.setValueAtTime(880, now + 0.08);   // A5
+                    gain.gain.setValueAtTime(0.22, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.28);
+                    osc.start(now);
+                    osc.stop(now + 0.29);
+                } else if (type === 'miss') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(180, now);
+                    osc.frequency.linearRampToValueAtTime(130, now + 0.15);
+                    gain.gain.setValueAtTime(0.1, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.16);
+                    osc.start(now);
+                    osc.stop(now + 0.17);
+                }
+            } catch (e) {
+                // 音声再生エラーは無視
+            }
+        }
+
+        function toggleGameSound() {
+            state.soundEnabled = !state.soundEnabled;
+            const btn = document.getElementById('btn-sound-toggle');
+            if (btn) btn.textContent = state.soundEnabled ? '🔊' : '🔇';
+        }
+
+        function spawnNextTarget() {
+            const targetCandidates = [30, 45, 60, 75, 90, 105, 120, 135, 150];
+            const filtered = targetCandidates.filter(d => d !== state.targetTotalDeg);
+            state.targetTotalDeg = filtered[Math.floor(Math.random() * filtered.length)];
+            state.hitEffect = 0;
+            state.bulletProgress = 0;
+            const badge = document.getElementById('game-status-badge');
+            if (badge) {
+                badge.innerHTML = `次の的：${degToRadHtml(state.targetTotalDeg)} を狙え！`;
+                badge.className = 'px-2 py-0.5 bg-sky-500/20 text-sky-300 border border-sky-500/40 rounded-full text-[10px] font-bold';
+            }
+            updateUI();
+        }
+
+        // ゲームキャラの弾発射アニメーション (Tab 0)
+        function fireGameBullet(mode = 'aim') {
+            if (bulletAnimId) {
+                cancelAnimationFrame(bulletAnimId);
+                bulletAnimId = null;
+            }
+            state.shotMode = mode;
+            playGameTone('fire');
+            state.bulletProgress = 0.05;
+            state.hitEffect = 0;
+
+            const unlockTag = document.getElementById('dev-unlock-tag');
+            if (unlockTag) {
+                unlockTag.textContent = '実験してみよう！';
+                unlockTag.className = 'px-2 py-0.5 bg-emerald-200 text-emerald-900 rounded-full text-[10px] font-bold';
+            }
+
+            const badge = document.getElementById('game-status-badge');
+            if (badge) {
+                if (mode === 'naive') {
+                    badge.textContent = '🧪 そのまま足し算で実験発射中...';
+                    badge.className = 'px-2 py-0.5 bg-rose-500/20 text-rose-300 border border-rose-500/40 rounded-full text-[10px] font-bold';
+                } else if (mode === 'decompose') {
+                    badge.textContent = '✨ 横(青)と縦(橙)にバラして回転発射中...';
+                    badge.className = 'px-2 py-0.5 bg-indigo-500/30 text-indigo-200 border border-indigo-400 rounded-full text-[10px] font-bold';
+                } else {
+                    badge.textContent = '🚀 発射中...';
+                    badge.className = 'px-2 py-0.5 bg-orange-500/20 text-orange-300 border border-orange-500/40 rounded-full text-[10px] font-bold';
+                }
+            }
+
+            let lastTime = performance.now();
+            function stepBullet(now) {
+                const dt = (now - lastTime) / 1000;
+                lastTime = now;
+                state.bulletProgress += dt * 1.6;
+                if (state.bulletProgress >= 1) {
+                    state.bulletProgress = 1;
+                    bulletAnimId = null;
+
+                    if (state.shotMode === 'naive') {
+                        playGameTone('miss');
+                        const expRes = document.getElementById('naive-experiment-result');
+                        if (expRes) expRes.classList.remove('hidden');
+                        if (badge) {
+                            badge.textContent = '❌ そのまま足すと外れた！';
+                            badge.className = 'px-2 py-0.5 bg-rose-500/30 text-rose-200 border border-rose-400 rounded-full text-[10px] font-bold';
+                        }
+                    } else {
+                        if (state.shotMode === 'decompose') {
+                            const decRes = document.getElementById('decompose-experiment-result');
+                            if (decRes) decRes.classList.remove('hidden');
+                        }
+                        const totalDeg = state.betaDeg + state.alphaDeg;
+                        const diff = Math.abs(((totalDeg - state.targetTotalDeg + 540) % 360) - 180);
+                        if (diff <= 5) {
+                            // ターゲット命中！
+                            playGameTone('hit');
+                            state.gameScore += 100;
+                            state.hitEffect = 1.0;
+                            const scoreEl = document.getElementById('game-score');
+                            if (scoreEl) scoreEl.textContent = state.gameScore;
+                            if (badge) {
+                                badge.textContent = '💥 HIT!! +100pt 命中！';
+                                badge.className = 'px-2 py-0.5 bg-emerald-500/30 text-emerald-300 border border-emerald-400 rounded-full text-[10px] font-bold';
+                            }
+                            setTimeout(() => {
+                                spawnNextTarget();
+                            }, 1300);
+                        } else {
+                            playGameTone('miss');
+                            if (badge) {
+                                badge.innerHTML = state.shotMode === 'decompose'
+                                    ? `✨ 2本の矢印で着弾！的(${degToRadHtml(state.targetTotalDeg)})へ向けよう`
+                                    : `惜しい！的は ${degToRadHtml(state.targetTotalDeg)} （角度を合わせよう）`;
+                                badge.className = 'px-2 py-0.5 bg-indigo-500/30 text-indigo-200 border border-indigo-400 rounded-full text-[10px] font-bold';
+                            }
+                        }
+                    }
+                }
+                drawDiagram();
+                if (bulletAnimId) {
+                    bulletAnimId = requestAnimationFrame(stepBullet);
+                }
+            }
+            bulletAnimId = requestAnimationFrame(stepBullet);
+        }
+
+        function showModelReflection() {
+            const box = document.getElementById('model-reflection-box');
+            if (box) box.classList.remove('hidden');
+        }
+
+        function toggleUnitRef(checked) {
+            state.showUnitRef = checked;
+            drawDiagram();
+        }
+
+        function setDerivationStep(step) {
+            if (previewAnimId) {
+                cancelAnimationFrame(previewAnimId);
+                previewAnimId = null;
+            }
+            if (step > 1) {
+                state.previewRatio = 0;
+            }
+            // ①具体回転を選んだときは常に π/6 (30°) と π/3 (60°) にセット
+            if (step === 0) {
+                state.betaDeg = 30;
+                state.alphaDeg = 60;
+                sliderBeta.value = 30;
+                sliderAlpha.value = 60;
+                document.getElementById('val-beta').innerHTML = degToRadHtml(30);
+                document.getElementById('val-alpha').innerHTML = degToRadHtml(60);
+                document.getElementById('disp-total-angle').innerHTML = degToRadHtml(90);
+                document.getElementById('disp-cos-val').textContent = '0.000';
+                document.getElementById('disp-sin-val').textContent = '1.000';
+            } else if (step === 1 && state.derivationStep === 0) {
+                // ①具体回転から②一般回転へ進んだときは、三角定規ではない任意の角度(β=5π/36, α=2π/9)に切り替え
+                state.betaDeg = 25;
+                state.alphaDeg = 40;
+                sliderBeta.value = 25;
+                sliderAlpha.value = 40;
+                const totalRad = (65 * Math.PI) / 180;
+                document.getElementById('val-beta').innerHTML = degToRadHtml(25);
+                document.getElementById('val-alpha').innerHTML = degToRadHtml(40);
+                document.getElementById('disp-total-angle').innerHTML = degToRadHtml(65);
+                document.getElementById('disp-cos-val').textContent = Math.cos(totalRad).toFixed(3);
+                document.getElementById('disp-sin-val').textContent = Math.sin(totalRad).toFixed(3);
+            }
+            state.derivationStep = step;
+
+            // ステップボタンの見た目更新
+            document.querySelectorAll('.step-btn').forEach((btn, idx) => {
+                if (idx === step) {
+                    btn.className = 'step-btn py-2 px-1 rounded-xl text-[11px] font-bold border-2 border-indigo-600 bg-indigo-50 text-indigo-700 transition shadow-xs';
+                } else {
+                    btn.className = 'step-btn py-2 px-1 rounded-xl text-[11px] font-bold border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 transition';
+                }
+            });
+
+            const maxRotDeg = Math.abs(state.alphaDeg);
+            const curRotDeg = Math.round(maxRotDeg * state.previewRatio);
+            const signedCurDeg = state.alphaDeg < 0 ? -curRotDeg : curRotDeg;
+
+            const expBox = document.getElementById('step-explanation');
+            const explanations = [
+                // ① 具体回転 (π/6 + π/3)
+                `<div>
+                    <div class="text-xs font-bold text-indigo-600 mb-1">ステップ ①｜まずはわかりやすい直角三角形を回そう！</div>
+                    <h3 class="text-sm font-bold text-slate-800 mb-1.5">おなじみの三角定規（${degToRadHtml(30)} と ${degToRadHtml(60)}）で体験</h3>
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        まずは計算しやすい <strong>${degToRadHtml(30)} の直角三角形</strong>を、さらに <strong>${degToRadHtml(state.alphaDeg)} 回転</strong>させてみましょう！<br>
+                        三角形の形を保ったまま回すと、合計 <strong>${degToRadHtml(state.betaDeg + state.alphaDeg)}</strong> の位置にピタッと着地します。
+                    </p>
+
+                    <div class="mt-2.5 bg-indigo-50/90 p-2.5 rounded-xl border border-indigo-200">
+                        <div class="flex items-center justify-between gap-2 mb-1.5">
+                            <span class="text-[11px] font-bold text-indigo-900">🔄 三角定規を回転（0 〜 ${degToRadHtml(state.alphaDeg)}）：</span>
+                            <button onclick="togglePreviewRotation()" id="btn-preview-rot" class="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] font-bold rounded-lg shadow-xs transition">
+                                ▶ 自動で回転させる
+                            </button>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-[10px] font-bold text-slate-500">0</span>
+                            <input type="range" id="slider-preview-rot" min="0" max="${maxRotDeg}" step="1" value="${curRotDeg}" oninput="setPreviewDeg(this.value)" class="flex-1">
+                            <span id="disp-preview-deg" class="text-[11px] font-bold text-indigo-700 min-w-[4.5rem] text-right">${degToRadHtml(signedCurDeg)} / ${degToRadHtml(state.alphaDeg)}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-3 pt-2 border-t border-slate-200 flex justify-end">
+                    <button onclick="setDerivationStep(1)" class="px-3 py-1.5 bg-indigo-600 text-white text-xs font-bold rounded-lg hover:bg-indigo-700 transition">次へ：どんな角度(α, β)でも同じ！ →</button>
+                </div>`,
+
+                // ② 一般の三角形の回転 (α, β)
+                `<div>
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="text-xs font-bold text-indigo-600">ステップ ②｜任意の角度（<span class="math-font">α, β</span>）の三角形に広げよう</span>
+                        <button onclick="setRandomGeneralAngles()" class="px-2 py-0.5 bg-indigo-100 hover:bg-indigo-200 text-indigo-800 text-[10px] font-bold rounded transition">🎲 別の角度で試す</button>
+                    </div>
+                    <h3 class="text-sm font-bold text-slate-800 mb-1.5">どんな角 <span class="math-font">β</span>（今なら${degToRadHtml(state.betaDeg)}）も、丸ごと <span class="math-font">α</span>（${degToRadHtml(state.alphaDeg)}）回転！</h3>
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        ${degToRadHtml(30)} や ${degToRadHtml(60)} の三角定規だけでなく、<strong>${degToRadHtml(state.betaDeg)} や ${degToRadHtml(state.alphaDeg)} のような一般の角</strong>でもまったく同じです！<br>
+                        <strong>「横の辺（青：<span class="math-normal">cos</span><span class="math-font">β</span>）」と「縦の辺（橙：<span class="math-normal">sin</span><span class="math-font">β</span>）」が直角を保ったまま一緒に <span class="math-font">α</span> 回転する</strong>ので、このあと<strong>青（x）と橙（y）を別々に動かして計算</strong>すればよいのです！
+                    </p>
+
+                    <div class="mt-2.5 bg-slate-100 p-2.5 rounded-xl border border-slate-200">
+                        <div class="flex items-center justify-between gap-2 mb-1.5">
+                            <span class="text-[11px] font-bold text-slate-800">🔄 任意の三角形を回転（0 〜 ${degToRadHtml(state.alphaDeg)}）：</span>
+                            <button onclick="togglePreviewRotation()" id="btn-preview-rot" class="px-2.5 py-1 bg-slate-700 hover:bg-slate-800 text-white text-[11px] font-bold rounded-lg shadow-xs transition">
+                                ▶ 自動で回転させる
+                            </button>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-[10px] font-bold text-slate-500">0</span>
+                            <input type="range" id="slider-preview-rot" min="0" max="${maxRotDeg}" step="1" value="${curRotDeg}" oninput="setPreviewDeg(this.value)" class="flex-1">
+                            <span id="disp-preview-deg" class="text-[11px] font-bold text-indigo-700 min-w-[4.5rem] text-right">${degToRadHtml(signedCurDeg)} / ${degToRadHtml(state.alphaDeg)}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-3 pt-2 border-t border-slate-200 flex justify-between">
+                    <button onclick="setDerivationStep(0)" class="px-2.5 py-1 text-slate-500 text-xs font-bold hover:text-slate-800">← 戻る</button>
+                    <button onclick="setDerivationStep(2)" class="px-3 py-1.5 bg-blue-600 text-white text-xs font-bold rounded-lg hover:bg-blue-700 transition">次へ：横の辺(青)だけを動かす →</button>
+                </div>`,
+
+                // ③ 青(x)を回す
+                `<div>
+                    <div class="text-xs font-bold text-blue-600 mb-1">ステップ ③｜横の辺（青：<span class="math-normal">cos</span><span class="math-font">β</span>）だけを <span class="math-font">α</span> 動かす</div>
+                    <h3 class="text-sm font-bold text-slate-800 mb-1.5">「斜辺 1 の三角形」を <span class="text-blue-600"><span class="math-normal">cos</span><span class="math-font">β</span> 倍</span> に縮小コピー！</h3>
+                    <div class="text-xs text-slate-600 leading-relaxed space-y-1.5">
+                        <p>グレーの点線（斜辺 1）と青い三角形（斜辺 <span class="math-normal">cos</span><span class="math-font">β</span>）は<strong>相似な直角三角形</strong>です。<br>
+                        斜辺が <span class="text-blue-600 font-bold"><span class="math-normal">cos</span><span class="math-font">β</span> 倍</span>（今なら約 <strong>${Math.cos((state.betaDeg * Math.PI) / 180).toFixed(2)} 倍</strong>）なので、横も縦もすべて同じ倍率になります！</p>
+                        
+                        <label class="flex items-center gap-2 bg-slate-100 hover:bg-slate-200/70 px-2.5 py-1.5 rounded-lg cursor-pointer transition select-none">
+                            <input type="checkbox" ${state.showUnitRef ? 'checked' : ''} onchange="toggleUnitRef(this.checked)" class="rounded text-indigo-600">
+                            <span class="text-[11px] font-bold text-slate-700">左図に「斜辺 1 の基準三角形（点線）」を重ねて比較する</span>
+                        </label>
+
+                        <div class="bg-white p-2 rounded-lg border border-blue-100 space-y-1">
+                            <div>・<span class="text-emerald-700 font-bold">横の長さ</span> = <span class="text-slate-400 text-[11px]">(基準 <span class="math-normal">cos</span><span class="math-font">α</span>) × <span class="math-normal">cos</span><span class="math-font">β</span> =</span> <span class="text-blue-600 font-bold"><span class="math-normal">cos</span><span class="math-font">β</span> · <span class="math-normal">cos</span><span class="math-font">α</span></span></div>
+                            <div>・<span class="text-purple-700 font-bold">縦の高さ</span> = <span class="text-slate-400 text-[11px]">(基準 <span class="math-normal">sin</span><span class="math-font">α</span>) × <span class="math-normal">cos</span><span class="math-font">β</span> =</span> <span class="text-blue-600 font-bold"><span class="math-normal">cos</span><span class="math-font">β</span> · <span class="math-normal">sin</span><span class="math-font">α</span></span></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-3 pt-2 border-t border-slate-200 flex justify-between">
+                    <button onclick="setDerivationStep(1)" class="px-2.5 py-1 text-slate-500 text-xs font-bold hover:text-slate-800">← 戻る</button>
+                    <button onclick="setDerivationStep(3)" class="px-3 py-1.5 bg-orange-600 text-white text-xs font-bold rounded-lg hover:bg-orange-700 transition">次へ：縦の辺(橙)を動かす →</button>
+                </div>`,
+
+                // ④ 橙(y)を回す
+                `<div>
+                    <div class="text-xs font-bold text-orange-600 mb-1">ステップ ④｜縦の辺（橙：<span class="math-normal">sin</span><span class="math-font">β</span>）を <span class="math-font">α</span> 動かす</div>
+                    <h3 class="text-sm font-bold text-slate-800 mb-2">真上（垂直点線）から左へ <span class="math-font">α</span> だけ傾く！</h3>
+                    <div class="text-xs text-slate-600 leading-relaxed space-y-1.5">
+                        <p>橙色の辺（長さ <span class="text-orange-600 font-bold"><span class="math-normal">sin</span><span class="math-font">β</span></span>）は、もともと<strong>真上</strong>を向いていました。<br>
+                        そこから反時計回りに <span class="math-font">α</span> 傾くので、図のように<strong>左側へ倒れ込みます</strong>！</p>
+                        <div class="bg-white p-2 rounded-lg border border-orange-100 space-y-1">
+                            <div>・<span class="text-rose-600 font-bold">横のずれ</span> = <span class="text-rose-600 font-bold">− <span class="math-normal">sin</span><span class="math-font">β</span> · <span class="math-normal">sin</span><span class="math-font">α</span></span> <span class="text-[11px] text-rose-600">(左向きだからマイナス！)</span></div>
+                            <div>・<span class="text-purple-700 font-bold">縦の高さ</span> = <span class="text-orange-600 font-bold"><span class="math-normal">sin</span><span class="math-font">β</span> · <span class="math-normal">cos</span><span class="math-font">α</span></span> <span class="text-[11px] text-slate-500">(垂直線と角度αをはさむ辺)</span></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-3 pt-2 border-t border-slate-200 flex justify-between">
+                    <button onclick="setDerivationStep(2)" class="px-2.5 py-1 text-slate-500 text-xs font-bold hover:text-slate-800">← 戻る</button>
+                    <button onclick="setDerivationStep(4)" class="px-3 py-1.5 bg-purple-600 text-white text-xs font-bold rounded-lg hover:bg-purple-700 transition">次へ：縦(sin)を合体！ →</button>
+                </div>`,
+
+                // ⑤ 縦成分の合体 (sin)
+                `<div>
+                    <div class="text-xs font-bold text-purple-600 mb-1">ステップ ⑤｜高さを合体して <span class="math-normal">sin</span>(<span class="math-font">α</span>+<span class="math-font">β</span>) をつくる</div>
+                    <h3 class="text-sm font-bold text-slate-800 mb-2">2つの辺の「縦の高さ」を足し算！</h3>
+                    <div class="text-xs text-slate-600 leading-relaxed space-y-1.5">
+                        <p>左図の<strong>紫色の縦棒</strong>を見てください。全体の高さは、2つの高さの合計です：</p>
+                        <div class="bg-purple-50 p-2.5 rounded-lg border border-purple-200 text-slate-800 font-medium">
+                            全体の高さ <span class="text-purple-700 font-bold"><span class="math-normal">sin</span>(<span class="math-font">α</span>+<span class="math-font">β</span>)</span><br>
+                            ＝ <span class="text-blue-600 font-bold">(青の高さ)</span> ＋ <span class="text-orange-600 font-bold">(橙の高さ)</span><br>
+                            ＝ <span class="text-blue-600 font-bold"><span class="math-normal">sin</span><span class="math-font">α</span><span class="math-normal">cos</span><span class="math-font">β</span></span> ＋ <span class="text-orange-600 font-bold"><span class="math-normal">cos</span><span class="math-font">α</span><span class="math-normal">sin</span><span class="math-font">β</span></span>
+                        </div>
+                        <p class="text-[11px] text-slate-500">※だから <span class="math-normal">sin</span> の加法定理は「2つの項の足し算」になります！</p>
+                    </div>
+                </div>
+                <div class="mt-3 pt-2 border-t border-slate-200 flex justify-between">
+                    <button onclick="setDerivationStep(3)" class="px-2.5 py-1 text-slate-500 text-xs font-bold hover:text-slate-800">← 戻る</button>
+                    <button onclick="setDerivationStep(5)" class="px-3 py-1.5 bg-emerald-600 text-white text-xs font-bold rounded-lg hover:bg-emerald-700 transition">次へ：横(cos)を合体！ →</button>
+                </div>`,
+
+                // ⑥ 横成分の合体 (cos)
+                `<div>
+                    <div class="text-xs font-bold text-emerald-600 mb-1">ステップ ⑥｜横幅を合体して <span class="math-normal">cos</span>(<span class="math-font">α</span>+<span class="math-font">β</span>) をつくる</div>
+                    <h3 class="text-sm font-bold text-slate-800 mb-2">青の横幅から、橙の「左ずれ」を引き算！</h3>
+                    <div class="text-xs text-slate-600 leading-relaxed space-y-1.5">
+                        <p>左図の<strong>緑色の横棒</strong>を見てください。右に進んだ後、左へ少し戻っています：</p>
+                        <div class="bg-emerald-50 p-2.5 rounded-lg border border-emerald-200 text-slate-800 font-medium">
+                            全体の横位置 <span class="text-emerald-700 font-bold"><span class="math-normal">cos</span>(<span class="math-font">α</span>+<span class="math-font">β</span>)</span><br>
+                            ＝ <span class="text-blue-600 font-bold">(青の右進み)</span> <span class="text-rose-600 font-bold">−</span> <span class="text-orange-600 font-bold">(橙の左戻り)</span><br>
+                            ＝ <span class="text-blue-600 font-bold"><span class="math-normal">cos</span><span class="math-font">α</span><span class="math-normal">cos</span><span class="math-font">β</span></span> <span class="text-rose-600 font-bold">−</span> <span class="text-orange-600 font-bold"><span class="math-normal">sin</span><span class="math-font">α</span><span class="math-normal">sin</span><span class="math-font">β</span></span>
+                        </div>
+                        <p class="text-[11px] text-slate-500">※スライダーで α や β を変えて、2本の矢印の動きを観察しよう！</p>
+                    </div>
+                </div>
+                <div class="mt-3 pt-2 border-t border-slate-200 flex justify-between">
+                    <button onclick="setDerivationStep(4)" class="px-2.5 py-1 text-slate-500 text-xs font-bold hover:text-slate-800">← 戻る</button>
+                    <button onclick="switchTab(3)" class="px-3 py-1.5 bg-emerald-600 text-white text-xs font-bold rounded-lg hover:bg-emerald-700 transition">演習問題に挑戦する →</button>
+                </div>`
+            ];
+
+            expBox.innerHTML = explanations[step];
+            drawDiagram();
+        }
+
+        // ステップ①・②での三角形一体回転プレビュー操作
+        function setRandomGeneralAngles() {
+            const betaCandidates = [20, 25, 35, 40, 50, 55, 65, 70];
+            const alphaCandidates = [25, 35, 40, 50, 55, 70];
+            let newBeta = betaCandidates[Math.floor(Math.random() * betaCandidates.length)];
+            let newAlpha = alphaCandidates[Math.floor(Math.random() * alphaCandidates.length)];
+            if (newBeta === state.betaDeg) newBeta = (newBeta + 15) % 75 + 15;
+            state.betaDeg = newBeta;
+            state.alphaDeg = newAlpha;
+            sliderBeta.value = newBeta;
+            sliderAlpha.value = newAlpha;
+            updateUI();
+        }
+
+        function setPreviewDeg(degVal) {
+            const maxRot = Math.abs(state.alphaDeg);
+            const deg = parseFloat(degVal);
+            state.previewRatio = maxRot > 0 ? Math.min(1, Math.max(0, deg / maxRot)) : 0;
+            const degLabel = document.getElementById('disp-preview-deg');
+            if (degLabel) {
+                const signedDeg = state.alphaDeg < 0 ? -Math.round(deg) : Math.round(deg);
+                degLabel.innerHTML = `${degToRadHtml(signedDeg)} / ${degToRadHtml(state.alphaDeg)}`;
+            }
+            drawDiagram();
+        }
+
+        function togglePreviewRotation() {
+            if (previewAnimId) {
+                cancelAnimationFrame(previewAnimId);
+                previewAnimId = null;
+                const btn = document.getElementById('btn-preview-rot');
+                if (btn) btn.textContent = '▶ 自動で回転させる';
+                return;
+            }
+            const btn = document.getElementById('btn-preview-rot');
+            if (btn) btn.textContent = '⏸ ストップ';
+
+            if (state.previewRatio >= 0.99) {
+                state.previewRatio = 0;
+            }
+
+            let lastTime = performance.now();
+            function animate(now) {
+                const dt = (now - lastTime) / 1000;
+                lastTime = now;
+                state.previewRatio += dt * 0.45; // 約2.2秒でα度まで回転
+                if (state.previewRatio >= 1) {
+                    state.previewRatio = 1;
+                    previewAnimId = null;
+                    if (btn) btn.textContent = '↺ もう一度回す';
+                }
+                const maxRot = Math.abs(state.alphaDeg);
+                const curDeg = maxRot * state.previewRatio;
+                const slider = document.getElementById('slider-preview-rot');
+                if (slider) slider.value = Math.round(curDeg);
+                setPreviewDeg(curDeg);
+
+                if (previewAnimId) {
+                    previewAnimId = requestAnimationFrame(animate);
+                }
+            }
+            previewAnimId = requestAnimationFrame(animate);
+        }
+
+        // ==========================================
+        // 演習問題コンテンツ (Tab 3)
+        // ==========================================
+        // 正式な分数・ルートHTMLを生成するヘルパー
+        const f = (num, den) => `<span class="frac"><span class="frac-num">${num}</span><span class="frac-den">${den}</span></span>`;
+        const r = (val) => `<span class="sqrt"><span class="sqrt-sign">√</span><span class="sqrt-body">${val}</span></span>`;
+
+        const exercises = [
+            {
+                title: `例題：sin ${f('5<span class="math-font">π</span>', 12)} を求める`,
+                beta: 30,
+                alpha: 45,
+                desc: `${f('5<span class="math-font">π</span>', 12)} = ${f('<span class="math-font">π</span>', 4)} + ${f('<span class="math-font">π</span>', 6)} として加法定理にあてはめます。`,
+                formula: `sin(${f('<span class="math-font">π</span>', 4)} + ${f('<span class="math-font">π</span>', 6)}) = sin${f('<span class="math-font">π</span>', 4)}cos${f('<span class="math-font">π</span>', 6)} + cos${f('<span class="math-font">π</span>', 4)}sin${f('<span class="math-font">π</span>', 6)}`,
+                steps: [
+                    `青の矢印由来の高さ： sin${f('<span class="math-font">π</span>', 4)}cos${f('<span class="math-font">π</span>', 6)} = ${f(r(2), 2)} × ${f(r(3), 2)} = ${f(r(6), 4)}`,
+                    `橙の矢印由来の高さ： cos${f('<span class="math-font">π</span>', 4)}sin${f('<span class="math-font">π</span>', 6)} = ${f(r(2), 2)} × ${f(1, 2)} = ${f(r(2), 4)}`,
+                    `合計： ${f(`${r(6)} + ${r(2)}`, 4)}　(≈ 0.966)`
+                ],
+                point: "1より小さい正しい値になりました！2つの成分の高さが足されています。"
+            },
+            {
+                title: `基本：cos ${f('5<span class="math-font">π</span>', 12)} を求める`,
+                beta: 30,
+                alpha: 45,
+                desc: `cos(${f('<span class="math-font">π</span>', 4)} + ${f('<span class="math-font">π</span>', 6)}) を計算します。マイナスの符号に注目！`,
+                formula: `cos(${f('<span class="math-font">π</span>', 4)} + ${f('<span class="math-font">π</span>', 6)}) = cos${f('<span class="math-font">π</span>', 4)}cos${f('<span class="math-font">π</span>', 6)} − sin${f('<span class="math-font">π</span>', 4)}sin${f('<span class="math-font">π</span>', 6)}`,
+                steps: [
+                    `青の矢印由来の横位置： cos${f('<span class="math-font">π</span>', 4)}cos${f('<span class="math-font">π</span>', 6)} = ${f(r(2), 2)} × ${f(r(3), 2)} = ${f(r(6), 4)}`,
+                    `橙の矢印由来の左ずれ： − sin${f('<span class="math-font">π</span>', 4)}sin${f('<span class="math-font">π</span>', 6)} = − ${f(r(2), 2)} × ${f(1, 2)} = − ${f(r(2), 4)}`,
+                    `合計： ${f(`${r(6)} − ${r(2)}`, 4)}　(≈ 0.259)`
+                ],
+                point: "左図の緑色の線（横位置）が、青い矢印の横幅から橙色の矢印の左ずれ分だけ短くなっていることを確認しよう！"
+            },
+            {
+                title: `応用：sin ${f('<span class="math-font">π</span>', 12)} を求める（差の公式）`,
+                beta: 45,
+                alpha: -30,
+                desc: `${f('<span class="math-font">π</span>', 12)} = ${f('<span class="math-font">π</span>', 4)} + (−${f('<span class="math-font">π</span>', 6)}) と考えます。sin(−${f('<span class="math-font">π</span>', 6)})=−sin${f('<span class="math-font">π</span>', 6)}、cos(−${f('<span class="math-font">π</span>', 6)})=cos${f('<span class="math-font">π</span>', 6)} を使うと差の公式になります。`,
+                formula: `sin(${f('<span class="math-font">π</span>', 4)} − ${f('<span class="math-font">π</span>', 6)}) = sin${f('<span class="math-font">π</span>', 4)}cos${f('<span class="math-font">π</span>', 6)} − cos${f('<span class="math-font">π</span>', 4)}sin${f('<span class="math-font">π</span>', 6)}`,
+                steps: [
+                    `代入： ${f(r(2), 2)} × ${f(r(3), 2)} − ${f(r(2), 2)} × ${f(1, 2)}`,
+                    `計算： ${f(r(6), 4)} − ${f(r(2), 4)}`,
+                    `答え： ${f(`${r(6)} − ${r(2)}`, 4)}　(≈ 0.259)`
+                ],
+                point: `なんと cos${f('5<span class="math-font">π</span>', 12)} と全く同じ値になります！（${f('5<span class="math-font">π</span>', 12)} + ${f('<span class="math-font">π</span>', 12)} = ${f('<span class="math-font">π</span>', 2)} の関係だからです）`
+            },
+            {
+                title: "発展：2倍角の公式を導く",
+                beta: 30,
+                alpha: 30,
+                desc: "α = θ、β = θ として同じ角度を2回足すと「2倍角の公式」が自然に導けます！",
+                formula: "sin(θ + θ) = sinθcosθ + cosθsinθ = 2sinθcosθ",
+                steps: [
+                    "sin2θ = 2sinθcosθ　（同じ高さの項が2つ分！）",
+                    "cos2θ = cos(θ + θ) = cosθcosθ − sinθsinθ = cos²θ − sin²θ",
+                    `例（θ=${f('<span class="math-font">π</span>', 6)} のとき）： sin${f('<span class="math-font">π</span>', 3)} = 2 × ${f(1, 2)} × ${f(r(3), 2)} = ${f(r(3), 2)}`
+                ],
+                point: "公式を忘れても、加法定理の α と β に同じ角を入れるだけですぐに作れます！"
+            }
+        ];
+
+        function selectExercise(idx) {
+            state.currentExercise = idx;
+            const ex = exercises[idx];
+
+            // ボタンハイライト
+            document.querySelectorAll('.ex-btn').forEach((btn, i) => {
+                if (i === idx) {
+                    btn.className = 'ex-btn py-2 px-1.5 rounded-xl text-xs font-bold bg-emerald-600 text-white shadow-xs';
+                } else {
+                    btn.className = 'ex-btn py-2 px-1.5 rounded-xl text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200';
+                }
+            });
+
+            // キャンバスの角度を連動
+            setBeta(ex.beta);
+            setAlpha(ex.alpha);
+            state.derivationStep = 5; // 完成図を表示
+
+            const container = document.getElementById('exercise-container');
+            container.innerHTML = `
+                <div class="flex justify-between items-center">
+                    <h3 class="text-sm font-bold text-slate-800">${ex.title}</h3>
+                    <span class="text-xs font-bold px-2 py-0.5 bg-indigo-100 text-indigo-700 rounded">β=${degToRadHtml(ex.beta)}, α=${degToRadHtml(ex.alpha)}</span>
+                </div>
+                <p class="text-xs text-slate-600">${ex.desc}</p>
+                <div class="bg-white p-3 rounded-lg border border-slate-200 font-bold text-xs sm:text-sm text-indigo-700 text-center">
+                    ${ex.formula}
+                </div>
+                <div id="ex-answer-box" class="hidden space-y-2 pt-2 border-t border-slate-200">
+                    <div class="space-y-2 text-xs sm:text-sm text-slate-700 bg-white p-3 rounded-lg border border-emerald-200">
+                        ${ex.steps.map(s => `<div class="flex items-center flex-wrap gap-1"><span>•</span> <span>${s}</span></div>`).join('')}
+                    </div>
+                    <div class="text-xs text-emerald-800 bg-emerald-50 p-2.5 rounded-lg border border-emerald-200">
+                        <strong>💡 ポイント：</strong>${ex.point}
+                    </div>
+                </div>
+                <button onclick="document.getElementById('ex-answer-box').classList.remove('hidden'); this.classList.add('hidden');" class="w-full py-2 bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold rounded-lg transition">
+                    計算過程と答えを見る
+                </button>
+            `;
+        }
+
+        // ==========================================
+        // 出口チケット判定 (Tab 4)
+        // ==========================================
+        function checkExitTicket() {
+            const q1 = document.querySelector('input[name="q1"]:checked')?.value;
+            const q2 = document.querySelector('input[name="q2"]:checked')?.value;
+            const q3 = document.querySelector('input[name="q3"]:checked')?.value;
+            const resBox = document.getElementById('quiz-result');
+
+            if (!q1 || !q2 || !q3) {
+                resBox.className = 'p-4 rounded-xl text-xs bg-amber-50 border border-amber-200 text-amber-800 block';
+                resBox.innerHTML = '⚠️ 3つすべての質問に選択してから判定ボタンを押してください。';
+                return;
+            }
+
+            let score = 0;
+            if (q1 === 'a') score++;
+            if (q2 === 'a') score++;
+            if (q3 === 'b') score++;
+
+            resBox.classList.remove('hidden');
+            if (score === 3) {
+                resBox.className = 'p-4 rounded-xl text-xs bg-emerald-50 border border-emerald-200 text-emerald-900 block';
+                resBox.innerHTML = `
+                    <div class="font-bold text-sm text-emerald-700 mb-1">🎉 評価 A：完璧な理解です！（3 / 3 正解）</div>
+                    <p>加法定理の「必要性」「2つの成分からの構成」「マイナスの符号の理由」をすべて図のイメージと結びつけて理解できています！次の単元（tanの加法定理など）へ自信を持って進みましょう。</p>
+                `;
+            } else {
+                resBox.className = 'p-4 rounded-xl text-xs bg-indigo-50 border border-indigo-200 text-indigo-900 block';
+                resBox.innerHTML = `
+                    <div class="font-bold text-sm text-indigo-700 mb-1">📝 評価 B：あと少し！（${score} / 3 正解）</div>
+                    <p class="mb-2">不正解の項目は、上の「2. 本質 (成分の回転)」タブに戻って、青い矢印と橙色の矢印の動きをもう一度確認してみましょう。</p>
+                    <ul class="list-disc pl-4 space-y-1 text-slate-700">
+                        <li>Q1の正解：既知の角から未知の角を求めるため</li>
+                        <li>Q2の正解：元の横成分(青)と縦成分(橙)の両方から高さが生まれるため</li>
+                        <li>Q3の正解：縦成分(橙)を反時計回りに回すと左側（負の方向）へ倒れるため</li>
+                    </ul>
+                `;
+            }
+        }
+
+        // ==========================================
+        // UI数値更新 & SVG描画
+        // ==========================================
+        function updateUI() {
+            const totalDeg = state.betaDeg + state.alphaDeg;
+            const totalRad = (totalDeg * Math.PI) / 180;
+
+            document.getElementById('val-beta').innerHTML = degToRadHtml(state.betaDeg);
+            document.getElementById('val-alpha').innerHTML = degToRadHtml(state.alphaDeg);
+            document.getElementById('disp-total-angle').innerHTML = degToRadHtml(totalDeg);
+            document.getElementById('disp-cos-val').textContent = Math.cos(totalRad).toFixed(3);
+            document.getElementById('disp-sin-val').textContent = Math.sin(totalRad).toFixed(3);
+
+            // Tab 0 (ゲーム導入) の数値モニター更新
+            const gameCharEl = document.getElementById('game-char-angle');
+            const gameBulletEl = document.getElementById('game-bullet-angle');
+            const gameTotalEl = document.getElementById('game-total-angle');
+            const gameDxEl = document.getElementById('game-dx');
+            const gameDyEl = document.getElementById('game-dy');
+            if (gameCharEl && gameBulletEl && gameTotalEl && gameDxEl && gameDyEl) {
+                const betaRad = (state.betaDeg * Math.PI) / 180;
+                const alphaRad = (state.alphaDeg * Math.PI) / 180;
+                gameCharEl.innerHTML = degToRadHtml(state.betaDeg);
+                gameBulletEl.innerHTML = degToRadHtml(state.alphaDeg);
+                gameTotalEl.innerHTML = degToRadHtml(totalDeg);
+
+                if (state.shotMode === 'naive') {
+                    gameDxEl.textContent = (10 * (Math.cos(betaRad) + Math.cos(alphaRad))).toFixed(2);
+                    gameDyEl.textContent = (10 * (Math.sin(betaRad) + Math.sin(alphaRad))).toFixed(2);
+                } else {
+                    gameDxEl.textContent = (10 * Math.cos(totalRad)).toFixed(2);
+                    gameDyEl.textContent = (10 * Math.sin(totalRad)).toFixed(2);
+                }
+            }
+
+            // Tab 2 で現在ステップ①または②を開いている場合はラベル類も同期更新
+            if (state.currentTab === 2 && (state.derivationStep === 0 || state.derivationStep === 1)) {
+                setDerivationStep(state.derivationStep);
+                return;
+            }
+
+            drawDiagram();
+        }
+
+        // SVG描画ヘルパー群
+        function createSvgMathBadge(x, y, htmlContent, color = '#1e293b', align = 'center', bg = 'rgba(255,255,255,0.92)', border = '#cbd5e1') {
+            const w = 185;
+            const h = 34;
+            let fx = x - w / 2;
+            let justify = 'center';
+            if (align === 'left') {
+                fx = x;
+                justify = 'flex-start';
+            } else if (align === 'right') {
+                fx = x - w;
+                justify = 'flex-end';
+            }
+            const fy = y - h / 2;
+            return `
+                <foreignObject x="${fx}" y="${fy}" width="${w}" height="${h}" style="overflow: visible; pointer-events: none;">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex; align-items:center; justify-content:${justify}; width:100%; height:100%;">
+                        <span style="background:${bg}; border:1px solid ${border}; color:${color}; border-radius:8px; padding:2px 6px; font-size:11px; font-weight:700; white-space:nowrap; box-shadow:0 1px 2px rgba(0,0,0,0.06); line-height:1.15;">
+                            ${htmlContent}
+                        </span>
+                    </div>
+                </foreignObject>
+            `;
+        }
+
+        function createSvgArrow(x1, y1, x2, y2, color, width = 3, dashed = false) {
+            const dx = x2 - x1;
+            const dy = y2 - y1;
+            const len = Math.hypot(dx, dy);
+            if (len < 3) return '';
+            const angle = Math.atan2(dy, dx);
+            const headLen = Math.min(11, len * 0.35);
+            const p1x = x2 - headLen * Math.cos(angle - Math.PI / 6);
+            const p1y = y2 - headLen * Math.sin(angle - Math.PI / 6);
+            const p2x = x2 - headLen * Math.cos(angle + Math.PI / 6);
+            const p2y = y2 - headLen * Math.sin(angle + Math.PI / 6);
+            const dashAttr = dashed ? 'stroke-dasharray="5,4"' : '';
+            return `
+                <line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${color}" stroke-width="${width}" stroke-linecap="round" ${dashAttr} />
+                <polygon points="${x2},${y2} ${p1x},${p1y} ${p2x},${p2y}" fill="${color}" />
+            `;
+        }
+
+        function createSvgAngleArc(cx, cy, r, startRad, endRad, fill, labelHtml = '', labelRadiusOffset = 22) {
+            if (Math.abs(endRad - startRad) < 0.01) return '';
+            const x1 = cx + r * Math.cos(startRad);
+            const y1 = cy - r * Math.sin(startRad);
+            const x2 = cx + r * Math.cos(endRad);
+            const y2 = cy - r * Math.sin(endRad);
+            const largeArc = Math.abs(endRad - startRad) > Math.PI ? 1 : 0;
+            const sweep = endRad > startRad ? 0 : 1;
+            const d = `M ${cx} ${cy} L ${x1} ${y1} A ${r} ${r} 0 ${largeArc} ${sweep} ${x2} ${y2} Z`;
+            let out = `<path d="${d}" fill="${fill}" />`;
+            if (labelHtml) {
+                const mid = (startRad + endRad) / 2;
+                const lr = r + labelRadiusOffset;
+                const lx = cx + lr * Math.cos(mid);
+                const ly = cy - lr * Math.sin(mid);
+                out += createSvgMathBadge(lx, ly, labelHtml, '#334155', 'center', 'rgba(255,255,255,0.88)', '#e2e8f0');
+            }
+            return out;
+        }
+
+        function drawDiagram() {
+            if (!svgEl) return;
+            const w = 500;
+            const h = 440;
+            const cx = 215;
+            const cy = 285;
+            const R = 145;
+
+            const beta = (state.betaDeg * Math.PI) / 180;
+            const alpha = (state.alphaDeg * Math.PI) / 180;
+            const total = beta + alpha;
+
+            let html = '';
+
+            // 背景グリッド
+            for (let gx = cx % 36; gx < w; gx += 36) {
+                html += `<line x1="${gx}" y1="0" x2="${gx}" y2="${h}" stroke="#e2e8f0" stroke-width="1" />`;
+            }
+            for (let gy = cy % 36; gy < h; gy += 36) {
+                html += `<line x1="0" y1="${gy}" x2="${w}" y2="${gy}" stroke="#e2e8f0" stroke-width="1" />`;
+            }
+
+            // 座標軸
+            html += `<line x1="20" y1="${cy}" x2="${w - 20}" y2="${cy}" stroke="#64748b" stroke-width="1.5" />`;
+            html += `<line x1="${cx}" y1="20" x2="${cx}" y2="${h - 20}" stroke="#64748b" stroke-width="1.5" />`;
+            html += `<text x="${w - 16}" y="${cy - 6}" font-size="12" font-weight="bold" fill="#64748b" text-anchor="end">x</text>`;
+            html += `<text x="${cx + 8}" y="28" font-size="12" font-weight="bold" fill="#64748b">y</text>`;
+            html += `<text x="${cx - 12}" y="${cy + 16}" font-size="12" font-weight="bold" fill="#475569">O</text>`;
+
+            // ==========================================
+            // TAB 0: 導入・ゲームキャラの弾発射シミュレータ
+            // ==========================================
+            if (state.currentTab === 0) {
+                const fieldR = 190; // 距離10の射程スケール
+                const unitR = 72;   // 基準単位円（距離1）
+                html += `<circle cx="${cx}" cy="${cy}" r="${unitR}" fill="none" stroke="#94a3b8" stroke-width="1.5" />`;
+                html += `<text x="${cx + unitR + 4}" y="${cy + 14}" font-size="10" font-weight="bold" fill="#64748b">1</text>`;
+
+                const charEndX = cx + unitR * Math.cos(beta);
+                const charEndY = cy - unitR * Math.sin(beta);
+
+                // 弾の着弾座標（通常モード vs そのまま足し算実験モード）
+                const isNaive = state.shotMode === 'naive';
+                const valX = isNaive ? 10 * (Math.cos(beta) + Math.cos(alpha)) : 10 * Math.cos(total);
+                const valY = isNaive ? 10 * (Math.sin(beta) + Math.sin(alpha)) : 10 * Math.sin(total);
+                const bulletEndX = cx + (fieldR / 10) * valX;
+                const bulletEndY = cy - (fieldR / 10) * valY;
+
+                // 敵ターゲット（的）の位置
+                const targetRad = (state.targetTotalDeg * Math.PI) / 180;
+                const enemyX = cx + fieldR * Math.cos(targetRad);
+                const enemyY = cy - fieldR * Math.sin(targetRad);
+
+                // フィールド外周の薄いガイド円（距離10の射程ライン）
+                html += `<circle cx="${cx}" cy="${cy}" r="${fieldR}" fill="none" stroke="#fed7aa" stroke-width="1.5" stroke-dasharray="6,4" />`;
+
+                // 角度扇形（今の向き β と、追加回転 α）
+                html += createSvgAngleArc(cx, cy, 38, 0, beta, 'rgba(37, 99, 235, 0.16)', `<span class="math-font">β</span>=${degToRadHtml(state.betaDeg)}`, 28);
+                html += createSvgAngleArc(cx, cy, 62, beta, total, 'rgba(249, 115, 22, 0.18)', `+${degToRadHtml(state.alphaDeg)}`, 24);
+
+                // コンピュータ画面上の「①横移動 x → ②縦移動 y」の2段階ルート
+                html += createSvgArrow(cx, cy, bulletEndX, cy, '#059669', 3, true);
+                html += createSvgArrow(bulletEndX, cy, bulletEndX, bulletEndY, '#9333ea', 3, true);
+
+                // 直角マーク
+                const signX = bulletEndX >= cx ? -10 : 10;
+                const signY = bulletEndY <= cy ? -10 : 10;
+                if (Math.abs(bulletEndX - cx) > 15 && Math.abs(bulletEndY - cy) > 15) {
+                    html += `<polyline points="${bulletEndX + signX},${cy} ${bulletEndX + signX},${cy + signY} ${bulletEndX},${cy + signY}" fill="none" stroke="#64748b" stroke-width="1.5" />`;
+                }
+
+                // 具体的な移動量数値
+                const dxVal = valX.toFixed(2);
+                const dyVal = valY.toFixed(2);
+
+                // 横移動(x)ラベル
+                const cosX = Math.abs(bulletEndX - cx) < 45 ? (bulletEndX >= cx ? cx + 56 : cx - 56) : (cx + bulletEndX) / 2;
+                html += createSvgMathBadge(cosX, cy + 32, `① 横移動 x = ${dxVal}`, '#059669', 'center', 'rgba(236,253,245,0.95)', '#a7f3d0');
+                // 弾の軌道（通常はオレンジ矢印、そのまま足し算実験はローズ矢印、分解モードは青＋橙の2段階ルート）
+                const isDecompose = state.shotMode === 'decompose';
+                const rayColor = isNaive ? '#e11d48' : (isDecompose ? '#4f46e5' : '#f97316');
+
+                if (isDecompose) {
+                    // 自機の元の横成分(青)をα回転させた中間地点
+                    const midX = cx + fieldR * Math.cos(beta) * Math.cos(alpha);
+                    const midY = cy - fieldR * Math.cos(beta) * Math.sin(alpha);
+                    html += createSvgArrow(cx, cy, midX, midY, '#2563eb', 4);
+                    html += createSvgArrow(midX, midY, bulletEndX, bulletEndY, '#f97316', 4);
+                    html += createSvgArrow(cx, cy, bulletEndX, bulletEndY, '#4f46e5', 2, true);
+                    html += createSvgMathBadge((cx + midX) / 2, (cy + midY) / 2 + 16, `① 横成分(青)の回転`, '#1d4ed8', 'center', 'rgba(239,246,255,0.95)', '#93c5fd');
+                    html += createSvgMathBadge((midX + bulletEndX) / 2, (midY + bulletEndY) / 2 - 14, `② 縦成分(橙)の回転`, '#c2410c', 'center', 'rgba(255,247,237,0.95)', '#fdba74');
+                } else {
+                    html += createSvgArrow(cx, cy, bulletEndX, bulletEndY, rayColor, 3.5);
+                }
+
+                // 敵ターゲット（的）の描画
+                if (state.hitEffect > 0) {
+                    html += `<circle cx="${enemyX}" cy="${enemyY}" r="26" fill="rgba(251, 191, 36, 0.35)" stroke="#f59e0b" stroke-width="3" />`;
+                    html += `<circle cx="${enemyX}" cy="${enemyY}" r="16" fill="rgba(239, 68, 68, 0.5)" />`;
+                    html += createSvgMathBadge(enemyX, Math.max(24, enemyY - 26), `💥 HIT!! +100pt`, '#b91c1c', 'center', 'rgba(254,242,242,0.98)', '#f87171');
+                } else {
+                    html += `<circle cx="${enemyX}" cy="${enemyY}" r="16" fill="rgba(239, 68, 68, 0.15)" stroke="#ef4444" stroke-width="2" stroke-dasharray="3,2" />`;
+                    html += `<circle cx="${enemyX}" cy="${enemyY}" r="9" fill="#ef4444" stroke="#ffffff" stroke-width="2" />`;
+                    html += `<circle cx="${enemyX}" cy="${enemyY}" r="3" fill="#fef08a" />`;
+                    const eAlign = Math.cos(targetRad) >= 0.15 ? 'left' : (Math.cos(targetRad) <= -0.15 ? 'right' : 'center');
+                    const eOffX = Math.cos(targetRad) >= 0.15 ? 18 : (Math.cos(targetRad) <= -0.15 ? -18 : 0);
+                    html += createSvgMathBadge(enemyX + eOffX, Math.max(22, enemyY - 18), `👾 的 (${degToRadHtml(state.targetTotalDeg)})`, '#dc2626', eAlign, 'rgba(254,242,242,0.95)', '#fca5a5');
+                }
+
+                // 照準の着弾点座標ラベル
+                const targetAlign = valX >= 0 ? 'left' : 'right';
+                const targetLabelX = bulletEndX + (valX >= 0 ? 12 : -12);
+                const targetLabelY = Math.min(h - 24, Math.max(24, bulletEndY + 22));
+                const shotLabel = isNaive ? `実験着弾 (${dxVal}, ${dyVal})` : `照準 (${dxVal}, ${dyVal})`;
+                html += createSvgMathBadge(targetLabelX, targetLabelY, shotLabel, isNaive ? '#be123c' : '#c2410c', targetAlign, 'rgba(255,247,237,0.96)', '#fdba74');
+
+                // 飛んでいく弾のアニメーション描画
+                if (state.bulletProgress > 0) {
+                    let curBulletX, curBulletY;
+                    if (isDecompose) {
+                        const midX = cx + fieldR * Math.cos(beta) * Math.cos(alpha);
+                        const midY = cy - fieldR * Math.cos(beta) * Math.sin(alpha);
+                        if (state.bulletProgress <= 0.5) {
+                            const t = state.bulletProgress * 2;
+                            curBulletX = cx + (midX - cx) * t;
+                            curBulletY = cy + (midY - cy) * t;
+                        } else {
+                            const t = (state.bulletProgress - 0.5) * 2;
+                            curBulletX = midX + (bulletEndX - midX) * t;
+                            curBulletY = midY + (bulletEndY - midY) * t;
+                        }
+                    } else {
+                        curBulletX = cx + (bulletEndX - cx) * state.bulletProgress;
+                        curBulletY = cy + (bulletEndY - cy) * state.bulletProgress;
+                    }
+                    html += `<circle cx="${curBulletX}" cy="${curBulletY}" r="8" fill="${rayColor}" stroke="#ffffff" stroke-width="2.5" />`;
+                }
+
+                // 原点のゲームキャラクター（βの方向を向く宇宙船アイコン）
+                const rotSvgDeg = -state.betaDeg;
+                html += `
+                    <g transform="translate(${cx}, ${cy}) rotate(${rotSvgDeg})">
+                        <circle cx="0" cy="0" r="15" fill="#1e293b" stroke="#38bdf8" stroke-width="2.5" />
+                        <polygon points="12,0 -7,-7 -3,0 -7,7" fill="#38bdf8" />
+                    </g>
+                `;
+
+                svgEl.innerHTML = html;
+                return;
+            }
+
+            // ==========================================
+            // TAB 1〜4: 単位円と成分の回転
+            // ==========================================
+            html += `<circle cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="#94a3b8" stroke-width="2" />`;
+            html += `<text x="${cx + R + 6}" y="${cy + 16}" font-size="12" font-weight="bold" fill="#475569">1</text>`;
+            html += `<text x="${cx - 14}" y="${cy - R - 6}" font-size="12" font-weight="bold" fill="#475569">1</text>`;
+
+            // TAB 1: 単純な足し算の罠（sinβ + sinα > 1）の可視化
+            if (state.currentTab === 1) {
+                const px = cx + R * Math.cos(beta);
+                const py = cy - R * Math.sin(beta);
+                const qx = cx + R * Math.cos(total);
+                const qy = cy - R * Math.sin(total);
+
+                html += createSvgAngleArc(cx, cy, 34, 0, beta, 'rgba(37, 99, 235, 0.15)', degToRadHtml(state.betaDeg), 20);
+                html += createSvgAngleArc(cx, cy, 52, beta, total, 'rgba(79, 70, 229, 0.15)', `+${degToRadHtml(state.alphaDeg)}`, 22);
+
+                // 点Pと点Q
+                html += createSvgArrow(cx, cy, px, py, '#2563eb', 2.5, true);
+                html += createSvgArrow(cx, cy, qx, qy, '#7e22ce', 3);
+                html += `<circle cx="${px}" cy="${py}" r="4.5" fill="#2563eb" />`;
+                html += `<circle cx="${qx}" cy="${qy}" r="5.5" fill="#7e22ce" />`;
+
+                // 正しい高さ sin(α+β)
+                html += createSvgArrow(qx, cy, qx, qy, '#9333ea', 4);
+                html += createSvgMathBadge(qx - 10, (cy + qy) / 2, `正しい高さ: <span class="math-normal">sin</span>(${degToRadHtml(state.betaDeg + state.alphaDeg)}) = ${Math.sin(total).toFixed(3)}`, '#7e22ce', 'right');
+
+                // 誤った足し算 sinβ + sinα（単位円の上限 y=1 を突き抜ける赤い破線）
+                const wrongSum = Math.sin(beta) + Math.sin(alpha);
+                const wrongY = cy - R * wrongSum;
+                const limitY = cy - R;
+                html += `<line x1="${cx - 70}" y1="${limitY}" x2="${cx + 150}" y2="${limitY}" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="4,3" />`;
+                html += createSvgArrow(qx + 22, cy, qx + 22, wrongY, '#e11d48', 3, true);
+                html += createSvgMathBadge(qx + 30, Math.max(24, wrongY), `誤り: <span class="math-normal">sin</span><span class="math-font">β</span>+<span class="math-normal">sin</span><span class="math-font">α</span> = ${wrongSum.toFixed(3)} (>1 は不可能!)`, '#be123c', 'left', 'rgba(255,241,242,0.96)', '#fda4af');
+
+                svgEl.innerHTML = html;
+                return;
+            }
+
+            // TAB 2〜4: 2本の矢印の分解・回転・合体
+            const activeStep = state.currentTab === 2 ? state.derivationStep : 5;
+            const origBx = cx + R * Math.cos(beta);
+            const origBy = cy;
+            const origPx = origBx;
+            const origPy = cy - R * Math.sin(beta);
+
+            const blueLen = R * Math.cos(beta);
+            const orangeLen = R * Math.sin(beta);
+
+            const blueEndX = cx + blueLen * Math.cos(alpha);
+            const blueEndY = cy - blueLen * Math.sin(alpha);
+            const finalX = blueEndX - orangeLen * Math.sin(alpha);
+            const finalY = blueEndY - orangeLen * Math.cos(alpha);
+
+            // ステップ①・②：三角形丸ごと一体回転プレビュー
+            if (activeStep === 0 || activeStep === 1) {
+                const rotAngle = alpha * state.previewRatio;
+                const bX = cx + blueLen * Math.cos(rotAngle);
+                const bY = cy - blueLen * Math.sin(rotAngle);
+                const pX = bX - orangeLen * Math.sin(rotAngle);
+                const pY = bY - orangeLen * Math.cos(rotAngle);
+
+                // 元の位置の薄い三角形
+                html += `<polygon points="${cx},${cy} ${origBx},${origBy} ${origPx},${origPy}" fill="rgba(148,163,184,0.12)" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="4,3" />`;
+
+                // 回転中の三角形（斜辺：紫、横辺：青、縦辺：橙）
+                html += `<polygon points="${cx},${cy} ${bX},${bY} ${pX},${pY}" fill="rgba(79,70,229,0.12)" />`;
+                html += createSvgArrow(cx, cy, bX, bY, '#2563eb', 3.5);
+                html += createSvgArrow(bX, bY, pX, pY, '#f97316', 3.5);
+                html += createSvgArrow(cx, cy, pX, pY, '#4f46e5', 3);
+
+                // 直角マーク
+                const uX = Math.cos(rotAngle) * 10;
+                const uY = -Math.sin(rotAngle) * 10;
+                const vX = -Math.sin(rotAngle) * 10;
+                const vY = -Math.cos(rotAngle) * 10;
+                html += `<polyline points="${bX - uX},${bY - uY} ${bX - uX + vX},${bY - uY + vY} ${bX + vX},${bY + vY}" fill="none" stroke="#1e293b" stroke-width="1.5" />`;
+
+                // 元の角 β (x軸〜点線の斜辺) と 移動した回転角 (点線の斜辺〜回転後の斜辺)
+                html += createSvgAngleArc(cx, cy, 34, 0, beta, 'rgba(37, 99, 235, 0.14)', `<span class="math-font">β</span>=${degToRadHtml(state.betaDeg)}`, 24);
+                html += createSvgAngleArc(cx, cy, 56, beta, beta + rotAngle, 'rgba(249, 115, 22, 0.22)', `+${degToRadHtml(Math.round((rotAngle * 180) / Math.PI))}`, 24);
+                html += `<circle cx="${pX}" cy="${pY}" r="5.5" fill="#4f46e5" />`;
+
+                const totalCurDeg = Math.round(((beta + rotAngle) * 180) / Math.PI);
+                if (state.previewRatio >= 0.99) {
+                    const extraMsg = totalCurDeg === 90 ? '（真上の点(0, 1)に着地！）' : '';
+                    const badgeAlign = pX < 140 ? 'left' : (pX > w - 140 ? 'right' : 'center');
+                    html += createSvgMathBadge(pX, Math.max(24, pY - 22), `${degToRadHtml(state.betaDeg)} + ${degToRadHtml(state.alphaDeg)} = ${degToRadHtml(totalCurDeg)}${extraMsg}`, '#312e81', badgeAlign, 'rgba(238,242,255,0.96)', '#a5b4fc');
+                } else {
+                    html += createSvgMathBadge(pX + 10, pY - 12, `P' (現在 ${degToRadHtml(totalCurDeg)})`, '#312e81', 'left');
+                }
+
+                svgEl.innerHTML = html;
+                return;
+            }
+
+            // ステップ③以降：元のL字成分（薄いガイド）
+            html += `<line x1="${cx}" y1="${cy}" x2="${origBx}" y2="${origBy}" stroke="#93c5fd" stroke-width="2" stroke-dasharray="4,3" />`;
+            html += `<line x1="${origBx}" y1="${origBy}" x2="${origPx}" y2="${origPy}" stroke="#fdba74" stroke-width="2" stroke-dasharray="4,3" />`;
+
+            // ステップ③：青い矢印（cosβ）の回転
+            if (activeStep >= 2) {
+                if (activeStep === 2 && state.showUnitRef) {
+                    // 比較用の「斜辺 1 の基準直角三角形（点線）」
+                    const refX = cx + R * Math.cos(alpha);
+                    const refY = cy - R * Math.sin(alpha);
+                    html += `<line x1="${cx}" y1="${cy}" x2="${refX}" y2="${refY}" stroke="#64748b" stroke-width="1.8" stroke-dasharray="5,4" />`;
+                    html += `<line x1="${cx}" y1="${cy}" x2="${refX}" y2="${cy}" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="3,3" />`;
+                    html += `<line x1="${refX}" y1="${cy}" x2="${refX}" y2="${refY}" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="3,3" />`;
+                    html += createSvgMathBadge(refX + 8, refY - 10, `基準(斜辺 1)`, '#475569', 'left');
+                }
+
+                html += createSvgAngleArc(cx, cy, 38, 0, alpha, 'rgba(37, 99, 235, 0.16)', `<span class="math-font">α</span>`, 18);
+                html += createSvgArrow(cx, cy, blueEndX, blueEndY, '#2563eb', 4);
+                html += `<line x1="${cx}" y1="${cy}" x2="${blueEndX}" y2="${cy}" stroke="#059669" stroke-width="2.5" stroke-dasharray="4,3" />`;
+                html += `<line x1="${blueEndX}" y1="${cy}" x2="${blueEndX}" y2="${blueEndY}" stroke="#9333ea" stroke-width="2.5" stroke-dasharray="4,3" />`;
+
+                if (activeStep === 2) {
+                    html += createSvgMathBadge((cx + blueEndX) / 2, cy + 20, `<span class="math-normal">cos</span><span class="math-font">β</span> <span class="math-normal">cos</span><span class="math-font">α</span>`, '#059669', 'center');
+                    html += createSvgMathBadge(blueEndX + 10, (cy + blueEndY) / 2, `<span class="math-normal">cos</span><span class="math-font">β</span> <span class="math-normal">sin</span><span class="math-font">α</span>`, '#9333ea', 'left');
+                }
+            }
+
+            // ステップ④以降：橙色の矢印（sinβ）の回転
+            if (activeStep >= 3) {
+                // 橙色の根元（blueEndX, blueEndY）からの垂直基準点線と角度 α の扇形
+                const vertTopY = blueEndY - orangeLen;
+                html += `<line x1="${blueEndX}" y1="${blueEndY}" x2="${blueEndX}" y2="${vertTopY}" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="3,3" />`;
+                html += createSvgAngleArc(blueEndX, blueEndY, 32, Math.PI / 2, Math.PI / 2 + alpha, 'rgba(249, 115, 22, 0.22)', `<span class="math-font">α</span>`, 18);
+
+                html += createSvgArrow(blueEndX, blueEndY, finalX, finalY, '#f97316', 4);
+                html += `<line x1="${blueEndX}" y1="${blueEndY}" x2="${finalX}" y2="${blueEndY}" stroke="#e11d48" stroke-width="2.5" stroke-dasharray="4,3" />`;
+                html += `<line x1="${finalX}" y1="${blueEndY}" x2="${finalX}" y2="${finalY}" stroke="#9333ea" stroke-width="2.5" stroke-dasharray="4,3" />`;
+
+                if (activeStep === 3) {
+                    html += createSvgMathBadge((blueEndX + finalX) / 2, blueEndY + 20, `−<span class="math-normal">sin</span><span class="math-font">β</span> <span class="math-normal">sin</span><span class="math-font">α</span>`, '#e11d48', 'center');
+                    html += createSvgMathBadge(finalX - 10, (blueEndY + finalY) / 2, `<span class="math-normal">sin</span><span class="math-font">β</span> <span class="math-normal">cos</span><span class="math-font">α</span>`, '#ea580c', 'right');
+                }
+            }
+
+            // ステップ⑤：縦成分(sin)の合体を強調
+            if (activeStep === 4) {
+                html += createSvgArrow(cx, cy, finalX, finalY, '#94a3b8', 2, true);
+                // 2つの高さの内訳を並べて表示
+                html += createSvgArrow(finalX, cy, finalX, blueEndY, '#2563eb', 4.5);
+                html += createSvgArrow(finalX, blueEndY, finalX, finalY, '#f97316', 4.5);
+                html += `<line x1="${blueEndX}" y1="${blueEndY}" x2="${finalX}" y2="${blueEndY}" stroke="#9333ea" stroke-width="1.5" stroke-dasharray="3,3" />`;
+
+                html += createSvgMathBadge(finalX - 10, (cy + blueEndY) / 2, `青の高さ: <span class="math-normal">sin</span><span class="math-font">α</span> <span class="math-normal">cos</span><span class="math-font">β</span>`, '#2563eb', 'right');
+                html += createSvgMathBadge(finalX - 10, (blueEndY + finalY) / 2, `橙の高さ: <span class="math-normal">cos</span><span class="math-font">α</span> <span class="math-normal">sin</span><span class="math-font">β</span>`, '#ea580c', 'right');
+                html += createSvgMathBadge(finalX - 10, finalY - 18, `合計の高さ = <span class="math-normal">sin</span>(<span class="math-font">α</span>+<span class="math-font">β</span>)`, '#7e22ce', 'right');
+            }
+
+            // ステップ⑥：横成分(cos)の合体を強調（＆全体完成図）
+            if (activeStep === 5) {
+                html += createSvgArrow(cx, cy, finalX, finalY, '#4f46e5', 2.5, true);
+                // 全体の横(緑)と縦(紫)
+                html += createSvgArrow(cx, cy, finalX, cy, '#059669', 4.5);
+                html += createSvgArrow(finalX, cy, finalX, finalY, '#9333ea', 4.5);
+                // 青の横進みと橙の左戻りの差分ガイド
+                html += `<line x1="${cx}" y1="${cy + 7}" x2="${blueEndX}" y2="${cy + 7}" stroke="#2563eb" stroke-width="2.5" opacity="0.7" />`;
+                html += createSvgArrow(blueEndX, cy + 14, finalX, cy + 14, '#e11d48', 2.5);
+
+                html += createSvgMathBadge(finalX - 10, finalY - 18, `Q(<span class="math-normal">cos</span>(${degToRadHtml(state.alphaDeg + state.betaDeg)}), <span class="math-normal">sin</span>(${degToRadHtml(state.alphaDeg + state.betaDeg)}))`, '#312e81', 'right');
+                html += createSvgMathBadge((cx + finalX) / 2, cy - 16, `<span class="math-normal">cos</span>(${degToRadHtml(state.alphaDeg + state.betaDeg)})`, '#059669', 'center');
+                html += createSvgMathBadge((blueEndX + finalX) / 2, cy + 34, `−<span class="math-normal">sin</span><span class="math-font">α</span> <span class="math-normal">sin</span><span class="math-font">β</span>`, '#e11d48', 'center');
+                html += createSvgMathBadge(finalX - 10, (cy + finalY) / 2, `<span class="math-normal">sin</span>(${degToRadHtml(state.alphaDeg + state.betaDeg)})`, '#9333ea', 'right');
+            }
+
+            if (activeStep >= 3) {
+                html += `<circle cx="${finalX}" cy="${finalY}" r="5.5" fill="#4f46e5" />`;
+            }
+
+            svgEl.innerHTML = html;
+        }
+    </script>
+</body>
+</html>

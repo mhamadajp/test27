@@ -1,0 +1,1715 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>情報発信マスターへの道｜第5回 授業シミュレーター</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Noto Sans JP & Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Noto Sans JP"', '"Plus Jakarta Sans"', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#eff6ff',
+              100: '#dbeafe',
+              200: '#bfdbfe',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+              900: '#1e3a8a',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      font-family: 'Noto Sans JP', sans-serif;
+      background-color: #f8fafc;
+      color: #0f172a;
+      overflow-x: hidden;
+    }
+    .step-connector {
+      position: relative;
+    }
+    .card-hover {
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .card-hover:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08);
+    }
+    /* Custom subtle animations */
+    @keyframes fadeInSlide {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fade-in {
+      animation: fadeInSlide 0.3s ease-out forwards;
+    }
+    /* Colorblindness filter simulation classes */
+    .sim-protanopia {
+      filter: grayscale(0.45) sepia(0.35) hue-rotate(-15deg);
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- Top Navigation Header -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-3 cursor-pointer" onclick="navigateTo('home')">
+        <div class="w-10 h-10 rounded-xl bg-brand-600 text-white flex items-center justify-center font-black text-lg shadow-md">
+          情
+        </div>
+        <div>
+          <span class="text-xs font-bold text-brand-600 tracking-wider block">情報の表現と管理｜第5回 体験学習</span>
+          <h1 class="text-base sm:text-lg font-extrabold text-slate-900 leading-tight">情報発信マスターへの道</h1>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <nav class="flex items-center gap-1.5 sm:gap-2 overflow-x-auto max-w-full py-1">
+        <button onclick="navigateTo('home')" id="nav-home" class="nav-btn px-3 py-2 rounded-xl text-xs sm:text-sm font-bold transition bg-brand-50 text-brand-700">
+          🗺️ 全体マップ
+        </button>
+        <button onclick="navigateTo('toolbox')" id="nav-toolbox" class="nav-btn px-3 py-2 rounded-xl text-xs sm:text-sm font-bold transition text-slate-600 hover:bg-slate-100">
+          🧰 思考の道具箱
+        </button>
+        <button onclick="navigateTo('reflection')" id="nav-reflection" class="nav-btn px-3 py-2 rounded-xl text-xs sm:text-sm font-bold transition text-slate-600 hover:bg-slate-100 flex items-center gap-1">
+          📝 振り返りカルテ
+          <span id="mistake-badge" class="hidden bg-amber-500 text-white text-[10px] px-1.5 py-0.5 rounded-full">0</span>
+        </button>
+      </nav>
+    </div>
+
+    <!-- Overall Progress Bar -->
+    <div class="w-full bg-slate-100 h-1.5">
+      <div id="global-progress-bar" class="bg-brand-600 h-1.5 transition-all duration-500" style="width: 0%"></div>
+    </div>
+  </header>
+
+  <!-- Main Content Container -->
+  <main id="app-container" class="flex-1 max-w-5xl w-full mx-auto px-4 py-6 sm:py-8">
+    <!-- Dynamic Views Rendered Here -->
+  </main>
+
+  <!-- Floating Toast / Notification Box (Replaces alert) -->
+  <div id="toast-box" class="fixed bottom-5 right-5 z-50 hidden max-w-sm bg-slate-900 text-white px-4 py-3 rounded-2xl shadow-xl border border-slate-700 flex items-start gap-3 animate-fade-in">
+    <span id="toast-icon" class="text-xl">💡</span>
+    <div class="text-sm leading-relaxed" id="toast-message">メッセージ</div>
+  </div>
+
+  <!-- Custom Modal for Detailed Explanations or Confirmations -->
+  <div id="modal-backdrop" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 animate-fade-in">
+      <div class="flex items-center justify-between mb-3">
+        <h3 id="modal-title" class="text-lg font-extrabold text-slate-900">タイトル</h3>
+        <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 font-bold">✕</button>
+      </div>
+      <div id="modal-body" class="text-sm text-slate-700 space-y-3 leading-relaxed"></div>
+      <div class="mt-6 flex justify-end">
+        <button onclick="closeModal()" class="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-sm transition">
+          納得した！閉じる
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // =========================================================================
+    // 1. アプリケーション状態管理 (State Management)
+    // =========================================================================
+    const state = {
+      currentView: 'home', // 'home' | 'stage0' | 'stage1' | 'stage2' | 'stage3' | 'stage4' | 'stage5' | 'toolbox' | 'reflection'
+      completedStages: {
+        stage0: false,
+        stage1: false,
+        stage2: false,
+        stage3: false,
+        stage4: false,
+        stage5: false
+      },
+      // 生徒がつまずいたポイント（指導案の「指導上のつまずきと対応」と連動）
+      stumbleTags: {}, // e.g., { 'brest_kj': 1, 'sync_net': 2 }
+      // 各ステージの体験データ
+      stage0Data: {
+        foundFlaws: [], // ['density', 'contrast', 'audience', 'accessibility']
+        mappedCorrectly: false
+      },
+      stage1Data: {
+        brestSelected: [],
+        brestChecked: false,
+        kjAssignments: {
+          card1: null, // 'attr'
+          card2: null, // 'pr'
+          card3: null, // 'ops'
+          card4: null, // 'attr'
+          card5: null, // 'pr'
+          card6: null  // 'ops'
+        },
+        kjChecked: false,
+        quiz1Answered: null,
+        quiz1Reason: null
+      },
+      stage2Data: {
+        bgColor: '#e2e8f0',
+        textColor: '#94a3b8',
+        density: 'high', // 'high' | 'low'
+        colorOnly: true, // true | false
+        simColorBlind: false,
+        designChecked: false,
+        quiz2Answered: null,
+        toolMatched: {}
+      },
+      stage3Data: {
+        commAnswers: {}, // { phone: 'sync', email: 'async', video: 'sync', board: 'async', chat: 'both' }
+        commChecked: false,
+        mehrabianChoice: null,
+        eyeContactChoice: null
+      },
+      stage4Data: {
+        persona: 'normal', // 'normal' | 'blind' | 'busy' | 'guest'
+        appliedFixes: [], // ['alt_tts', 'search_filter', 'easy_jp']
+        usabilityAnswers: {}, // { qA: 'effectiveness', qB: 'efficiency', qC: 'satisfaction' }
+        usabilityChecked: false
+      },
+      stage5Data: {
+        finalAnswers: {}, // { f1: 'bs', f2: 'kj', f3: 'acc', f4: 'eff' }
+        finalReasons: {}, // 根拠の選択
+        finalChecked: false,
+        appliedScenarioChoice: null
+      },
+      reflectionNotes: {
+        uncertainTerms: '',
+        myRule: ''
+      }
+    };
+
+    // 指導案に基づく「つまずき診断マスターデータ」
+    const STUMBLE_GUIDE = {
+      'brest_kj': {
+        title: 'ブレーンストーミング と KJ法 の混同',
+        questionBack: '「今はまだ案を増やす段階（発散）？ それとも出た案をまとめる段階（収束）？」',
+        advice: 'ブレストは【質より量・批判厳禁でアイデアを出す】活動、KJ法は【出たカードをグループ化して関係を見える化する】整理の技法です。キーワードは「出す＝ブレスト」「まとめる＝KJ法」！'
+      },
+      'prep_rehearsal': {
+        title: 'プレゼン準備・リハーサルの目的の誤解',
+        questionBack: '「リハーサルは台本を暗記するため？ それとも聞き手にとって伝わりにくい点を探すため？」',
+        advice: 'リハーサルは本番前の単なる練習ではなく、「時間配分の確認」と「伝わりにくい箇所を見つけて資料を改善する検証」の場です。修正してこそ完成度が上がります！'
+      },
+      'sync_net': {
+        title: '「同期＝インターネットを使うこと」という誤解',
+        questionBack: '「相手からの返信を翌日まで待てる？ それとも同じ時間にやり取りする必要がある？」',
+        advice: '同期・非同期の判断基準は「ネットを使うか」ではなく【時間】です！電話（ネットなし）は同期、メールや掲示板（ネットあり）は非同期。チャットは使い方次第で両方になります。'
+      },
+      'mehrabian_myth': {
+        title: 'メラビアンの法則の一般化しすぎ',
+        questionBack: '「話の内容が7%なら、プレゼンの原稿は適当でもいいの？」',
+        advice: 'メラビアンの法則（言語7%・聴覚38%・視覚55%）は、「言葉と態度が矛盾したときに感情をどう受け取るか」という限定的条件の研究です。プレゼンでは内容の論理性＋非言語（視線・声）の両方が不可欠です！'
+      },
+      'acc_usa': {
+        title: 'アクセシビリティ と ユーザビリティ の混同',
+        questionBack: '「そもそも使える状態にある？（アクセスできる？） 使えた上で、目的を楽に達成できる？」',
+        advice: 'アクセシビリティは「年齢や障がいの有無に関わらず誰もが情報に到達・利用できること（字幕・音声読み上げ等）」。ユーザビリティは「特定の状況で目的を達成する際の使いやすさ」です。'
+      },
+      'eff_eff': {
+        title: '有効性 と 効率性 の混同',
+        questionBack: '「目的を『達成できたか（結果）』に注目している？ それとも『どれだけ手間や時間が少なかったか（コスト）』に注目している？」',
+        advice: '【有効性】＝必要な情報が見つかった・達成できた（できたかどうか）。【効率性】＝10分かかっていた検索が2分で済んだ（時間・手間の少なさ）。【満足度】＝また使いたいと思った（気持ちよさ）。'
+      }
+    };
+
+    // =========================================================================
+    // 2. ユーティリティ関数 (Helpers)
+    // =========================================================================
+    function recordStumble(key) {
+      state.stumbleTags[key] = (state.stumbleTags[key] || 0) + 1;
+      updateHeaderProgress();
+    }
+
+    function showToast(message, icon = '💡') {
+      const box = document.getElementById('toast-box');
+      document.getElementById('toast-message').textContent = message;
+      document.getElementById('toast-icon').textContent = icon;
+      box.classList.remove('hidden');
+      clearTimeout(window.toastTimer);
+      window.toastTimer = setTimeout(() => {
+        box.classList.add('hidden');
+      }, 4000);
+    }
+
+    function openModal(title, htmlBody) {
+      document.getElementById('modal-title').textContent = title;
+      document.getElementById('modal-body').innerHTML = htmlBody;
+      document.getElementById('modal-backdrop').classList.remove('hidden');
+    }
+
+    function closeModal() {
+      document.getElementById('modal-backdrop').classList.add('hidden');
+    }
+
+    function toggleHint(hintId) {
+      const el = document.getElementById(hintId);
+      if (el) {
+        el.classList.toggle('hidden');
+      }
+    }
+
+    function completeStage(stageKey) {
+      state.completedStages[stageKey] = true;
+      updateHeaderProgress();
+    }
+
+    function updateHeaderProgress() {
+      const total = Object.keys(state.completedStages).length;
+      const done = Object.values(state.completedStages).filter(Boolean).length;
+      const pct = Math.round((done / total) * 100);
+      document.getElementById('global-progress-bar').style.width = `${pct}%`;
+
+      const stumbleCount = Object.keys(state.stumbleTags).length;
+      const badge = document.getElementById('mistake-badge');
+      if (stumbleCount > 0) {
+        badge.textContent = stumbleCount;
+        badge.classList.remove('hidden');
+      } else {
+        badge.classList.add('hidden');
+      }
+    }
+
+    function navigateTo(view) {
+      state.currentView = view;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+
+      // Update nav buttons styling
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.classList.remove('bg-brand-50', 'text-brand-700');
+        btn.classList.add('text-slate-600', 'hover:bg-slate-100');
+      });
+      const activeBtn = document.getElementById(`nav-${view}`);
+      if (activeBtn) {
+        activeBtn.classList.add('bg-brand-50', 'text-brand-700');
+        activeBtn.classList.remove('text-slate-600', 'hover:bg-slate-100');
+      }
+
+      render();
+    }
+
+    // =========================================================================
+    // 3. 画面レンダリング・ルーター (View Router)
+    // =========================================================================
+    function render() {
+      const container = document.getElementById('app-container');
+      switch (state.currentView) {
+        case 'home':
+          container.innerHTML = renderHome();
+          break;
+        case 'stage0':
+          container.innerHTML = renderStage0();
+          break;
+        case 'stage1':
+          container.innerHTML = renderStage1();
+          break;
+        case 'stage2':
+          container.innerHTML = renderStage2();
+          break;
+        case 'stage3':
+          container.innerHTML = renderStage3();
+          break;
+        case 'stage4':
+          container.innerHTML = renderStage4();
+          break;
+        case 'stage5':
+          container.innerHTML = renderStage5();
+          break;
+        case 'toolbox':
+          container.innerHTML = renderToolbox();
+          break;
+        case 'reflection':
+          container.innerHTML = renderReflection();
+          break;
+      }
+    }
+
+    // =========================================================================
+    // 4. ホーム画面（全体マップ＆ストーリー導入）
+    // =========================================================================
+    function renderHome() {
+      const stages = [
+        {
+          id: 'stage0',
+          time: '0〜5分｜導入',
+          stepLabel: 'STEP 0',
+          title: '伝わらない文化祭企画を発見せよ！',
+          desc: '文字だらけ・色が見にくい「残念な発表資料」の問題点を探し、改善の4段階に分類しよう。',
+          icon: '🔍',
+          color: 'slate'
+        },
+        {
+          id: 'stage1',
+          time: '5〜12分｜発想と整理',
+          stepLabel: 'STEP 1：発想→整理',
+          title: 'ブレーンストーミング と KJ法',
+          desc: 'アイデアを「広げる（ブレスト）」と「まとめる（KJ法）」を体験ワークで使い分けよう。',
+          icon: '💡',
+          color: 'amber'
+        },
+        {
+          id: 'stage2',
+          time: '12〜21分｜発表準備と資料',
+          stepLabel: 'STEP 2：伝える準備',
+          title: 'プレゼン手順・配色実験・機器選択',
+          desc: '背景と文字の明度差シミュレーターで読みやすいスライドを作り、リハーサルの意味を掴もう。',
+          icon: '🎨',
+          color: 'blue'
+        },
+        {
+          id: 'stage3',
+          time: '21〜29分｜コミュニケーション',
+          stepLabel: 'STEP 3：伝え方',
+          title: '同期／非同期 と 非言語の正しい理解',
+          desc: '「時間」を軸に連絡手段を分類し、メラビアンの法則やアイコンタクトの誤解を解き明かそう。',
+          icon: '💬',
+          color: 'emerald'
+        },
+        {
+          id: 'stage4',
+          time: '29〜36分｜利用しやすさ',
+          stepLabel: 'STEP 4：誰もが使える',
+          title: 'アクセシビリティ と ユーザビリティ3観点',
+          desc: '視覚障がいや急いでいる来校者の視点に立ち、「有効性・効率性・満足度」で案内を改善しよう。',
+          icon: '♿',
+          color: 'purple'
+        },
+        {
+          id: 'stage5',
+          time: '36〜40分＋応用｜総合確認',
+          stepLabel: 'FINAL：実践＆応用',
+          title: '総合確認テスト ＆ 日常シーンへの応用',
+          desc: '根拠とセットで4問に答え、さらに文化祭以外の身近な場面に知識を応用してみよう！',
+          icon: '🏆',
+          color: 'rose'
+        }
+      ];
+
+      const doneCount = Object.values(state.completedStages).filter(Boolean).length;
+
+      return `
+        <div class="space-y-8 animate-fade-in">
+          <!-- Hero Mission Banner -->
+          <section class="bg-gradient-to-br from-slate-900 via-brand-900 to-slate-800 text-white rounded-3xl p-6 sm:p-8 shadow-xl relative overflow-hidden">
+            <div class="relative z-10 max-w-3xl">
+              <div class="inline-flex items-center gap-2 bg-white/15 backdrop-blur-xs px-3 py-1 rounded-full text-xs font-bold text-blue-200 mb-4">
+                <span>🎯 今日のゴール</span>
+                <span>「発想 → 整理 → 発表 → 利用しやすさ」で情報発信を改善する判断力</span>
+              </div>
+              <h2 class="text-2xl sm:text-3xl font-black tracking-tight leading-snug mb-3">
+                キミは文化祭の「情報発信ディレクター」！<br/>
+                伝わらない発表と案内を、誰もが使いやすい形に変えよう。
+              </h2>
+              <p class="text-slate-200 text-sm sm:text-base leading-relaxed mb-6">
+                ただ用語を暗記するだけでは、本番で使いこなせません。このシミュレーターでは、実際に失敗例を直したり、相手の立場を体験したりしながら<strong>「なぜそう判断するのか（根拠）」</strong>を身につけます。
+              </p>
+              <div class="flex flex-wrap items-center gap-3">
+                <button onclick="navigateTo('stage0')" class="px-6 py-3.5 rounded-2xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-sm sm:text-base shadow-lg transition flex items-center gap-2">
+                  <span>🚀 シミュレーションを始める</span>
+                  <span>→</span>
+                </button>
+                <div class="bg-white/10 px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-bold">
+                  クリア状況：<span class="text-amber-300 text-base">${doneCount}</span> / 6 ステージ
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Process Flow Visual Bar -->
+          <section class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-xs">
+            <div class="text-xs font-bold text-slate-500 mb-3 flex items-center justify-between">
+              <span>📌 情報発信の4ステップ（授業の全体像）</span>
+              <button onclick="navigateTo('toolbox')" class="text-brand-600 hover:underline">図解まとめを見る →</button>
+            </div>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 text-center">
+              <div class="p-3 rounded-xl bg-amber-50 border border-amber-200">
+                <div class="text-xs font-extrabold text-amber-700">① 発想する</div>
+                <div class="text-sm font-black text-slate-800 mt-0.5">ブレスト</div>
+              </div>
+              <div class="p-3 rounded-xl bg-orange-50 border border-orange-200">
+                <div class="text-xs font-extrabold text-orange-700">② 整理する</div>
+                <div class="text-sm font-black text-slate-800 mt-0.5">KJ法・構成</div>
+              </div>
+              <div class="p-3 rounded-xl bg-blue-50 border border-blue-200">
+                <div class="text-xs font-extrabold text-blue-700">③ 伝える</div>
+                <div class="text-sm font-black text-slate-800 mt-0.5">配色・非言語・同期</div>
+              </div>
+              <div class="p-3 rounded-xl bg-purple-50 border border-purple-200">
+                <div class="text-xs font-extrabold text-purple-700">④ 誰もが使える</div>
+                <div class="text-sm font-black text-slate-800 mt-0.5">アクセシビリティ等</div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Stage Cards Grid -->
+          <section class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
+            ${stages.map(st => {
+              const isDone = state.completedStages[st.id];
+              return `
+                <div onclick="navigateTo('${st.id}')" class="bg-white rounded-2xl p-5 border ${isDone ? 'border-emerald-300 bg-emerald-50/20' : 'border-slate-200'} card-hover cursor-pointer flex flex-col justify-between">
+                  <div>
+                    <div class="flex items-center justify-between gap-2 mb-3">
+                      <span class="text-xs font-extrabold px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700">${st.time}</span>
+                      ${isDone
+                        ? '<span class="text-xs font-extrabold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800">✅ クリア済</span>'
+                        : '<span class="text-xs font-bold text-brand-600">挑戦する →</span>'}
+                    </div>
+                    <div class="flex items-start gap-3">
+                      <div class="text-3xl bg-slate-50 w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 border border-slate-100">
+                        ${st.icon}
+                      </div>
+                      <div>
+                        <div class="text-xs font-bold text-brand-600">${st.stepLabel}</div>
+                        <h3 class="text-base sm:text-lg font-extrabold text-slate-900 mt-0.5">${st.title}</h3>
+                        <p class="text-xs sm:text-sm text-slate-600 mt-1.5 leading-relaxed">${st.desc}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </section>
+        </div>
+      `;
+    }
+
+    // =========================================================================
+    // 5. STAGE 0: 導入（伝わらない発表の問題発見）
+    // =========================================================================
+    function renderStage0() {
+      const flaws = [
+        { id: 'density', label: '文字がびっしりで何が大事か分からない', step: '② 整理する（構成・情報量）' },
+        { id: 'contrast', label: '背景と文字の色が似ていて読みにくい', step: '③ 伝える（資料デザイン・配色）' },
+        { id: 'audience', label: '発表者が原稿ばかり見て聞き手を見ていない', step: '③ 伝える（非言語・アイコンタクト）' },
+        { id: 'accessibility', label: '文字が小さすぎ＆音声案内がなく使えない人がいる', step: '④ 誰もが使える（アクセシビリティ）' }
+      ];
+      const foundCount = state.stage0Data.foundFlaws.length;
+
+      return `
+        <div class="space-y-6 animate-fade-in">
+          ${renderStageHeader('STEP 0｜導入（0〜5分）', '伝わらない文化祭の発表を診断しよう！', '先生のセリフ：「文化祭の新企画を紹介します。でもアイデアはまとまらず、スライドは文字だらけ。発表者は原稿を見続け、案内の文字も小さい。何を変えますか？」')}
+
+          <!-- Interactive Bad Presentation Mockup -->
+          <div class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200 shadow-xs">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+              <h3 class="font-extrabold text-slate-900 text-base sm:text-lg">🕵️ ワーク1：下の「残念な発表シーン」から困る点を4つタップして見つけよう！</h3>
+              <span class="text-xs font-extrabold px-3 py-1 rounded-full bg-brand-100 text-brand-800">発見数：${foundCount} / 4</span>
+            </div>
+
+            <!-- Simulated Bad Slide & Speaker Scene -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 bg-slate-100 p-4 rounded-2xl border border-slate-300">
+              <!-- Bad Slide -->
+              <div class="lg:col-span-2 rounded-xl p-4 border-2 border-slate-400 relative" style="background-color: #cbd5e1; color: #64748b;">
+                <div class="text-[11px] font-bold mb-1 underline">文化祭3年2組企画書案その1（仮）ver2.4</div>
+                <p class="text-[11px] leading-tight mb-3">
+                  私たちのクラスでは今年度文化祭において地域活性化と伝統文化の継承をテーマにした体験型縁日カフェを実施したいと考えておりましてまず入り口でチケットを購入していただきその後射的や輪投げを体験しつつ特製抹茶ラテを飲んでいただく流れになっておりますが予算の関係で材料費が高騰しているため当日券の価格設定については現在検討中でありまたアレルギー表示についても別途紙で配布する予定ですが文字が小さくなるかもしれません。
+                </p>
+                <div class="flex flex-wrap gap-2 mt-2">
+                  <button onclick="toggleFlaw('density')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition shadow-xs ${state.stage0Data.foundFlaws.includes('density') ? 'bg-emerald-600 text-white' : 'bg-white text-slate-800 hover:bg-amber-100'}">
+                    ${state.stage0Data.foundFlaws.includes('density') ? '✅ 発見：文字だらけで整理不足' : '👆 この文章の量をチェック'}
+                  </button>
+                  <button onclick="toggleFlaw('contrast')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition shadow-xs ${state.stage0Data.foundFlaws.includes('contrast') ? 'bg-emerald-600 text-white' : 'bg-white text-slate-800 hover:bg-amber-100'}">
+                    ${state.stage0Data.foundFlaws.includes('contrast') ? '✅ 発見：背景と文字の色が近すぎ' : '👆 この配色をチェック'}
+                  </button>
+                  <button onclick="toggleFlaw('accessibility')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition shadow-xs ${state.stage0Data.foundFlaws.includes('accessibility') ? 'bg-emerald-600 text-white' : 'bg-white text-slate-800 hover:bg-amber-100'}">
+                    ${state.stage0Data.foundFlaws.includes('accessibility') ? '✅ 発見：字が小さく音声等がない' : '👆 文字サイズ・案内方法チェック'}
+                  </button>
+                </div>
+              </div>
+
+              <!-- Bad Speaker -->
+              <div class="bg-white rounded-xl p-4 border border-slate-300 flex flex-col justify-between">
+                <div>
+                  <div class="text-xs font-bold text-slate-500 mb-2">発表者の様子</div>
+                  <div class="bg-slate-50 rounded-xl p-3 text-center border border-slate-200">
+                    <div class="text-4xl mb-1">🙇‍♂️📄</div>
+                    <p class="text-xs text-slate-600 font-medium">「えー、企画書案その1ですが…（下を向いて原稿を棒読み）」</p>
+                  </div>
+                </div>
+                <button onclick="toggleFlaw('audience')" class="mt-3 w-full px-3 py-2 rounded-lg text-xs font-bold transition shadow-xs ${state.stage0Data.foundFlaws.includes('audience') ? 'bg-emerald-600 text-white' : 'bg-amber-100 text-amber-900 hover:bg-amber-200'}">
+                  ${state.stage0Data.foundFlaws.includes('audience') ? '✅ 発見：聞き手を見ていない' : '👆 発表者の視線チェック'}
+                </button>
+              </div>
+            </div>
+
+            <!-- Discovered Flaws & 4-Step Mapping -->
+            ${foundCount > 0 ? `
+              <div class="mt-5 space-y-2">
+                <div class="text-xs font-extrabold text-slate-600">💡 気づいた問題点と「改善の4段階」の対応：</div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  ${flaws.filter(f => state.stage0Data.foundFlaws.includes(f.id)).map(f => `
+                    <div class="p-3 rounded-xl bg-emerald-50 border border-emerald-200 flex flex-col justify-between">
+                      <span class="text-xs font-bold text-emerald-900">・${f.label}</span>
+                      <span class="mt-1.5 inline-block text-[11px] font-extrabold bg-white text-brand-700 px-2 py-0.5 rounded-md border border-brand-200 w-fit">
+                        関連ステップ：${f.step}
+                      </span>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+            ` : ''}
+
+            ${foundCount === 4 ? `
+              <div class="mt-6 p-4 rounded-2xl bg-brand-50 border border-brand-200 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div>
+                  <div class="font-extrabold text-brand-900 text-sm">🎉 すべての問題点を発見しました！</div>
+                  <p class="text-xs text-brand-800 mt-0.5">情報発信は「①発想 → ②整理 → ③発表 → ④利用しやすさ」の順に改善していきます。</p>
+                </div>
+                <button onclick="completeStage('stage0'); navigateTo('stage1');" class="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-sm shrink-0 shadow-sm">
+                  STEP 1（発想と整理）へ →
+                </button>
+              </div>
+            ` : ''}
+          </div>
+        </div>
+      `;
+    }
+
+    function toggleFlaw(id) {
+      if (!state.stage0Data.foundFlaws.includes(id)) {
+        state.stage0Data.foundFlaws.push(id);
+        showToast('問題点を発見！4段階のどこに当てはまるか確認しよう。', '🔍');
+      }
+      render();
+    }
+
+    // =========================================================================
+    // 6. STAGE 1: 発想と整理（ブレーンストーミング と KJ法）
+    // =========================================================================
+    function renderStage1() {
+      const brestStatements = [
+        { id: 'A', speaker: 'Aさん', text: '「予算オーバーするから、そのアイデアは今すぐ却下しよう！」', good: false, reason: '批判・否定をすると新しいアイデアが出にくくなるためNG。評価は後で行う。' },
+        { id: 'B', speaker: 'Bさん', text: '「いいね！その縁日カフェに『フォトスポット』を組み合わせたらもっと楽しそう！」', good: true, reason: '他人の案に便乗して発展させるのはブレストの重要ルール！' },
+        { id: 'C', speaker: 'Cさん', text: '「実現できるかまだ分からないけど、VRで学校の歴史体験とかどうかな？」', good: true, reason: '自由奔放な発想を歓迎し、実現可能性は後から検討するのがブレストの鉄則！' },
+        { id: 'D', speaker: 'Dさん', text: '「もう3つ案が出たから、アイデア出しはこれで打ち切ろう。」', good: false, reason: 'ブレストは「質より量」を重視し、たくさんの案を出す段階なので打ち切りはNG。' }
+      ];
+
+      const kjCards = [
+        { id: 'card1', text: '射的と輪投げコーナー', correctGroup: 'attr' },
+        { id: 'card2', text: '校内ポスターの配色改善', correctGroup: 'pr' },
+        { id: 'card3', text: 'アレルギー表示の徹底', correctGroup: 'ops' },
+        { id: 'card4', text: '特製抹茶ラテの提供', correctGroup: 'attr' },
+        { id: 'card5', text: 'SNSでのカウントダウン告知', correctGroup: 'pr' },
+        { id: 'card6', text: '行列の整理とチケット制', correctGroup: 'ops' }
+      ];
+
+      const groups = [
+        { id: 'attr', title: '🎯 企画の魅力・体験（表札①）', color: 'amber' },
+        { id: 'pr', title: '📢 広報・案内（表札②）', color: 'blue' },
+        { id: 'ops', title: '🛡️ 安全・運営ルール（表札③）', color: 'emerald' }
+      ];
+
+      return `
+        <div class="space-y-6 animate-fade-in">
+          ${renderStageHeader('STEP 1｜発想と整理（5〜12分）', 'アイデアを「広げる（ブレスト）」と「まとめる（KJ法）」', '合言葉：【ブレスト＝出す（発散）】 ／ 【KJ法＝まとめる（収束）】。今はどちらの段階かを意識しよう！')}
+
+          <!-- Part 1: Brainstorming Simulation -->
+          <div class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200 shadow-xs space-y-4">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <h3 class="font-extrabold text-slate-900 text-base sm:text-lg">🗣️ ワーク1-A：企画会議のブレーンストーミング（類似問題①）</h3>
+              <button onclick="toggleHint('hint-s1a')" class="text-xs font-bold px-3 py-1.5 rounded-xl bg-amber-100 text-amber-900 hover:bg-amber-200 transition">
+                💡 思考のヒントを見る
+              </button>
+            </div>
+
+            <div id="hint-s1a" class="hidden p-3.5 rounded-2xl bg-amber-50 border border-amber-200 text-xs text-amber-950 space-y-1">
+              <div class="font-extrabold">🔍 判断のヒント：</div>
+              <p>・ブレーンストーミングの4原則は<strong>「①批判厳禁 ②自由奔放 ③質より量 ④結合・改善（便乗歓迎）」</strong>です。</p>
+              <p>・「現実的かどうか」「予算に合うか」を判断するのは、アイデアを出し切った<strong>後</strong>の段階です。</p>
+            </div>
+
+            <p class="text-xs sm:text-sm text-slate-600">文化祭の企画会議で4人が発言しました。ブレーンストーミングのルールとして<strong>適切な発言をすべて</strong>選んでください。</p>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              ${brestStatements.map(st => {
+                const selected = state.stage1Data.brestSelected.includes(st.id);
+                let borderStyle = selected ? 'border-brand-600 bg-brand-50/60 ring-2 ring-brand-200' : 'border-slate-200 hover:border-slate-300';
+                if (state.stage1Data.brestChecked) {
+                  if (st.good) borderStyle = 'border-emerald-500 bg-emerald-50';
+                  else if (selected && !st.good) borderStyle = 'border-rose-500 bg-rose-50';
+                }
+                return `
+                  <div onclick="toggleBrestChoice('${st.id}')" class="p-4 rounded-2xl border-2 cursor-pointer transition ${borderStyle}">
+                    <div class="flex items-center justify-between mb-1">
+                      <span class="text-xs font-extrabold px-2 py-0.5 rounded bg-slate-800 text-white">${st.speaker}</span>
+                      <span class="text-xs font-bold ${selected ? 'text-brand-700' : 'text-slate-400'}">${selected ? '☑️ 選択中' : '⬜ タップして選択'}</span>
+                    </div>
+                    <p class="text-sm font-bold text-slate-800 mt-1">${st.text}</p>
+                    ${state.stage1Data.brestChecked ? `
+                      <div class="mt-2 pt-2 border-t border-slate-200/80 text-xs ${st.good ? 'text-emerald-800' : 'text-rose-800'} font-medium">
+                        ${st.good ? '⭕ 適切：' : '❌ 不適切：'}${st.reason}
+                      </div>
+                    ` : ''}
+                  </div>
+                `;
+              }).join('')}
+            </div>
+
+            <div class="flex items-center justify-between pt-2">
+              <button onclick="checkBrest()" class="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-sm transition">
+                答えと根拠を確認する
+              </button>
+              ${state.stage1Data.brestChecked ? '<span class="text-xs font-extrabold text-emerald-700">ポイント：アイデアを広げる段階では「批判せず便乗する」！</span>' : ''}
+            </div>
+          </div>
+
+          <!-- Part 2: KJ Method Interactive Sorting -->
+          <div class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200 shadow-xs space-y-4">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <h3 class="font-extrabold text-slate-900 text-base sm:text-lg">🗂️ ワーク1-B：30個の案が出た！KJ法でグループ化しよう</h3>
+              <button onclick="toggleHint('hint-s1b')" class="text-xs font-bold px-3 py-1.5 rounded-xl bg-amber-100 text-amber-900 hover:bg-amber-200 transition">
+                💡 KJ法の手順ヒント
+              </button>
+            </div>
+
+            <div id="hint-s1b" class="hidden p-3.5 rounded-2xl bg-amber-50 border border-amber-200 text-xs text-amber-950 space-y-1">
+              <div class="font-extrabold">🔍 KJ法の4ステップ：</div>
+              <p>① 1枚ずつカード（付箋）に書く → ② 似た内容のカードを集める → ③ まとまりに「表札（見出し）」を付ける → ④ グループ同士の関係を考える。</p>
+            </div>
+
+            <p class="text-xs sm:text-sm text-slate-600">付箋カードのボタンをタップして、似た内容の「表札（グループ）」に振り分けてみよう！</p>
+
+            <!-- Cards to assign -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              ${kjCards.map(card => {
+                const current = state.stage1Data.kjAssignments[card.id];
+                const isCorrect = current === card.correctGroup;
+                return `
+                  <div class="p-3.5 rounded-2xl border ${state.stage1Data.kjChecked ? (isCorrect ? 'border-emerald-400 bg-emerald-50/40' : 'border-rose-400 bg-rose-50/40') : 'border-slate-200 bg-amber-50/30'}">
+                    <div class="text-xs font-bold text-slate-400 mb-1">付箋メモ</div>
+                    <div class="text-sm font-extrabold text-slate-900 mb-3">「${card.text}」</div>
+                    <div class="flex flex-wrap gap-1.5">
+                      ${groups.map(g => `
+                        <button onclick="assignKjCard('${card.id}', '${g.id}')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold transition ${current === g.id ? 'bg-slate-900 text-white' : 'bg-white border border-slate-300 text-slate-700 hover:bg-slate-100'}">
+                          ${g.id === 'attr' ? '🎯 魅力・体験' : g.id === 'pr' ? '📢 広報・案内' : '🛡️ 安全・運営'}
+                        </button>
+                      `).join('')}
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+
+            <div class="flex flex-wrap items-center justify-between gap-3 pt-2">
+              <button onclick="checkKj()" class="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-sm transition">
+                KJ法の整理結果を判定する
+              </button>
+              ${state.stage1Data.kjChecked && state.stage1Data.brestChecked ? `
+                <button onclick="completeStage('stage1'); navigateTo('stage2');" class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm transition shadow-sm">
+                  STEP 1 クリア！次へ進む →
+                </button>
+              ` : ''}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function toggleBrestChoice(id) {
+      if (state.stage1Data.brestChecked) state.stage1Data.brestChecked = false;
+      const idx = state.stage1Data.brestSelected.indexOf(id);
+      if (idx >= 0) state.stage1Data.brestSelected.splice(idx, 1);
+      else state.stage1Data.brestSelected.push(id);
+      render();
+    }
+
+    function checkBrest() {
+      if (state.stage1Data.brestSelected.length === 0) {
+        showToast('まずは適切だと思う発言を1つ以上タップして選んでみよう！', '👆');
+        return;
+      }
+      state.stage1Data.brestChecked = true;
+      const sel = [...state.stage1Data.brestSelected].sort().join(',');
+      if (sel === 'B,C') {
+        showToast('大正解！BとCは「便乗」と「自由な発想」でアイデアを広げています。', '🎉');
+      } else {
+        recordStumble('brest_kj');
+        showToast('惜しい！解説を見て「アイデアを出す段階」のルールを確認しよう。', '💡');
+      }
+      render();
+    }
+
+    function assignKjCard(cardId, groupId) {
+      state.stage1Data.kjChecked = false;
+      state.stage1Data.kjAssignments[cardId] = groupId;
+      render();
+    }
+
+    function checkKj() {
+      const vals = Object.values(state.stage1Data.kjAssignments);
+      if (vals.includes(null)) {
+        showToast('6枚すべての付箋カードをグループに振り分けてから判定しよう！', '🗂️');
+        return;
+      }
+      state.stage1Data.kjChecked = true;
+      const allCorrect =
+        state.stage1Data.kjAssignments.card1 === 'attr' &&
+        state.stage1Data.kjAssignments.card2 === 'pr' &&
+        state.stage1Data.kjAssignments.card3 === 'ops' &&
+        state.stage1Data.kjAssignments.card4 === 'attr' &&
+        state.stage1Data.kjAssignments.card5 === 'pr' &&
+        state.stage1Data.kjAssignments.card6 === 'ops';
+
+      if (allCorrect) {
+        showToast('完璧なKJ法です！バラバラの情報が3つの「表札」に整理されました。', '🎉');
+      } else {
+        recordStumble('brest_kj');
+        showToast('一部グループが違うカードがあります。カードの目的を見直してみよう！', '🔍');
+      }
+      render();
+    }
+
+    // =========================================================================
+    // 7. STAGE 2: 発表準備と資料（配色実験・準備手順・機器）
+    // =========================================================================
+    function renderStage2() {
+      const d = state.stage2Data;
+      // 簡易的な明度差判定
+      const isHighContrast = (d.bgColor === '#0f172a' && (d.textColor === '#ffffff' || d.textColor === '#facc15')) ||
+                             (d.bgColor === '#ffffff' && (d.textColor === '#0f172a' || d.textColor === '#1d4ed8'));
+      const isGoodSlide = isHighContrast && d.density === 'low' && !d.colorOnly;
+
+      const prepOptions = [
+        { id: 'A', text: '聞き手（対象者）が誰かを確認し、専門用語を減らす', bad: false },
+        { id: 'B', text: '引用するデータの「発信元」と「更新日」を確認する', bad: false },
+        { id: 'C', text: 'リハーサルで伝わりにくい点が見つかっても、資料は一切変えない', bad: true },
+        { id: 'D', text: '制限時間内に収まるか、実際に時間を測って練習する', bad: false }
+      ];
+
+      return `
+        <div class="space-y-6 animate-fade-in">
+          ${renderStageHeader('STEP 2｜発表準備と資料（12〜21分）', '伝わるスライドデザイン実験 ＆ 準備・機器の判断', '準備の流れ：対象・目的 → 情報収集 → 構成 → 資料作成 → リハーサル（検証） → 本番 → 改善')}
+
+          <!-- Interactive Slide Design & Contrast Lab -->
+          <div class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200 shadow-xs space-y-5">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <h3 class="font-extrabold text-slate-900 text-base sm:text-lg">🎨 ワーク2-A：伝わるスライド配色＆レイアウト実験室</h3>
+              <button onclick="toggleHint('hint-s2a')" class="text-xs font-bold px-3 py-1.5 rounded-xl bg-amber-100 text-amber-900 hover:bg-amber-200 transition">
+                💡 配色の3原則ヒント
+              </button>
+            </div>
+
+            <div id="hint-s2a" class="hidden p-3.5 rounded-2xl bg-amber-50 border border-amber-200 text-xs text-amber-950 space-y-1">
+              <div class="font-extrabold">🔍 読みやすい資料の3つの鉄則：</div>
+              <p>① <strong>十分な明度差</strong>：背景が暗いなら文字は明るく、背景が明るいなら文字は暗くする。</p>
+              <p>② <strong>情報を詰め込まない</strong>：1スライド1メッセージ・箇条書きでタイトルを目立たせる。</p>
+              <p>③ <strong>色だけで区別しない</strong>：赤と緑など色覚の特性によって見分けにくい組み合わせがあるため、アイコン（★や▲）や文字も併用する。</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+              <!-- Controls -->
+              <div class="lg:col-span-5 space-y-4 bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                <div>
+                  <label class="text-xs font-extrabold text-slate-700 block mb-1.5">1. 背景色を選ぶ</label>
+                  <div class="flex gap-2">
+                    <button onclick="updateSlideDesign('bgColor', '#e2e8f0')" class="px-3 py-1.5 rounded-lg text-xs font-bold border ${d.bgColor === '#e2e8f0' ? 'ring-2 ring-brand-600 border-brand-600' : 'border-slate-300'}" style="background:#e2e8f0; color:#334155">薄いグレー</button>
+                    <button onclick="updateSlideDesign('bgColor', '#ffffff')" class="px-3 py-1.5 rounded-lg text-xs font-bold border ${d.bgColor === '#ffffff' ? 'ring-2 ring-brand-600 border-brand-600' : 'border-slate-300'}" style="background:#ffffff; color:#0f172a">白背景</button>
+                    <button onclick="updateSlideDesign('bgColor', '#0f172a')" class="px-3 py-1.5 rounded-lg text-xs font-bold border ${d.bgColor === '#0f172a' ? 'ring-2 ring-brand-600 border-brand-600' : 'border-slate-300'}" style="background:#0f172a; color:#ffffff">濃紺ダーク</button>
+                  </div>
+                </div>
+
+                <div>
+                  <label class="text-xs font-extrabold text-slate-700 block mb-1.5">2. 文字色を選ぶ（明度差を意識！）</label>
+                  <div class="flex flex-wrap gap-2">
+                    <button onclick="updateSlideDesign('textColor', '#94a3b8')" class="px-3 py-1.5 rounded-lg text-xs font-bold border bg-white text-slate-400 ${d.textColor === '#94a3b8' ? 'ring-2 ring-brand-600' : ''}">薄いグレー文字</button>
+                    <button onclick="updateSlideDesign('textColor', '#0f172a')" class="px-3 py-1.5 rounded-lg text-xs font-bold border bg-white text-slate-900 ${d.textColor === '#0f172a' ? 'ring-2 ring-brand-600' : ''}">黒文字</button>
+                    <button onclick="updateSlideDesign('textColor', '#ffffff')" class="px-3 py-1.5 rounded-lg text-xs font-bold border bg-slate-800 text-white ${d.textColor === '#ffffff' ? 'ring-2 ring-brand-600' : ''}">白文字</button>
+                    <button onclick="updateSlideDesign('textColor', '#facc15')" class="px-3 py-1.5 rounded-lg text-xs font-bold border bg-slate-900 text-yellow-400 ${d.textColor === '#facc15' ? 'ring-2 ring-brand-600' : ''}">黄色文字</button>
+                  </div>
+                </div>
+
+                <div>
+                  <label class="text-xs font-extrabold text-slate-700 block mb-1.5">3. 情報の整理（詰め込みすぎ防止）</label>
+                  <div class="grid grid-cols-2 gap-2">
+                    <button onclick="updateSlideDesign('density', 'high')" class="px-3 py-2 rounded-lg text-xs font-bold border ${d.density === 'high' ? 'bg-slate-800 text-white' : 'bg-white text-slate-700'}">長文を詰め込む</button>
+                    <button onclick="updateSlideDesign('density', 'low')" class="px-3 py-2 rounded-lg text-xs font-bold border ${d.density === 'low' ? 'bg-slate-800 text-white' : 'bg-white text-slate-700'}">箇条書きで要点を絞る</button>
+                  </div>
+                </div>
+
+                <div>
+                  <label class="text-xs font-extrabold text-slate-700 block mb-1.5">4. 混雑状況の区別方法（色覚多様性への配慮）</label>
+                  <div class="grid grid-cols-2 gap-2">
+                    <button onclick="updateSlideDesign('colorOnly', true)" class="px-3 py-2 rounded-lg text-xs font-bold border ${d.colorOnly ? 'bg-slate-800 text-white' : 'bg-white text-slate-700'}">赤と緑の色だけで区別</button>
+                    <button onclick="updateSlideDesign('colorOnly', false)" class="px-3 py-2 rounded-lg text-xs font-bold border ${!d.colorOnly ? 'bg-slate-800 text-white' : 'bg-white text-slate-700'}">色＋記号・文字を併用</button>
+                  </div>
+                </div>
+
+                <div class="pt-2 border-t border-slate-200 flex items-center justify-between">
+                  <span class="text-xs font-bold text-slate-600">👁️ 色覚特性シミュレーション</span>
+                  <button onclick="updateSlideDesign('simColorBlind', !d.simColorBlind)" class="px-3 py-1 rounded-full text-xs font-extrabold ${d.simColorBlind ? 'bg-purple-600 text-white' : 'bg-slate-200 text-slate-700'}">
+                    ${d.simColorBlind ? 'ON（見分けにくさを確認中）' : 'OFF（通常表示）'}
+                  </button>
+                </div>
+              </div>
+
+              <!-- Live Slide Preview -->
+              <div class="lg:col-span-7 flex flex-col justify-between">
+                <div class="rounded-2xl p-6 border-2 border-slate-300 shadow-inner min-h-[240px] flex flex-col justify-between transition-all ${d.simColorBlind ? 'sim-protanopia' : ''}" style="background-color: ${d.bgColor}; color: ${d.textColor};">
+                  <div>
+                    <div class="text-xs font-bold opacity-80 mb-1">3年2組 文化祭企画</div>
+                    <h4 class="text-xl sm:text-2xl font-black tracking-tight mb-3">体験型・縁日＆抹茶カフェ</h4>
+                    ${d.density === 'high' ? `
+                      <p class="text-xs leading-relaxed">
+                        今年の文化祭では伝統文化の体験とカフェを融合させた企画を実施します。入口でチケットを購入してから射的や輪投げを遊んでいただき、その後カウンターで抹茶ラテを受け取ってください。混雑時は整理券を配布しますので係員の指示に従ってください。
+                      </p>
+                    ` : `
+                      <ul class="space-y-2 text-sm sm:text-base font-bold list-disc list-inside">
+                        <li>遊び：伝統の「射的＆輪投げ」体験</li>
+                        <li>飲食：特製・宇治抹茶ラテ（1杯300円）</li>
+                        <li>場所：3階 3年2組教室（受付は廊下側）</li>
+                      </ul>
+                    `}
+                  </div>
+
+                  <div class="mt-4 pt-3 border-t border-current/20 flex items-center justify-between text-xs font-extrabold">
+                    <span>現在の混雑状況：</span>
+                    ${d.colorOnly ? `
+                      <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-emerald-500 inline-block"></span> 空き</span>
+                        <span class="inline-flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-red-600 inline-block"></span> 混雑</span>
+                      </div>
+                    ` : `
+                      <div class="flex items-center gap-3">
+                        <span class="px-2 py-0.5 rounded bg-emerald-600 text-white">◯ 空きあり（すぐ案内）</span>
+                        <span class="px-2 py-0.5 rounded bg-rose-700 text-white">▲ 混雑中（15分待ち）</span>
+                      </div>
+                    `}
+                  </div>
+                </div>
+
+                <!-- Real-time Feedback Box -->
+                <div class="mt-3 p-3.5 rounded-2xl ${isGoodSlide ? 'bg-emerald-50 border border-emerald-300 text-emerald-900' : 'bg-slate-100 border border-slate-200 text-slate-700'} text-xs space-y-1">
+                  <div class="font-extrabold">
+                    ${isGoodSlide ? '✨ 合格！誰にとっても読みやすく整理されたスライドです！' : '🔧 改善アドバイス（3つすべてクリアしよう）：'}
+                  </div>
+                  <div class="flex flex-wrap gap-2 mt-1">
+                    <span class="px-2 py-0.5 rounded ${isHighContrast ? 'bg-emerald-200 text-emerald-900 font-bold' : 'bg-rose-100 text-rose-800'}">
+                      ${isHighContrast ? '✅ 明度差OK' : '❌ 明度差が足りない'}
+                    </span>
+                    <span class="px-2 py-0.5 rounded ${d.density === 'low' ? 'bg-emerald-200 text-emerald-900 font-bold' : 'bg-rose-100 text-rose-800'}">
+                      ${d.density === 'low' ? '✅ 情報量スッキリ' : '❌ 文字を詰め込みすぎ'}
+                    </span>
+                    <span class="px-2 py-0.5 rounded ${!d.colorOnly ? 'bg-emerald-200 text-emerald-900 font-bold' : 'bg-rose-100 text-rose-800'}">
+                      ${!d.colorOnly ? '✅ 色＋形/文字で区別' : '❌ 色だけで区別している'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Part 2: Preparation & Equipment Check (類似問題②) -->
+          <div class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200 shadow-xs space-y-4">
+            <h3 class="font-extrabold text-slate-900 text-base sm:text-lg">🎤 ワーク2-B：プレゼン準備と機器の判断（類似問題②）</h3>
+            <p class="text-xs sm:text-sm text-slate-600">発表準備の行動として<strong>不適切なもの</strong>を1つ選んでください。</p>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              ${prepOptions.map(opt => {
+                const isSelected = d.quiz2Answered === opt.id;
+                let style = 'border-slate-200 hover:border-slate-300';
+                if (d.quiz2Answered) {
+                  if (opt.bad) style = 'border-emerald-500 bg-emerald-50';
+                  else if (isSelected) style = 'border-rose-500 bg-rose-50';
+                }
+                return `
+                  <button onclick="answerQuiz2('${opt.id}', ${opt.bad})" class="p-4 rounded-2xl border-2 text-left transition ${style}">
+                    <span class="text-xs font-black text-brand-700 block mb-1">選択肢 ${opt.id}</span>
+                    <span class="text-sm font-bold text-slate-800">${opt.text}</span>
+                  </button>
+                `;
+              }).join('')}
+            </div>
+
+            ${d.quiz2Answered ? `
+              <div class="p-4 rounded-2xl bg-blue-50 border border-blue-200 text-xs sm:text-sm text-blue-950 space-y-1.5">
+                <div class="font-extrabold">💡 解説：正解は「C（不適切）」</div>
+                <p>リハーサルは単なる暗記練習ではなく、<strong>「聞き手にとって伝わりにくい箇所を見つける検証の場」</strong>です。改善点が見つかったら、本番前に必ず資料や構成を修正します。</p>
+                <div class="pt-2 border-t border-blue-200/80 grid grid-cols-1 sm:grid-cols-2 gap-1 text-xs">
+                  <span>・<strong>プロジェクタ</strong>：PC等の画面をスクリーンに拡大投影</span>
+                  <span>・<strong>実物投影機（書画カメラ）</strong>：紙の資料や立体物をそのまま映す</span>
+                  <span>・<strong>レーザポインタ</strong>：スクリーンの注目箇所を指し示す</span>
+                  <span>・<strong>プレゼンタデバイス</strong>：手元でスライド送り等を遠隔操作</span>
+                </div>
+              </div>
+            ` : ''}
+
+            ${isGoodSlide && d.quiz2Answered === 'C' ? `
+              <div class="flex justify-end pt-2">
+                <button onclick="completeStage('stage2'); navigateTo('stage3');" class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm transition shadow-sm">
+                  STEP 2 クリア！次へ進む →
+                </button>
+              </div>
+            ` : ''}
+          </div>
+        </div>
+      `;
+    }
+
+    function updateSlideDesign(key, val) {
+      state.stage2Data[key] = val;
+      render();
+    }
+
+    function answerQuiz2(id, isBad) {
+      state.stage2Data.quiz2Answered = id;
+      if (isBad) {
+        showToast('正解！リハーサルは「改善点を見つける検証」なので修正が大切です。', '🎉');
+      } else {
+        recordStumble('prep_rehearsal');
+        showToast('それはとても大切な準備行動です！「不適切なもの」を探そう。', '🤔');
+      }
+      render();
+    }
+
+    // =========================================================================
+    // 8. STAGE 3: コミュニケーションの種類（同期／非同期・非言語情報）
+    // =========================================================================
+    function renderStage3() {
+      const items = [
+        { id: 'phone', name: '📞 電話での連絡', hint: '相手が今電話に出ないと会話が成立しない', correct: 'sync' },
+        { id: 'email', name: '✉️ 翌日返信のメール', hint: '自分のタイミングで送り、相手も空いた時間に読む', correct: 'async' },
+        { id: 'video', name: '💻 ビデオ会議', hint: '全員が同じ時刻にアクセスしてリアルタイムで話す', correct: 'sync' },
+        { id: 'board', name: '📋 連絡掲示板への投稿', hint: '書き込んだ後、各自が都合のよい時に閲覧・返信する', correct: 'async' }
+      ];
+
+      const allCommFilled = items.every(i => state.stage3Data.commAnswers[i.id]);
+      const allCommCorrect = items.every(i => state.stage3Data.commAnswers[i.id] === i.correct);
+
+      return `
+        <div class="space-y-6 animate-fade-in">
+          ${renderStageHeader('STEP 3｜コミュニケーション（21〜29分）', '同期／非同期の判断軸 と 非言語情報の正しい理解', '判断の問い：「同じ時間にやり取りする必要があるか？」（ネットを使うかどうかではない！）')}
+
+          <!-- Part 1: Sync vs Async Matrix (類似問題③) -->
+          <div class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200 shadow-xs space-y-4">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <h3 class="font-extrabold text-slate-900 text-base sm:text-lg">⏱️ ワーク3-A：同期型・非同期型コミュニケーション分類（類似問題③）</h3>
+              <button onclick="toggleHint('hint-s3a')" class="text-xs font-bold px-3 py-1.5 rounded-xl bg-amber-100 text-amber-900 hover:bg-amber-200 transition">
+                💡 見分け方のヒント
+              </button>
+            </div>
+
+            <div id="hint-s3a" class="hidden p-3.5 rounded-2xl bg-amber-50 border border-amber-200 text-xs text-amber-950 space-y-1">
+              <div class="font-extrabold">🔍 よくある誤解に注意！</div>
+              <p>「インターネットを使う＝同期」ではありません！</p>
+              <p><strong>「相手と時間を合わせる必要がある（リアルタイム）」→ 同期型</strong></p>
+              <p><strong>「返信を翌日まで待てる（時間をずらせる）」→ 非同期型</strong></p>
+              <p>※チャットツールは、リアルタイムで連投すれば同期、後で返信すれば非同期になります。</p>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              ${items.map(item => {
+                const ans = state.stage3Data.commAnswers[item.id];
+                const isOk = ans === item.correct;
+                return `
+                  <div class="p-4 rounded-2xl border ${state.stage3Data.commChecked ? (isOk ? 'border-emerald-400 bg-emerald-50/40' : 'border-rose-400 bg-rose-50/40') : 'border-slate-200'}">
+                    <div class="font-extrabold text-slate-900 text-sm sm:text-base">${item.name}</div>
+                    <p class="text-xs text-slate-500 mt-0.5 mb-3">${item.hint}</p>
+                    <div class="grid grid-cols-2 gap-2">
+                      <button onclick="setCommAnswer('${item.id}', 'sync')" class="py-2 px-3 rounded-xl text-xs font-extrabold border transition ${ans === 'sync' ? 'bg-brand-600 text-white border-brand-600' : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'}">
+                        ⚡ 同期型（同時）
+                      </button>
+                      <button onclick="setCommAnswer('${item.id}', 'async')" class="py-2 px-3 rounded-xl text-xs font-extrabold border transition ${ans === 'async' ? 'bg-purple-600 text-white border-purple-600' : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'}">
+                        ⏳ 非同期型（時間差）
+                      </button>
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+
+            <div class="flex items-center justify-between pt-2">
+              <button onclick="checkComm()" class="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-sm transition">
+                分類をチェックする
+              </button>
+              ${state.stage3Data.commChecked && allCommCorrect ? '<span class="text-xs font-extrabold text-emerald-700">✅ 完璧！「時間の一致が必要か」で判断できました。</span>' : ''}
+            </div>
+          </div>
+
+          <!-- Part 2: Non-verbal & Mehrabian's Law Trap -->
+          <div class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200 shadow-xs space-y-4">
+            <h3 class="font-extrabold text-slate-900 text-base sm:text-lg">👀 ワーク3-B：非言語情報・メラビアンの法則・アイコンタクト</h3>
+            <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs sm:text-sm text-slate-800">
+              <span class="font-extrabold text-brand-700">後輩の相談：</span>
+              「先輩！メラビアンの法則って『見た目55％・声38％・話の内容7％』ですよね？ つまり文化祭の発表は、<strong>中身が適当でも身振り手振りさえ大きければ93％伝わる</strong>ってことですか？」
+            </div>
+
+            <div class="space-y-2.5">
+              ${[
+                { id: 'A', text: '「その通り！だから原稿の中身は考えず、表情と声のトーンだけで乗り切ろう。」', ok: false },
+                { id: 'B', text: '「それは誤解だよ。感情や態度が矛盾したときの実験結果であって、日常のプレゼンでは話の内容（言語情報）も非言語情報も両方大切なんだ。」', ok: true },
+                { id: 'C', text: '「アイコンタクトは緊張するから、一番仲の良い友達1人だけをずっと見つめて話そう。」', ok: false }
+              ].map(c => {
+                const chosen = state.stage3Data.mehrabianChoice === c.id;
+                let cls = 'border-slate-200 hover:border-slate-300';
+                if (chosen) cls = c.ok ? 'border-emerald-500 bg-emerald-50' : 'border-rose-500 bg-rose-50';
+                return `
+                  <button onclick="chooseMehrabian('${c.id}', ${c.ok})" class="w-full p-4 rounded-2xl border-2 text-left text-xs sm:text-sm font-bold transition ${cls}">
+                    ${c.text}
+                  </button>
+                `;
+              }).join('')}
+            </div>
+
+            ${state.stage3Data.mehrabianChoice ? `
+              <div class="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-950 space-y-1">
+                <div class="font-extrabold">📌 非言語コミュニケーションの要点：</div>
+                <p>・<strong>メラビアンの法則（言語7%・聴覚38%・視覚55%）</strong>：好き嫌い等の感情・態度について言葉と態度が食い違う限定的状況の数値。あらゆる説明に一般化してはいけません。</p>
+                <p>・<strong>アイコンタクト</strong>：原稿だけを見ず、特定の1人に視線を固定せず、会場全体を見渡す（複数方向を見る）ことが大切です。</p>
+              </div>
+            ` : ''}
+
+            ${allCommCorrect && state.stage3Data.mehrabianChoice === 'B' ? `
+              <div class="flex justify-end pt-2">
+                <button onclick="completeStage('stage3'); navigateTo('stage4');" class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm transition shadow-sm">
+                  STEP 3 クリア！次へ進む →
+                </button>
+              </div>
+            ` : ''}
+          </div>
+        </div>
+      `;
+    }
+
+    function setCommAnswer(id, val) {
+      state.stage3Data.commChecked = false;
+      state.stage3Data.commAnswers[id] = val;
+      render();
+    }
+
+    function checkComm() {
+      if (Object.keys(state.stage3Data.commAnswers).length < 4) {
+        showToast('4つすべての連絡手段について「同期型」か「非同期型」を選ぼう！', '⏱️');
+        return;
+      }
+      state.stage3Data.commChecked = true;
+      const ok = state.stage3Data.commAnswers.phone === 'sync' &&
+                 state.stage3Data.commAnswers.email === 'async' &&
+                 state.stage3Data.commAnswers.video === 'sync' &&
+                 state.stage3Data.commAnswers.board === 'async';
+      if (ok) {
+        showToast('全問正解！ネットの有無ではなく「時間」で判断できましたね。', '🎉');
+      } else {
+        recordStumble('sync_net');
+        showToast('「返信を翌日まで待てるか？」という時間の軸で考え直してみよう！', '💡');
+      }
+      render();
+    }
+
+    function chooseMehrabian(id, ok) {
+      state.stage3Data.mehrabianChoice = id;
+      if (ok) {
+        showToast('的確なアドバイスです！法則の適用範囲を正しく理解しています。', '👏');
+      } else {
+        recordStumble('mehrabian_myth');
+        showToast('注意！メラビアンの法則は限定的条件の研究です。Bの解説を読もう。', '⚠️');
+      }
+      render();
+    }
+
+    // =========================================================================
+    // 9. STAGE 4: アクセシビリティ と ユーザビリティ（3観点）
+    // =========================================================================
+    function renderStage4() {
+      const d = state.stage4Data;
+      const usabilityQuestions = [
+        { id: 'qA', text: '来校者A：「会場マップの検索機能のおかげで、目的の『3年2組の展示場所』をちゃんと見つけられた！」', correct: 'effectiveness' },
+        { id: 'qB', text: '来校者B：「去年は案内を探すのに10分かかっていたけれど、今年はわずか2分でたどり着けた！」', correct: 'efficiency' },
+        { id: 'qC', text: '来校者C：「画面が見やすくて迷わなかったので、来年もぜひこの案内アプリを使いたいと思った！」', correct: 'satisfaction' }
+      ];
+
+      const allUsaDone = usabilityQuestions.every(q => d.usabilityAnswers[q.id]);
+      const allUsaCorrect = usabilityQuestions.every(q => d.usabilityAnswers[q.id] === q.correct);
+
+      return `
+        <div class="space-y-6 animate-fade-in">
+          ${renderStageHeader('STEP 4｜利用しやすさ（29〜36分）', 'アクセシビリティ と ユーザビリティの3観点', '問いかけ：「そもそも誰もがアクセスして使える？（アクセシビリティ）」＋「目的をスムーズに達成できる？（ユーザビリティ）」')}
+
+          <!-- Part 1: Accessibility Persona Simulator -->
+          <div class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200 shadow-xs space-y-4">
+            <h3 class="font-extrabold text-slate-900 text-base sm:text-lg">♿ ワーク4-A：多様な来校者の視点で文化祭Web案内を改善しよう</h3>
+            <p class="text-xs sm:text-sm text-slate-600">下のボタンで「来校者の状況」を切り替え、困りごとを解決する改善スイッチをすべてONにしてみよう！</p>
+
+            <!-- Persona Switcher -->
+            <div class="flex flex-wrap gap-2">
+              <button onclick="setPersona('blind')" class="px-3.5 py-2 rounded-xl text-xs font-extrabold border transition ${d.persona === 'blind' ? 'bg-slate-900 text-white' : 'bg-slate-50 text-slate-700 hover:bg-slate-100'}">
+                🕶️ 視覚に障がいがある方（音声読み上げ利用）
+              </button>
+              <button onclick="setPersona('elder')" class="px-3.5 py-2 rounded-xl text-xs font-extrabold border transition ${d.persona === 'elder' ? 'bg-slate-900 text-white' : 'bg-slate-50 text-slate-700 hover:bg-slate-100'}">
+                👓 小さな文字が読みにくい高齢者の方
+              </button>
+              <button onclick="setPersona('busy')" class="px-3.5 py-2 rounded-xl text-xs font-extrabold border transition ${d.persona === 'busy' ? 'bg-slate-900 text-white' : 'bg-slate-50 text-slate-700 hover:bg-slate-100'}">
+                ⏱️ 時間がなく急いで目的の企画を探したい保護者
+              </button>
+            </div>
+
+            <!-- Simulated Web Guide Box -->
+            <div class="p-5 rounded-2xl bg-slate-100 border border-slate-300 space-y-3">
+              ${d.persona === 'blind' ? `
+                <div class="p-3 rounded-xl bg-amber-100 border border-amber-300 text-xs text-amber-950 font-bold">
+                  🔊 音声読み上げソフトの声：
+                  ${d.appliedFixes.includes('alt_tts')
+                    ? '「【音声案内対応済】3年2組・縁日カフェの案内画像です。3階東側階段すぐ横にあります。」→ 内容が伝わった！'
+                    : '「画像001.jpg… 画像002.jpg…」→ 文字が画像化されていて内容が全く読み上げられない！'}
+                </div>
+              ` : ''}
+
+              ${d.persona === 'elder' ? `
+                <div class="p-3 rounded-xl bg-amber-100 border border-amber-300 text-xs text-amber-950 font-bold">
+                  👓 画面の見え方：
+                  ${d.appliedFixes.includes('font_zoom')
+                    ? '文字拡大ボタン＆高コントラスト表示により、拡大してもレイアウトが崩れずハッキリ読める！'
+                    : '文字サイズが10px固定で小さすぎて、何が書いてあるか読めない！'}
+                </div>
+              ` : ''}
+
+              ${d.persona === 'busy' ? `
+                <div class="p-3 rounded-xl bg-amber-100 border border-amber-300 text-xs text-amber-950 font-bold">
+                  ⏱️ 検索体験：
+                  ${d.appliedFixes.includes('quick_search')
+                    ? '「階数・ジャンル別絞り込み」機能のおかげで、30分かかっていた場所探しが1分で完了！（効率性UP）'
+                    : '全40団体の紹介文を上から順にスクロールしないと場所が分からず、探すのに30分かかる！'}
+                </div>
+              ` : ''}
+
+              <!-- Fix Toggles -->
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-2">
+                <button onclick="toggleWebFix('alt_tts')" class="p-3 rounded-xl border text-left text-xs font-bold transition ${d.appliedFixes.includes('alt_tts') ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-white text-slate-800 border-slate-300 hover:bg-slate-50'}">
+                  <div class="text-[10px] opacity-80">アクセシビリティ改善①</div>
+                  <div>🔊 画像の代替テキスト・音声案内を追加</div>
+                </button>
+                <button onclick="toggleWebFix('font_zoom')" class="p-3 rounded-xl border text-left text-xs font-bold transition ${d.appliedFixes.includes('font_zoom') ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-white text-slate-800 border-slate-300 hover:bg-slate-50'}">
+                  <div class="text-[10px] opacity-80">アクセシビリティ改善②</div>
+                  <div>🔍 文字拡大・キーボード操作に対応</div>
+                </button>
+                <button onclick="toggleWebFix('quick_search')" class="p-3 rounded-xl border text-left text-xs font-bold transition ${d.appliedFixes.includes('quick_search') ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-white text-slate-800 border-slate-300 hover:bg-slate-50'}">
+                  <div class="text-[10px] opacity-80">ユーザビリティ改善</div>
+                  <div>⚡ 目的別クイック検索を導入（効率性）</div>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Part 2: Usability 3 Perspectives (類似問題④) -->
+          <div class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200 shadow-xs space-y-4">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <h3 class="font-extrabold text-slate-900 text-base sm:text-lg">📊 ワーク4-B：ユーザビリティの3観点を区別しよう（類似問題④）</h3>
+              <button onclick="toggleHint('hint-s4b')" class="text-xs font-bold px-3 py-1.5 rounded-xl bg-amber-100 text-amber-900 hover:bg-amber-200 transition">
+                💡 3観点の見分け方ヒント
+              </button>
+            </div>
+
+            <div id="hint-s4b" class="hidden p-3.5 rounded-2xl bg-amber-50 border border-amber-200 text-xs text-amber-950 space-y-1">
+              <div class="font-extrabold">🔍 ユーザビリティ3観点の判断の問い：</div>
+              <p>① <strong>有効性</strong>：「目的を達成できたか？（必要な情報が見つかったか）」</p>
+              <p>② <strong>効率性</strong>：「手間や時間は少ないか？（10分→2分に短縮できたか）」</p>
+              <p>③ <strong>満足度</strong>：「利用して満足できたか？（また使いたいと思ったか）」</p>
+            </div>
+
+            <div class="space-y-3">
+              ${usabilityQuestions.map(q => {
+                const ans = d.usabilityAnswers[q.id];
+                const isOk = ans === q.correct;
+                return `
+                  <div class="p-4 rounded-2xl border ${d.usabilityChecked ? (isOk ? 'border-emerald-400 bg-emerald-50/40' : 'border-rose-400 bg-rose-50/40') : 'border-slate-200'}">
+                    <p class="text-xs sm:text-sm font-bold text-slate-800 mb-3">${q.text}</p>
+                    <div class="grid grid-cols-3 gap-2">
+                      <button onclick="setUsaAnswer('${q.id}', 'effectiveness')" class="py-2 px-2 rounded-xl text-xs font-extrabold border transition ${ans === 'effectiveness' ? 'bg-brand-600 text-white border-brand-600' : 'bg-white text-slate-700 border-slate-300'}">
+                        🎯 有効性
+                      </button>
+                      <button onclick="setUsaAnswer('${q.id}', 'efficiency')" class="py-2 px-2 rounded-xl text-xs font-extrabold border transition ${ans === 'efficiency' ? 'bg-amber-600 text-white border-amber-600' : 'bg-white text-slate-700 border-slate-300'}">
+                        ⚡ 効率性
+                      </button>
+                      <button onclick="setUsaAnswer('${q.id}', 'satisfaction')" class="py-2 px-2 rounded-xl text-xs font-extrabold border transition ${ans === 'satisfaction' ? 'bg-purple-600 text-white border-purple-600' : 'bg-white text-slate-700 border-slate-300'}">
+                        😊 満足度
+                      </button>
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+
+            <div class="flex flex-wrap items-center justify-between gap-3 pt-2">
+              <button onclick="checkUsability()" class="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-sm transition">
+                3観点の判定をする
+              </button>
+              ${d.usabilityChecked && allUsaCorrect && d.appliedFixes.length === 3 ? `
+                <button onclick="completeStage('stage4'); navigateTo('stage5');" class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm transition shadow-sm">
+                  STEP 4 クリア！総合確認へ →
+                </button>
+              ` : '<span class="text-xs text-slate-500">※上の3つの改善スイッチもすべてONにしてみよう！</span>'}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function setPersona(p) {
+      state.stage4Data.persona = p;
+      render();
+    }
+
+    function toggleWebFix(fixId) {
+      const idx = state.stage4Data.appliedFixes.indexOf(fixId);
+      if (idx >= 0) state.stage4Data.appliedFixes.splice(idx, 1);
+      else state.stage4Data.appliedFixes.push(fixId);
+      render();
+    }
+
+    function setUsaAnswer(qId, val) {
+      state.stage4Data.usabilityChecked = false;
+      state.stage4Data.usabilityAnswers[qId] = val;
+      render();
+    }
+
+    function checkUsability() {
+      if (Object.keys(state.stage4Data.usabilityAnswers).length < 3) {
+        showToast('3つすべての来校者の声について観点をえらぼう！', '📊');
+        return;
+      }
+      state.stage4Data.usabilityChecked = true;
+      const ok = state.stage4Data.usabilityAnswers.qA === 'effectiveness' &&
+                 state.stage4Data.usabilityAnswers.qB === 'efficiency' &&
+                 state.stage4Data.usabilityAnswers.qC === 'satisfaction';
+      if (ok) {
+        showToast('全問正解！「できたか（有効性）」「手間・時間（効率性）」「気持ちよさ（満足度）」を完璧に区別できました！', '🎉');
+      } else {
+        recordStumble('eff_eff');
+        showToast('「達成できたか（結果）」と「時間が短縮されたか（手間）」の違いに注目しよう！', '💡');
+      }
+      render();
+    }
+
+    // =========================================================================
+    // 10. STAGE 5: 総合確認（36〜40分）＆ 日常シーンへの応用チャレンジ
+    // =========================================================================
+    function renderStage5() {
+      const d = state.stage5Data;
+      const finalQs = [
+        {
+          id: 'f1',
+          step: '① 発想段階',
+          prompt: '文化祭の企画について、批判を控えて自由にたくさんの案を出す活動',
+          correctTerm: 'bs',
+          correctReason: 'r_bs',
+          terms: [
+            { id: 'bs', label: 'ブレーンストーミング' },
+            { id: 'kj', label: 'KJ法' },
+            { id: 'acc', label: 'アクセシビリティ' }
+          ],
+          reasons: [
+            { id: 'r_bs', label: 'アイデアを広げる（発散する）段階だから' },
+            { id: 'r_kj', label: '出た案をグループ化して構造化する段階だから' }
+          ]
+        },
+        {
+          id: 'f2',
+          step: '② 整理段階',
+          prompt: '出た30個のアイデアをカードに書き、似た案を集めて表札を付けて整理する技法',
+          correctTerm: 'kj',
+          correctReason: 'r_kj',
+          terms: [
+            { id: 'bs', label: 'ブレーンストーミング' },
+            { id: 'kj', label: 'KJ法' },
+            { id: 'eff', label: '効率性' }
+          ],
+          reasons: [
+            { id: 'r_bs', label: '質より量を求めて意見を出すため' },
+            { id: 'r_kj', label: 'バラバラの情報をまとめて関係を見える化するため' }
+          ]
+        },
+        {
+          id: 'f3',
+          step: '③ 利用しやすさ（基盤）',
+          prompt: '耳が不自由な人や日本語が苦手な人にも伝わるよう、紹介動画に字幕や音声読み上げを付ける配慮',
+          correctTerm: 'acc',
+          correctReason: 'r_acc',
+          terms: [
+            { id: 'acc', label: 'アクセシビリティ' },
+            { id: 'eff', label: '効率性' },
+            { id: 'sync', label: '同期型コミュニケーション' }
+          ],
+          reasons: [
+            { id: 'r_acc', label: '誰もが情報にアクセスして利用できる状態にするため' },
+            { id: 'r_eff', label: '検索にかかる時間を短縮するため' }
+          ]
+        },
+        {
+          id: 'f4',
+          step: '④ 利用しやすさ（評価観点）',
+          prompt: '案内アプリのメニュー配置を工夫し、目的の教室を探す時間を10分から2分に短縮できたこと',
+          correctTerm: 'eff',
+          correctReason: 'r_eff',
+          terms: [
+            { id: 'val', label: '有効性' },
+            { id: 'eff', label: '効率性' },
+            { id: 'sat', label: '満足度' }
+          ],
+          reasons: [
+            { id: 'r_val', label: '目的を達成できたかどうか（結果）を表すから' },
+            { id: 'r_eff', label: '目的達成にかかる時間や手間が少なくなったことを表すから' }
+          ]
+        }
+      ];
+
+      const allFinalAnswered = finalQs.every(q => d.finalAnswers[q.id] && d.finalReasons[q.id]);
+      const allFinalCorrect = finalQs.every(q => d.finalAnswers[q.id] === q.correctTerm && d.finalReasons[q.id] === q.correctReason);
+
+      return `
+        <div class="space-y-6 animate-fade-in">
+          ${renderStageHeader('FINAL｜総合確認 ＆ 応用チャレンジ（36〜40分＋発展）', '用語だけでなく「根拠（なぜそう判断するか）」とセットで答えよう！', '授業の到達確認：文化祭の案内改善4問 ＋ 日常の別シーンへの応用問題')}
+
+          <!-- Part 1: 4 Comprehensive Questions with Reason -->
+          <div class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200 shadow-xs space-y-5">
+            <h3 class="font-extrabold text-slate-900 text-base sm:text-lg">🎓 総合確認テスト：文化祭の案内改善（用語＋判断の根拠）</h3>
+
+            <div class="space-y-4">
+              ${finalQs.map((q, idx) => {
+                const chosenTerm = d.finalAnswers[q.id];
+                const chosenReason = d.finalReasons[q.id];
+                const isOk = chosenTerm === q.correctTerm && chosenReason === q.correctReason;
+                return `
+                  <div class="p-4 rounded-2xl border ${d.finalChecked ? (isOk ? 'border-emerald-400 bg-emerald-50/30' : 'border-rose-400 bg-rose-50/30') : 'border-slate-200 bg-slate-50/50'} space-y-3">
+                    <div>
+                      <span class="text-xs font-extrabold text-brand-700">${q.step}</span>
+                      <p class="text-sm font-extrabold text-slate-900 mt-0.5">Q${idx + 1}. ${q.prompt}</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div>
+                        <div class="text-[11px] font-bold text-slate-500 mb-1.5">① 当てはまる用語を選ぶ：</div>
+                        <div class="flex flex-wrap gap-1.5">
+                          ${q.terms.map(t => `
+                            <button onclick="setFinalChoice('${q.id}', 'term', '${t.id}')" class="px-3 py-1.5 rounded-xl text-xs font-bold border transition ${chosenTerm === t.id ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-700 border-slate-300'}">
+                              ${t.label}
+                            </button>
+                          `).join('')}
+                        </div>
+                      </div>
+
+                      <div>
+                        <div class="text-[11px] font-bold text-slate-500 mb-1.5">② その用語を選ぶ「根拠（理由）」：</div>
+                        <div class="flex flex-col gap-1.5">
+                          ${q.reasons.map(r => `
+                            <button onclick="setFinalChoice('${q.id}', 'reason', '${r.id}')" class="px-3 py-1.5 rounded-xl text-xs font-bold border text-left transition ${chosenReason === r.id ? 'bg-brand-600 text-white border-brand-600' : 'bg-white text-slate-700 border-slate-300'}">
+                              ${r.label}
+                            </button>
+                          `).join('')}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+
+            <button onclick="checkFinal()" class="px-6 py-3 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-extrabold text-sm transition shadow-sm">
+              総合確認を採点する
+            </button>
+          </div>
+
+          <!-- Part 2: Real-world Transfer / Application Challenge -->
+          <div class="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-3xl p-5 sm:p-6 border border-indigo-200 space-y-4">
+            <div class="inline-block px-3 py-1 rounded-full bg-indigo-600 text-white text-xs font-extrabold">
+              🚀 応用チャレンジ（自分の生活に活かそう！）
+            </div>
+            <h3 class="font-extrabold text-slate-900 text-base sm:text-lg">
+              シーン転換：「地域の防災ハザードマップWebサイト」を改善するなら？
+            </h3>
+            <p class="text-xs sm:text-sm text-slate-700 leading-relaxed">
+              文化祭で学んだ「情報発信の判断力」は、防災・部活・将来の仕事でも全く同じように使えます！<br/>
+              災害時に高齢者や外国人住民も使う「地域の防災Webサイト」で、<strong>最も優先すべき改善の組み合わせ</strong>はどれでしょう？
+            </p>
+
+            <div class="space-y-2.5">
+              ${[
+                {
+                  id: 'app1',
+                  text: 'A：情報量を増やすため専門用語をそのまま載せ、危険区域は「赤と緑の色分けのみ」で表示し、問い合わせは「電話（同期型）」だけに限定する。',
+                  ok: false
+                },
+                {
+                  id: 'app2',
+                  text: 'B：高コントラスト配色と「色＋アイコン・文字」で避難所を示し（アクセシビリティ）、現在地から最寄り避難所を3タップで探せるようにし（効率性）、最新情報を掲示板（非同期）でも確認できるようにする。',
+                  ok: true
+                },
+                {
+                  id: 'app3',
+                  text: 'C：デザイン性を重視して薄いグレー背景に白文字を使い、リハーサル（検証）は行わず公開後に一切修正しない。',
+                  ok: false
+                }
+              ].map(opt => {
+                const chosen = d.appliedScenarioChoice === opt.id;
+                let cls = 'bg-white border-indigo-200 hover:border-indigo-400';
+                if (chosen) cls = opt.ok ? 'bg-emerald-50 border-emerald-500 ring-2 ring-emerald-200' : 'bg-rose-50 border-rose-500';
+                return `
+                  <button onclick="chooseApplied('${opt.id}', ${opt.ok})" class="w-full p-4 rounded-2xl border-2 text-left text-xs sm:text-sm font-bold transition ${cls}">
+                    ${opt.text}
+                  </button>
+                `;
+              }).join('')}
+            </div>
+
+            ${allFinalCorrect && d.appliedScenarioChoice === 'app2' ? `
+              <div class="p-5 rounded-2xl bg-white border-2 border-emerald-400 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div>
+                  <div class="text-base font-black text-emerald-800">🏆 おめでとう！全ステージ完全制覇！</div>
+                  <p class="text-xs text-slate-600 mt-0.5">振り返りカルテで自分の弱点傾向とまとめを仕上げましょう。</p>
+                </div>
+                <button onclick="completeStage('stage5'); navigateTo('reflection');" class="px-5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-sm shrink-0 shadow-md">
+                  📝 振り返りカルテを見る →
+                </button>
+              </div>
+            ` : ''}
+          </div>
+        </div>
+      `;
+    }
+
+    function setFinalChoice(qId, type, val) {
+      state.stage5Data.finalChecked = false;
+      if (type === 'term') state.stage5Data.finalAnswers[qId] = val;
+      else state.stage5Data.finalReasons[qId] = val;
+      render();
+    }
+
+    function checkFinal() {
+      const qs = ['f1', 'f2', 'f3', 'f4'];
+      const incomplete = qs.some(id => !state.stage5Data.finalAnswers[id] || !state.stage5Data.finalReasons[id]);
+      if (incomplete) {
+        showToast('4問すべてについて「①用語」と「②根拠」の両方を選んでから採点しよう！', '🎓');
+        return;
+      }
+      state.stage5Data.finalChecked = true;
+      const ok =
+        state.stage5Data.finalAnswers.f1 === 'bs' && state.stage5Data.finalReasons.f1 === 'r_bs' &&
+        state.stage5Data.finalAnswers.f2 === 'kj' && state.stage5Data.finalReasons.f2 === 'r_kj' &&
+        state.stage5Data.finalAnswers.f3 === 'acc' && state.stage5Data.finalReasons.f3 === 'r_acc' &&
+        state.stage5Data.finalAnswers.f4 === 'eff' && state.stage5Data.finalReasons.f4 === 'r_eff';
+
+      if (ok) {
+        showToast('全問・根拠まで完全正解！理解がバッチリ定着しています！', '🎉');
+      } else {
+        if (state.stage5Data.finalAnswers.f1 !== 'bs' || state.stage5Data.finalAnswers.f2 !== 'kj') recordStumble('brest_kj');
+        if (state.stage5Data.finalAnswers.f3 !== 'acc') recordStumble('acc_usa');
+        if (state.stage5Data.finalAnswers.f4 !== 'eff') recordStumble('eff_eff');
+        showToast('一部に迷いがあるようです！赤枠の問題の「用語」と「根拠」を見直そう。', '🔍');
+      }
+      render();
+    }
+
+    function chooseApplied(id, ok) {
+      state.stage5Data.appliedScenarioChoice = id;
+      if (ok) {
+        showToast('素晴らしい応用力！アクセシビリティ・効率性・非同期の連携を見抜きました。', '🌟');
+      } else {
+        showToast('惜しい！誰でも見分けられる配色・検索の手間短縮・通信手段の視点で見直そう。', '🤔');
+      }
+      render();
+    }
+
+    // =========================================================================
+    // 11. 思考の道具箱（図解＆判断フローチャート辞書）
+    // =========================================================================
+    function renderToolbox() {
+      return `
+        <div class="space-y-6 animate-fade-in">
+          <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-xs">
+            <span class="text-xs font-extrabold text-brand-600">いつでも見返せるリファレンス</span>
+            <h2 class="text-xl sm:text-2xl font-black text-slate-900 mt-1">🧰 思考の道具箱（判断の合言葉まとめ）</h2>
+            <p class="text-xs sm:text-sm text-slate-600 mt-1">用語を丸暗記するのではなく、「どんな問いかけで判断するか（判断の軸）」を確認しよう。</p>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 space-y-2">
+              <div class="text-xs font-extrabold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-lg w-fit">① 発想と整理</div>
+              <h3 class="font-extrabold text-slate-900">ブレーンストーミング vs KJ法</h3>
+              <ul class="text-xs sm:text-sm text-slate-700 space-y-1.5 leading-relaxed">
+                <li>・<strong>ブレスト（出す・発散）</strong>：批判厳禁／自由奔放／質より量／便乗歓迎。評価は後回し。</li>
+                <li>・<strong>KJ法（まとめる・収束）</strong>：カード化 → 似たものを集める → 表札（見出し）付け → 関係図解。</li>
+              </ul>
+            </div>
+
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 space-y-2">
+              <div class="text-xs font-extrabold text-blue-700 bg-blue-50 px-2.5 py-1 rounded-lg w-fit">② 発表準備と配色</div>
+              <h3 class="font-extrabold text-slate-900">リハーサルの意味・配色の鉄則</h3>
+              <ul class="text-xs sm:text-sm text-slate-700 space-y-1.5 leading-relaxed">
+                <li>・<strong>リハーサル</strong>：暗記ではなく「伝わりにくい箇所を探す検証」。見つけたら資料を改善！</li>
+                <li>・<strong>配色と資料</strong>：背景と文字の十分な<strong>明度差</strong>／情報を詰め込まない／<strong>色だけで区別しない</strong>。</li>
+              </ul>
+            </div>
+
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 space-y-2">
+              <div class="text-xs font-extrabold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg w-fit">③ コミュニケーション</div>
+              <h3 class="font-extrabold text-slate-900">同期／非同期 と メラビアンの法則</h3>
+              <ul class="text-xs sm:text-sm text-slate-700 space-y-1.5 leading-relaxed">
+                <li>・<strong>同期（同時）</strong>：電話・ビデオ会議。<strong>非同期（時間差）</strong>：メール・掲示板。</li>
+                <li>・<strong>メラビアン（言語7%・声38%・視覚55%）</strong>：感情が食い違う限定条件の研究。話の中身も重要！</li>
+              </ul>
+            </div>
+
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 space-y-2">
+              <div class="text-xs font-extrabold text-purple-700 bg-purple-50 px-2.5 py-1 rounded-lg w-fit">④ 利用しやすさ</div>
+              <h3 class="font-extrabold text-slate-900">アクセシビリティ と ユーザビリティ3観点</h3>
+              <ul class="text-xs sm:text-sm text-slate-700 space-y-1.5 leading-relaxed">
+                <li>・<strong>アクセシビリティ</strong>：誰もが情報にアクセスして使えること（字幕・読み上げ・文字拡大）。</li>
+                <li>・<strong>ユーザビリティ3観点</strong>：<strong>有効性</strong>（達成できたか）／<strong>効率性</strong>（手間・時間が少ないか）／<strong>満足度</strong>（また使いたいか）。</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="flex justify-center">
+            <button onclick="navigateTo('home')" class="px-5 py-2.5 rounded-xl bg-slate-800 text-white font-bold text-sm">
+              ← 全体マップに戻る
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    // =========================================================================
+    // 12. 振り返りカルテ（つまずき分析＆自己評価メモ出力）
+    // =========================================================================
+    function renderReflection() {
+      const stumbleKeys = Object.keys(state.stumbleTags);
+      const doneCount = Object.values(state.completedStages).filter(Boolean).length;
+
+      return `
+        <div class="space-y-6 animate-fade-in">
+          <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-xs">
+            <span class="text-xs font-extrabold text-brand-600">形成的評価・自己分析ポートフォリオ</span>
+            <h2 class="text-xl sm:text-2xl font-black text-slate-900 mt-1">📝 振り返りカルテ ＆ 弱点処方箋</h2>
+            <p class="text-xs sm:text-sm text-slate-600 mt-1">シミュレーション中の選択履歴から、キミが迷いやすいポイントと復習のアドバイスを自動生成しています。</p>
+          </div>
+
+          <!-- Auto-generated Stumble Prescription -->
+          <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-xs space-y-4">
+            <h3 class="font-extrabold text-slate-900 text-base sm:text-lg">🩺 AI先生からの「思考の処方箋」</h3>
+
+            ${stumbleKeys.length === 0 ? `
+              <div class="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-xs sm:text-sm text-emerald-900">
+                <div class="font-extrabold">✨ 現在、大きなつまずき履歴はありません！</div>
+                <p class="mt-1">各ステージのワークに挑戦すると、迷った用語や混同しやすい概念を自動で分析してここに表示します。</p>
+              </div>
+            ` : `
+              <div class="space-y-3">
+                ${stumbleKeys.map(key => {
+                  const info = STUMBLE_GUIDE[key];
+                  if (!info) return '';
+                  return `
+                    <div class="p-4 rounded-2xl bg-amber-50 border border-amber-200 space-y-1.5">
+                      <div class="flex items-center justify-between">
+                        <span class="text-xs font-extrabold text-amber-900">⚠️ 注意ポイント：${info.title}</span>
+                        <span class="text-[11px] font-bold bg-amber-200 text-amber-950 px-2 py-0.5 rounded-full">迷った回数：${state.stumbleTags[key]}回</span>
+                      </div>
+                      <p class="text-xs font-bold text-slate-800">👉 自分への問い返し：${info.questionBack}</p>
+                      <p class="text-xs text-slate-700 leading-relaxed">${info.advice}</p>
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+            `}
+          </div>
+
+          <!-- Student Self-Reflection Form -->
+          <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-xs space-y-4">
+            <h3 class="font-extrabold text-slate-900 text-base sm:text-lg">✍️ 授業の振り返りメモ（提出・復習用）</h3>
+            <p class="text-xs text-slate-600">授業の最後に「まだ少し迷う用語」や「自分の発表・日常で意識したいこと」を自分の言葉で書いてみよう。</p>
+
+            <div class="space-y-3">
+              <div>
+                <label class="text-xs font-extrabold text-slate-700 block mb-1">1. まだ少し迷う用語・区別したいポイント</label>
+                <input type="text" id="input-uncertain" value="${escapeHtml(state.reflectionNotes.uncertainTerms)}" oninput="state.reflectionNotes.uncertainTerms = this.value" placeholder="例：有効性と効率性の違い、非同期とチャットの扱い" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+              </div>
+
+              <div>
+                <label class="text-xs font-extrabold text-slate-700 block mb-1">2. 自分の発表やSNS・日常の情報発信で活かしたい工夫（自分事化）</label>
+                <textarea id="input-myrule" rows="3" oninput="state.reflectionNotes.myRule = this.value" placeholder="例：文化祭のスライドでは背景と文字の明度差を大きくし、色だけでなく記号も使って誰にでも伝わるようにしたい。" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">${escapeHtml(state.reflectionNotes.myRule)}</textarea>
+              </div>
+            </div>
+
+            <div class="pt-2 flex flex-wrap items-center justify-between gap-3">
+              <div class="text-xs font-bold text-slate-500">達成ステージ：${doneCount} / 6</div>
+              <button onclick="copyReflectionSummary()" class="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-sm transition shadow-sm">
+                📋 振り返りレポートをコピーする
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function escapeHtml(str) {
+      return String(str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function copyReflectionSummary() {
+      const doneCount = Object.values(state.completedStages).filter(Boolean).length;
+      const stumbles = Object.keys(state.stumbleTags).map(k => STUMBLE_GUIDE[k]?.title).filter(Boolean).join('、') || 'なし';
+      const report = [
+        '【情報の表現と管理 第5回 学習振り返り】',
+        `・クリアステージ数：${doneCount} / 6`,
+        `・重点復習ポイント：${stumbles}`,
+        `・まだ迷う用語：${state.reflectionNotes.uncertainTerms || '（未記入）'}`,
+        `・自分の発信に活かしたいこと：${state.reflectionNotes.myRule || '（未記入）'}`
+      ].join('\n');
+
+      const textarea = document.createElement('textarea');
+      textarea.value = report;
+      document.body.appendChild(textarea);
+      textarea.select();
+      try {
+        document.execCommand('copy');
+        showToast('振り返りレポートをクリップボードにコピーしました！提出フォーム等に貼り付けできます。', '📋');
+      } catch (e) {
+        showToast('コピーに失敗しました。手動で選択してコピーしてください。', '⚠️');
+      }
+      document.body.removeChild(textarea);
+    }
+
+    // =========================================================================
+    // 13. 共通パーツ：ステージヘッダー
+    // =========================================================================
+    function renderStageHeader(badge, title, subtitle) {
+      return `
+        <div class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200 shadow-xs">
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+            <span class="text-xs font-extrabold px-3 py-1 rounded-full bg-brand-100 text-brand-800">${badge}</span>
+            <button onclick="navigateTo('home')" class="text-xs font-bold text-slate-500 hover:text-slate-800">← 全体マップへ戻る</button>
+          </div>
+          <h2 class="text-xl sm:text-2xl font-black text-slate-900">${title}</h2>
+          <p class="text-xs sm:text-sm text-slate-600 mt-1.5 leading-relaxed bg-slate-50 p-3 rounded-xl border border-slate-100">
+            ${subtitle}
+          </p>
+        </div>
+      `;
+    }
+
+    // 初期描画
+    window.addEventListener('DOMContentLoaded', () => {
+      updateHeaderProgress();
+      render();
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,1789 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>理数探究｜AIで調べる前の「確かめ方」体験ラボ</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Noto Sans JP -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Noto Sans JP"', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#f0fdfa',
+              100: '#ccfbf1',
+              200: '#99f6e4',
+              500: '#14b8a6',
+              600: '#0d9488',
+              700: '#0f766e',
+              800: '#115e59',
+              900: '#134e4a',
+              950: '#042f2e',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      font-family: 'Noto Sans JP', sans-serif;
+      background-color: #f8fafc;
+      color: #0f172a;
+      overflow-x: hidden;
+    }
+    @keyframes fadeSlide {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fade-slide {
+      animation: fadeSlide 0.25s ease-out forwards;
+    }
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- Top Sticky Header -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-2xs">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-3 cursor-pointer" onclick="goStep('step0')">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-600 to-emerald-600 text-white flex items-center justify-center font-black text-base shadow-sm">
+          探究
+        </div>
+        <div>
+          <span class="text-[11px] font-extrabold text-brand-700 tracking-wider block">理数探究｜情報活用・ファクトチェック体験ラボ</span>
+          <h1 class="text-sm sm:text-lg font-black text-slate-900 leading-tight">AIで調べる前の「確かめ方」シミュレーター</h1>
+        </div>
+      </div>
+
+      <!-- Progress Pill -->
+      <div class="flex items-center gap-2.5 bg-slate-900 text-white px-3.5 py-1.5 rounded-2xl text-xs">
+        <span class="font-bold text-teal-300">体験進捗</span>
+        <span id="progress-label" class="font-black">0 / 7 完了</span>
+        <div class="w-16 sm:w-24 bg-slate-700 h-2 rounded-full overflow-hidden">
+          <div id="progress-bar" class="bg-teal-400 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step Navigation Tabs -->
+    <nav class="bg-slate-50 border-t border-slate-200/80">
+      <div id="step-nav-bar" class="max-w-6xl mx-auto px-4 py-2 flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+        <!-- Dynamically populated -->
+      </div>
+    </nav>
+  </header>
+
+  <!-- Main Content Container -->
+  <main id="app-root" class="flex-1 max-w-5xl w-full mx-auto px-4 py-6 sm:py-8">
+    <!-- Dynamic Step Views Rendered Here -->
+  </main>
+
+  <!-- Toast Notification (No alert() used) -->
+  <div id="toast-box" class="fixed bottom-5 right-5 z-50 hidden max-w-sm bg-slate-900 text-white px-4 py-3 rounded-2xl shadow-xl border border-slate-700 flex items-center gap-3 animate-fade-slide">
+    <span id="toast-icon" class="text-xl">💡</span>
+    <span id="toast-msg" class="text-xs sm:text-sm font-bold leading-snug">メッセージ</span>
+  </div>
+
+  <script>
+    // =========================================================================
+    // 1. ステップ定義
+    // =========================================================================
+    const STEPS = [
+      { id: 'step0', short: 'STEP 0｜最初のルール', title: '入力ルール（A→B連動）' },
+      { id: 'step1', short: 'STEP 1｜検索 vs AI', title: 'Web検索とGeminiの比較' },
+      { id: 'step2', short: 'STEP 2｜検索語メーカー', title: '検索語の提案と改造実験' },
+      { id: 'step3', short: 'STEP 3｜主張と一次資料', title: 'AI文章の検証とクロスチェック' },
+      { id: 'step4', short: 'STEP 4｜質問の仕方比較', title: '誘導質問と中立質問の実験' },
+      { id: 'step5', short: 'STEP 5｜自分の探究設計', title: '自分のテーマで質問と検索' },
+      { id: 'step6', short: 'STEP 6｜ルール仕分け', title: '利用ルール整理と振り返り' }
+    ];
+
+    // =========================================================================
+    // 2. アプリ状態管理（生徒の操作・実験ログのみを管理）
+    // =========================================================================
+    const state = {
+      currentStep: 'step0',
+
+      // STEP 0: 最初のルール（文面から危険箇所を自力で特定 → A: 理由解明 → B: 安全な書き換え → 送信テスト）
+      s0: {
+        foundSpots: {},        // { spot1: true, ... } 生徒がタップして特定した危険箇所
+        activeSpotId: null,    // 'spot1' | 'spot2' | 'spot3' | null
+        lastSafeTip: null,     // 安全な箇所をタップした際の解説メッセージ
+        solvedWhy: {},         // { spot1: true, spot2: true, spot3: true }
+        chosenRewrite: {},     // { spot1: true, spot2: true, spot3: true }
+        testSendResult: null   // null | 'blocked' | 'safe'
+      },
+
+      // STEP 1: Web検索（3サイト閲覧＋信頼度判定）vs Gemini（対話チャット履歴）＋ 実Web検証
+      s1: {
+        ranWeb: false,
+        openedWebSiteId: null,
+        viewedWebSites: [], // ['mext', 'univ', 'blog']
+        siteRatings: {},    // { mext: 'high'|'mid'|'low' }
+        ranAi: false,
+        askedFollowUps: [], // ['num', 'source', 'counter']
+        triedRealWeb: false
+      },
+
+      // STEP 2: 検索語メーカー ＆ 検索語改造ビフォー・アフター実験 ＋ カスタム語入力 ＋ 実Web検証
+      s2: {
+        ranMaker: false,
+        pickedRawKeyword: '暑さ 集中力',
+        modTarget: false,    // 「高校生 授業」を追加
+        modCondition: false, // 「室温 28度」を追加
+        modSource: false,    // 「文部科学省 基準」を追加
+        customKeyword: '',   // 生徒自身の自由追加入力
+        ranModifiedSearch: false,
+        triedRealWeb: false
+      },
+
+      // STEP 3: AI文章の誇張発見（直接フレーズマーキング）＆ 一次資料クロスチェック ＋ 判定スタンプ
+      s3: {
+        selectedClaimId: 'c1',
+        inspectedClaims: [], // ['c1', 'c2', 'c3']
+        markedPhrases: {},   // { w1_1: true, ... }
+        claimVerdicts: {},   // { c1: 'exaggerated' | 'false' }
+        openedSourceTab: 'mext', // 'mext' | 'univ' | 'blog'
+        triedRealWeb: false,
+        checkedItems: {
+          publisher: false,
+          date: false,
+          original: false,
+          compare: false
+        }
+      },
+
+      // STEP 4: 質問の仕方（誘導A・逆誘導B・中立C ＋ バイアスメーター実験）
+      s4: {
+        testedPrompts: ['A'], // ['A', 'B', 'C']
+        activePromptTab: 'A'
+      },
+
+      // STEP 5: 自分の探究テーマ 質問設計＆検索アクションビルダー
+      s5: {
+        myTheme: '',
+        myUnknown: '',
+        selectedTask: '観点出し',
+        triedRealWeb: false
+      },
+
+      // STEP 6: ルール仕分け体験（ドラッグ＆ドロップ＋タップ移動ボード）
+      s6: {
+        selectedCardId: null,
+        sortedCards: {} // { cardId: 'useful' | 'notFinish' | 'neverInput' }
+      }
+    };
+
+    // =========================================================================
+    // 3. 体験用シミュレーションデータ
+    // =========================================================================
+    const S0_SPOTS = {
+      spot1: {
+        id: 'spot1',
+        label: '① 個人を特定できる情報',
+        rawText: '千葉第一高校1年3組の山田太郎（住所：千葉市〇〇）',
+        safeText: 'ある高校の生徒（個人名・学校名・住所を削除）',
+        whyQuestion: 'なぜ「氏名・クラス・住所」をAIのチャット欄に入力してはいけないのでしょうか？',
+        whyOptions: [
+          { id: 'w1', text: '入力内容がAIの学習や外部サーバーに送信され、個人情報漏えいにつながる恐れがあるから', ok: true },
+          { id: 'w2', text: '漢字の氏名を入れるとAIが計算できなくなって故障するから', ok: false },
+          { id: 'w3', text: '氏名を入れないとAIが丁寧語で返信してくれないから', ok: false }
+        ],
+        rewriteQuestion: 'では、ステップAで見つけた①の部分をどう直せば安全にAIへ相談できますか？',
+        rewriteOptions: [
+          { id: 'r1', text: '名前と住所を消して「ある高校の生徒」という一般的な立場に書き換える', ok: true },
+          { id: 'r2', text: '漢字をローマ字（Yamada Taro）に変えてそのまま入力する', ok: false },
+          { id: 'r3', text: '住所だけ消して、学校名・クラス・フルネームは残す', ok: false }
+        ]
+      },
+      spot2: {
+        id: 'spot2',
+        label: '② 学校内だけの未公開資料',
+        rawText: '本校の未公開職員会議資料と保健室の内部記録',
+        safeText: '学校の教室環境に関する一般的な事例（内部資料名を削除）',
+        whyQuestion: 'なぜ「学校内だけの未公開資料」をAIに貼り付けてはいけないのでしょうか？',
+        whyOptions: [
+          { id: 'w1', text: '外部に公開してはいけない非公開情報（機密・内部資料）を外部サービスへ持ち出すことになるから', ok: true },
+          { id: 'w2', text: '職員会議の資料は文字数が多すぎてAIが読めないから', ok: false },
+          { id: 'w3', text: '公開されている文部科学省の資料と同じ扱いになるから', ok: false }
+        ],
+        rewriteQuestion: 'では、②の「学校内だけの未公開資料」はどう扱うべきですか？',
+        rewriteOptions: [
+          { id: 'r1', text: '内部資料は一切入力せず、公的機関が公開している一般的な基準や事例として質問する', ok: true },
+          { id: 'r2', text: '「絶対に秘密にしてね」と最初に書いてから資料全文を貼り付ける', ok: false },
+          { id: 'r3', text: '資料のタイトルだけ消して中身のデータは全部貼り付ける', ok: false }
+        ]
+      },
+      spot3: {
+        id: 'spot3',
+        label: '③ 調査対象者の生データ',
+        rawText: '出席番号1番佐藤・2番鈴木…全40名の個人別アンケート生データ',
+        safeText: '「室温28℃超の日に眠気を訴える割合が増える」という全体の傾向',
+        whyQuestion: 'なぜ「調査対象者の個人別生データ」をそのままAIに入れてはいけないのでしょうか？',
+        whyOptions: [
+          { id: 'w1', text: '協力者のプライバシー侵害になり、回答内容から個人が特定される危険があるから', ok: true },
+          { id: 'w2', text: '40人分のデータを入れるとAIの電気代が高くなるから', ok: false },
+          { id: 'w3', text: 'アンケート結果は必ずAIに丸ごと渡すルールになっているから', ok: false }
+        ],
+        rewriteQuestion: 'では、③の「調査対象者の生データ」はどう加工すればAIに相談できますか？',
+        rewriteOptions: [
+          { id: 'r1', text: '個人別の回答は入力せず、自分で集計した「全体の傾向や平均値」だけに要約して質問する', ok: true },
+          { id: 'r2', text: '名前だけ消して出席番号と個人別の自由記述コメントをすべて入力する', ok: false },
+          { id: 'r3', text: '生データを写真で撮って画像としてAIにアップロードする', ok: false }
+        ]
+      }
+    };
+
+    const S1_WEB_RESULTS = [
+      {
+        id: 'mext',
+        domain: 'www.mext.go.jp › a_menu › kenko › hoken',
+        badge: '公的機関（省庁）',
+        badgeColor: 'bg-emerald-100 text-emerald-800',
+        title: '学校環境衛生基準の改訂について｜文部科学省',
+        snippet: '教室の換気及び保温等に関する基準。望ましい室温は17℃以上28℃以下、相対湿度は30%以上80%以下と定められています。',
+        date: '2022年4月1日 更新',
+        detail: '【発信者】文部科学省（国の公的機関）\n【内容】学校保健安全法に基づく公式の環境衛生基準。「17℃以上28℃以下が望ましい」という一次資料（公式数値）と改訂日付が明記されており、探究の根拠としてそのまま引用できます。'
+      },
+      {
+        id: 'univ',
+        domain: 'repository.example-univ.ac.jp › papers › 2023',
+        badge: '大学・研究論文',
+        badgeColor: 'bg-blue-100 text-blue-800',
+        title: '夏季の高等学校教室における温熱環境と生徒の主観的集中度・作業効率の関連（2023）',
+        snippet: '高校生120名を対象に室温25℃と29℃の環境で計算課題と眠気アンケートを実施した実験報告。',
+        date: '2023年11月 公開',
+        detail: '【発信者】〇〇大学 建築環境工学研究室\n【内容】実験条件（対象人数120名・室温25℃と29℃の比較・測定方法）が詳しく書かれており、29℃環境では計算正答率の低下と眠気の増加が統計的に確認されています。'
+      },
+      {
+        id: 'blog',
+        domain: 'study-hack-matome.example.com › column',
+        badge: '個人まとめサイト',
+        badgeColor: 'bg-amber-100 text-amber-800',
+        title: '【驚愕】室温が1度上がると成績が20%ダウン！？夏に勉強できない理由まとめ',
+        snippet: 'ある調査によると、部屋が暑いだけで脳の働きが半分になるそうです！今すぐエアコンを18度に設定しよう！',
+        date: '日付記載なし・著者不明',
+        detail: '【発信者】運営者不明の個人ブログ（広告リンク多数）\n【注意】「ある調査によると」と書いてあるが、元の論文名や統計データへのリンクが一切ありません。日付も不明で、根拠としてそのまま使うのは危険です！'
+      }
+    ];
+
+    const S1_AI_FOLLOWUPS = {
+      num: {
+        label: '① 具体的な数値や温度基準はある？',
+        reply: '一般的に、学習や作業に適した室温は25〜28℃前後とされ、28℃を超えると不快感や眠気が増え、計算や読解の作業効率が数％〜十数％程度低下するといった研究報告があります。（※具体的な数値は調査条件によって異なるため、元の基準や論文で確認が必要です）'
+      },
+      source: {
+        label: '② その話の元の論文や公的機関のURLを教えて！',
+        reply: '日本の学校教室については、文部科学省の「学校環境衛生基準」（17℃以上28℃以下）が基本資料になります。ただし、私はリアルタイムのWeb検索画面のようにすべての一次資料の最新URLや正確なページ番号を保証できないため、キーワードを使って実際のWeb検索で原典を開く必要があります。'
+      },
+      counter: {
+        label: '③ 「暑さだけでは決まらない」という別の見方もある？',
+        reply: 'はい、重要な視点です！集中力には室温だけでなく、①二酸化炭素（CO2）濃度（換気不足による眠気）、②湿度や気流（扇風機の有無）、③睡眠時間や午後の時間帯（食後の眠気）など複数の要因が重なって影響します。'
+      }
+    };
+
+    const S3_CLAIMS_DATA = {
+      c1: {
+        shortLabel: '主張①「28℃になると全生徒の集中力が約30%も落ちる」',
+        fullText: '室温が25℃を1℃超えるごとに学習効率は必ず2%ずつ低下し、28℃になると全生徒の集中力が約30%も落ちることが証明されています。',
+        problemPoint: '「必ず2%ずつ」「全生徒が約30%も落ちる」という断定・過大な数値に注目！',
+        suspectWords: [
+          { id: 'w1_1', text: '必ず2%ずつ低下' },
+          { id: 'w1_2', text: '全生徒の集中力が約30%も落ちる' }
+        ],
+        realSearchQuery: '学校環境衛生基準 室温 28度 文部科学省',
+        scholarQuery: '教室 温熱環境 学習効率 集中力',
+        sources: {
+          mext: {
+            name: '文部科学省「学校環境衛生基準」（2022年改訂）',
+            finding: '教室の望ましい温度基準は「17℃以上28℃以下」とされており、28℃は基準の範囲内。「28℃で全生徒の集中力が30%落ちる」という記載は一切ない！'
+          },
+          univ: {
+            name: '〇〇大学・温熱環境研究報告（2023年）',
+            finding: '25℃から28℃付近で単純作業の成績が「数％程度」低下する傾向はあるが、「必ず2%ずつ」「30%低下」というのはAIが別の実験数値を混同・誇張した表現だった！'
+          },
+          blog: {
+            name: '個人の受験対策ブログ（日付・著者不明）',
+            finding: 'AIの文章と似た「集中力が3割落ちる」という表現があるが、根拠となる統計や論文の記載がない。'
+          }
+        }
+      },
+      c2: {
+        shortLabel: '主張②「日本のすべての高校の教室でCO2濃度が常に基準超え」',
+        fullText: 'また、日本のすべての高校の教室では二酸化炭素濃度が常に基準値を超えており、午後の授業の記憶力が半分以下になります。',
+        problemPoint: '「すべての高校」「常に」「半分以下」という極端な一般化に注目！',
+        suspectWords: [
+          { id: 'w2_1', text: '日本のすべての高校の教室で常に基準値を超え' },
+          { id: 'w2_2', text: '記憶力が半分以下になります' }
+        ],
+        realSearchQuery: '学校環境衛生基準 二酸化炭素濃度 1500ppm 文部科学省',
+        scholarQuery: '教室 二酸化炭素濃度 学習 眠気',
+        sources: {
+          mext: {
+            name: '文部科学省・学校における換気マニュアル（2023年）',
+            finding: '学校環境衛生基準のCO2基準値は「1500ppm以下」。窓開けや換気設備を適切に使えば基準値以下に保たれると明記されている。'
+          },
+          univ: {
+            name: '国立保健医療科学院・教室環境調査（2022年）',
+            finding: '冬場や夏場に窓を完全に閉め切った一部教室で1500ppmを超えた測定例はあるが、「日本のすべての高校で常に超過」は完全な誤り。'
+          },
+          blog: {
+            name: '換気扇メーカーの広告記事',
+            finding: '閉め切った部屋での眠気について書かれているが、「記憶力が半分以下」という医学的根拠は示されていない。'
+          }
+        }
+      },
+      c3: {
+        shortLabel: '主張③「授業中はエアコンを常に18℃以下にするのが最も効果的」',
+        fullText: 'そのため、授業中はエアコンの設定温度を常に18℃以下まで下げ続けることが最も効果的な対策とされています。',
+        problemPoint: '「18℃以下まで下げ続けるのが最も効果的」という極端な対策に注目！',
+        suspectWords: [
+          { id: 'w3_1', text: '常に18℃以下まで下げ続ける' },
+          { id: 'w3_2', text: '最も効果的な対策' }
+        ],
+        realSearchQuery: '学校 冷房 設定温度 基準 文部科学省 環境省',
+        scholarQuery: '冷房 設定温度 健康 学習効率',
+        sources: {
+          mext: {
+            name: '文部科学省「学校環境衛生基準」（現行）',
+            finding: '教室の望ましい温度は「17℃以上28℃以下」であり、外気温との差が大きすぎる冷房は健康被害を招くため推奨されていない。'
+          },
+          univ: {
+            name: '環境省・適正冷房と健康影響ガイド（2024年）',
+            finding: '18℃以下の過度な冷房は冷えすぎによる体調不良や集中力低下を引き起こす。適正温度（25〜28℃目安）と扇風機・換気の併用が効果的とされている。'
+          },
+          blog: {
+            name: 'SNSの個人のつぶやき',
+            finding: '「18℃くらいまで冷やしたい」という個人の感想が見つかっただけ。'
+          }
+        }
+      }
+    };
+
+    const S4_PROMPTS = {
+      A: {
+        badge: 'A｜誘導的（悪影響に誘導）',
+        prompt: '「スマホは睡眠を悪くしますよね？ 理由を説明して。」',
+        biasLabel: '片側バイアス 90%（悪影響の理由だけを列挙）',
+        biasScore: 90,
+        biasColor: 'bg-rose-500',
+        reply: 'はい、スマホは睡眠の質を悪くする主な要因とされています。\n① ブルーライトによるメラトニン（睡眠ホルモン）の分泌抑制\n② SNSや動画の通知による脳の覚醒\n③ 就寝時刻の後ろ倒しによる総睡眠時間の減少\nそのため、寝る前のスマホ利用は控えるべきと言えます。',
+        observation: '⚠️ 観察ポイント：「〜しますよね？」と聞くと、AIは質問者に同意して「悪くする理由」だけを並べ、反対の見方や例外（使い方・時間帯の違いなど）を省いてしまいます！'
+      },
+      B: {
+        badge: 'B｜逆誘導（問題ない側に誘導）',
+        prompt: '「スマホは睡眠に悪影響ないですよね？ メリットを説明して。」',
+        biasLabel: '逆方向バイアス 90%（メリットだけを列挙）',
+        biasScore: 90,
+        biasColor: 'bg-amber-400',
+        reply: 'はい、適切な使い方をすればスマホは睡眠に悪影響を与えず、むしろ役立つ面もあります。\n① リラックス音楽や睡眠導入アプリによる入眠サポート\n② 夜間モード（ブルーライトカット）の活用による光刺激の軽減\n③ 目覚まし機能や睡眠記録による生活リズムの可視化\n使い方次第で快適な睡眠につながります。',
+        observation: '⚠️ 観察ポイント：質問の前提を逆向きにするだけで、AIは真逆の結論に合わせて都合のよい理由だけを並べてしまいました！'
+      },
+      C: {
+        badge: 'C｜中立的（両面を整理させる）',
+        prompt: '「スマホ利用と睡眠の関係について、関係があるという見方と、単純には言えない見方を分けて整理して。」',
+        biasLabel: 'バランス中立（両面の視点＋条件を整理）',
+        biasScore: 20,
+        biasColor: 'bg-emerald-400',
+        reply: '【1. 睡眠に悪影響があるとする見方】\n・就寝直前の強い光刺激や興奮するコンテンツ（ゲーム・SNS）は入眠を遅らせ、睡眠時間を削る傾向がある。\n\n【2. 単純には悪影響と言えない見方】\n・画面の明るさ調整や使用時間帯・利用目的（リラックス音声など）によって影響は異なり、「スマホを持つこと自体」よりも「就寝直前の使い方や総利用時間」が本質的な要因と指摘されている。\n\n【3. 調べる際の確認観点】\n・対象年齢、利用時間帯、相関関係と因果関係の区別を一次研究で確認する必要があります。',
+        observation: '✅ 観察ポイント：賛否や両面の見方を分けて尋ねることで、偏りのない整理と「次に確かめるべき観点」を引き出せました！'
+      }
+    };
+
+    const S6_RULE_CARDS = [
+      { id: 'rc1', text: '探究の「調べる観点」や「検索キーワードの候補」を広げてもらう', target: 'useful' },
+      { id: 'rc2', text: '自分のテーマに対する「反対意見」や「見落としやすい視点」を出してもらう', target: 'useful' },
+      { id: 'rc3', text: 'AIが挙げた統計数値や「〜が証明されている」という主張をそのまま引用する', target: 'notFinish' },
+      { id: 'rc4', text: 'レポートや発表の「結論そのもの」をAIに書かせて提出する', target: 'notFinish' },
+      { id: 'rc5', text: 'クラスメイトの氏名・住所・顔写真・アンケートの個人別生データ', target: 'neverInput' },
+      { id: 'rc6', text: 'パスワードや、学校内だけで共有されている未公開の会議資料', target: 'neverInput' }
+    ];
+
+    // =========================================================================
+    // 4. ヘルパー関数・シャッフル・進捗管理
+    // =========================================================================
+    function shuffleList(arr) {
+      const copy = [...arr];
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+
+    // STEP 0 の選択肢順序をランダム化し、正解が常に先頭にならないようにする
+    function randomizeS0Options() {
+      ['spot1', 'spot2', 'spot3'].forEach(k => {
+        if (S0_SPOTS[k]) {
+          S0_SPOTS[k].whyOptions = shuffleList(S0_SPOTS[k].whyOptions);
+          S0_SPOTS[k].rewriteOptions = shuffleList(S0_SPOTS[k].rewriteOptions);
+        }
+      });
+    }
+
+    function escapeHtml(str) {
+      return String(str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function showToast(msg, icon = '💡') {
+      const box = document.getElementById('toast-box');
+      const msgEl = document.getElementById('toast-msg');
+      const iconEl = document.getElementById('toast-icon');
+      if (!box || !msgEl || !iconEl) return;
+      msgEl.textContent = msg;
+      iconEl.textContent = icon;
+      box.classList.remove('hidden');
+      clearTimeout(window._toastTimer);
+      window._toastTimer = setTimeout(() => {
+        box.classList.add('hidden');
+      }, 3800);
+    }
+
+    function buildSearchUrl(query, engine = 'google') {
+      const q = String(query || '').trim();
+      if (engine === 'gov') {
+        return `https://www.google.com/search?q=${encodeURIComponent(q + ' site:go.jp')}`;
+      }
+      if (engine === 'scholar') {
+        return `https://scholar.google.co.jp/scholar?q=${encodeURIComponent(q)}`;
+      }
+      return `https://www.google.com/search?q=${encodeURIComponent(q)}`;
+    }
+
+    function markRealWebTried(stepKey) {
+      if (stepKey && state[stepKey]) {
+        state[stepKey].triedRealWeb = true;
+      }
+      showToast('別タブで実際のWeb検索を開きました！発信者と日付を自分の目で確かめよう！', '🌐');
+      setTimeout(() => renderApp(), 150);
+    }
+
+    function getMissionProgress() {
+      let done = 0;
+      if (Object.keys(state.s0.solvedWhy).length >= 3 && Object.keys(state.s0.chosenRewrite).length >= 3) done++;
+      if (state.s1.viewedWebSites.length >= 2 && state.s1.askedFollowUps.length >= 2) done++;
+      if (state.s2.ranMaker && (state.s2.ranModifiedSearch || state.s2.triedRealWeb)) done++;
+      if (state.s3.inspectedClaims.length >= 2 && Object.values(state.s3.checkedItems).filter(Boolean).length >= 3) done++;
+      if (state.s4.testedPrompts.length >= 2) done++;
+      if (state.s5.myTheme.trim().length > 0) done++;
+      if (Object.keys(state.s6.sortedCards).length >= 6) done++;
+      return done;
+    }
+
+    function updateNavUI() {
+      const done = getMissionProgress();
+      const pct = Math.round((done / STEPS.length) * 100);
+      const labelEl = document.getElementById('progress-label');
+      const barEl = document.getElementById('progress-bar');
+      if (labelEl) labelEl.textContent = `${done} / ${STEPS.length} 完了`;
+      if (barEl) barEl.style.width = `${pct}%`;
+
+      const navBar = document.getElementById('step-nav-bar');
+      if (navBar) {
+        navBar.innerHTML = STEPS.map(st => {
+          const isActive = state.currentStep === st.id;
+          return `
+            <button onclick="goStep('${st.id}')" class="px-3 py-1.5 rounded-xl text-xs font-extrabold whitespace-nowrap transition ${isActive ? 'bg-brand-600 text-white shadow-2xs' : 'bg-white text-slate-600 border border-slate-200 hover:border-brand-400'}">
+              ${st.short}
+            </button>
+          `;
+        }).join('');
+      }
+    }
+
+    function goStep(stepId) {
+      state.currentStep = stepId;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      renderApp();
+    }
+
+    function renderWorksheetBridge(title, points) {
+      return `
+        <section class="bg-amber-50/90 border-2 border-amber-300 rounded-3xl p-5 space-y-2.5">
+          <div class="flex items-center gap-2">
+            <span class="text-lg">📄</span>
+            <h4 class="text-xs sm:text-sm font-black text-amber-950">紙のワークシートに自分の言葉で書こう：【${title}】</h4>
+          </div>
+          <ul class="space-y-1.5 text-xs text-amber-950 leading-relaxed pl-1">
+            ${points.map(p => `<li class="flex items-start gap-2"><span class="font-black text-amber-700">▸</span><span>${p}</span></li>`).join('')}
+          </ul>
+        </section>
+      `;
+    }
+
+    // =========================================================================
+    // 5. メイン描画ルーター
+    // =========================================================================
+    function renderApp() {
+      updateNavUI();
+      const root = document.getElementById('app-root');
+      if (!root) return;
+
+      switch (state.currentStep) {
+        case 'step0':
+          root.innerHTML = renderStep0();
+          break;
+        case 'step1':
+          root.innerHTML = renderStep1();
+          break;
+        case 'step2':
+          root.innerHTML = renderStep2();
+          break;
+        case 'step3':
+          root.innerHTML = renderStep3();
+          break;
+        case 'step4':
+          root.innerHTML = renderStep4();
+          break;
+        case 'step5':
+          root.innerHTML = renderStep5();
+          break;
+        case 'step6':
+          root.innerHTML = renderStep6();
+          break;
+        default:
+          root.innerHTML = renderStep0();
+      }
+    }
+
+    // =========================================================================
+    // 6. STEP 0: 最初のルール（文面から危険箇所を自力で特定 → A: 理由解明 → B: 安全な書き換え → 送信テスト）
+    // =========================================================================
+    function renderStep0() {
+      const s = state.s0;
+      const spotKeys = ['spot1', 'spot2', 'spot3'];
+      const foundCount = Object.keys(s.foundSpots).length;
+      const currentSpot = s.activeSpotId ? S0_SPOTS[s.activeSpotId] : null;
+      const whySolvedCount = Object.keys(s.solvedWhy).length;
+      const rewriteSolvedCount = Object.keys(s.chosenRewrite).length;
+      const allComplete = whySolvedCount === 3 && rewriteSolvedCount === 3;
+
+      // 相談文を構成するセグメント（最初はすべて同じ見た目で、危険箇所も強調しない）
+      const segments = [
+        { type: 'safe', text: '私は' },
+        { type: 'spot', id: 'spot1' },
+        { type: 'safe', text: 'です。現在、' },
+        { type: 'safe', text: '教室の暑さと生徒の集中力の関係' },
+        { type: 'safe', text: 'について、' },
+        { type: 'spot', id: 'spot2' },
+        { type: 'safe', text: 'をもとに探究しています。さらに、' },
+        { type: 'spot', id: 'spot3' },
+        { type: 'safe', text: 'から調べるべき観点を3つ教えてください。' }
+      ];
+
+      return `
+        <div class="space-y-6 animate-fade-slide">
+          <section class="bg-gradient-to-br from-slate-900 via-brand-900 to-slate-800 text-white rounded-3xl p-6 sm:p-7 shadow-lg">
+            <span class="inline-block px-3 py-1 rounded-full bg-white/15 text-teal-200 text-xs font-extrabold mb-2">
+              🎯 今日のゴール（アプリで実験 ＋ 実際のWebで検証 ＋ 紙のワークシートへ記入）
+            </span>
+            <h2 class="text-xl sm:text-2xl font-black leading-snug mb-2">
+              AIに「答え」を作ってもらうのではなく、<br/>
+              自分で考え・実際のWebで確かめ・判断する力を身につけよう！
+            </h2>
+            <p class="text-xs sm:text-sm text-slate-200 leading-relaxed">
+              アプリ内の模擬体験だけで終わらず、<strong>実際のGoogle検索や公的機関サイトも別タブで開いて検証</strong>しながら、手元のワークシートを自分の言葉で完成させよう！
+            </p>
+          </section>
+
+          <!-- Unified Story: Draft Consultation Text -->
+          <section class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200 shadow-2xs space-y-5">
+            <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
+              <div>
+                <span class="text-xs font-black text-rose-600">体験①｜最初のルール（危険箇所の発見 → A：理由解明 → B：安全修正）</span>
+                <h3 class="text-base sm:text-lg font-black text-slate-900">
+                  下の相談文を読んで、AIに入力してはいけない3か所を自分でタップして特定しよう！
+                </h3>
+              </div>
+              <span class="text-xs font-extrabold px-3 py-1 rounded-full bg-slate-100 text-slate-700">
+                発見 ${foundCount}/3 ｜ A：理由 ${whySolvedCount}/3 ｜ B：修正 ${rewriteSolvedCount}/3
+              </span>
+            </div>
+
+            <!-- Live Draft Preview Box (No initial highlighting on dangerous parts!) -->
+            <div class="p-4 sm:p-5 rounded-2xl bg-slate-900 text-slate-100 text-xs sm:text-sm leading-loose space-y-3">
+              <div class="flex flex-wrap items-center justify-between gap-2 text-[11px] font-bold text-slate-400">
+                <span>💬 あなたがAIに入力しようとしている相談文（文中の怪しいと思う部分をタップしよう）：</span>
+                <span>${foundCount < 3 ? `🔎 未発見の危険箇所：あと ${3 - foundCount} か所` : '🎉 3か所すべて特定完了！'}</span>
+              </div>
+
+              <p class="font-bold leading-loose">
+                「${segments.map((seg, idx) => {
+                  if (seg.type === 'safe') {
+                    return `<span onclick="inspectS0Safe(${idx})" class="cursor-pointer rounded px-0.5 py-0.5 hover:bg-white/10 transition">${seg.text}</span>`;
+                  }
+                  const sp = S0_SPOTS[seg.id];
+                  const isFound = !!s.foundSpots[seg.id];
+                  const isRewritten = !!s.chosenRewrite[seg.id];
+                  const isAct = s.activeSpotId === seg.id;
+
+                  // まだ発見されていない場合は、安全なテキストとまったく同じ見た目にする！
+                  if (!isFound) {
+                    return `<span onclick="discoverS0Spot('${seg.id}')" class="cursor-pointer rounded px-0.5 py-0.5 hover:bg-white/10 transition">${sp.rawText}</span>`;
+                  }
+
+                  // 発見された後だけ、状態に応じたスタイルを適用
+                  const badgeCls = isRewritten
+                    ? 'bg-emerald-500/25 border border-emerald-400 text-emerald-200'
+                    : (isAct
+                        ? 'bg-amber-400 text-slate-950 border border-amber-300 font-black'
+                        : 'bg-rose-500/30 border border-rose-400 text-rose-200 hover:bg-rose-500/40');
+
+                  return `<button onclick="discoverS0Spot('${seg.id}')" class="px-2 py-0.5 rounded-lg transition text-left ${badgeCls}">${isRewritten ? sp.safeText : sp.rawText}</button>`;
+                }).join('')}」
+              </p>
+
+              ${s.lastSafeTip ? `
+                <div class="p-3 rounded-xl bg-white/10 border border-white/15 text-xs text-sky-200 flex items-center justify-between gap-2 animate-fade-slide">
+                  <span>💡 ${s.lastSafeTip}</span>
+                  <button onclick="state.s0.lastSafeTip = null; renderApp();" class="text-[11px] text-slate-400 hover:text-white shrink-0">✕</button>
+                </div>
+              ` : ''}
+
+              <!-- Interactive Send Test Button -->
+              <div class="pt-2 border-t border-white/10 flex flex-wrap items-center justify-between gap-2">
+                <span class="text-[11px] text-slate-300">👆 今の文章のままAIに送信するとどうなるかテストしてみよう！</span>
+                <button onclick="testS0Send()" class="px-4 py-2 rounded-xl font-black text-xs transition ${allComplete ? 'bg-emerald-500 hover:bg-emerald-400 text-slate-950' : 'bg-amber-400 hover:bg-amber-300 text-slate-950'}">
+                  🚀 この文章でAI送信テストを実行
+                </button>
+              </div>
+
+              ${s.testSendResult === 'blocked' ? `
+                <div class="p-3.5 rounded-xl bg-rose-950/90 border border-rose-400 text-xs text-rose-100 space-y-1 animate-fade-slide">
+                  <div class="font-black text-rose-300">🚨 セキュリティ警告ブロック！まだ危険な情報が含まれています！</div>
+                  <p>未修正の危険箇所があと <strong>${3 - rewriteSolvedCount} か所</strong> 残っています。上の相談文から怪しい部分を見つけてタップし、ステップA・Bで安全に書き換えてから再テストしよう！</p>
+                </div>
+              ` : ''}
+
+              ${s.testSendResult === 'safe' ? `
+                <div class="p-3.5 rounded-xl bg-emerald-950/90 border border-emerald-400 text-xs text-emerald-100 space-y-1 animate-fade-slide">
+                  <div class="font-black text-emerald-300">🛡️ 安全送信クリア！AIからの返信：</div>
+                  <p>「個人情報や非公開データを除いた安全な質問ですね！高校の教室環境と集中力については、①室温・湿度と学校環境衛生基準、②換気（CO2濃度）の影響、③時間帯による眠気の変化、の3つの観点で公的資料を調べてみましょう。」</p>
+                </div>
+              ` : ''}
+            </div>
+
+            <!-- Discovered Spot Tabs (Hidden until discovered so labels don't spoil the search!) -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              ${spotKeys.map((k, idx) => {
+                const sp = S0_SPOTS[k];
+                const isFound = !!s.foundSpots[k];
+                const isAct = s.activeSpotId === k;
+                const wDone = !!s.solvedWhy[k];
+                const rDone = !!s.chosenRewrite[k];
+
+                if (!isFound) {
+                  return `
+                    <div class="p-3 rounded-xl border-2 border-dashed border-slate-200 bg-slate-50 text-left text-xs font-bold text-slate-400 flex items-center justify-between">
+                      <span>❓ 未発見の危険箇所 ${idx + 1}</span>
+                      <span>文面から探そう</span>
+                    </div>
+                  `;
+                }
+
+                return `
+                  <button onclick="state.s0.activeSpotId='${k}'; state.s0.lastSafeTip=null; renderApp();" class="p-3 rounded-xl border-2 text-left text-xs font-extrabold transition ${isAct ? 'border-brand-600 bg-brand-50 text-brand-950' : 'border-slate-200 bg-slate-50 text-slate-700 hover:border-slate-300'}">
+                    <div class="flex items-center justify-between">
+                      <span>${sp.label}</span>
+                      <span>${rDone ? '✅完了' : (wDone ? '🟡Bへ' : '🔍点検中')}</span>
+                    </div>
+                  </button>
+                `;
+              }).join('')}
+            </div>
+
+            ${!currentSpot ? `
+              <div class="p-5 rounded-2xl bg-slate-50 border-2 border-dashed border-slate-300 text-center space-y-1.5">
+                <div class="text-sm font-black text-slate-800">👆 まずは上の黒い枠内の相談文を読んで、危ないと思う部分をクリック（タップ）しよう！</div>
+                <p class="text-xs text-slate-500">ヒント：「誰が書いたか特定できる情報」「学校外に出してはいけない資料」「個人別の調査データ」が隠れています。</p>
+              </div>
+            ` : `
+              <!-- Phase A: Think WHY it is dangerous -->
+              <div class="p-4 sm:p-5 rounded-2xl bg-rose-50/60 border border-rose-200 space-y-3 animate-fade-slide">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-black text-rose-800">【ステップA｜理由を考える】特定した箇所：${currentSpot.label}</span>
+                  ${s.solvedWhy[currentSpot.id] ? '<span class="text-xs font-black text-emerald-700">⭕ 理由解明済！</span>' : ''}
+                </div>
+                <p class="text-xs sm:text-sm font-extrabold text-slate-900">${currentSpot.whyQuestion}</p>
+                <div class="space-y-2">
+                  ${currentSpot.whyOptions.map(opt => {
+                    const solved = s.solvedWhy[currentSpot.id] && opt.ok;
+                    return `
+                      <button onclick="answerS0Why('${currentSpot.id}', '${opt.id}', ${opt.ok})" class="w-full p-3 rounded-xl border-2 text-left text-xs sm:text-sm font-bold transition ${solved ? 'border-emerald-500 bg-emerald-50 text-emerald-950' : 'border-slate-200 bg-white hover:border-rose-400 text-slate-800'}">
+                        ${solved ? '⭕ ' : '・'}${opt.text}
+                      </button>
+                    `;
+                  }).join('')}
+                </div>
+              </div>
+
+              <!-- Phase B: Connected Rewriting Decision -->
+              <div class="p-4 sm:p-5 rounded-2xl border-2 space-y-3 transition ${s.solvedWhy[currentSpot.id] ? 'bg-emerald-50/50 border-emerald-300' : 'bg-slate-100 border-slate-200 opacity-60'}">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-black text-emerald-900">【ステップB｜安全な聞き方に書き換える】特定した「${currentSpot.label}」をどう直す？</span>
+                  ${!s.solvedWhy[currentSpot.id] ? '<span class="text-[11px] font-bold text-slate-500">※先に上のステップAで理由を解明しよう</span>' : ''}
+                </div>
+                <p class="text-xs sm:text-sm font-extrabold text-slate-900">${currentSpot.rewriteQuestion}</p>
+                <div class="space-y-2">
+                  ${currentSpot.rewriteOptions.map(opt => {
+                    const chosen = s.chosenRewrite[currentSpot.id] && opt.ok;
+                    return `
+                      <button ${!s.solvedWhy[currentSpot.id] ? 'disabled' : ''} onclick="answerS0Rewrite('${currentSpot.id}', ${opt.ok})" class="w-full p-3 rounded-xl border-2 text-left text-xs sm:text-sm font-bold transition disabled:cursor-not-allowed ${chosen ? 'border-emerald-600 bg-emerald-100 text-emerald-950' : 'border-slate-200 bg-white hover:border-emerald-500 text-slate-800'}">
+                        ${chosen ? '✅ 採用中：' : '🔧 '}${opt.text}
+                      </button>
+                    `;
+                  }).join('')}
+                </div>
+              </div>
+            `}
+
+            ${allComplete ? `
+              <div class="p-4 rounded-2xl bg-emerald-100 border border-emerald-400 text-xs sm:text-sm font-extrabold text-emerald-950 animate-fade-slide">
+                🎉 3か所の特定 → ステップA（なぜ危ないか）→ ステップB（どう安全に直すか）がすべてつながりました！<br/>
+                「個人情報・学校内部資料・生データ」は入力せず、<strong>個人の特定や秘密を削って「傾向」だけに抽象化すれば</strong>安全にAIを活用できます！
+              </div>
+            ` : ''}
+
+            <div class="flex justify-end pt-2">
+              <button onclick="goStep('step1')" class="px-6 py-3 rounded-2xl bg-brand-600 hover:bg-brand-700 text-white font-black text-sm shadow-sm transition">
+                STEP 1（Web検索とAIの比較 ＋ 実Web検証）へ進む →
+              </button>
+            </div>
+          </section>
+        </div>
+      `;
+    }
+
+    function inspectS0Safe(segIdx) {
+      const safeTips = {
+        0: '「私は」という主語だけでは個人は特定されないため、入力しても問題ありません。',
+        2: '接続の言葉なので問題ありません。個人情報や秘密データが含まれていないか探してみよう！',
+        3: '「教室の暑さと生徒の集中力の関係」は一般的な探究テーマなので、AIに入力しても大丈夫です！',
+        4: '助詞の部分は問題ありません。もっと具体的な名前や資料名がないか読んでみよう！',
+        6: '文章のつなぎ部分は安全です。後ろに続くデータの扱いに注目してみよう！',
+        8: '「調べるべき観点を3つ教えてください」という依頼自体は、AIの正しい使い方です！'
+      };
+      state.s0.lastSafeTip = safeTips[segIdx] || 'ここは安全な表現です。他の部分を読んで怪しい箇所を探してみよう！';
+      renderApp();
+    }
+
+    function discoverS0Spot(spotId) {
+      const wasAlreadyFound = !!state.s0.foundSpots[spotId];
+      state.s0.foundSpots[spotId] = true;
+      state.s0.activeSpotId = spotId;
+      state.s0.lastSafeTip = null;
+      if (!wasAlreadyFound) {
+        showToast(`危険箇所を発見！【${S0_SPOTS[spotId].label}】の理由を下で考えよう！`, '🔍');
+      }
+      renderApp();
+    }
+
+    function answerS0Why(spotId, optId, isOk) {
+      if (isOk) {
+        state.s0.solvedWhy[spotId] = true;
+        showToast('その通り！理由がわかったので、下のステップBで安全な表現に書き換えよう！', '💡');
+      } else {
+        showToast('もう一度考えてみよう！「外部のAIサービスに送られたら何が起きるか？」に注目！', '🤔');
+      }
+      renderApp();
+    }
+
+    function answerS0Rewrite(spotId, isOk) {
+      if (isOk) {
+        state.s0.chosenRewrite[spotId] = true;
+        state.s0.testSendResult = null;
+        showToast('ナイス判断！上の相談文が安全な表現に書き換わりました！', '✅');
+        const nextFound = ['spot1', 'spot2', 'spot3'].find(k => state.s0.foundSpots[k] && !state.s0.chosenRewrite[k]);
+        if (nextFound) {
+          state.s0.activeSpotId = nextFound;
+        } else if (Object.keys(state.s0.foundSpots).length < 3) {
+          state.s0.activeSpotId = null;
+          showToast('残りの危険箇所を上の相談文からタップして見つけよう！', '🔎');
+        }
+      } else {
+        showToast('それではまだ個人や内部情報が残ってしまいます！別の書き換え方を試そう。', '⚠️');
+      }
+      renderApp();
+    }
+
+    function testS0Send() {
+      const allDone = ['spot1', 'spot2', 'spot3'].every(k => state.s0.chosenRewrite[k]);
+      state.s0.testSendResult = allDone ? 'safe' : 'blocked';
+      if (allDone) {
+        showToast('安全な相談文でAIに送信できました！', '🛡️');
+      } else {
+        showToast('危険な情報が残っているためブロックされました！', '🚨');
+      }
+      renderApp();
+    }
+
+    // =========================================================================
+    // 7. STEP 1: Web検索（3ページ開封＋信頼度仕分け）vs Gemini（対話チャットログ）＋ 実Web検証
+    // =========================================================================
+    function renderStep1() {
+      const s = state.s1;
+      const openedSite = S1_WEB_RESULTS.find(w => w.id === s.openedWebSiteId);
+
+      return `
+        <div class="space-y-6 animate-fade-slide">
+          <div class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200 shadow-2xs">
+            <span class="text-xs font-black px-3 py-1 rounded-full bg-brand-100 text-brand-800">体験②｜STEP 1 検索とAIは何が違う？（約10分）</span>
+            <h2 class="text-lg sm:text-2xl font-black text-slate-900 mt-2">
+              同じ問いを「Web検索」と「Gemini」で操作し、実際のGoogle検索でも検証しよう！
+            </h2>
+            <p class="text-xs sm:text-sm text-slate-600 mt-1">
+              問い：<strong>「教室の暑さは、生徒の集中に関係するのだろうか？」</strong><br/>
+              「① Web検索」と「② Gemini」の2つのシミュレーターでページを開いて信頼度を判定したり、追加質問のチャットを続けたりして違いを観察しよう！
+            </p>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <!-- Web Search Explorer -->
+            <div class="bg-white rounded-3xl p-5 border-2 border-blue-200 shadow-2xs space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="px-3 py-1 rounded-full bg-blue-100 text-blue-800 text-xs font-black">🌐 ① Web検索シミュレーター</span>
+                <span class="text-[11px] font-bold text-slate-500">閲覧済：${s.viewedWebSites.length} / 3 サイト</span>
+              </div>
+
+              <div class="flex gap-2">
+                <div class="flex-1 px-3 py-2 rounded-xl bg-slate-100 border border-slate-300 text-xs font-bold text-slate-800">
+                  教室の暑さ 生徒 集中力 関係
+                </div>
+                <button onclick="state.s1.ranWeb = true; renderApp();" class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs shrink-0">
+                  🔍 検索実行
+                </button>
+              </div>
+
+              ${s.ranWeb ? `
+                <div class="space-y-2 animate-fade-slide">
+                  <div class="text-[11px] font-bold text-slate-500">検索結果一覧（各サイトをタップして中身を確認＆信頼度を判定しよう！）：</div>
+                  ${S1_WEB_RESULTS.map(site => {
+                    const isOpened = s.openedWebSiteId === site.id;
+                    const rating = s.siteRatings[site.id];
+                    return `
+                      <div onclick="openS1WebSite('${site.id}')" class="p-3 rounded-xl border-2 cursor-pointer transition ${isOpened ? 'border-blue-500 bg-blue-50/60' : 'border-slate-200 hover:border-blue-300 bg-slate-50/50'}">
+                        <div class="flex items-center justify-between gap-2 mb-0.5">
+                          <span class="text-[10px] font-mono text-slate-500 truncate">${site.domain}</span>
+                          <span class="text-[10px] font-extrabold px-2 py-0.5 rounded ${site.badgeColor} shrink-0">${site.badge}</span>
+                        </div>
+                        <div class="flex items-center justify-between gap-2">
+                          <div class="text-xs font-extrabold text-blue-700 underline">${site.title}</div>
+                          ${rating ? `<span class="text-[10px] font-black px-2 py-0.5 rounded-full bg-slate-900 text-white shrink-0">${rating === 'high' ? '🏛️一次資料' : (rating === 'mid' ? '🎓研究報告' : '⚠️出典不明')}</span>` : ''}
+                        </div>
+                        <p class="text-[11px] text-slate-600 mt-0.5">${site.snippet}</p>
+                      </div>
+                    `;
+                  }).join('')}
+
+                  ${openedSite ? `
+                    <div class="p-3.5 rounded-2xl bg-slate-900 text-slate-100 text-xs leading-relaxed space-y-2.5 animate-fade-slide">
+                      <div class="font-black text-amber-300">📄 開いたページの詳細（日付：${openedSite.date}）</div>
+                      <p class="whitespace-pre-line">${openedSite.detail}</p>
+                      <div class="pt-2 border-t border-white/15 flex flex-wrap items-center gap-1.5">
+                        <span class="text-[11px] font-bold text-slate-300 mr-1">このページの信頼度タグを貼る：</span>
+                        <button onclick="rateS1Site('${openedSite.id}', 'high')" class="px-2.5 py-1 rounded-lg text-[11px] font-extrabold ${s.siteRatings[openedSite.id] === 'high' ? 'bg-emerald-500 text-slate-950' : 'bg-white/15 text-white hover:bg-white/25'}">🏛️ 公的一次資料</button>
+                        <button onclick="rateS1Site('${openedSite.id}', 'mid')" class="px-2.5 py-1 rounded-lg text-[11px] font-extrabold ${s.siteRatings[openedSite.id] === 'mid' ? 'bg-sky-400 text-slate-950' : 'bg-white/15 text-white hover:bg-white/25'}">🎓 学術研究</button>
+                        <button onclick="rateS1Site('${openedSite.id}', 'low')" class="px-2.5 py-1 rounded-lg text-[11px] font-extrabold ${s.siteRatings[openedSite.id] === 'low' ? 'bg-amber-400 text-slate-950' : 'bg-white/15 text-white hover:bg-white/25'}">⚠️ 出典不明</button>
+                      </div>
+                    </div>
+                  ` : ''}
+                </div>
+              ` : `
+                <div class="py-12 text-center text-xs text-slate-400 border border-dashed border-slate-200 rounded-2xl">
+                  「🔍 検索実行」を押して、どんなページが並ぶか見てみよう！
+                </div>
+              `}
+            </div>
+
+            <!-- Gemini Follow-up Lab (Chat History Stack) -->
+            <div class="bg-white rounded-3xl p-5 border-2 border-purple-200 shadow-2xs space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="px-3 py-1 rounded-full bg-purple-100 text-purple-800 text-xs font-black">✨ ② Gemini（対話型AI）シミュレーター</span>
+                <span class="text-[11px] font-bold text-slate-500">追加質問：${s.askedFollowUps.length} / 3 回</span>
+              </div>
+
+              <div class="flex gap-2">
+                <div class="flex-1 px-3 py-2 rounded-xl bg-slate-100 border border-slate-300 text-xs font-bold text-slate-800">
+                  教室の暑さは、生徒の集中に関係するのだろうか？
+                </div>
+                <button onclick="state.s1.ranAi = true; renderApp();" class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs shrink-0">
+                  ✨ AIに聞く
+                </button>
+              </div>
+
+              ${s.ranAi ? `
+                <div class="space-y-2.5 animate-fade-slide">
+                  <div class="max-h-72 overflow-y-auto space-y-2 pr-1">
+                    <div class="p-3 rounded-2xl bg-purple-50/80 border border-purple-200 text-xs text-slate-800 leading-relaxed space-y-1">
+                      <div class="font-extrabold text-purple-900">🤖 Geminiの最初の回答（要点を整理）：</div>
+                      <p>はい、教室の暑さ（室温や湿度）は生徒の集中力や学習効率に関係すると言われています。主な理由は「①発汗・疲労による脳の注意力低下」「②不快感や眠気の増加」です。対策として適切な冷房・換気・水分補給が挙げられます。</p>
+                    </div>
+
+                    ${s.askedFollowUps.map(k => `
+                      <div class="space-y-1.5 animate-fade-slide">
+                        <div class="ml-6 p-2.5 rounded-2xl bg-purple-600 text-white text-xs font-bold">
+                          🧑‍🎓 あなた：${S1_AI_FOLLOWUPS[k].label.replace(/^①|②|③/, '')}
+                        </div>
+                        <div class="p-3 rounded-2xl bg-slate-900 text-slate-100 text-xs leading-relaxed whitespace-pre-line">
+                          ${S1_AI_FOLLOWUPS[k].reply}
+                        </div>
+                      </div>
+                    `).join('')}
+                  </div>
+
+                  <div class="text-[11px] font-black text-purple-900 pt-1">💬 続けて質問を送ってAIの反応を実験しよう（3種類すべて試そう）：</div>
+                  <div class="space-y-1.5">
+                    ${Object.entries(S1_AI_FOLLOWUPS).map(([key, item]) => {
+                      const done = s.askedFollowUps.includes(key);
+                      return `
+                        <button onclick="askS1FollowUp('${key}')" class="w-full p-2.5 rounded-xl border text-left text-xs font-bold transition ${done ? 'bg-purple-50 text-purple-900 border-purple-300' : 'bg-white text-slate-700 border-slate-200 hover:border-purple-400'}">
+                          ${done ? '✅ 質問済：' : '💬 送信する：'}${item.label}
+                        </button>
+                      `;
+                    }).join('')}
+                  </div>
+                </div>
+              ` : `
+                <div class="py-12 text-center text-xs text-slate-400 border border-dashed border-slate-200 rounded-2xl">
+                  「✨ AIに聞く」を押して、Web検索との違いを体感しよう！
+                </div>
+              `}
+            </div>
+          </div>
+
+          <!-- Real Web Verification Action Box -->
+          <section class="bg-blue-950 text-white rounded-3xl p-5 space-y-3 shadow-sm">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <span class="text-xs font-black text-sky-300">🌐 アプリの外でも実験！実際のWeb検索で本物の画面を確かめよう</span>
+              <span class="text-[11px] font-bold px-2.5 py-0.5 rounded-full ${s.triedRealWeb ? 'bg-emerald-500 text-slate-950' : 'bg-white/15 text-slate-200'}">
+                ${s.triedRealWeb ? '✅ 実Web検索を実行済' : '別タブで開いて試そう'}
+              </span>
+            </div>
+            <p class="text-xs text-slate-200 leading-relaxed">
+              アプリ内の模擬画面だけでなく、実際に新しいタブで本物のGoogle検索を開いて、どんなサイトが上位に出るか自分の目で確認しよう！
+            </p>
+            <div class="flex flex-wrap gap-2">
+              <a href="${buildSearchUrl('教室の暑さ 生徒 集中力 関係', 'google')}" target="_blank" rel="noopener noreferrer" onclick="markRealWebTried('s1')" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-black text-xs transition">
+                🔍 実際のGoogle検索で試す（別タブ）
+              </a>
+              <a href="${buildSearchUrl('学校環境衛生基準 教室 温度', 'gov')}" target="_blank" rel="noopener noreferrer" onclick="markRealWebTried('s1')" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs transition">
+                🏛️ 公的機関（site:go.jp）限定で検索する
+              </a>
+            </div>
+          </section>
+
+          ${renderWorksheetBridge('STEP 1 の比較表 ＆ 気づき欄', [
+            '「最初に画面に出てきたもの」：Web検索はサイト一覧、AIは何が出てきた？',
+            '「情報源は見つけやすい？」：Web検索ではURLや省庁名が見えたけれど、AIに『②元の論文やURLを教えて』と追加質問したとき、AIはどう答えた？',
+            '「追加で質問しやすい？」：AIで3種類の追加質問を試してみてどう感じた？',
+            '「自分で判断する必要がある部分」：実際のWeb検索画面も見た上で、それぞれ人間が何を判断すべきか自分の言葉で書こう！'
+          ])}
+
+          <div class="flex justify-between items-center">
+            <button onclick="goStep('step0')" class="px-4 py-2.5 rounded-xl border border-slate-300 bg-white text-slate-700 font-bold text-xs sm:text-sm">← 最初のルール</button>
+            <button onclick="goStep('step2')" class="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-extrabold text-xs sm:text-sm shadow-xs">
+              STEP 2（検索語メーカー＆改造実験）へ →
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    function openS1WebSite(id) {
+      state.s1.openedWebSiteId = id;
+      if (!state.s1.viewedWebSites.includes(id)) {
+        state.s1.viewedWebSites.push(id);
+      }
+      renderApp();
+    }
+
+    function rateS1Site(id, rating) {
+      state.s1.siteRatings[id] = rating;
+      showToast('サイトに信頼度ラベルを貼りました！比較表のヒントにしよう。', '🏷️');
+      renderApp();
+    }
+
+    function askS1FollowUp(key) {
+      if (!state.s1.askedFollowUps.includes(key)) {
+        state.s1.askedFollowUps.push(key);
+      }
+      renderApp();
+    }
+
+    // =========================================================================
+    // 8. STEP 2: AIを「検索語メーカー」にする ＋ 検索語改造ビフォー・アフター ＋ カスタム改造 ＋ 実Web検証
+    // =========================================================================
+    function renderS2DynamicArea() {
+      const s = state.s2;
+      const customClean = s.customKeyword.trim();
+      const modifiedQuery = [
+        s.pickedRawKeyword,
+        s.modTarget ? '高校生 授業' : '',
+        s.modCondition ? '室温 28度' : '',
+        s.modSource ? '文部科学省 基準' : '',
+        customClean
+      ].filter(Boolean).join(' ');
+
+      const modCount = [s.modTarget, s.modCondition, s.modSource].filter(Boolean).length + (customClean ? 1 : 0);
+      const meterPct = Math.min(100, 15 + modCount * 22);
+      const meterLabel = modCount === 0
+        ? '広すぎる（1,280万件：雑多な記事だらけ）'
+        : (modCount <= 2 ? '絞り込み中（対象や条件が見えてきた！）' : '🎯 高精度（一次資料・公的データに直結！）');
+
+      return `
+        <div class="space-y-4">
+          <!-- Live Precision Meter -->
+          <div class="p-3.5 rounded-2xl bg-slate-900 text-white space-y-1.5">
+            <div class="flex flex-wrap items-center justify-between gap-2 text-xs font-extrabold">
+              <span class="text-teal-300">📊 検索ヒット精度メーター</span>
+              <span>${meterLabel}</span>
+            </div>
+            <div class="w-full bg-slate-700 h-2.5 rounded-full overflow-hidden">
+              <div class="h-2.5 rounded-full transition-all duration-300 ${modCount >= 3 ? 'bg-emerald-400' : (modCount >= 1 ? 'bg-amber-400' : 'bg-rose-500')}" style="width: ${meterPct}%"></div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Before -->
+            <div class="p-4 rounded-2xl bg-slate-100 border border-slate-300 space-y-2">
+              <div class="text-xs font-black text-slate-600">❌ 改造前（そのまま検索）：<code>暑さ 集中力</code></div>
+              <div class="text-[11px] text-slate-500">約 12,800,000 件ヒット（広すぎて雑多な記事ばかり！）</div>
+              <div class="p-2.5 rounded-xl bg-white text-xs text-slate-700 border border-slate-200">
+                ・オフィスワーカーの夏の仕事術ブログ<br/>
+                ・エアコンメーカーの宣伝記事<br/>
+                ・個人の雑談掲示板「夏はやる気出ないよね」
+              </div>
+            </div>
+
+            <!-- After -->
+            <div class="p-4 rounded-2xl bg-emerald-50/70 border-2 border-emerald-400 space-y-2">
+              <div class="flex items-center justify-between gap-2">
+                <span class="text-xs font-black text-emerald-900">⭕ 改造後：<code>${escapeHtml(modifiedQuery)}</code></span>
+                <button onclick="state.s2.ranModifiedSearch = true; renderApp();" class="px-3 py-1 rounded-lg bg-emerald-600 text-white text-[11px] font-extrabold shrink-0">
+                  🔍 模擬テスト
+                </button>
+              </div>
+              ${modCount === 0 ? `
+                <div class="text-xs text-slate-500 py-4">上の「＋」ボタンや自由入力欄で検索語を改造してみよう！</div>
+              ` : `
+                <div class="text-[11px] text-emerald-800 font-bold">約 ${(18000 / Math.pow(3, Math.min(modCount, 4))).toFixed(0)} 件に厳選！（探究に使える一次資料が上位に！）</div>
+                <div class="p-2.5 rounded-xl bg-white text-xs text-slate-800 border border-emerald-200 space-y-1">
+                  ${s.modSource ? '<div>🏛️ <strong>文部科学省「学校環境衛生基準」公式PDF</strong></div>' : ''}
+                  ${s.modCondition ? '<div>📊 <strong>室温28℃環境における学習効率の実測グラフ</strong></div>' : ''}
+                  ${s.modTarget ? '<div>🏫 <strong>高等学校の教室環境と生徒の学習集中度調査</strong></div>' : ''}
+                  ${customClean ? `<div>🔎 <strong>「${escapeHtml(customClean)}」でさらに絞り込まれた専門資料</strong></div>` : ''}
+                </div>
+                <div class="pt-2 flex flex-wrap gap-2">
+                  <a href="${buildSearchUrl(modifiedQuery, 'google')}" target="_blank" rel="noopener noreferrer" onclick="markRealWebTried('s2')" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-[11px] font-extrabold">
+                    🌐 この改造検索語で実際のGoogle検索を開く
+                  </a>
+                  <a href="${buildSearchUrl(modifiedQuery, 'scholar')}" target="_blank" rel="noopener noreferrer" onclick="markRealWebTried('s2')" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-blue-700 hover:bg-blue-600 text-white text-[11px] font-extrabold">
+                    🎓 Google Scholar（論文検索）で試す
+                  </a>
+                </div>
+              `}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function updateS2CustomKeyword(val) {
+      state.s2.customKeyword = val;
+      const area = document.getElementById('s2-dynamic-area');
+      if (area) {
+        area.innerHTML = renderS2DynamicArea();
+      }
+      updateNavUI();
+    }
+
+    function renderStep2() {
+      const s = state.s2;
+
+      return `
+        <div class="space-y-6 animate-fade-slide">
+          <div class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200 shadow-2xs">
+            <span class="text-xs font-black px-3 py-1 rounded-full bg-brand-100 text-brand-800">体験③｜STEP 2 AIを「検索語メーカー」にする（約12分）</span>
+            <h2 class="text-lg sm:text-2xl font-black text-slate-900 mt-2">
+              AIに「検索キーワード」を提案させ、自分で改造して実際のGoogle検索でも確かめよう！
+            </h2>
+            <p class="text-xs sm:text-sm text-slate-600 mt-1">
+              AIが出した短いキーワードをそのまま検索したときと、自分で条件を足して直したときで、<strong>見つかる資料の質がどう変わるか</strong>実験してみよう。
+            </p>
+          </div>
+
+          <!-- Part A: AI Keyword Maker -->
+          <section class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200 shadow-2xs space-y-4">
+            <div class="p-3.5 rounded-2xl bg-slate-900 text-slate-100 text-xs sm:text-sm">
+              <span class="text-teal-300 font-extrabold">ワークシートの入力例：</span>「私は高校生です。『教室の暑さと集中力』を探究します。結論は出さず、①調べる観点を5つ、②Web検索に使える検索語を6個、③公的機関や研究資料を探すための検索語を3個、提案してください。」
+            </div>
+            <button onclick="state.s2.ranMaker = true; renderApp();" class="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs sm:text-sm shadow-xs">
+              ✨ Geminiに観点と検索語を提案させる
+            </button>
+
+            ${s.ranMaker ? `
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2 animate-fade-slide">
+                <div class="p-3.5 rounded-2xl bg-purple-50 border border-purple-200 text-xs space-y-1">
+                  <div class="font-black text-purple-900">① 調べる観点（5つ）</div>
+                  <p>1. 室温・湿度の基準値</p>
+                  <p>2. 眠気や疲労の生理的変化</p>
+                  <p>3. 計算・読解など学習成績への影響</p>
+                  <p>4. 教室の換気・CO2濃度との関係</p>
+                  <p>5. 冷房・扇風機併用などの対策</p>
+                </div>
+                <div class="p-3.5 rounded-2xl bg-blue-50 border border-blue-200 text-xs space-y-1">
+                  <div class="font-black text-blue-900">② Web検索用の検索語（6個）</div>
+                  <p>・暑さ 集中力</p>
+                  <p>・教室 室温 勉強効率</p>
+                  <p>・夏 授業 眠気 原因</p>
+                  <p>・快適温度 学習効果</p>
+                  <p>・エアコン 設定温度 集中</p>
+                  <p>・不快指数 学習</p>
+                </div>
+                <div class="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 text-xs space-y-1">
+                  <div class="font-black text-emerald-900">③ 公的機関・研究資料用（3個）</div>
+                  <p>・学校環境衛生基準 室温 文部科学省</p>
+                  <p>・温熱環境 知的生産性 論文</p>
+                  <p>・教室 温熱環境 学習効率 報告書</p>
+                </div>
+              </div>
+            ` : ''}
+          </section>
+
+          <!-- Part B: Keyword Modification Before/After Simulator -->
+          <section class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200 shadow-2xs space-y-4">
+            <h3 class="text-base sm:text-lg font-black text-slate-900">🔧 検索語「改造ビフォー・アフター」実験室</h3>
+            <p class="text-xs text-slate-600">AI提案の「暑さ 集中力」に、下の改造パーツや<strong>自分だけの追加キーワード</strong>を組み合わせて精度メーターの変化を試そう！</p>
+
+            <div class="flex flex-wrap gap-2">
+              <button onclick="state.s2.modTarget = !state.s2.modTarget; renderApp();" class="px-3.5 py-2 rounded-xl text-xs font-extrabold border-2 transition ${s.modTarget ? 'bg-brand-600 text-white border-brand-600' : 'bg-white text-slate-700 border-slate-300'}">
+                ${s.modTarget ? '✅' : '＋'} 対象を絞る（高校生 授業）
+              </button>
+              <button onclick="state.s2.modCondition = !state.s2.modCondition; renderApp();" class="px-3.5 py-2 rounded-xl text-xs font-extrabold border-2 transition ${s.modCondition ? 'bg-brand-600 text-white border-brand-600' : 'bg-white text-slate-700 border-slate-300'}">
+                ${s.modCondition ? '✅' : '＋'} 条件を具体化（室温 28度）
+              </button>
+              <button onclick="state.s2.modSource = !state.s2.modSource; renderApp();" class="px-3.5 py-2 rounded-xl text-xs font-extrabold border-2 transition ${s.modSource ? 'bg-brand-600 text-white border-brand-600' : 'bg-white text-slate-700 border-slate-300'}">
+                ${s.modSource ? '✅' : '＋'} 資料の種類を指定（文部科学省 基準）
+              </button>
+            </div>
+
+            <!-- Custom User Keyword Input (Does not re-render itself on input) -->
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 bg-slate-50 p-3 rounded-2xl border border-slate-200">
+              <span class="text-xs font-black text-slate-700 shrink-0">✍️ 自分の言葉も足してみる：</span>
+              <input type="text" value="${escapeHtml(s.customKeyword)}" oninput="updateS2CustomKeyword(this.value)" placeholder="例：PDF / 調査報告書 / 換気 / 午後" class="flex-1 px-3 py-1.5 rounded-xl border border-slate-300 bg-white text-xs font-bold focus:border-brand-500 focus:outline-none" />
+            </div>
+
+            <div id="s2-dynamic-area">
+              ${renderS2DynamicArea()}
+            </div>
+          </section>
+
+          ${renderWorksheetBridge('STEP 2 の3つの記入欄', [
+            '上のAI提案（②と③）から、自分の探究で使えそうな検索語を3つ選んでワークシートに書こう。',
+            'そのまま使わず「自分で直した検索語」を1つ作り、実際のGoogle検索でもヒットする資料を確かめてみよう！',
+            '「なぜ直した？」の欄に、改造実験と実際の検索結果から実感した理由を書こう！'
+          ])}
+
+          <div class="flex justify-between items-center">
+            <button onclick="goStep('step1')" class="px-4 py-2.5 rounded-xl border border-slate-300 bg-white text-slate-700 font-bold text-xs sm:text-sm">← STEP 1</button>
+            <button onclick="goStep('step3')" class="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-extrabold text-xs sm:text-sm shadow-xs">
+              STEP 3（AIの誇張を見抜き一次資料を確かめる）へ →
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    // =========================================================================
+    // 9. STEP 3: AIの文章から「確認すべき主張」を見つけ、情報源を確かめる（約15分）
+    // =========================================================================
+    function renderStep3() {
+      const s = state.s3;
+      const currentClaim = S3_CLAIMS_DATA[s.selectedClaimId];
+      const currentSource = currentClaim.sources[s.openedSourceTab];
+      const currentVerdict = s.claimVerdicts[s.selectedClaimId];
+
+      return `
+        <div class="space-y-6 animate-fade-slide">
+          <div class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200 shadow-2xs">
+            <span class="text-xs font-black px-3 py-1 rounded-full bg-brand-100 text-brand-800">体験④｜STEP 3 AIの主張を見つけ、情報源を確かめる（約15分）</span>
+            <h2 class="text-lg sm:text-2xl font-black text-slate-900 mt-2">
+              AIの200字解説文に潜む「怪しい断定・数字」に赤ペンを入れ、一次資料と突き合わせよう！
+            </h2>
+            <p class="text-xs sm:text-sm text-slate-600 mt-1">
+              指示：「教室の暑さと集中力の関係について、高校生向けに200字程度で説明してください。数字や研究に関する話がある場合も含めてください。」
+            </p>
+          </div>
+
+          <!-- Interactive AI Paragraph with 3 Clickable Claims + Direct Red-Pen Marking -->
+          <section class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200 shadow-2xs space-y-4">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <span class="text-xs font-black text-purple-800">🤖 Geminiが生成した200字解説（文をタップして選択 → 怪しい数字・断定に赤ペンマーク！）</span>
+              <span class="text-xs font-bold text-slate-500">検証済：${s.inspectedClaims.length} / 3 箇所</span>
+            </div>
+
+            <div class="p-4 sm:p-5 rounded-2xl bg-purple-50/50 border-2 border-purple-200 text-xs sm:text-sm leading-loose space-y-2.5">
+              ${Object.entries(S3_CLAIMS_DATA).map(([cid, item]) => {
+                const isSelected = s.selectedClaimId === cid;
+                const isInspected = s.inspectedClaims.includes(cid);
+                const verdict = s.claimVerdicts[cid];
+                return `
+                  <div onclick="selectS3Claim('${cid}')" class="p-3.5 rounded-xl border-2 cursor-pointer transition ${isSelected ? 'border-amber-500 bg-amber-100/80 font-extrabold text-slate-950 shadow-2xs' : 'border-transparent bg-white hover:border-amber-300 text-slate-800 font-medium'}">
+                    <div class="flex flex-wrap items-center justify-between gap-1 mb-1">
+                      <span class="text-[10px] font-black px-2 py-0.5 rounded ${isSelected ? 'bg-amber-500 text-slate-950' : 'bg-slate-100 text-slate-600'}">
+                        ${isSelected ? '🔍 現在検証中の主張' : (isInspected ? '✅ 検証済' : '👆 タップして主張を調べる')}
+                      </span>
+                      ${verdict ? `
+                        <span class="text-[10px] font-black px-2 py-0.5 rounded-full bg-rose-600 text-white">
+                          判定スタンプ：${verdict === 'exaggerated' ? '⚠️ 数値・表現の誇張あり' : '❌ 事実と異なる誤り'}
+                        </span>
+                      ` : `<span class="text-[11px] font-bold text-rose-700">${item.problemPoint}</span>`}
+                    </div>
+                    <p>${item.fullText}</p>
+                    <div class="mt-2 flex flex-wrap items-center gap-1.5" onclick="event.stopPropagation();">
+                      <span class="text-[10px] font-extrabold text-slate-500">🖊️ 怪しい表現に赤ペンチェック：</span>
+                      ${item.suspectWords.map(sw => {
+                        const marked = !!s.markedPhrases[sw.id];
+                        return `
+                          <button onclick="toggleSuspectWord('${cid}', '${sw.id}')" class="px-2 py-0.5 rounded-md text-[11px] font-extrabold border transition ${marked ? 'bg-rose-600 text-white border-rose-600' : 'bg-rose-50 text-rose-800 border-rose-300 hover:bg-rose-100'}">
+                            ${marked ? '🖍️ チェック済：' : '＋ '}${sw.text}
+                          </button>
+                        `;
+                      }).join('')}
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+
+            <!-- Primary Source Cross-Check Panel -->
+            <div class="p-4 sm:p-5 rounded-2xl bg-slate-900 text-slate-100 space-y-3">
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <span class="text-xs font-black text-teal-300">🔎 情報源クロスチェック（3つの資料を開いて見比べよう！）</span>
+                <span class="text-[11px] text-slate-400">対象：${currentClaim.shortLabel}</span>
+              </div>
+
+              <div class="flex flex-wrap gap-2">
+                <button onclick="state.s3.openedSourceTab = 'mext'; renderApp();" class="px-3.5 py-2 rounded-xl text-xs font-extrabold transition ${s.openedSourceTab === 'mext' ? 'bg-emerald-500 text-slate-950' : 'bg-white/10 text-white hover:bg-white/20'}">
+                  🏛️ 資料A：文部科学省（公的基準）
+                </button>
+                <button onclick="state.s3.openedSourceTab = 'univ'; renderApp();" class="px-3.5 py-2 rounded-xl text-xs font-extrabold transition ${s.openedSourceTab === 'univ' ? 'bg-blue-500 text-white' : 'bg-white/10 text-white hover:bg-white/20'}">
+                  🎓 資料B：大学・国立研究報告
+                </button>
+                <button onclick="state.s3.openedSourceTab = 'blog'; renderApp();" class="px-3.5 py-2 rounded-xl text-xs font-extrabold transition ${s.openedSourceTab === 'blog' ? 'bg-amber-500 text-slate-950' : 'bg-white/10 text-white hover:bg-white/20'}">
+                  📝 資料C：個人のブログ・SNS
+                </button>
+              </div>
+
+              <div class="p-4 rounded-xl bg-white/10 border border-white/15 space-y-2.5 animate-fade-slide">
+                <div class="text-xs font-black text-amber-300">${currentSource.name}</div>
+                <p class="text-xs sm:text-sm leading-relaxed text-slate-100">${currentSource.finding}</p>
+
+                <!-- Fact-check Verdict Stamp -->
+                <div class="pt-2 border-t border-white/10 flex flex-wrap items-center gap-2">
+                  <span class="text-[11px] font-bold text-teal-200">⚖️ 検証結果の判定スタンプを押そう：</span>
+                  <button onclick="setClaimVerdict('${s.selectedClaimId}', 'exaggerated')" class="px-3 py-1 rounded-lg text-[11px] font-extrabold transition ${currentVerdict === 'exaggerated' ? 'bg-amber-400 text-slate-950' : 'bg-white/15 text-white hover:bg-white/25'}">
+                    ⚠️ 数値・表現の誇張あり
+                  </button>
+                  <button onclick="setClaimVerdict('${s.selectedClaimId}', 'false')" class="px-3 py-1 rounded-lg text-[11px] font-extrabold transition ${currentVerdict === 'false' ? 'bg-rose-500 text-white' : 'bg-white/15 text-white hover:bg-white/25'}">
+                    ❌ 事実と異なる誤り
+                  </button>
+                </div>
+
+                <div class="pt-2 border-t border-white/10 flex flex-wrap items-center justify-between gap-2">
+                  <span class="text-[11px] font-bold text-sky-300">🌐 アプリの外でも本物の一次資料を直接確かめよう：</span>
+                  <div class="flex flex-wrap gap-2">
+                    <a href="${buildSearchUrl(currentClaim.realSearchQuery, 'gov')}" target="_blank" rel="noopener noreferrer" onclick="markRealWebTried('s3')" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-sky-400 hover:bg-sky-300 text-slate-950 font-black text-[11px] transition">
+                      🏛️ 実際のGoogle検索（公的機関）で確かめる
+                    </a>
+                    <a href="${buildSearchUrl(currentClaim.scholarQuery, 'scholar')}" target="_blank" rel="noopener noreferrer" onclick="markRealWebTried('s3')" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-indigo-400 hover:bg-indigo-300 text-slate-950 font-black text-[11px] transition">
+                      🎓 実際の論文（Google Scholar）で探す
+                    </a>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 4 Verification Checklist Practice -->
+              <div class="pt-2 border-t border-white/10">
+                <div class="text-[11px] font-bold text-slate-300 mb-2">☑️ ワークシートの4つの確認観点でチェックしてみよう（実際のWebページでも確認しよう！）：</div>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                  <label class="flex items-center gap-2 p-2 rounded-lg bg-white/5 cursor-pointer">
+                    <input type="checkbox" ${s.checkedItems.publisher ? 'checked' : ''} onchange="state.s3.checkedItems.publisher = this.checked; updateNavUI();" class="accent-teal-400" />
+                    <span>発信者を見た</span>
+                  </label>
+                  <label class="flex items-center gap-2 p-2 rounded-lg bg-white/5 cursor-pointer">
+                    <input type="checkbox" ${s.checkedItems.date ? 'checked' : ''} onchange="state.s3.checkedItems.date = this.checked; updateNavUI();" class="accent-teal-400" />
+                    <span>日付を見た</span>
+                  </label>
+                  <label class="flex items-center gap-2 p-2 rounded-lg bg-white/5 cursor-pointer">
+                    <input type="checkbox" ${s.checkedItems.original ? 'checked' : ''} onchange="state.s3.checkedItems.original = this.checked; updateNavUI();" class="accent-teal-400" />
+                    <span>元の資料を探した</span>
+                  </label>
+                  <label class="flex items-center gap-2 p-2 rounded-lg bg-white/5 cursor-pointer">
+                    <input type="checkbox" ${s.checkedItems.compare ? 'checked' : ''} onchange="state.s3.checkedItems.compare = this.checked; updateNavUI();" class="accent-teal-400" />
+                    <span>別資料と比べた</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          ${renderWorksheetBridge('STEP 3 の表 ＆ 調べて分かったこと欄', [
+            '上の3つの主張から2つ選び、ワークシートの表（「確認する主張」「検索語」「見つけた情報源（発信者）」「確認結果・メモ」）を自分の言葉で埋めよう。',
+            '「調べて分かったこと／AIの説明と違っていたこと」の欄に、AIの数字や断定表現（「必ず」「すべて」「18℃以下」など）が実際の公的基準・研究とどう食い違っていたかを書こう！'
+          ])}
+
+          <div class="flex justify-between items-center">
+            <button onclick="goStep('step2')" class="px-4 py-2.5 rounded-xl border border-slate-300 bg-white text-slate-700 font-bold text-xs sm:text-sm">← STEP 2</button>
+            <button onclick="goStep('step4')" class="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-extrabold text-xs sm:text-sm shadow-xs">
+              STEP 4（質問の仕方による違い実験）へ →
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    function selectS3Claim(cid) {
+      state.s3.selectedClaimId = cid;
+      if (!state.s3.inspectedClaims.includes(cid)) {
+        state.s3.inspectedClaims.push(cid);
+      }
+      renderApp();
+    }
+
+    function toggleSuspectWord(cid, swId) {
+      selectS3Claim(cid);
+      state.s3.markedPhrases[swId] = !state.s3.markedPhrases[swId];
+      if (state.s3.markedPhrases[swId]) {
+        showToast('怪しい断定・数値に赤ペンチェックを入れました！下の一次資料で裏取りしよう。', '🖍️');
+      }
+      renderApp();
+    }
+
+    function setClaimVerdict(cid, verdict) {
+      state.s3.claimVerdicts[cid] = verdict;
+      showToast('判定スタンプを記録しました！ワークシートの「確認結果・メモ」欄に自分の言葉で書こう。', '⚖️');
+      renderApp();
+    }
+
+    // =========================================================================
+    // 10. STEP 4: 質問の仕方でAIの答えは変わる？（誘導A・逆誘導B・中立C比較 ＋ バイアスメーター）
+    // =========================================================================
+    function renderStep4() {
+      const s = state.s4;
+      const activeData = S4_PROMPTS[s.activePromptTab];
+
+      return `
+        <div class="space-y-6 animate-fade-slide">
+          <div class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200 shadow-2xs space-y-3">
+            <div>
+              <span class="text-xs font-black px-3 py-1 rounded-full bg-brand-100 text-brand-800">体験⑤｜STEP 4 質問の仕方でAIの答えは変わる？（約11分）</span>
+              <h2 class="text-lg sm:text-2xl font-black text-slate-900 mt-2">
+                3通りの聞き方（誘導A・逆誘導B・中立C）を切り替えて、「回答の偏り度（バイアス）」を比べよう！
+              </h2>
+              <p class="text-xs sm:text-sm text-slate-600 mt-1">
+                同じ「スマホと睡眠」のテーマでも、質問文の語尾や前提を変えるだけで、AIの返答と偏り度メーターがどう変化するか実験してみよう。
+              </p>
+            </div>
+
+            <!-- Bias Explanation Box -->
+            <div id="s4-bias-guide" class="p-4 rounded-2xl bg-indigo-50/80 border border-indigo-200 space-y-2">
+              <div class="flex items-center gap-2 text-xs sm:text-sm font-black text-indigo-950">
+                <span>📘 用語解説：「バイアス（偏り）」ってなに？ なぜAIの回答が偏るの？</span>
+              </div>
+              <p class="text-xs text-slate-800 leading-relaxed">
+                <strong>バイアス（Bias）</strong>とは、物事の見方やデータの集め方が<strong>どちらか一方に傾いてしまい、全体のバランスや反対の視点が抜け落ちている状態（偏り）</strong>のことです。
+              </p>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                <div class="p-2.5 rounded-xl bg-white border border-indigo-100 text-slate-700 leading-relaxed">
+                  <strong class="text-indigo-900 block mb-0.5">① AIが質問者の前提に合わせてしまう性質</strong>
+                  「〜ですよね？」と同意を求める聞き方をすると、対話型AIは会話の流れに沿おうとして、その前提を裏付ける理由ばかりを優先して並べてしまいます。
+                </div>
+                <div class="p-2.5 rounded-xl bg-white border border-indigo-100 text-slate-700 leading-relaxed">
+                  <strong class="text-indigo-900 block mb-0.5">② 自分の思い込みを強める罠（確証バイアス）</strong>
+                  自分の予想に都合のよい回答だけを見て「やっぱり自分の考えが正しい！」と思い込むと、探究で最も大切な<strong>反対意見や別の原因</strong>を見落としてしまいます。
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <section class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200 shadow-2xs space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+              ${Object.entries(S4_PROMPTS).map(([key, item]) => {
+                const isSelected = s.activePromptTab === key;
+                const tested = s.testedPrompts.includes(key);
+                return `
+                  <button onclick="testS4Prompt('${key}')" class="p-4 rounded-2xl border-2 text-left transition flex flex-col justify-between gap-2 ${isSelected ? 'border-brand-600 bg-brand-50/70 ring-2 ring-brand-200' : 'border-slate-200 hover:border-slate-300 bg-white'}">
+                    <div class="flex items-center justify-between">
+                      <span class="text-[11px] font-black px-2 py-0.5 rounded bg-slate-800 text-white">${item.badge}</span>
+                      <span class="text-xs font-bold">${tested ? '✅ 実験済' : '▶️ 試す'}</span>
+                    </div>
+                    <p class="text-xs sm:text-sm font-extrabold text-slate-900">${item.prompt}</p>
+                  </button>
+                `;
+              }).join('')}
+            </div>
+
+            <!-- AI Reply & Live Bias Meter Display -->
+            <div class="p-5 rounded-2xl bg-slate-900 text-slate-100 space-y-3.5 animate-fade-slide">
+              <!-- Live Bias Gauge -->
+              <div class="p-3 rounded-xl bg-white/5 border border-white/10 space-y-1.5">
+                <div class="flex flex-wrap items-center justify-between gap-2 text-xs font-extrabold">
+                  <div class="flex items-center gap-2">
+                    <span class="text-slate-300">🎚️ AI回答の偏り度（バイアス）メーター</span>
+                    <button onclick="document.getElementById('s4-bias-guide')?.scrollIntoView({ behavior: 'smooth', block: 'center' });" class="px-2 py-0.5 rounded-md bg-white/10 hover:bg-white/20 text-[10px] font-bold text-indigo-200 transition">
+                      ❓ バイアスとは？
+                    </button>
+                  </div>
+                  <span class="text-amber-300">${activeData.biasLabel}</span>
+                </div>
+                <div class="w-full bg-slate-700 h-2.5 rounded-full overflow-hidden">
+                  <div class="h-2.5 rounded-full transition-all duration-300 ${activeData.biasColor}" style="width: ${activeData.biasScore}%"></div>
+                </div>
+              </div>
+
+              <div class="text-xs font-black text-teal-300">🤖 ${activeData.badge} に対するAIの返答：</div>
+              <p class="text-xs sm:text-sm leading-relaxed whitespace-pre-line bg-white/10 p-4 rounded-xl border border-white/15">
+                ${activeData.reply}
+              </p>
+              <div class="p-3 rounded-xl bg-amber-400/20 border border-amber-400/40 text-xs font-bold text-amber-200">
+                ${activeData.observation}
+              </div>
+            </div>
+          </section>
+
+          ${renderWorksheetBridge('STEP 4 の2つの記入欄', [
+            '「AとBの回答は、どこが違った？」：誘導的（片側の前提を押し付けた聞き方）と中立的（両面を整理させる聞き方）で、返ってきた理由の偏りがどう違ったか書こう。',
+            '「AIへの質問を作るときに気をつけたいことは？」：自分の思い込みを「〜ですよね？」と確認するのではなく、どんな聞き方をすべきか自分の言葉でまとめよう！'
+          ])}
+
+          <div class="flex justify-between items-center">
+            <button onclick="goStep('step3')" class="px-4 py-2.5 rounded-xl border border-slate-300 bg-white text-slate-700 font-bold text-xs sm:text-sm">← STEP 3</button>
+            <button onclick="goStep('step5')" class="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-extrabold text-xs sm:text-sm shadow-xs">
+              STEP 5（自分の探究テーマで質問を設計する）へ →
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    function testS4Prompt(key) {
+      state.s4.activePromptTab = key;
+      if (!state.s4.testedPrompts.includes(key)) {
+        state.s4.testedPrompts.push(key);
+      }
+      renderApp();
+    }
+
+    // =========================================================================
+    // 11. STEP 5: 自分の探究テーマで使う（NG質問 vs OK質問 比較＆実Web検証）
+    // =========================================================================
+    function renderS5PromptCompare() {
+      const s = state.s5;
+      const themeText = s.myTheme.trim() || '（例：通学路の自転車事故を減らす方法）';
+      const unknownText = s.myUnknown.trim() || '（例：事故が多い時間帯や他自治体の対策事例）';
+      const realQuery = `${s.myTheme.trim() || '高校 探究'} ${s.myUnknown.trim() || '統計 調査'}`.trim();
+
+      const badPrompt = `「${themeText}」の結論と解決策をすべて教えて。レポートにそのまま使えるように書いて。`;
+      const goodPrompt = `私は高校生です。「${themeText}」について探究しています。現在「${unknownText}」がわかっていません。結論は出さず、中立的な視点から【${s.selectedTask}】を提案してください。あわせて公的機関や統計を調べるための検索語も教えてください。`;
+
+      return `
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+          <div class="p-4 rounded-2xl bg-rose-50/70 border border-rose-200 space-y-1.5">
+            <div class="text-xs font-black text-rose-800">❌ 避けたい聞き方（答えを丸投げ）</div>
+            <p class="text-xs text-slate-800 leading-relaxed bg-white p-3 rounded-xl border border-rose-200">
+              ${escapeHtml(badPrompt)}
+            </p>
+            <div class="text-[11px] text-rose-700 font-bold">→ これでは根拠不明な作文が返ってきて自分の探究になりません。</div>
+          </div>
+
+          <div class="p-4 rounded-2xl bg-emerald-50/70 border-2 border-emerald-400 space-y-2">
+            <div class="flex flex-wrap items-center justify-between gap-1.5">
+              <span class="text-xs font-black text-emerald-900">⭕ 探究を広げる聞き方（推奨プロンプト）</span>
+              <button onclick="copyPromptText()" class="px-3 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-extrabold">
+                📋 コピーしてGeminiへ
+              </button>
+            </div>
+            <p id="s5-good-prompt" class="text-xs text-slate-900 font-bold leading-relaxed bg-white p-3 rounded-xl border border-emerald-200">
+              ${escapeHtml(goodPrompt)}
+            </p>
+            <div class="flex flex-wrap gap-2 pt-1">
+              <a href="${buildSearchUrl(realQuery, 'google')}" target="_blank" rel="noopener noreferrer" onclick="markRealWebTried('s5')" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-[11px] font-extrabold">
+                🌐 自分のテーマを実際のGoogle検索で調べる
+              </a>
+              <a href="${buildSearchUrl(realQuery, 'scholar')}" target="_blank" rel="noopener noreferrer" onclick="markRealWebTried('s5')" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-blue-700 hover:bg-blue-600 text-white text-[11px] font-extrabold">
+                🎓 Google Scholarで研究論文を探す
+              </a>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function updateS5Input(field, val) {
+      state.s5[field] = val;
+      const compareArea = document.getElementById('s5-prompt-compare');
+      if (compareArea) {
+        compareArea.innerHTML = renderS5PromptCompare();
+      }
+      updateNavUI();
+    }
+
+    function renderStep5() {
+      const s = state.s5;
+      const tasks = ['問いの言い換え', '観点出し', '検索語づくり', '反対意見', '確認すべき点'];
+
+      return `
+        <div class="space-y-6 animate-fade-slide">
+          <div class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200 shadow-2xs">
+            <span class="text-xs font-black px-3 py-1 rounded-full bg-brand-100 text-brand-800">体験⑥｜STEP 5 自分の探究テーマで使う（約15分）</span>
+            <h2 class="text-lg sm:text-2xl font-black text-slate-900 mt-2">
+              自分の探究テーマを入れて、「答え丸投げ（NG）」と「探究を広げる質問（OK）」を比べよう！
+            </h2>
+            <p class="text-xs sm:text-sm text-slate-600 mt-1">
+              ※最初のルール確認：個人名・学校内部資料・生データは入力しません。
+            </p>
+          </div>
+
+          <section class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200 shadow-2xs space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div>
+                <label class="text-xs font-black text-slate-800 block mb-1">① 自分の探究テーマを入力してみよう：</label>
+                <input type="text" value="${escapeHtml(s.myTheme)}" oninput="updateS5Input('myTheme', this.value)" placeholder="例：校内の食品ロスを減らす工夫" class="w-full p-3 rounded-xl border border-slate-300 text-xs sm:text-sm font-bold focus:border-brand-500 focus:outline-none" />
+              </div>
+              <div>
+                <label class="text-xs font-black text-slate-800 block mb-1">② まだわからないこと・調べたいこと：</label>
+                <input type="text" value="${escapeHtml(s.myUnknown)}" oninput="updateS5Input('myUnknown', this.value)" placeholder="例：食べ残しが多いメニューや他校の事例" class="w-full p-3 rounded-xl border border-slate-300 text-xs sm:text-sm font-bold focus:border-brand-500 focus:outline-none" />
+              </div>
+            </div>
+
+            <div>
+              <label class="text-xs font-black text-slate-800 block mb-1.5">③ AIに頼む役割を選ぶ（1つ）：</label>
+              <div class="flex flex-wrap gap-2">
+                ${tasks.map(t => `
+                  <button onclick="state.s5.selectedTask = '${t}'; renderApp();" class="px-3.5 py-2 rounded-xl text-xs font-extrabold border-2 transition ${s.selectedTask === t ? 'bg-brand-600 text-white border-brand-600' : 'bg-slate-50 text-slate-700 border-slate-200 hover:border-brand-400'}">
+                    ${s.selectedTask === t ? '☑️ ' : '☐ '}${t}
+                  </button>
+                `).join('')}
+              </div>
+            </div>
+
+            <!-- Comparison of Bad vs Good Prompt -->
+            <div id="s5-prompt-compare">
+              ${renderS5PromptCompare()}
+            </div>
+          </section>
+
+          ${renderWorksheetBridge('STEP 5 のワークシート記入ガイド', [
+            '「自分の探究テーマ」「今わかっていること」「まだわからないこと」を紙のワークシートに書こう。',
+            '実際にGeminiへ入力した質問と、AIから得た「答え」ではなく【次に自分で調べること（3つ）】を書き、実際にWeb検索で一次資料（発信者・日付）を確かめてみよう！'
+          ])}
+
+          <div class="flex justify-between items-center">
+            <button onclick="goStep('step4')" class="px-4 py-2.5 rounded-xl border border-slate-300 bg-white text-slate-700 font-bold text-xs sm:text-sm">← STEP 4</button>
+            <button onclick="goStep('step6')" class="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-extrabold text-xs sm:text-sm shadow-xs">
+              STEP 6（AI利用ルール＆EXIT TICKET）へ →
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    function copyPromptText() {
+      const el = document.getElementById('s5-good-prompt');
+      if (!el) return;
+      const ta = document.createElement('textarea');
+      ta.value = el.textContent.trim();
+      document.body.appendChild(ta);
+      ta.select();
+      try {
+        document.execCommand('copy');
+        showToast('質問文をコピーしました！本物のGeminiに貼り付けて試せます。', '📋');
+      } catch (e) {
+        showToast('コピーに失敗しました。', '⚠️');
+      }
+      document.body.removeChild(ta);
+    }
+
+    // =========================================================================
+    // 12. STEP 6 & EXIT TICKET: ドラッグ＆ドロップ対応ルール仕分けボード
+    // =========================================================================
+    function renderStep6() {
+      const s = state.s6;
+      const columns = [
+        { id: 'useful', title: '⭕ AIを使うと便利な場面', color: 'border-emerald-400 bg-emerald-50/50', badge: 'bg-emerald-600 text-white' },
+        { id: 'notFinish', title: '⚠️ AIだけで終えてはいけない場面', color: 'border-amber-400 bg-amber-50/50', badge: 'bg-amber-500 text-slate-950' },
+        { id: 'neverInput', title: '🚫 入力してはいけないもの', color: 'border-rose-400 bg-rose-50/50', badge: 'bg-rose-600 text-white' }
+      ];
+
+      const unsortedCards = S6_RULE_CARDS.filter(c => !s.sortedCards[c.id]);
+      const allSorted = unsortedCards.length === 0;
+      const allCorrect = S6_RULE_CARDS.every(c => s.sortedCards[c.id] === c.target);
+
+      return `
+        <div class="space-y-6 animate-fade-slide">
+          <div class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200 shadow-2xs">
+            <span class="text-xs font-black px-3 py-1 rounded-full bg-brand-100 text-brand-800">体験⑦｜STEP 6 利用ルール作成 ＆ EXIT TICKET</span>
+            <h2 class="text-lg sm:text-2xl font-black text-slate-900 mt-2">
+              6枚のカードを3つのルール枠へドラッグ＆ドロップ（またはタップ移動）で仕分けよう！
+            </h2>
+            <p class="text-xs sm:text-sm text-slate-600 mt-1">
+              PCではカードを下の枠へ<strong>ドラッグ＆ドロップ</strong>、スマホ・タブレットでは<strong>カードをタップして選択 → 入れたい枠をタップ</strong>で移動できます。
+            </p>
+          </div>
+
+          <section class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200 shadow-2xs space-y-5">
+            <!-- Unsorted Card Pool -->
+            <div class="p-4 rounded-2xl bg-slate-100 border border-slate-200 space-y-2.5">
+              <div class="flex items-center justify-between text-xs font-black text-slate-700">
+                <span>🃏 未分類の行動カード（残り ${unsortedCards.length} / ${S6_RULE_CARDS.length} 枚）</span>
+                ${s.selectedCardId ? '<span class="text-brand-700 animate-pulse">👇 下の3つの枠のどれかをタップして配置しよう！</span>' : ''}
+              </div>
+              ${unsortedCards.length === 0 ? `
+                <div class="text-xs font-bold text-emerald-700 py-2">✨ すべてのカードを3つのルール枠に配置しました！</div>
+              ` : `
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  ${unsortedCards.map(card => {
+                    const isPicked = s.selectedCardId === card.id;
+                    return `
+                      <div draggable="true" ondragstart="handleS6DragStart(event, '${card.id}')" onclick="selectS6Card('${card.id}')" class="p-3.5 rounded-xl border-2 cursor-grab active:cursor-grabbing transition select-none ${isPicked ? 'border-brand-600 bg-brand-50 ring-2 ring-brand-200 font-black text-brand-950' : 'border-slate-300 bg-white hover:border-brand-400 font-extrabold text-slate-900'} text-xs sm:text-sm">
+                        ⠿ ${card.text}
+                      </div>
+                    `;
+                  }).join('')}
+                </div>
+              `}
+            </div>
+
+            <!-- 3 Drop Zones -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+              ${columns.map(col => {
+                const placedCards = S6_RULE_CARDS.filter(c => s.sortedCards[c.id] === col.id);
+                return `
+                  <div ondragover="event.preventDefault()" ondrop="handleS6Drop(event, '${col.id}')" onclick="placeSelectedS6Card('${col.id}')" class="p-4 rounded-2xl border-2 border-dashed min-h-[190px] transition cursor-pointer flex flex-col justify-between gap-3 ${col.color}">
+                    <div class="space-y-2.5">
+                      <div class="inline-block px-2.5 py-1 rounded-lg text-xs font-black ${col.badge}">
+                        ${col.title}
+                      </div>
+                      <div class="space-y-2">
+                        ${placedCards.length === 0 ? `
+                          <div class="text-[11px] text-slate-500 py-6 text-center">ここにカードをドロップ<br/>（またはタップで配置）</div>
+                        ` : placedCards.map(pc => {
+                          const ok = pc.target === col.id;
+                          return `
+                            <div onclick="event.stopPropagation(); removeS6Card('${pc.id}');" title="クリックで未分類に戻す" class="p-3 rounded-xl border-2 bg-white text-xs font-extrabold shadow-2xs flex items-start justify-between gap-2 ${ok ? 'border-emerald-500 text-slate-900' : 'border-rose-500 text-rose-900'}">
+                              <span>${ok ? '⭕ ' : '❌ '}${pc.text}</span>
+                              <span class="text-[10px] text-slate-400 shrink-0">✕</span>
+                            </div>
+                          `;
+                        }).join('')}
+                      </div>
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+
+            ${allSorted && allCorrect ? `
+              <div class="p-4 rounded-2xl bg-emerald-100 border border-emerald-400 text-xs sm:text-sm font-extrabold text-emerald-950 animate-fade-slide">
+                🏆 全6枚のルール仕分けが完璧に完了しました！この3つの柱を自分の言葉にして、手元の紙のワークシートSTEP 6とEXIT TICKETを仕上げよう！
+              </div>
+            ` : ''}
+
+            <!-- 6-Step Troubleshooting & Slogan Summary -->
+            <div class="p-5 rounded-2xl bg-gradient-to-br from-slate-900 to-brand-950 text-white space-y-2.5">
+              <div class="text-xs font-black text-amber-300">🧭 今日の合言葉 ＆ 困ったときの進め方（ワークシート末尾）</div>
+              <div class="text-sm sm:text-base font-black text-teal-200">
+                「AI で広げる → 検索で確かめる → 元の資料に戻る → 自分で判断する」
+              </div>
+              <p class="text-xs text-slate-200 leading-relaxed">
+                ① AIに「答え」ではなく「次に調べること」を聞く → ② 検索語を自分で直す → ③ Web検索する → ④ 発信者・日付を見る → ⑤ できれば元の統計・論文・公式資料へ戻る → ⑥ 複数の資料を比べて自分で判断する
+              </p>
+            </div>
+          </section>
+
+          ${renderWorksheetBridge('STEP 6 の3列ルール表 ＆ EXIT TICKET（①〜③）', [
+            'STEP 6 の表：「AIを使うと便利な場面」「AIだけで終えてはいけない場面」「入力してはいけないもの」を、自分の探究活動に合わせて自分の言葉で書こう。',
+            'EXIT TICKET ① 次の探究で、AIはどこに使う？ ／ ② AIが答えを返したら、そのあと何をする？ ／ ③ 今日いちばん重要だと思ったこと：を記入して提出しよう！'
+          ])}
+
+          <div class="flex justify-between items-center">
+            <button onclick="goStep('step5')" class="px-4 py-2.5 rounded-xl border border-slate-300 bg-white text-slate-700 font-bold text-xs sm:text-sm">← STEP 5</button>
+            <button onclick="goStep('step0')" class="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-extrabold text-xs sm:text-sm">
+              🏠 最初のルール（トップ）に戻る
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    function handleS6DragStart(e, cardId) {
+      e.dataTransfer.setData('text/plain', cardId);
+      state.s6.selectedCardId = cardId;
+    }
+
+    function handleS6Drop(e, colId) {
+      e.preventDefault();
+      const cardId = e.dataTransfer.getData('text/plain') || state.s6.selectedCardId;
+      if (cardId) {
+        sortS6Card(cardId, colId);
+      }
+    }
+
+    function selectS6Card(cardId) {
+      state.s6.selectedCardId = (state.s6.selectedCardId === cardId) ? null : cardId;
+      renderApp();
+    }
+
+    function placeSelectedS6Card(colId) {
+      if (state.s6.selectedCardId) {
+        sortS6Card(state.s6.selectedCardId, colId);
+      }
+    }
+
+    function removeS6Card(cardId) {
+      delete state.s6.sortedCards[cardId];
+      renderApp();
+    }
+
+    function sortS6Card(cardId, colId) {
+      state.s6.sortedCards[cardId] = colId;
+      state.s6.selectedCardId = null;
+      const card = S6_RULE_CARDS.find(c => c.id === cardId);
+      if (card && card.target === colId) {
+        showToast('その通り！バッチリ分類できました。', '⭕');
+      } else {
+        showToast('おっと！これまでの体験（STEP 0〜4）を思い出してもう一度考えてみよう（✕で戻せます）。', '🤔');
+      }
+      renderApp();
+    }
+
+    // 初期描画（選択肢の並び順をランダム化してから表示）
+    window.addEventListener('DOMContentLoaded', () => {
+      randomizeS0Options();
+      renderApp();
+    });
+  </script>
+</body>
+</html>

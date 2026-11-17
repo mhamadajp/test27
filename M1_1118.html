@@ -1252,64 +1252,234 @@
       `;
     }
 
-    // 三角形と外接円、およびラベルが一切重ならないSVG描画
+    // 問題文やラベル文字列から実際の三角形の3つの内角 (A, B, C) を抽出・算出する幾何ヘルパー
+    function computeTriangleAngles(svgData, promptStr) {
+      const parseDeg = (str) => {
+        if (!str) return null;
+        const m = String(str).match(/(\d+)\s*°/);
+        return m ? parseFloat(m[1]) : null;
+      };
+
+      let degA = parseDeg(svgData.A);
+      let degB = parseDeg(svgData.B);
+      let degC = parseDeg(svgData.C);
+
+      // 問題文からも補足抽出（図で ? になっている既知角や形状の特徴を反映）
+      if (promptStr) {
+        if (degA === null) {
+          const mA = promptStr.match(/A<\/span>\s*=\s*(\d+)°/);
+          if (mA) degA = parseFloat(mA[1]);
+        }
+        if (degB === null) {
+          const mB = promptStr.match(/B<\/span>\s*=\s*(\d+)°/);
+          if (mB) degB = parseFloat(mB[1]);
+        }
+        if (degC === null) {
+          const mC = promptStr.match(/C<\/span>\s*=\s*(\d+)°/);
+          if (mC) degC = parseFloat(mC[1]);
+        }
+        // 特殊な形状問題への対応
+        if (promptStr.includes('sin<sup>2</sup>') && degC === null) {
+          degA = 37; degB = 53; degC = 90; // 直角三角形 (3:4:5)
+        } else if (promptStr.includes('a</span> sin') && degA === null) {
+          degA = 68; degB = 68; degC = 44; // a = b の二等辺三角形
+        } else if (promptStr.includes('3 : 5 : 7') && degA === null) {
+          degA = 22; degB = 38; degC = 120; // 3:5:7 の鈍角三角形
+        } else if (promptStr.includes('3 : 4 : 5') && degA === null) {
+          degA = 37; degB = 53; degC = 90; // 3:4:5 の直角三角形
+        }
+      }
+
+      // 2角が判明していれば残りの1角を 180° から算出
+      const knownCount = (degA !== null ? 1 : 0) + (degB !== null ? 1 : 0) + (degC !== null ? 1 : 0);
+      if (knownCount === 2) {
+        if (degA === null) degA = Math.max(15, 180 - degB - degC);
+        else if (degB === null) degB = Math.max(15, 180 - degA - degC);
+        else if (degC === null) degC = Math.max(15, 180 - degA - degB);
+      } else if (knownCount === 1) {
+        // 1角のみ判明している場合、その角の性質（鋭角・直角・鈍角）が際立つように残り2角を配分
+        if (degA !== null) {
+          const rem = 180 - degA;
+          degB = Math.round(rem * 0.45);
+          degC = rem - degB;
+        } else if (degB !== null) {
+          const rem = 180 - degB;
+          degA = Math.round(rem * 0.52);
+          degC = rem - degA;
+        } else if (degC !== null) {
+          const rem = 180 - degC;
+          degA = Math.round(rem * 0.52);
+          degB = rem - degA;
+        }
+      } else if (knownCount === 0) {
+        degA = 55; degB = 65; degC = 60;
+      }
+
+      // 描画時に極端に潰れすぎないよう最小角を 18° に補正しつつ比率を維持
+      const minVisualAngle = 18;
+      let vA = Math.max(minVisualAngle, degA);
+      let vB = Math.max(minVisualAngle, degB);
+      let vC = Math.max(minVisualAngle, degC);
+      const sum = vA + vB + vC;
+      vA = (vA / sum) * 180;
+      vB = (vB / sum) * 180;
+      vC = 180 - vA - vB;
+
+      return { real: { A: degA, B: degB, C: degC }, visual: { A: vA, B: vB, C: vC } };
+    }
+
+    // 問題の角度に応じて三角形の形がリアルに変化し、外接円に内接する動的SVG描画
     function renderTriangleSvg(svgData) {
       const svg = document.getElementById('triangleSvg');
       const isDark = document.documentElement.classList.contains('dark');
+      const promptStr = currentQuestionObj ? currentQuestionObj.variants[currentVariantIdx].prompt : '';
+      const angles = computeTriangleAngles(svgData, promptStr);
+      const { A: vA, B: vB, C: vC } = angles.visual;
 
-      // 外接円の中心 O(190, 152), 半径 R = 112
-      // 3頂点 A, B, C をすべて外接円の円周上に正確に配置
-      // A: 上部 (190, 40)
-      // B: 左下 (85, 212)
-      // C: 右下 (295, 212)
-      const cx = 190, cy = 152, r = 112;
-      const Ax = 190, Ay = 40;
-      const Bx = 93,  By = 208;
-      const Cx = 287, Cy = 208;
+      // 外接円の中心 O(190, 152), 半径 R = 104
+      // 円周角の定理より、辺BCに対する中心角は 2A。
+      // 下辺BCが水平になるよう B, C を配置し、角B・角Cの比率に応じて頂点Aを円周上に配置する。
+      const cx = 190, cy = 152, r = 104;
+      const toRad = (deg) => (deg * Math.PI) / 180;
+
+      // A が鈍角(>90°)のときでも辺BCが下側に綺麗に収まるよう、弦BCの半中心角を設定
+      // 円周角 A に対して弦の長さ a = 2R sin A なので、中心から弦BCへの距離は R |cos A|
+      // A が鈍角のときは中心Oが三角形の外（下側）に出る形をリアルに表現しつつキャンバス内に収める
+      let Ax, Ay, Bx, By, Cx, Cy;
+
+      if (vA <= 100) {
+        // 鋭角〜直角付近：外接円の上に内接させ、下辺BCを水平近くに配置
+        // 頂点BとCの極角（中心O基準、下向きが 90°）
+        // B は左下 (90° + A°), C は右下 (90° - A°)
+        const halfCentralA = Math.min(82, Math.max(26, vA));
+        const thetaB = 90 + halfCentralA;
+        const thetaC = 90 - halfCentralA;
+        // 頂点Aは上側の円弧上で、角Bと角Cの大小を反映して左右にシフト
+        // Cが大きいほどAはC側(右)に寄る：thetaA = -90° + (vC - vB)
+        const shiftA = Math.max(-55, Math.min(55, (vC - vB) * 0.85));
+        const thetaA = -90 + shiftA;
+
+        Ax = cx + r * Math.cos(toRad(thetaA));
+        Ay = cy + r * Math.sin(toRad(thetaA));
+        Bx = cx + r * Math.cos(toRad(thetaB));
+        By = cy + r * Math.sin(toRad(thetaB));
+        Cx = cx + r * Math.cos(toRad(thetaC));
+        Cy = cy + r * Math.sin(toRad(thetaC));
+      } else {
+        // A が大きな鈍角（105°〜150°）の場合：頂角Aが広く開いた鈍角三角形を正確に描画
+        const halfSpread = Math.min(78, (180 - vA) * 1.15 + 32);
+        const thetaB = -90 - halfSpread;
+        const thetaC = -90 + halfSpread;
+        const shiftA = Math.max(-25, Math.min(25, (vC - vB) * 0.6));
+        const thetaA = -90 + shiftA;
+
+        // 鈍角三角形がキャンバス中央で見やすくなるよう円の中心を少し下にオフセットした座標系で円周上に配置
+        const钝Cy = 185, 钝R = 115;
+        Ax = cx + 钝R * Math.cos(toRad(thetaA));
+        Ay = 钝Cy + 钝R * Math.sin(toRad(thetaA));
+        Bx = cx + 钝R * Math.cos(toRad(thetaB));
+        By = 钝Cy + 钝R * Math.sin(toRad(thetaB));
+        Cx = cx + 钝R * Math.cos(toRad(thetaC));
+        Cy = 钝Cy + 钝R * Math.sin(toRad(thetaC));
+      }
+
+      // 三角形の重心 G (ラベルの内側/外側配置計算用)
+      const Gx = (Ax + Bx + Cx) / 3;
+      const Gy = (Ay + By + Cy) / 3;
 
       const strokeMain = isDark ? '#94a3b8' : '#475569';
-      const fillTri = isDark ? 'rgba(99, 102, 241, 0.08)' : 'rgba(99, 102, 241, 0.06)';
+      const fillTri = isDark ? 'rgba(99, 102, 241, 0.10)' : 'rgba(99, 102, 241, 0.07)';
       const vertexText = isDark ? '#e2e8f0' : '#1e293b';
 
       let html = '';
 
-      // 1. 外接円の描画（半径 R は右上の円周点 (276, 80) へ引き出し、角C・角Aと絶対に重ならないように配置）
+      // 1. 外接円の描画（3頂点 A, B, C を通る実際の外接円を計算して描画）
       if (svgData.showCircle) {
-        const Rx = 276, Ry = 80;
+        // 3点 (Ax,Ay), (Bx,By), (Cx,Cy) の外接円の中心と半径を幾何学的に算出
+        const D = 2 * (Ax * (By - Cy) + Bx * (Cy - Ay) + Cx * (Ay - By));
+        const ux = ((Ax * Ax + Ay * Ay) * (By - Cy) + (Bx * Bx + By * By) * (Cy - Ay) + (Cx * Cx + Cy * Cy) * (Ay - By)) / D;
+        const uy = ((Ax * Ax + Ay * Ay) * (Cx - Bx) + (Bx * Bx + By * By) * (Ax - Cx) + (Cx * Cx + Cy * Cy) * (Bx - Ax)) / D;
+        const realR = Math.hypot(Ax - ux, Ay - uy);
+
+        // 半径Rの引き出し線は、3頂点と重ならない空き角度（右上方向 -25° 付近）へ伸ばす
+        const rAngle = toRad(-22);
+        const Rx = ux + realR * Math.cos(rAngle);
+        const Ry = uy + realR * Math.sin(rAngle);
+
         html += `
-          <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#6366f1" stroke-width="2" stroke-dasharray="5 5" opacity="0.75" />
-          <line x1="${cx}" y1="${cy}" x2="${Rx}" y2="${Ry}" stroke="#6366f1" stroke-width="2.5" />
-          <circle cx="${cx}" cy="${cy}" r="4" fill="#6366f1" />
-          <text x="${cx - 12}" y="${cy + 5}" font-size="12" font-weight="bold" fill="#6366f1">O</text>
+          <circle cx="${ux.toFixed(1)}" cy="${uy.toFixed(1)}" r="${realR.toFixed(1)}" fill="none" stroke="#6366f1" stroke-width="2" stroke-dasharray="5 5" opacity="0.75" />
+          <line x1="${ux.toFixed(1)}" y1="${uy.toFixed(1)}" x2="${Rx.toFixed(1)}" y2="${Ry.toFixed(1)}" stroke="#6366f1" stroke-width="2.5" />
+          <circle cx="${ux.toFixed(1)}" cy="${uy.toFixed(1)}" r="4" fill="#6366f1" />
+          <text x="${(ux - 12).toFixed(1)}" y="${(uy + 5).toFixed(1)}" font-size="12" font-weight="bold" fill="#6366f1">O</text>
         `;
         if (svgData.rLabel) {
           const rBg = isDark ? '#1e1b4b' : '#eef2ff';
           const rText = isDark ? '#a5b4fc' : '#4338ca';
+          const rMidX = (ux + Rx) / 2 + 12;
+          const rMidY = (uy + Ry) / 2 - 14;
           html += `
-            <foreignObject x="208" y="88" width="96" height="34">
+            <foreignObject x="${(rMidX - 48).toFixed(1)}" y="${(rMidY - 17).toFixed(1)}" width="96" height="34">
               ${createBadgeHtml(svgData.rLabel, '#6366f1', rBg, rText)}
             </foreignObject>
           `;
         }
       }
 
-      // 2. 三角形本体
+      // 2. 各頂点の内角アーク（扇形の角度マーク）を描画して形の変化を視覚的に強調
+      const drawAngleArc = (vx, vy, p1x, p1y, p2x, p2y, isRightAngle) => {
+        const ang1 = Math.atan2(p1y - vy, p1x - vx);
+        const ang2 = Math.atan2(p2y - vy, p2x - vx);
+        if (isRightAngle) {
+          const s = 14;
+          const u1x = Math.cos(ang1) * s, u1y = Math.sin(ang1) * s;
+          const u2x = Math.cos(ang2) * s, u2y = Math.sin(ang2) * s;
+          return `<polyline points="${(vx + u1x).toFixed(1)},${(vy + u1y).toFixed(1)} ${(vx + u1x + u2x).toFixed(1)},${(vy + u1y + u2y).toFixed(1)} ${(vx + u2x).toFixed(1)},${(vy + u2y).toFixed(1)}" fill="none" stroke="#f59e0b" stroke-width="2" />`;
+        }
+        const arcR = 22;
+        const sx = vx + arcR * Math.cos(ang1);
+        const sy = vy + arcR * Math.sin(ang1);
+        const ex = vx + arcR * Math.cos(ang2);
+        const ey = vy + arcR * Math.sin(ang2);
+        // 外積で向きを判定
+        const cross = (p1x - vx) * (p2y - vy) - (p1y - vy) * (p2x - vx);
+        const sweep = cross > 0 ? 1 : 0;
+        return `<path d="M ${vx.toFixed(1)},${vy.toFixed(1)} L ${sx.toFixed(1)},${sy.toFixed(1)} A ${arcR},${arcR} 0 0,${sweep} ${ex.toFixed(1)},${ey.toFixed(1)} Z" fill="rgba(245, 158, 11, 0.18)" stroke="#f59e0b" stroke-width="1.5" />`;
+      };
+
+      if (svgData.A) html += drawAngleArc(Ax, Ay, Bx, By, Cx, Cy, Math.round(angles.real.A) === 90);
+      if (svgData.B) html += drawAngleArc(Bx, By, Cx, Cy, Ax, Ay, Math.round(angles.real.B) === 90);
+      if (svgData.C) html += drawAngleArc(Cx, Cy, Ax, Ay, Bx, By, Math.round(angles.real.C) === 90);
+
+      // 3. 三角形本体と頂点ラベル（重心から外側へ押し出して配置）
+      const pushOut = (vx, vy, dist) => {
+        const dx = vx - Gx, dy = vy - Gy;
+        const len = Math.hypot(dx, dy) || 1;
+        return [vx + (dx / len) * dist, vy + (dy / len) * dist];
+      };
+      const [labelAx, labelAy] = pushOut(Ax, Ay, 18);
+      const [labelBx, labelBy] = pushOut(Bx, By, 18);
+      const [labelCx, labelCy] = pushOut(Cx, Cy, 18);
+
       html += `
-        <polygon points="${Ax},${Ay} ${Bx},${By} ${Cx},${Cy}" fill="${fillTri}" stroke="${strokeMain}" stroke-width="2.5" stroke-linejoin="round" />
-        <circle cx="${Ax}" cy="${Ay}" r="4.5" fill="${strokeMain}" />
-        <circle cx="${Bx}" cy="${By}" r="4.5" fill="${strokeMain}" />
-        <circle cx="${Cx}" cy="${Cy}" r="4.5" fill="${strokeMain}" />
-        <text x="${Ax}" y="${Ay - 12}" text-anchor="middle" font-size="15" font-weight="800" fill="${vertexText}">A</text>
-        <text x="${Bx - 18}" y="${By + 6}" text-anchor="middle" font-size="15" font-weight="800" fill="${vertexText}">B</text>
-        <text x="${Cx + 18}" y="${Cy + 6}" text-anchor="middle" font-size="15" font-weight="800" fill="${vertexText}">C</text>
+        <polygon points="${Ax.toFixed(1)},${Ay.toFixed(1)} ${Bx.toFixed(1)},${By.toFixed(1)} ${Cx.toFixed(1)},${Cy.toFixed(1)}" fill="${fillTri}" stroke="${strokeMain}" stroke-width="2.5" stroke-linejoin="round" />
+        <circle cx="${Ax.toFixed(1)}" cy="${Ay.toFixed(1)}" r="4.5" fill="${strokeMain}" />
+        <circle cx="${Bx.toFixed(1)}" cy="${By.toFixed(1)}" r="4.5" fill="${strokeMain}" />
+        <circle cx="${Cx.toFixed(1)}" cy="${Cy.toFixed(1)}" r="4.5" fill="${strokeMain}" />
+        <text x="${labelAx.toFixed(1)}" y="${(labelAy + 5).toFixed(1)}" text-anchor="middle" font-size="15" font-weight="800" fill="${vertexText}">A</text>
+        <text x="${labelBx.toFixed(1)}" y="${(labelBy + 5).toFixed(1)}" text-anchor="middle" font-size="15" font-weight="800" fill="${vertexText}">B</text>
+        <text x="${labelCx.toFixed(1)}" y="${(labelCy + 5).toFixed(1)}" text-anchor="middle" font-size="15" font-weight="800" fill="${vertexText}">C</text>
       `;
 
-      // 3. 向かい合うペアの補助線（ON時または解答後）
+      // 4. 向かい合うペアの補助線（動的な頂点と対辺の中点を結ぶ）
+      const midBC = [(Bx + Cx) / 2, (By + Cy) / 2];
+      const midAC = [(Ax + Cx) / 2, (Ay + Cy) / 2];
+      const midAB = [(Ax + Bx) / 2, (Ay + By) / 2];
+
       if (showPairs && svgData.highlightPairs) {
         const pairCoords = {
-          A: [Ax, Ay + 28, 190, 232],
-          B: [Bx + 32, By - 18, 248, 118],
-          C: [Cx - 32, Cy - 18, 132, 118]
+          A: [Ax, Ay, midBC[0], midBC[1]],
+          B: [Bx, By, midAC[0], midAC[1]],
+          C: [Cx, Cy, midAB[0], midAB[1]]
         };
         const colors = ['#f59e0b', '#10b981', '#ec4899'];
         svgData.highlightPairs.forEach((pair, idx) => {
@@ -1317,56 +1487,74 @@
           const coords = pairCoords[key];
           if (coords) {
             const col = colors[idx % colors.length];
-            html += `<line x1="${coords[0]}" y1="${coords[1]}" x2="${coords[2]}" y2="${coords[3]}" stroke="${col}" stroke-width="2.5" class="pair-line" />`;
+            html += `<line x1="${coords[0].toFixed(1)}" y1="${coords[1].toFixed(1)}" x2="${coords[2].toFixed(1)}" y2="${coords[3].toFixed(1)}" stroke="${col}" stroke-width="2.5" class="pair-line" />`;
           }
         });
       }
 
-      // 4. 角度バッジ（A, B, C の内側・重ならない位置）
+      // 5. 角度バッジ（各頂点から重心方向へ一定距離だけ内側に入った位置に動的配置）
+      const pullIn = (vx, vy, dist) => {
+        const dx = Gx - vx, dy = Gy - vy;
+        const len = Math.hypot(dx, dy) || 1;
+        return [vx + (dx / len) * dist, vy + (dy / len) * dist];
+      };
+
       const angBg = isDark ? '#451a03' : '#fffbeb';
       const angText = isDark ? '#fcd34d' : '#b45309';
       if (svgData.A) {
+        const [bx, by] = pullIn(Ax, Ay, vA > 95 ? 30 : 42);
         html += `
-          <foreignObject x="142" y="54" width="96" height="34">
+          <foreignObject x="${(bx - 48).toFixed(1)}" y="${(by - 17).toFixed(1)}" width="96" height="34">
             ${createBadgeHtml(svgData.A, '#f59e0b', angBg, angText)}
           </foreignObject>
         `;
       }
       if (svgData.B) {
+        const [bx, by] = pullIn(Bx, By, 44);
         html += `
-          <foreignObject x="96" y="162" width="88" height="34">
+          <foreignObject x="${(bx - 44).toFixed(1)}" y="${(by - 17).toFixed(1)}" width="88" height="34">
             ${createBadgeHtml(svgData.B, '#f59e0b', angBg, angText)}
           </foreignObject>
         `;
       }
       if (svgData.C) {
+        const [bx, by] = pullIn(Cx, Cy, 44);
         html += `
-          <foreignObject x="196" y="162" width="88" height="34">
+          <foreignObject x="${(bx - 44).toFixed(1)}" y="${(by - 17).toFixed(1)}" width="88" height="34">
             ${createBadgeHtml(svgData.C, '#f59e0b', angBg, angText)}
           </foreignObject>
         `;
       }
 
-      // 5. 辺バッジ（a: 下辺BC, b: 右斜辺AC, c: 左斜辺AB）
+      // 6. 辺バッジ（各辺の中点から三角形の外側法線方向へ押し出して動的配置）
+      const pushEdgeOut = (mx, my, dist) => {
+        const dx = mx - Gx, dy = my - Gy;
+        const len = Math.hypot(dx, dy) || 1;
+        return [mx + (dx / len) * dist, my + (dy / len) * dist];
+      };
+
       const sideBg = isDark ? '#064e3b' : '#ecfdf5';
       const sideText = isDark ? '#6ee7b7' : '#047857';
       if (svgData.a) {
+        const [sx, sy] = pushEdgeOut(midBC[0], midBC[1], 24);
         html += `
-          <foreignObject x="135" y="218" width="110" height="36">
+          <foreignObject x="${(sx - 55).toFixed(1)}" y="${(sy - 18).toFixed(1)}" width="110" height="36">
             ${createBadgeHtml(svgData.a, '#10b981', sideBg, sideText)}
           </foreignObject>
         `;
       }
       if (svgData.b) {
+        const [sx, sy] = pushEdgeOut(midAC[0], midAC[1], 28);
         html += `
-          <foreignObject x="242" y="116" width="105" height="36">
+          <foreignObject x="${(sx - 52).toFixed(1)}" y="${(sy - 18).toFixed(1)}" width="105" height="36">
             ${createBadgeHtml(svgData.b, '#10b981', sideBg, sideText)}
           </foreignObject>
         `;
       }
       if (svgData.c) {
+        const [sx, sy] = pushEdgeOut(midAB[0], midAB[1], 28);
         html += `
-          <foreignObject x="33" y="116" width="105" height="36">
+          <foreignObject x="${(sx - 52).toFixed(1)}" y="${(sy - 18).toFixed(1)}" width="105" height="36">
             ${createBadgeHtml(svgData.c, '#10b981', sideBg, sideText)}
           </foreignObject>
         `;

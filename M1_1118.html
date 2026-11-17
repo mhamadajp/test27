@@ -1393,7 +1393,34 @@
 
       let html = '';
 
-      // 1. 外接円の描画（3頂点 A, B, C を通る実際の外接円を計算して描画）
+      // 各辺の中点と外側法線方向のラベル座標を先に計算（半径Rとの衝突回避にも使用）
+      const midBC = [(Bx + Cx) / 2, (By + Cy) / 2];
+      const midAC = [(Ax + Cx) / 2, (Ay + Cy) / 2];
+      const midAB = [(Ax + Bx) / 2, (Ay + By) / 2];
+
+      // 辺(p1 -> p2)の重心Gとは反対側（外側）の単位法線ベクトルを使って辺ラベル座標を求める
+      const getEdgeLabelPos = (p1x, p1y, p2x, p2y, dist) => {
+        const mx = (p1x + p2x) / 2;
+        const my = (p1y + p2y) / 2;
+        let nx = -(p2y - p1y);
+        let ny = p2x - p1x;
+        const len = Math.hypot(nx, ny) || 1;
+        nx /= len;
+        ny /= len;
+        // 重心Gから見て外向きになるよう符号を揃える
+        if (nx * (mx - Gx) + ny * (my - Gy) < 0) {
+          nx = -nx;
+          ny = -ny;
+        }
+        return [mx + nx * dist, my + ny * dist];
+      };
+
+      const sidePosA = getEdgeLabelPos(Bx, By, Cx, Cy, 24);
+      const sidePosB = getEdgeLabelPos(Ax, Ay, Cx, Cy, 28);
+      const sidePosC = getEdgeLabelPos(Ax, Ay, Bx, By, 28);
+
+      // 1. 外接円の描画（辺ラベルや頂点ラベルと絶対に重ならない空き方向を自動選択して半径Rを描画）
+      let rBadgeRenderHtml = '';
       if (svgData.showCircle) {
         // 3点 (Ax,Ay), (Bx,By), (Cx,Cy) の外接円の中心と半径を幾何学的に算出
         const D = 2 * (Ax * (By - Cy) + Bx * (Cy - Ay) + Cx * (Ay - By));
@@ -1401,23 +1428,63 @@
         const uy = ((Ax * Ax + Ay * Ay) * (Cx - Bx) + (Bx * Bx + By * By) * (Ax - Cx) + (Cx * Cx + Cy * Cy) * (Bx - Ax)) / D;
         const realR = Math.hypot(Ax - ux, Ay - uy);
 
-        // 半径Rの引き出し線は、3頂点と重ならない空き角度（右上方向 -25° 付近）へ伸ばす
-        const rAngle = toRad(-22);
+        // 既存のすべてのラベル・頂点座標リストを作成し、それらから最も離れた角度に半径Rを引き出す
+        const obstacles = [
+          [Ax, Ay], [Bx, By], [Cx, Cy]
+        ];
+        if (svgData.a) obstacles.push(sidePosA);
+        if (svgData.b) obstacles.push(sidePosB);
+        if (svgData.c) obstacles.push(sidePosC);
+
+        // 候補角度（左上、右上、右下、左下など）から、他のラベルと最も距離が離れている安全な角度を選択
+        let bestDeg = -145;
+        let maxMinDist = -1;
+        const candidateAngles = [-145, -35, -160, -20, 90, 150, 30, -125, -55];
+        for (const deg of candidateAngles) {
+          const rad = toRad(deg);
+          // 半径の中間付近（バッジを置く位置）
+          const testBx = ux + realR * 0.58 * Math.cos(rad);
+          const testBy = uy + realR * 0.58 * Math.sin(rad);
+          // 円周上の終点
+          const testEx = ux + realR * Math.cos(rad);
+          const testEy = uy + realR * Math.sin(rad);
+
+          // キャンバス枠外にはみ出さないかチェック
+          if (testBx < 45 || testBx > 335 || testBy < 25 || testBy > 275) continue;
+
+          let minDist = 9999;
+          for (const [ox, oy] of obstacles) {
+            const d1 = Math.hypot(testBx - ox, testBy - oy);
+            const d2 = Math.hypot(testEx - ox, testEy - oy);
+            minDist = Math.min(minDist, d1, d2);
+          }
+          if (minDist > maxMinDist) {
+            maxMinDist = minDist;
+            bestDeg = deg;
+          }
+        }
+
+        const rAngle = toRad(bestDeg);
         const Rx = ux + realR * Math.cos(rAngle);
         const Ry = uy + realR * Math.sin(rAngle);
+
+        // 中心Oラベルは半径引き出し線と反対側へ少しずらす
+        const oLabelX = ux - Math.cos(rAngle) * 14;
+        const oLabelY = uy - Math.sin(rAngle) * 14 + 4;
 
         html += `
           <circle cx="${ux.toFixed(1)}" cy="${uy.toFixed(1)}" r="${realR.toFixed(1)}" fill="none" stroke="#6366f1" stroke-width="2" stroke-dasharray="5 5" opacity="0.75" />
           <line x1="${ux.toFixed(1)}" y1="${uy.toFixed(1)}" x2="${Rx.toFixed(1)}" y2="${Ry.toFixed(1)}" stroke="#6366f1" stroke-width="2.5" />
           <circle cx="${ux.toFixed(1)}" cy="${uy.toFixed(1)}" r="4" fill="#6366f1" />
-          <text x="${(ux - 12).toFixed(1)}" y="${(uy + 5).toFixed(1)}" font-size="12" font-weight="bold" fill="#6366f1">O</text>
+          <circle cx="${Rx.toFixed(1)}" cy="${Ry.toFixed(1)}" r="3.5" fill="#6366f1" />
+          <text x="${oLabelX.toFixed(1)}" y="${oLabelY.toFixed(1)}" text-anchor="middle" font-size="12" font-weight="bold" fill="#6366f1">O</text>
         `;
         if (svgData.rLabel) {
           const rBg = isDark ? '#1e1b4b' : '#eef2ff';
           const rText = isDark ? '#a5b4fc' : '#4338ca';
-          const rMidX = (ux + Rx) / 2 + 12;
-          const rMidY = (uy + Ry) / 2 - 14;
-          html += `
+          const rMidX = ux + (Rx - ux) * 0.56;
+          const rMidY = uy + (Ry - uy) * 0.56;
+          rBadgeRenderHtml = `
             <foreignObject x="${(rMidX - 48).toFixed(1)}" y="${(rMidY - 17).toFixed(1)}" width="96" height="34">
               ${createBadgeHtml(svgData.rLabel, '#6366f1', rBg, rText)}
             </foreignObject>
@@ -1471,10 +1538,6 @@
       `;
 
       // 4. 向かい合うペアの補助線（動的な頂点と対辺の中点を結ぶ）
-      const midBC = [(Bx + Cx) / 2, (By + Cy) / 2];
-      const midAC = [(Ax + Cx) / 2, (Ay + Cy) / 2];
-      const midAB = [(Ax + Bx) / 2, (Ay + By) / 2];
-
       if (showPairs && svgData.highlightPairs) {
         const pairCoords = {
           A: [Ax, Ay, midBC[0], midBC[1]],
@@ -1492,17 +1555,24 @@
         });
       }
 
-      // 5. 角度バッジ（各頂点から重心方向へ一定距離だけ内側に入った位置に動的配置）
-      const pullIn = (vx, vy, dist) => {
-        const dx = Gx - vx, dy = Gy - vy;
-        const len = Math.hypot(dx, dy) || 1;
-        return [vx + (dx / len) * dist, vy + (dy / len) * dist];
+      // 5. 角度バッジ（各頂点での内角二等分線ベクトルを計算し、正確に角の内側へ配置）
+      const getAngleBisectorPos = (vx, vy, p1x, p1y, p2x, p2y, dist) => {
+        let u1x = p1x - vx, u1y = p1y - vy;
+        let u2x = p2x - vx, u2y = p2y - vy;
+        const l1 = Math.hypot(u1x, u1y) || 1;
+        const l2 = Math.hypot(u2x, u2y) || 1;
+        u1x /= l1; u1y /= l1;
+        u2x /= l2; u2y /= l2;
+        let bx = u1x + u2x, by = u1y + u2y;
+        const bl = Math.hypot(bx, by) || 1;
+        bx /= bl; by /= bl;
+        return [vx + bx * dist, vy + by * dist];
       };
 
       const angBg = isDark ? '#451a03' : '#fffbeb';
       const angText = isDark ? '#fcd34d' : '#b45309';
       if (svgData.A) {
-        const [bx, by] = pullIn(Ax, Ay, vA > 95 ? 30 : 42);
+        const [bx, by] = getAngleBisectorPos(Ax, Ay, Bx, By, Cx, Cy, vA > 95 ? 30 : 44);
         html += `
           <foreignObject x="${(bx - 48).toFixed(1)}" y="${(by - 17).toFixed(1)}" width="96" height="34">
             ${createBadgeHtml(svgData.A, '#f59e0b', angBg, angText)}
@@ -1510,7 +1580,7 @@
         `;
       }
       if (svgData.B) {
-        const [bx, by] = pullIn(Bx, By, 44);
+        const [bx, by] = getAngleBisectorPos(Bx, By, Ax, Ay, Cx, Cy, vB > 95 ? 32 : 44);
         html += `
           <foreignObject x="${(bx - 44).toFixed(1)}" y="${(by - 17).toFixed(1)}" width="88" height="34">
             ${createBadgeHtml(svgData.B, '#f59e0b', angBg, angText)}
@@ -1518,7 +1588,7 @@
         `;
       }
       if (svgData.C) {
-        const [bx, by] = pullIn(Cx, Cy, 44);
+        const [bx, by] = getAngleBisectorPos(Cx, Cy, Ax, Ay, Bx, By, vC > 95 ? 32 : 44);
         html += `
           <foreignObject x="${(bx - 44).toFixed(1)}" y="${(by - 17).toFixed(1)}" width="88" height="34">
             ${createBadgeHtml(svgData.C, '#f59e0b', angBg, angText)}
@@ -1526,17 +1596,11 @@
         `;
       }
 
-      // 6. 辺バッジ（各辺の中点から三角形の外側法線方向へ押し出して動的配置）
-      const pushEdgeOut = (mx, my, dist) => {
-        const dx = mx - Gx, dy = my - Gy;
-        const len = Math.hypot(dx, dy) || 1;
-        return [mx + (dx / len) * dist, my + (dy / len) * dist];
-      };
-
+      // 6. 辺バッジ（各辺の中点から垂直外向き法線ベクトル方向に配置）
       const sideBg = isDark ? '#064e3b' : '#ecfdf5';
       const sideText = isDark ? '#6ee7b7' : '#047857';
       if (svgData.a) {
-        const [sx, sy] = pushEdgeOut(midBC[0], midBC[1], 24);
+        const [sx, sy] = sidePosA;
         html += `
           <foreignObject x="${(sx - 55).toFixed(1)}" y="${(sy - 18).toFixed(1)}" width="110" height="36">
             ${createBadgeHtml(svgData.a, '#10b981', sideBg, sideText)}
@@ -1544,7 +1608,7 @@
         `;
       }
       if (svgData.b) {
-        const [sx, sy] = pushEdgeOut(midAC[0], midAC[1], 28);
+        const [sx, sy] = sidePosB;
         html += `
           <foreignObject x="${(sx - 52).toFixed(1)}" y="${(sy - 18).toFixed(1)}" width="105" height="36">
             ${createBadgeHtml(svgData.b, '#10b981', sideBg, sideText)}
@@ -1552,13 +1616,16 @@
         `;
       }
       if (svgData.c) {
-        const [sx, sy] = pushEdgeOut(midAB[0], midAB[1], 28);
+        const [sx, sy] = sidePosC;
         html += `
           <foreignObject x="${(sx - 52).toFixed(1)}" y="${(sy - 18).toFixed(1)}" width="105" height="36">
             ${createBadgeHtml(svgData.c, '#10b981', sideBg, sideText)}
           </foreignObject>
         `;
       }
+
+      // 7. 外接円の半径Rバッジを最前面に描画
+      html += rBadgeRenderHtml;
 
       svg.innerHTML = html;
     }

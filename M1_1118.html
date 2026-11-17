@@ -1,0 +1,1103 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>正弦定理マスター・クエスト - 弱点診断＆完全定着ドリル</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Meiryo', 'sans-serif'],
+            mono: ['JetBrains Mono', 'Consolas', 'monospace']
+          },
+          keyframes: {
+            pop: {
+              '0%': { transform: 'scale(0.95)', opacity: '0' },
+              '70%': { transform: 'scale(1.03)' },
+              '100%': { transform: 'scale(1)', opacity: '1' }
+            },
+            shake: {
+              '0%, 100%': { transform: 'translateX(0)' },
+              '25%': { transform: 'translateX(-6px)' },
+              '75%': { transform: 'translateX(6px)' }
+            }
+          },
+          animation: {
+            pop: 'pop 0.3s ease-out forwards',
+            shake: 'shake 0.35s ease-in-out'
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* 分数表示用スタイル */
+    .math-frac {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      vertical-align: middle;
+      margin: 0 0.25rem;
+      font-family: 'Times New Roman', serif;
+      line-height: 1.1;
+    }
+    .math-frac > .num {
+      border-bottom: 1.5px solid currentColor;
+      padding: 0 0.3rem 0.1rem;
+      font-size: 0.95em;
+    }
+    .math-frac > .den {
+      padding: 0.1rem 0.3rem 0;
+      font-size: 0.95em;
+    }
+    .math-var {
+      font-family: 'Times New Roman', serif;
+      font-style: italic;
+    }
+    /* 正確な平方根（屋根付きルート）の数式オブジェクト用スタイル */
+    .math-sqrt {
+      display: inline-flex;
+      align-items: stretch;
+      vertical-align: middle;
+      font-family: 'Times New Roman', serif;
+      line-height: 1;
+      margin: 0 0.08rem;
+    }
+    .math-sqrt > .radicand {
+      border-top: 1.5px solid currentColor;
+      padding: 0.08rem 0.2rem 0 0.1rem;
+      margin-left: -0.05rem;
+      line-height: 1.05;
+    }
+    math {
+      font-family: 'Times New Roman', math, serif;
+      font-size: 1.05em;
+    }
+    .pair-line {
+      stroke-dasharray: 6;
+      animation: dashMove 1.2s linear infinite;
+    }
+    @keyframes dashMove {
+      to {
+        stroke-dashoffset: -12;
+      }
+    }
+  </style>
+</head>
+<body class="bg-slate-100 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-screen flex flex-col font-sans selection:bg-indigo-500 selection:text-white">
+
+  <!-- トップステータスバー -->
+  <header class="bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 sticky top-0 z-40 px-4 py-2.5 shadow-sm">
+    <div class="max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-black text-lg shadow-md shadow-indigo-500/20">
+          sin
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-base sm:text-lg font-extrabold tracking-tight text-slate-900 dark:text-white">正弦定理マスター・クエスト</h1>
+            <span id="levelBadge" class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30">
+              Lv.1 見習い測量士
+            </span>
+          </div>
+          <p class="text-xs text-slate-500 dark:text-slate-400 hidden sm:block">向かい合う「辺と角のペア」を見抜き、つまずき原因を徹底解剖する実践ドリル</p>
+        </div>
+      </div>
+
+      <!-- ゲームスコア・コンボ・復習ストック -->
+      <div class="flex items-center gap-2 sm:gap-4 text-xs font-bold">
+        <div class="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700">
+          <span class="text-amber-500 text-sm">🔥</span>
+          <span class="text-slate-500 dark:text-slate-400">連続正解:</span>
+          <span id="streakCount" class="text-sm font-mono text-amber-600 dark:text-amber-400">0</span>
+        </div>
+
+        <div class="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700">
+          <span class="text-indigo-500 text-sm">⭐</span>
+          <span class="text-slate-500 dark:text-slate-400">EXP:</span>
+          <span id="scoreCount" class="text-sm font-mono text-indigo-600 dark:text-indigo-400">0</span>
+        </div>
+
+        <button id="revengeModeBtn" onclick="startRevengeMode()" class="relative px-3 py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/30 transition flex items-center gap-1.5 disabled:opacity-40 disabled:pointer-events-none" disabled>
+          <span>🛡️ 弱点克服</span>
+          <span id="revengeBadge" class="bg-rose-600 text-white text-[11px] px-1.5 py-0.2 rounded-full font-mono">0</span>
+        </button>
+
+        <button onclick="toggleCheatSheet()" class="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white transition shadow-sm flex items-center gap-1">
+          <span>📖 虎の巻</span>
+        </button>
+
+        <!-- 背景テーマ切替ボタン（ライト / ダーク / 自動） -->
+        <div class="flex items-center bg-slate-100 dark:bg-slate-800 p-0.5 rounded-lg border border-slate-200 dark:border-slate-700">
+          <button onclick="setTheme('light')" id="themeBtn-light" class="px-2 py-1 rounded-md text-xs font-bold transition flex items-center gap-1" title="ライトモード">
+            ☀️ <span class="hidden md:inline">ライト</span>
+          </button>
+          <button onclick="setTheme('dark')" id="themeBtn-dark" class="px-2 py-1 rounded-md text-xs font-bold transition flex items-center gap-1" title="ダークモード">
+            🌙 <span class="hidden md:inline">ダーク</span>
+          </button>
+          <button onclick="setTheme('system')" id="themeBtn-system" class="px-2 py-1 rounded-md text-xs font-bold transition flex items-center gap-1" title="システム設定に合わせる">
+            💻 <span class="hidden md:inline">自動</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- メインコンテンツ -->
+  <main class="flex-1 max-w-6xl w-full mx-auto p-3 sm:p-5 grid grid-cols-1 lg:grid-cols-12 gap-5">
+
+    <!-- 左カラム：ステージ選択＆図形ビジュアライザ (5 cols) -->
+    <div class="lg:col-span-5 flex flex-col gap-4">
+
+      <!-- ステージ選択タブ -->
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-3 shadow-sm">
+        <div class="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2 px-1">クエスト・ステージ選択</div>
+        <div class="grid grid-cols-2 sm:grid-cols-5 lg:grid-cols-3 gap-1.5" id="stageTabs">
+          <button onclick="selectStage('all')" id="tab-all" class="stage-tab px-2.5 py-2 rounded-xl text-xs font-bold transition text-left border bg-indigo-600 text-white border-indigo-500 shadow-sm">
+            🌟 総合実戦
+            <span class="block text-[10px] opacity-80 font-normal">全パターン出題</span>
+          </button>
+          <button onclick="selectStage('find_side')" id="tab-find_side" class="stage-tab px-2.5 py-2 rounded-xl text-xs font-bold transition text-left border bg-slate-50 dark:bg-slate-800/60 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100">
+            📐 Stage 1
+            <span class="block text-[10px] opacity-75 font-normal">辺の長さを求める</span>
+          </button>
+          <button onclick="selectStage('find_radius')" id="tab-find_radius" class="stage-tab px-2.5 py-2 rounded-xl text-xs font-bold transition text-left border bg-slate-50 dark:bg-slate-800/60 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100">
+            ⭕ Stage 2
+            <span class="block text-[10px] opacity-75 font-normal">外接円の半径 R</span>
+          </button>
+          <button onclick="selectStage('find_angle')" id="tab-find_angle" class="stage-tab px-2.5 py-2 rounded-xl text-xs font-bold transition text-left border bg-slate-50 dark:bg-slate-800/60 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100">
+            🧭 Stage 3
+            <span class="block text-[10px] opacity-75 font-normal">角度を求める</span>
+          </button>
+          <button onclick="selectStage('obtuse_sum')" id="tab-obtuse_sum" class="stage-tab px-2.5 py-2 rounded-xl text-xs font-bold transition text-left border bg-slate-50 dark:bg-slate-800/60 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100">
+            🔥 Stage 4
+            <span class="block text-[10px] opacity-75 font-normal">鈍角・内角の和応用</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- インタラクティブ三角形＆外接円キャンバス -->
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm flex-1 flex flex-col">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs font-bold text-slate-600 dark:text-slate-300 flex items-center gap-1.5">
+            <span class="w-2.5 h-2.5 rounded-full bg-indigo-500"></span>
+            図形イメージ（向かい合うペアに注目！）
+          </span>
+          <button onclick="togglePairLines()" id="pairHintBtn" class="text-xs px-2.5 py-1 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30 font-bold transition">
+            💡 ペアの補助線を表示
+          </button>
+        </div>
+
+        <div class="flex-1 bg-slate-50 dark:bg-slate-950/70 rounded-xl border border-slate-200/80 dark:border-slate-800 flex items-center justify-center p-2 min-h-[280px] relative">
+          <svg id="triangleSvg" viewBox="0 0 360 280" class="w-full h-full max-h-[300px]">
+            <!-- JSで動的に描画 -->
+          </svg>
+        </div>
+
+        <!-- 思考ステップ・ナビゲーター -->
+        <div class="mt-3 bg-indigo-50/70 dark:bg-indigo-950/30 border border-indigo-200/60 dark:border-indigo-800/50 rounded-xl p-3 text-xs space-y-1.5">
+          <div class="font-bold text-indigo-900 dark:text-indigo-200 flex items-center gap-1.5">
+            <span>🎯 正弦定理の3ステップ思考法</span>
+          </div>
+          <div class="grid grid-cols-3 gap-1.5 text-[11px]">
+            <div class="bg-white dark:bg-slate-900 p-2 rounded-lg border border-indigo-100 dark:border-indigo-900/60">
+              <span class="font-bold text-indigo-600 dark:text-indigo-400 block">① ペアを探す</span>
+              向かい合う「角と辺」の組を見つける
+            </div>
+            <div class="bg-white dark:bg-slate-900 p-2 rounded-lg border border-indigo-100 dark:border-indigo-900/60">
+              <span class="font-bold text-indigo-600 dark:text-indigo-400 block">② 式を立てる</span>
+              <span class="math-frac"><span class="num">辺</span><span class="den">sin角</span></span> = 2R に当てはめる
+            </div>
+            <div class="bg-white dark:bg-slate-900 p-2 rounded-lg border border-indigo-100 dark:border-indigo-900/60">
+              <span class="font-bold text-indigo-600 dark:text-indigo-400 block">③ 値を代入</span>
+              sinの値を入れて未知数を解く
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- 右カラム：問題・選択肢・詳細フィードバック＆解説 (7 cols) -->
+    <div class="lg:col-span-7 flex flex-col gap-4">
+
+      <!-- 問題出題カード -->
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm flex flex-col gap-4">
+        
+        <!-- 問題ヘッダー -->
+        <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+          <div class="flex items-center gap-2">
+            <span id="qCategoryBadge" class="text-xs font-extrabold px-2.5 py-1 rounded-md bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
+              Stage 1: 辺の長さを求める
+            </span>
+            <span id="revengeIndicator" class="hidden text-xs font-extrabold px-2.5 py-1 rounded-md bg-rose-500 text-white animate-pulse">
+              🔥 弱点克服リベンジ問題（数値変化版）
+            </span>
+          </div>
+          <span id="qCounterText" class="text-xs font-mono text-slate-400">Question #1</span>
+        </div>
+
+        <!-- 問題文 -->
+        <div id="questionPrompt" class="text-base sm:text-lg font-bold text-slate-900 dark:text-white leading-relaxed bg-slate-50 dark:bg-slate-950/60 p-4 rounded-xl border border-slate-200/70 dark:border-slate-800">
+          <!-- JSで生成 -->
+        </div>
+
+        <!-- ヒント（段階的開示） -->
+        <div class="flex flex-wrap items-center gap-2">
+          <button onclick="showStepHint(1)" id="hintBtn1" class="text-xs px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-semibold transition">
+            🔍 ヒント1: どの公式・ペアを使う？
+          </button>
+          <button onclick="showStepHint(2)" id="hintBtn2" class="text-xs px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-semibold transition">
+            📝 ヒント2: 式を立てるとどうなる？
+          </button>
+        </div>
+
+        <div id="stepHintBox" class="hidden bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 rounded-xl p-3.5 text-xs sm:text-sm text-amber-900 dark:text-amber-200 leading-relaxed">
+          <!-- ヒント表示先 -->
+        </div>
+
+        <!-- 4択選択肢グリッド -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1" id="choicesGrid">
+          <!-- JSで選択肢ボタン生成 -->
+        </div>
+
+      </div>
+
+      <!-- 丁寧な誤答分析＆ステップ解説エリア（回答後に表示） -->
+      <div id="feedbackCard" class="hidden bg-white dark:bg-slate-900 border-2 rounded-2xl p-5 shadow-lg transition-all flex-col gap-4">
+        
+        <!-- 正誤バナー -->
+        <div class="flex items-start justify-between gap-3">
+          <div class="flex items-center gap-3">
+            <div id="feedbackIcon" class="w-10 h-10 rounded-xl flex items-center justify-center text-xl font-bold shrink-0">
+              ⭕
+            </div>
+            <div>
+              <h3 id="feedbackTitle" class="text-base sm:text-lg font-extrabold">
+                正解！素晴らしい理解です！
+              </h3>
+              <p id="feedbackSubtitle" class="text-xs text-slate-500 dark:text-slate-400">
+                向かい合う辺と角のペアを正確に捉えています。
+              </p>
+            </div>
+          </div>
+
+          <button onclick="nextQuestion()" id="nextQBtn" class="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs sm:text-sm shadow-md shadow-indigo-500/20 transition shrink-0 flex items-center gap-1.5">
+            <span>次の問題へ</span>
+            <span>&rarr;</span>
+          </button>
+        </div>
+
+        <!-- なぜ間違えたのか？（誤答原因のピンポイント診断ボックス） -->
+        <div id="mistakeDiagnosisBox" class="hidden bg-rose-50 dark:bg-rose-950/50 border-l-4 border-rose-500 p-4 rounded-r-xl space-y-1.5">
+          <div class="text-xs font-extrabold text-rose-600 dark:text-rose-400 uppercase tracking-wider flex items-center gap-1.5">
+            <span>⚠️ なぜその答えになったのか？（つまずき原因の診断）</span>
+          </div>
+          <div id="mistakeDiagnosisText" class="text-xs sm:text-sm text-rose-900 dark:text-rose-200 font-medium leading-relaxed">
+            <!-- 選んだ誤答に応じた具体的なミス原因 -->
+          </div>
+        </div>
+
+        <!-- 3ステップ完全解説（次に同じ問題が出たら必ず解ける手順） -->
+        <div class="bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 rounded-xl p-4 space-y-3">
+          <div class="text-xs font-extrabold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider flex items-center justify-between">
+            <span>📘 同じ問題が次に出たときの「必勝3ステップ解法」</span>
+            <span class="text-[11px] font-normal text-slate-400">順序通りに確認しよう</span>
+          </div>
+
+          <div id="stepByStepExplanation" class="space-y-2.5 text-xs sm:text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
+            <!-- JSでステップごとの解説を挿入 -->
+          </div>
+
+          <!-- 次回への鉄則メモ -->
+          <div id="goldenRuleBox" class="mt-3 pt-3 border-t border-slate-200 dark:border-slate-800 flex items-start gap-2 text-xs font-bold text-emerald-700 dark:text-emerald-400">
+            <span>💡 鉄則メモ:</span>
+            <span id="goldenRuleText"></span>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- 虎の巻（正弦定理＆三角比の表モーダル） -->
+  <div id="cheatSheetModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 max-w-2xl w-full rounded-2xl p-6 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+        <h2 class="text-lg font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+          <span>📖 正弦定理・虎の巻（いつでも確認OK）</span>
+        </h2>
+        <button onclick="toggleCheatSheet()" class="text-slate-400 hover:text-slate-600 dark:hover:text-white text-2xl font-bold leading-none">&times;</button>
+      </div>
+
+      <!-- 公式ボックス -->
+      <div class="bg-indigo-50 dark:bg-indigo-950/50 border border-indigo-200 dark:border-indigo-800 rounded-xl p-4 text-center space-y-2">
+        <div class="text-xs font-bold text-indigo-600 dark:text-indigo-400">△ABC において、外接円の半径を R とすると</div>
+        <div class="text-lg sm:text-xl font-bold text-slate-900 dark:text-white py-2">
+          <span class="math-frac"><span class="num math-var">a</span><span class="den">sin <span class="math-var">A</span></span></span>
+          ＝
+          <span class="math-frac"><span class="num math-var">b</span><span class="den">sin <span class="math-var">B</span></span></span>
+          ＝
+          <span class="math-frac"><span class="num math-var">c</span><span class="den">sin <span class="math-var">C</span></span></span>
+          ＝ <span class="text-rose-600 dark:text-rose-400 font-extrabold">2<span class="math-var">R</span></span>
+        </div>
+        <p class="text-xs text-slate-600 dark:text-slate-300">
+          ⚠️ <strong>注意:</strong> 右辺は <span class="math-var">R</span> ではなく <strong class="text-rose-600 dark:text-rose-400">2<span class="math-var">R</span>（直径）</strong> です！<br>
+          また、変形した <strong class="text-indigo-600 dark:text-indigo-400"><span class="math-var">a</span> = 2<span class="math-var">R</span> sin <span class="math-var">A</span></strong> を使うと一発で辺の長さが求まります。
+        </p>
+      </div>
+
+      <!-- 頻出する sin の値テーブル -->
+      <div>
+        <h3 class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">よく出る角度の sin の値（30°, 45°, 60° と 鈍角 120°, 135°, 150°）</h3>
+        <div class="overflow-x-auto">
+          <table class="w-full text-center text-xs sm:text-sm border-collapse border border-slate-200 dark:border-slate-700">
+            <thead>
+              <tr class="bg-slate-100 dark:bg-slate-800 font-bold">
+                <th class="border border-slate-200 dark:border-slate-700 p-2">角度 <span class="math-var">&theta;</span></th>
+                <th class="border border-slate-200 dark:border-slate-700 p-2">30°</th>
+                <th class="border border-slate-200 dark:border-slate-700 p-2">45°</th>
+                <th class="border border-slate-200 dark:border-slate-700 p-2">60°</th>
+                <th class="border border-slate-200 dark:border-slate-700 p-2">90°</th>
+                <th class="border border-slate-200 dark:border-slate-700 p-2 text-amber-600 dark:text-amber-400">120°</th>
+                <th class="border border-slate-200 dark:border-slate-700 p-2 text-amber-600 dark:text-amber-400">135°</th>
+                <th class="border border-slate-200 dark:border-slate-700 p-2 text-amber-600 dark:text-amber-400">150°</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="border border-slate-200 dark:border-slate-700 p-2 font-bold bg-slate-50 dark:bg-slate-800/50">sin <span class="math-var">&theta;</span></td>
+                <td class="border border-slate-200 dark:border-slate-700 p-2"><span class="math-frac"><span class="num">1</span><span class="den">2</span></span></td>
+                <td class="border border-slate-200 dark:border-slate-700 p-2"><span class="math-frac"><span class="num">&radic;2</span><span class="den">2</span></span> (または <span class="math-frac"><span class="num">1</span><span class="den">&radic;2</span></span>)</td>
+                <td class="border border-slate-200 dark:border-slate-700 p-2"><span class="math-frac"><span class="num">&radic;3</span><span class="den">2</span></span></td>
+                <td class="border border-slate-200 dark:border-slate-700 p-2 font-bold">1</td>
+                <td class="border border-slate-200 dark:border-slate-700 p-2"><span class="math-frac"><span class="num">&radic;3</span><span class="den">2</span></span></td>
+                <td class="border border-slate-200 dark:border-slate-700 p-2"><span class="math-frac"><span class="num">&radic;2</span><span class="den">2</span></span></td>
+                <td class="border border-slate-200 dark:border-slate-700 p-2"><span class="math-frac"><span class="num">1</span><span class="den">2</span></span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="text-xs text-slate-500 dark:text-slate-400 mt-2">
+          💡 <strong>鈍角のポイント:</strong> <span class="font-mono">sin(180° - &theta;) = sin &theta;</span> なので、<strong>sin は鈍角（90°〜180°）でもプラス（正）</strong>です！（cos と混同しないように注意）
+        </p>
+      </div>
+
+      <div class="text-right pt-2">
+        <button onclick="toggleCheatSheet()" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl">
+          閉じる
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* =========================================================================
+       問題テンプレート・データベース
+       各テンプレートは複数の数値バリエーションを持ち、誤答した際は同じパターンの
+       別数値バリエーション（クローン問題）を「弱点克服キュー」に登録します。
+       ========================================================================= */
+    const QUESTION_TEMPLATES = [
+      // ---------------- Stage 1: 辺の長さを求める ----------------
+      {
+        templateId: 'side_basic_1',
+        stage: 'find_side',
+        stageName: 'Stage 1: 辺の長さを求める',
+        goldenRule: '向かい合う「辺と角のペア」を分数の形 (辺 / sin角) にしてイコールで結ぼう！分母の割り算は逆数を掛けること！',
+        variants: [
+          {
+            prompt: '△ABC において、<span class="math-var">A</span> = 30°, <span class="math-var">B</span> = 45°, <span class="math-var">a</span> = 4 のとき、辺 <span class="math-var">b</span> の長さを求めよ。',
+            svgData: { A: '30°', B: '45°', C: '', a: '4', b: 'b = ?', c: '', showCircle: false, highlightPairs: [['A', 'a'], ['B', 'b']] },
+            hint1: '角Aと辺a、角Bと辺bがそれぞれ向かい合うペアです。<span class="math-frac"><span class="num">a</span><span class="den">sin A</span></span> = <span class="math-frac"><span class="num">b</span><span class="den">sin B</span></span> を使います。',
+            hint2: '<span class="math-frac"><span class="num">4</span><span class="den">sin 30°</span></span> = <span class="math-frac"><span class="num">b</span><span class="den">sin 45°</span></span> に sin 30° = <span class="math-frac"><span class="num">1</span><span class="den">2</span></span>, sin 45° = <span class="math-frac"><span class="num">&radic;2</span><span class="den">2</span></span> を代入します。',
+            steps: [
+              '<strong>① ペアの確認:</strong> (角A = 30°, 辺a = 4) と (角B = 45°, 辺b = ?) の2組に注目します。',
+              '<strong>② 正弦定理で立式:</strong> <span class="math-frac"><span class="num">4</span><span class="den">sin 30°</span></span> = <span class="math-frac"><span class="num">b</span><span class="den">sin 45°</span></span> より、<span class="math-var">b</span> = <span class="math-frac"><span class="num">4</span><span class="den">sin 30°</span></span> &times; sin 45° と変形できます。',
+              '<strong>③ 値を代入して計算:</strong> sin 30° = <span class="math-frac"><span class="num">1</span><span class="den">2</span></span> で割るので「&times; 2」になります。<br>よって <span class="math-var">b</span> = 4 &divide; <span class="math-frac"><span class="num">1</span><span class="den">2</span></span> &times; <span class="math-frac"><span class="num">&radic;2</span><span class="den">2</span></span> = 8 &times; <span class="math-frac"><span class="num">&radic;2</span><span class="den">2</span></span> = <strong>4&radic;2</strong>'
+            ],
+            choices: [
+              { text: '4&radic;2', isCorrect: true, diagnosis: '' },
+              { text: '2&radic;2', isCorrect: false, diagnosis: '【ペアの取り違え・逆数ミス】<br>4 &times; sin 30° &divide; sin 45° のように、<strong>sin 30° と sin 45° の位置を逆に計算</strong>していませんか？「辺aの下にはsin A、辺bの下にはsin B」が必ず来ます。' },
+              { text: '4&radic;3', isCorrect: false, diagnosis: '【三角比の値の混同】<br>sin 45° の値を <span class="math-frac"><span class="num">&radic;3</span><span class="den">2</span></span>（これは sin 60° の値）として計算しています。<strong>sin 45° = <span class="math-frac"><span class="num">&radic;2</span><span class="den">2</span></span></strong> です！' },
+              { text: '&radic;2', isCorrect: false, diagnosis: '【分母の割り算ミス】<br>4 &divide; <span class="math-frac"><span class="num">1</span><span class="den">2</span></span> を「4 &times; 2 = 8」ではなく「4 &times; <span class="math-frac"><span class="num">1</span><span class="den">2</span></span> = 2」と計算してしまっています。分数で割るときは<strong>逆数を掛ける</strong>のが鉄則です！' }
+            ]
+          },
+          {
+            prompt: '【類題リベンジ】△ABC において、<span class="math-var">A</span> = 30°, <span class="math-var">B</span> = 60°, <span class="math-var">a</span> = 6 のとき、辺 <span class="math-var">b</span> の長さを求めよ。',
+            svgData: { A: '30°', B: '60°', C: '', a: '6', b: 'b = ?', c: '', showCircle: false, highlightPairs: [['A', 'a'], ['B', 'b']] },
+            hint1: '向かい合うペア (30°, 6) と (60°, b) で <span class="math-frac"><span class="num">6</span><span class="den">sin 30°</span></span> = <span class="math-frac"><span class="num">b</span><span class="den">sin 60°</span></span> を立てます。',
+            hint2: 'sin 30° = <span class="math-frac"><span class="num">1</span><span class="den">2</span></span>, sin 60° = <span class="math-frac"><span class="num">&radic;3</span><span class="den">2</span></span> を代入して <span class="math-var">b</span> について解きましょう。',
+            steps: [
+              '<strong>① ペアの確認:</strong> (A = 30°, a = 6) と (B = 60°, b = ?) のペアを使います。',
+              '<strong>② 立式:</strong> <span class="math-frac"><span class="num">6</span><span class="den">sin 30°</span></span> = <span class="math-frac"><span class="num">b</span><span class="den">sin 60°</span></span> &rArr; <span class="math-var">b</span> = 6 &divide; sin 30° &times; sin 60°',
+              '<strong>③ 計算:</strong> <span class="math-var">b</span> = 6 &divide; <span class="math-frac"><span class="num">1</span><span class="den">2</span></span> &times; <span class="math-frac"><span class="num">&radic;3</span><span class="den">2</span></span> = 12 &times; <span class="math-frac"><span class="num">&radic;3</span><span class="den">2</span></span> = <strong>6&radic;3</strong>'
+            ],
+            choices: [
+              { text: '6&radic;3', isCorrect: true, diagnosis: '' },
+              { text: '2&radic;3', isCorrect: false, diagnosis: '【ペアの逆転ミス】<br>sin 30° と sin 60° を逆の位置に入れて計算しています。向かい合う辺と角を上下に揃えましょう。' },
+              { text: '6&radic;2', isCorrect: false, diagnosis: '【三角比の値の混同】<br>sin 60° は <span class="math-frac"><span class="num">&radic;3</span><span class="den">2</span></span> です（&radic;2 は 45° のときです）。' },
+              { text: '3&radic;3', isCorrect: false, diagnosis: '【分数の割り算ミス】<br>6 &divide; <span class="math-frac"><span class="num">1</span><span class="den">2</span></span> は 6 &times; 2 = 12 です。半分にしないよう注意！' }
+            ]
+          }
+        ]
+      },
+
+      {
+        templateId: 'side_basic_2',
+        stage: 'find_side',
+        stageName: 'Stage 1: 辺の長さを求める',
+        goldenRule: 'ルートを含む割り算では、両辺の分母にある「/2」を先に消去すると計算ミスが激減します！',
+        variants: [
+          {
+            prompt: '△ABC において、<span class="math-var">B</span> = 60°, <span class="math-var">C</span> = 45°, <span class="math-var">b</span> = 3&radic;6 のとき、辺 <span class="math-var">c</span> の長さを求めよ。',
+            svgData: { A: '', B: '60°', C: '45°', a: '', b: '3√6', c: 'c = ?', showCircle: false, highlightPairs: [['B', 'b'], ['C', 'c']] },
+            hint1: '(B = 60°, b = 3&radic;6) と (C = 45°, c = ?) のペアで正弦定理を立てます。',
+            hint2: '<span class="math-frac"><span class="num">3&radic;6</span><span class="den">sin 60°</span></span> = <span class="math-frac"><span class="num">c</span><span class="den">sin 45°</span></span> です。sin 60° = <span class="math-frac"><span class="num">&radic;3</span><span class="den">2</span></span>, sin 45° = <span class="math-frac"><span class="num">&radic;2</span><span class="den">2</span></span> の分母「2」に注目！',
+            steps: [
+              '<strong>① ペアの確認:</strong> (B = 60°, b = 3&radic;6) と (C = 45°, c = ?) を選びます。',
+              '<strong>② 立式:</strong> <span class="math-frac"><span class="num">3&radic;6</span><span class="den">&radic;3 / 2</span></span> = <span class="math-frac"><span class="num">c</span><span class="den">&radic;2 / 2</span></span>',
+              '<strong>③ 計算のコツ:</strong> 両辺の分母にある「/2」を消すと、<span class="math-frac"><span class="num">3&radic;6</span><span class="den">&radic;3</span></span> = <span class="math-frac"><span class="num">c</span><span class="den">&radic;2</span></span> となり、3&radic;2 = <span class="math-frac"><span class="num">c</span><span class="den">&radic;2</span></span> &rArr; <span class="math-var">c</span> = 3&radic;2 &times; &radic;2 = <strong>6</strong>'
+            ],
+            choices: [
+              { text: '6', isCorrect: true, diagnosis: '' },
+              { text: '9', isCorrect: false, diagnosis: '【ペアの逆転ミス】<br>sin 60° と sin 45° を逆にして 3&radic;6 &divide; &radic;2 &times; &radic;3 = 3&radic;3 &times; &radic;3 = 9 としてしまっています。bの下にsin B、cの下にsin Cを置きましょう。' },
+              { text: '3&radic;2', isCorrect: false, diagnosis: '【移項の途中止めミス】<br>左辺 <span class="math-frac"><span class="num">3&radic;6</span><span class="den">&radic;3</span></span> = 3&radic;2 まで計算したあと、右辺の分母にある &radic;2 を掛けるのを忘れています！' },
+              { text: '3&radic;3', isCorrect: false, diagnosis: '【三角比の値の取り違え】<br>sin 60° と sin 45° の値を逆に記憶して代入しています。60°の方が山が高いので sin 60° = <span class="math-frac"><span class="num">&radic;3</span><span class="den">2</span></span> です。' }
+            ]
+          },
+          {
+            prompt: '【類題リベンジ】△ABC において、<span class="math-var">A</span> = 60°, <span class="math-var">C</span> = 45°, <span class="math-var">a</span> = 2&radic;3 のとき、辺 <span class="math-var">c</span> の長さを求めよ。',
+            svgData: { A: '60°', B: '', C: '45°', a: '2√3', b: '', c: 'c = ?', showCircle: false, highlightPairs: [['A', 'a'], ['C', 'c']] },
+            hint1: '(A = 60°, a = 2&radic;3) と (C = 45°, c = ?) のペアで式を立てます。',
+            hint2: '<span class="math-frac"><span class="num">2&radic;3</span><span class="den">sin 60°</span></span> = <span class="math-frac"><span class="num">c</span><span class="den">sin 45°</span></span> です。',
+            steps: [
+              '<strong>① ペアの確認:</strong> (A = 60°, a = 2&radic;3) と (C = 45°, c = ?) を使います。',
+              '<strong>② 立式:</strong> <span class="math-frac"><span class="num">2&radic;3</span><span class="den">&radic;3 / 2</span></span> = <span class="math-frac"><span class="num">c</span><span class="den">&radic;2 / 2</span></span>',
+              '<strong>③ 計算:</strong> 左辺は 2&radic;3 &divide; <span class="math-frac"><span class="num">&radic;3</span><span class="den">2</span></span> = 4 なので、<span class="math-var">c</span> = 4 &times; <span class="math-frac"><span class="num">&radic;2</span><span class="den">2</span></span> = <strong>2&radic;2</strong>'
+            ],
+            choices: [
+              { text: '2&radic;2', isCorrect: true, diagnosis: '' },
+              { text: '2&radic;6', isCorrect: false, diagnosis: '【ペアの逆転ミス】<br>sin 60° と sin 45° の位置が逆になっています。' },
+              { text: '4', isCorrect: false, diagnosis: '【計算の途中止めミス】<br>4 は外接円の直径 2R（つまり左辺の値）です！最後に sin 45° を掛けて辺 c を求めましょう。' },
+              { text: '&radic;2', isCorrect: false, diagnosis: '【分数の割り算ミス】<br>2&radic;3 &divide; <span class="math-frac"><span class="num">&radic;3</span><span class="den">2</span></span> は 4 になります（2ではありません）。' }
+            ]
+          }
+        ]
+      },
+
+      // ---------------- Stage 2: 外接円の半径 R ----------------
+      {
+        templateId: 'radius_basic_1',
+        stage: 'find_radius',
+        stageName: 'Stage 2: 外接円の半径 R',
+        goldenRule: '正弦定理の右辺は「R」ではなく「2R（直径）」！最後に2で割って半径 R にするのを絶対に忘れないこと！',
+        variants: [
+          {
+            prompt: '△ABC において、<span class="math-var">A</span> = 60°, <span class="math-var">a</span> = 6&radic;3 のとき、外接円の半径 <span class="math-var">R</span> を求めよ。',
+            svgData: { A: '60°', B: '', C: '', a: '6√3', b: '', c: '', showCircle: true, rLabel: 'R = ?', highlightPairs: [['A', 'a']] },
+            hint1: '外接円の半径 R が絡むときは、<span class="math-frac"><span class="num">a</span><span class="den">sin A</span></span> = 2R を使います。',
+            hint2: '右辺は「R」ではなく「2R」であることに注意！ 2R が求まったら半分にします。',
+            steps: [
+              '<strong>① ペアと公式の確認:</strong> 向かい合う (A = 60°, a = 6&radic;3) と外接円の半径 R なので、<span class="math-frac"><span class="num">a</span><span class="den">sin A</span></span> = <strong>2R</strong> を使います。',
+              '<strong>② 2R（直径）を計算:</strong> 2<span class="math-var">R</span> = <span class="math-frac"><span class="num">6&radic;3</span><span class="den">sin 60°</span></span> = 6&radic;3 &divide; <span class="math-frac"><span class="num">&radic;3</span><span class="den">2</span></span> = 6&radic;3 &times; <span class="math-frac"><span class="num">2</span><span class="den">&radic;3</span></span> = 12',
+              '<strong>③ 2で割って半径 R にする:</strong> 2<span class="math-var">R</span> = 12 より、<span class="math-var">R</span> = <strong>6</strong>'
+            ],
+            choices: [
+              { text: '6', isCorrect: true, diagnosis: '' },
+              { text: '12', isCorrect: false, diagnosis: '【超頻出ミス：2で割り忘れ！】<br>12 は「<strong>2R（外接円の直径）</strong>」の値です！正弦定理の公式は <span class="math-frac"><span class="num">a</span><span class="den">sin A</span></span> = <strong>2R</strong> なので、半径 R を答えるときは最後に必ず 2 で割りましょう！' },
+              { text: '3', isCorrect: false, diagnosis: '【分母の逆数ミス】<br>6&radic;3 &divide; <span class="math-frac"><span class="num">&radic;3</span><span class="den">2</span></span> の計算で、逆数を掛けずに 2 で割ってしまっています。' },
+              { text: '6&radic;3', isCorrect: false, diagnosis: '【三角比の値のミス】<br>sin 60° = <span class="math-frac"><span class="num">&radic;3</span><span class="den">2</span></span> です（sin 30° = <span class="math-frac"><span class="num">1</span><span class="den">2</span></span> と混同しています）。' }
+            ]
+          },
+          {
+            prompt: '【類題リベンジ】△ABC において、<span class="math-var">B</span> = 45°, <span class="math-var">b</span> = 8&radic;2 のとき、外接円の半径 <span class="math-var">R</span> を求めよ。',
+            svgData: { A: '', B: '45°', C: '', a: '', b: '8√2', c: '', showCircle: true, rLabel: 'R = ?', highlightPairs: [['B', 'b']] },
+            hint1: '<span class="math-frac"><span class="num">b</span><span class="den">sin B</span></span> = 2R に代入します。',
+            hint2: '2R の値が出たら、最後に 2 で割って半径 R にするのを忘れずに！',
+            steps: [
+              '<strong>① 公式の確認:</strong> 2<span class="math-var">R</span> = <span class="math-frac"><span class="num">b</span><span class="den">sin B</span></span>',
+              '<strong>② 2R を求める:</strong> 2<span class="math-var">R</span> = 8&radic;2 &divide; <span class="math-frac"><span class="num">&radic;2</span><span class="den">2</span></span> = 16',
+              '<strong>③ R を求める:</strong> 2<span class="math-var">R</span> = 16 の両辺を 2 で割って <span class="math-var">R</span> = <strong>8</strong>'
+            ],
+            choices: [
+              { text: '8', isCorrect: true, diagnosis: '' },
+              { text: '16', isCorrect: false, diagnosis: '【2で割り忘れ！】<br>16 は直径 2R です！半径 R はその半分の 8 です。' },
+              { text: '4', isCorrect: false, diagnosis: '【分数の割り算ミス】<br>8&radic;2 &divide; <span class="math-frac"><span class="num">&radic;2</span><span class="den">2</span></span> = 16 なので、2R = 16 から R = 8 となります。' },
+              { text: '8&radic;2', isCorrect: false, diagnosis: '【sin 45° の値ミス】<br>sin 45° = <span class="math-frac"><span class="num">&radic;2</span><span class="den">2</span></span> で割ると &radic;2 が約分されて消えます。' }
+            ]
+          }
+        ]
+      },
+
+      {
+        templateId: 'side_from_radius',
+        stage: 'find_radius',
+        stageName: 'Stage 2: 外接円の半径 R',
+        goldenRule: '外接円の半径 R と角度から辺を求めるときは、変形公式「a = 2R sin A」を使うと3秒で解ける！',
+        variants: [
+          {
+            prompt: '△ABC の外接円の半径が <span class="math-var">R</span> = 5 で、<span class="math-var">A</span> = 30° のとき、辺 <span class="math-var">a</span> の長さを求めよ。',
+            svgData: { A: '30°', B: '', C: '', a: 'a = ?', b: '', c: '', showCircle: true, rLabel: 'R = 5', highlightPairs: [['A', 'a']] },
+            hint1: '<span class="math-frac"><span class="num">a</span><span class="den">sin A</span></span> = 2R の両辺に sin A を掛けた形「a = 2R sin A」を使います。',
+            hint2: 'R = 5 なので 2R = 10 です。そこに sin 30° を掛けましょう。',
+            steps: [
+              '<strong>① 変形公式の活用:</strong> <span class="math-frac"><span class="num">a</span><span class="den">sin A</span></span> = 2<span class="math-var">R</span> より、<span class="math-var">a</span> = <strong>2<span class="math-var">R</span> sin <span class="math-var">A</span></strong>',
+              '<strong>② 数値を代入:</strong> <span class="math-var">a</span> = 2 &times; 5 &times; sin 30°',
+              '<strong>③ 計算:</strong> <span class="math-var">a</span> = 10 &times; <span class="math-frac"><span class="num">1</span><span class="den">2</span></span> = <strong>5</strong>'
+            ],
+            choices: [
+              { text: '5', isCorrect: true, diagnosis: '' },
+              { text: '<span class="math-frac"><span class="num">5</span><span class="den">2</span></span>', isCorrect: false, diagnosis: '【2R の「2」を掛け忘れ！】<br><span class="math-var">a</span> = <span class="math-var">R</span> sin <span class="math-var">A</span> として計算してしまっています。正しくは <span class="math-var">a</span> = <strong>2<span class="math-var">R</span></strong> sin <span class="math-var">A</span> です！' },
+              { text: '5&radic;3', isCorrect: false, diagnosis: '【sin と cos の混同】<br>30° のとき <span class="math-frac"><span class="num">&radic;3</span><span class="den">2</span></span> なのは cos 30° です。<strong>sin 30° = <span class="math-frac"><span class="num">1</span><span class="den">2</span></span></strong> です！' },
+              { text: '20', isCorrect: false, diagnosis: '【掛け算と割り算の逆転】<br>2R に sin 30° を「掛ける」ところを、誤って「割って」しまっています。<span class="math-var">a</span> = 2<span class="math-var">R</span> &times; sin <span class="math-var">A</span> です。' }
+            ]
+          },
+          {
+            prompt: '【類題リベンジ】△ABC の外接円の半径が <span class="math-var">R</span> = 6 で、<span class="math-var">C</span> = 60° のとき、辺 <span class="math-var">c</span> の長さを求めよ。',
+            svgData: { A: '', B: '', C: '60°', a: '', b: '', c: 'c = ?', showCircle: true, rLabel: 'R = 6', highlightPairs: [['C', 'c']] },
+            hint1: 'c = 2R sin C に R = 6, C = 60° を代入します。',
+            hint2: '2R = 12 に sin 60° = <span class="math-frac"><span class="num">&radic;3</span><span class="den">2</span></span> を掛けます。',
+            steps: [
+              '<strong>① 公式:</strong> <span class="math-var">c</span> = 2<span class="math-var">R</span> sin <span class="math-var">C</span>',
+              '<strong>② 代入:</strong> <span class="math-var">c</span> = 2 &times; 6 &times; sin 60° = 12 &times; <span class="math-frac"><span class="num">&radic;3</span><span class="den">2</span></span>',
+              '<strong>③ 計算:</strong> <span class="math-var">c</span> = <strong>6&radic;3</strong>'
+            ],
+            choices: [
+              { text: '6&radic;3', isCorrect: true, diagnosis: '' },
+              { text: '3&radic;3', isCorrect: false, diagnosis: '【2R の「2」を掛け忘れ！】<br><span class="math-var">c</span> = <strong>2</strong><span class="math-var">R</span> sin <span class="math-var">C</span> の「2」を忘れています。' },
+              { text: '6', isCorrect: false, diagnosis: '【三角比の値ミス】<br>sin 60° = <span class="math-frac"><span class="num">&radic;3</span><span class="den">2</span></span> です（<span class="math-frac"><span class="num">1</span><span class="den">2</span></span> は sin 30° です）。' },
+              { text: '8&radic;3', isCorrect: false, diagnosis: '【掛け算・割り算の逆転】<br>12 に sin 60° を掛けましょう（割ってはいけません）。' }
+            ]
+          }
+        ]
+      },
+
+      // ---------------- Stage 3: 角度を求める（複数の解の吟味を含む） ----------------
+      {
+        templateId: 'angle_basic_1',
+        stage: 'find_angle',
+        stageName: 'Stage 3: 角度を求める',
+        goldenRule: '角度を求めるときは「内角の和が180°を超えないか」を必ずチェック！sinが同じになる鋭角と鈍角の2候補から吟味しよう！',
+        variants: [
+          {
+            prompt: '△ABC において、<span class="math-var">A</span> = 30°, <span class="math-var">a</span> = &radic;2, <span class="math-var">b</span> = 2 のとき、角 <span class="math-var">B</span> の大きさを求めよ。',
+            svgData: { A: '30°', B: 'B = ?', C: '', a: '√2', b: '2', c: '', showCircle: false, highlightPairs: [['A', 'a'], ['B', 'b']] },
+            hint1: '<span class="math-frac"><span class="num">&radic;2</span><span class="den">sin 30°</span></span> = <span class="math-frac"><span class="num">2</span><span class="den">sin B</span></span> から sin B の値を求めます。',
+            hint2: 'sin B = <span class="math-frac"><span class="num">&radic;2</span><span class="den">2</span></span> となります。0° &lt; B &lt; 180° で該当する角度は1つだけでしょうか？',
+            steps: [
+              '<strong>① 正弦定理で sin B を求める:</strong> <span class="math-frac"><span class="num">&radic;2</span><span class="den">sin 30°</span></span> = <span class="math-frac"><span class="num">2</span><span class="den">sin B</span></span> より、2&radic;2 = <span class="math-frac"><span class="num">2</span><span class="den">sin B</span></span> &rArr; sin <span class="math-var">B</span> = <span class="math-frac"><span class="num">1</span><span class="den">&radic;2</span></span> = <span class="math-frac"><span class="num">&radic;2</span><span class="den">2</span></span>',
+              '<strong>② 0°〜180° で候補をすべて挙げる:</strong> sin <span class="math-var">B</span> = <span class="math-frac"><span class="num">&radic;2</span><span class="den">2</span></span> となる角は、<strong>45° と 135° の2つ</strong>あります。',
+              '<strong>③ 三角形の成立条件（A + B &lt; 180°）で吟味:</strong> <span class="math-var">A</span> = 30° なので、<span class="math-var">B</span> = 45° でも <span class="math-var">B</span> = 135° でも A + B は180°未満となり、<strong>両方とも三角形として成立</strong>します！'
+            ],
+            choices: [
+              { text: '45° または 135°', isCorrect: true, diagnosis: '' },
+              { text: '45° のみ', isCorrect: false, diagnosis: '【超重要：鈍角の候補忘れ！】<br>三角形の内角は 180° 未満まであり得ます。sin <span class="math-var">B</span> = <span class="math-frac"><span class="num">&radic;2</span><span class="den">2</span></span> を満たす角は 45° だけでなく <strong>135°</strong> もあり、A=30° と足しても 165° (&lt;180°) なので 135° も正解に含まれます！' },
+              { text: '60° または 120°', isCorrect: false, diagnosis: '【三角比の値ミス】<br>sin <span class="math-var">B</span> = <span class="math-frac"><span class="num">&radic;2</span><span class="den">2</span></span> なので、対応する角は 45°, 135° です（60°, 120° は sin が <span class="math-frac"><span class="num">&radic;3</span><span class="den">2</span></span> のときです）。' },
+              { text: '30°', isCorrect: false, diagnosis: '【立式・計算ミス】<br><span class="math-frac"><span class="num">&radic;2</span><span class="den">1/2</span></span> = 2&radic;2 なので、sin <span class="math-var">B</span> = <span class="math-frac"><span class="num">2</span><span class="den">2&radic;2</span></span> = <span class="math-frac"><span class="num">1</span><span class="den">&radic;2</span></span> となります。' }
+            ]
+          },
+          {
+            prompt: '【類題リベンジ】△ABC において、<span class="math-var">A</span> = 120°, <span class="math-var">a</span> = &radic;3, <span class="math-var">b</span> = 1 のとき、角 <span class="math-var">B</span> の大きさを求めよ。',
+            svgData: { A: '120°', B: 'B = ?', C: '', a: '√3', b: '1', c: '', showCircle: false, highlightPairs: [['A', 'a'], ['B', 'b']] },
+            hint1: '<span class="math-frac"><span class="num">&radic;3</span><span class="den">sin 120°</span></span> = <span class="math-frac"><span class="num">1</span><span class="den">sin B</span></span> から sin B を求めます（sin 120° = <span class="math-frac"><span class="num">&radic;3</span><span class="den">2</span></span>）。',
+            hint2: 'sin B = <span class="math-frac"><span class="num">1</span><span class="den">2</span></span> より候補は 30° と 150° ですが、すでに A = 120° あることに注意！',
+            steps: [
+              '<strong>① sin B を求める:</strong> <span class="math-frac"><span class="num">&radic;3</span><span class="den">&radic;3 / 2</span></span> = <span class="math-frac"><span class="num">1</span><span class="den">sin B</span></span> より 2 = <span class="math-frac"><span class="num">1</span><span class="den">sin B</span></span> &rArr; sin <span class="math-var">B</span> = <span class="math-frac"><span class="num">1</span><span class="den">2</span></span>',
+              '<strong>② 候補を挙げる:</strong> sin <span class="math-var">B</span> = <span class="math-frac"><span class="num">1</span><span class="den">2</span></span> より、候補は 30° と 150° です。',
+              '<strong>③ 内角の和で吟味:</strong> <span class="math-var">A</span> = 120° なので、もし <span class="math-var">B</span> = 150° だと A + B = 270° となり三角形が作れません（不適）！よって <strong>30° のみ</strong> が正解です。'
+            ],
+            choices: [
+              { text: '30° のみ', isCorrect: true, diagnosis: '' },
+              { text: '30° または 150°', isCorrect: false, diagnosis: '【内角の和オーバー！】<br>sin <span class="math-var">B</span> = <span class="math-frac"><span class="num">1</span><span class="den">2</span></span> の候補は確かに 30° と 150° ですが、すでに <strong>A = 120°</strong> あります！B = 150° だと A + B = 270° になり 180° を超えてしまうため、150° は除外しなければなりません。' },
+              { text: '60° のみ', isCorrect: false, diagnosis: '【三角比の値ミス】<br>sin <span class="math-var">B</span> = <span class="math-frac"><span class="num">1</span><span class="den">2</span></span> となる鋭角は 30° です（60° は cos が <span class="math-frac"><span class="num">1</span><span class="den">2</span></span> のときです）。' },
+              { text: '45° のみ', isCorrect: false, diagnosis: '【計算ミス】<br>左辺は &radic;3 &divide; <span class="math-frac"><span class="num">&radic;3</span><span class="den">2</span></span> = 2 なので、sin <span class="math-var">B</span> = <span class="math-frac"><span class="num">1</span><span class="den">2</span></span> となります。' }
+            ]
+          }
+        ]
+      },
+
+      // ---------------- Stage 4: 鈍角・内角の和の応用 ----------------
+      {
+        templateId: 'obtuse_and_sum_1',
+        stage: 'obtuse_sum',
+        stageName: 'Stage 4: 鈍角・内角の和の応用',
+        goldenRule: '向かい合う角が書いていないときは「三角形の内角の和＝180°」から残りの角を先に計算しよう！また鈍角でも sin はプラス！',
+        variants: [
+          {
+            prompt: '△ABC において、<span class="math-var">B</span> = 75°, <span class="math-var">C</span> = 60°, <span class="math-var">a</span> = 4&radic;2 のとき、外接円の半径 <span class="math-var">R</span> を求めよ。',
+            svgData: { A: 'A = ?', B: '75°', C: '60°', a: '4√2', b: '', c: '', showCircle: true, rLabel: 'R = ?', highlightPairs: [['A', 'a']] },
+            hint1: '辺 a = 4&radic;2 とペアになる「角 A」が書いていません！まず三角形の内角の和 180° から角 A を求めましょう。',
+            hint2: 'A = 180° - (75° + 60°) = 45° です！これで (A = 45°, a = 4&radic;2) のペアが揃いました。',
+            steps: [
+              '<strong>① 隠れた角 A を求める:</strong> 辺 <span class="math-var">a</span> = 4&radic;2 の向かいは角 <span class="math-var">A</span> です。内角の和 180° より、<span class="math-var">A</span> = 180° - (75° + 60°) = <strong>45°</strong>',
+              '<strong>② 正弦定理で 2R を求める:</strong> 2<span class="math-var">R</span> = <span class="math-frac"><span class="num">a</span><span class="den">sin A</span></span> = <span class="math-frac"><span class="num">4&radic;2</span><span class="den">sin 45°</span></span> = 4&radic;2 &divide; <span class="math-frac"><span class="num">&radic;2</span><span class="den">2</span></span> = 8',
+              '<strong>③ 2で割って半径 R にする:</strong> 2<span class="math-var">R</span> = 8 より、<span class="math-var">R</span> = <strong>4</strong>'
+            ],
+            choices: [
+              { text: '4', isCorrect: true, diagnosis: '' },
+              { text: '<span class="math-frac"><span class="num">4&radic;6</span><span class="den">3</span></span>', isCorrect: false, diagnosis: '【ペアではない角を使ってしまったミス！】<br>問題文にある C = 60° をそのまま使って <span class="math-frac"><span class="num">4&radic;2</span><span class="den">sin 60°</span></span> と計算してしまいました！辺 <span class="math-var">a</span> とペアになるのは角 <span class="math-var">C</span> ではなく<strong>角 <span class="math-var">A</span>（180° - 75° - 60° = 45°）</strong>です！' },
+              { text: '8', isCorrect: false, diagnosis: '【あと一歩！2で割り忘れ】<br>角 A = 45° を見抜いたのは完璧です！ただし 8 は「2R（直径）」なので、最後に 2 で割って R = 4 としましょう。' },
+              { text: '2&radic;2', isCorrect: false, diagnosis: '【sin 45° の割り算ミス】<br>4&radic;2 &divide; <span class="math-frac"><span class="num">&radic;2</span><span class="den">2</span></span> = 8 です。&radic;2 同士が約分されて消えます。' }
+            ]
+          },
+          {
+            prompt: '【類題リベンジ】△ABC において、<span class="math-var">A</span> = 135°, <span class="math-var">C</span> = 15°, <span class="math-var">b</span> = 6 のとき、辺 <span class="math-var">a</span> の長さを求めよ。',
+            svgData: { A: '135°', B: 'B = ?', C: '15°', a: 'a = ?', b: '6', c: '', showCircle: false, highlightPairs: [['A', 'a'], ['B', 'b']] },
+            hint1: '辺 b = 6 とペアになる「角 B」を、180° - (135° + 15°) で先に求めましょう！',
+            hint2: 'B = 30° です。また sin 135° = <span class="math-frac"><span class="num">&radic;2</span><span class="den">2</span></span>（プラス！）を使って正弦定理を立てます。',
+            steps: [
+              '<strong>① 角 B を求める:</strong> <span class="math-var">B</span> = 180° - (135° + 15°) = <strong>30°</strong>',
+              '<strong>② 正弦定理で立式:</strong> <span class="math-frac"><span class="num">a</span><span class="den">sin 135°</span></span> = <span class="math-frac"><span class="num">6</span><span class="den">sin 30°</span></span>',
+              '<strong>③ 鈍角の sin に注意して計算:</strong> sin 135° = <span class="math-frac"><span class="num">&radic;2</span><span class="den">2</span></span>（正の値！）なので、<span class="math-var">a</span> = 6 &divide; <span class="math-frac"><span class="num">1</span><span class="den">2</span></span> &times; <span class="math-frac"><span class="num">&radic;2</span><span class="den">2</span></span> = 12 &times; <span class="math-frac"><span class="num">&radic;2</span><span class="den">2</span></span> = <strong>6&radic;2</strong>'
+            ],
+            choices: [
+              { text: '6&radic;2', isCorrect: true, diagnosis: '' },
+              { text: '-6&radic;2', isCorrect: false, diagnosis: '【鈍角の符号ミス！】<br>135° は鈍角ですが、<strong>sin 135° = +<span class="math-frac"><span class="num">&radic;2</span><span class="den">2</span></span>（プラス）</strong>です！マイナスになるのは cos 135° です。そもそも辺の長さがマイナスになることはありません。' },
+              { text: '6&radic;3', isCorrect: false, diagnosis: '【三角比の値ミス】<br>180° - 135° = 45° なので、sin 135° = sin 45° = <span class="math-frac"><span class="num">&radic;2</span><span class="den">2</span></span> です。' },
+              { text: '3&radic;2', isCorrect: false, diagnosis: '【分母 sin 30° の割り算ミス】<br>6 &divide; <span class="math-frac"><span class="num">1</span><span class="den">2</span></span> = 12 です。12 &times; <span class="math-frac"><span class="num">&radic;2</span><span class="den">2</span></span> = 6&radic;2 となります。' }
+            ]
+          }
+        ]
+      }
+    ];
+
+    /* =========================================================================
+       アプリケーション状態管理
+       ========================================================================= */
+    let currentStage = 'all';
+    let currentQuestionObj = null;
+    let currentVariantIdx = 0;
+    let questionCount = 1;
+    let score = 0;
+    let streak = 0;
+    let showPairs = false;
+    let isAnswered = false;
+    let isRevengeMode = false;
+    let currentTheme = 'light'; // デフォルトは見やすいライトモード、いつでも切替可能
+
+    // 間違えた問題のテンプレートIDを保持するキュー（弱点克服用）
+    let revengeQueue = [];
+
+    // テキスト内の &radic;数字 や √数字 をすべて正確な数式オブジェクト (<math><msqrt>...</msqrt></math>) に変換するヘルパー
+    function formatMathRoots(htmlStr) {
+      if (!htmlStr) return '';
+      return htmlStr
+        .replace(/(&radic;|√)(\d+)/g, '<math class="inline-block align-middle"><msqrt><mn>$2</mn></msqrt></math>');
+    }
+
+    function init() {
+      setTheme('light');
+      // 虎の巻テーブル内のルート表記もすべて正確な数式オブジェクトに変換
+      const modal = document.getElementById('cheatSheetModal');
+      if (modal) {
+        modal.innerHTML = formatMathRoots(modal.innerHTML);
+      }
+      // OSのカラースキーム変更監視（自動モード用）
+      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+        if (currentTheme === 'system') applyThemeClass('system');
+      });
+      loadNextQuestion();
+    }
+
+    function setTheme(mode) {
+      currentTheme = mode;
+      applyThemeClass(mode);
+
+      ['light', 'dark', 'system'].forEach(m => {
+        const btn = document.getElementById(`themeBtn-${m}`);
+        if (!btn) return;
+        if (m === mode) {
+          btn.className = 'px-2 py-1 rounded-md text-xs font-bold transition flex items-center gap-1 bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-sm';
+        } else {
+          btn.className = 'px-2 py-1 rounded-md text-xs font-bold transition flex items-center gap-1 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200';
+        }
+      });
+
+      if (currentQuestionObj) {
+        renderTriangleSvg(currentQuestionObj.variants[currentVariantIdx].svgData);
+      }
+    }
+
+    function applyThemeClass(mode) {
+      const root = document.documentElement;
+      if (mode === 'dark') {
+        root.classList.add('dark');
+      } else if (mode === 'light') {
+        root.classList.remove('dark');
+      } else {
+        if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+          root.classList.add('dark');
+        } else {
+          root.classList.remove('dark');
+        }
+      }
+    }
+
+    function selectStage(stageId) {
+      currentStage = stageId;
+      isRevengeMode = false;
+
+      // タブのスタイル更新
+      document.querySelectorAll('.stage-tab').forEach(btn => {
+        btn.className = 'stage-tab px-2.5 py-2 rounded-xl text-xs font-bold transition text-left border bg-slate-50 dark:bg-slate-800/60 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100';
+      });
+      const activeTab = document.getElementById(`tab-${stageId}`);
+      if (activeTab) {
+        activeTab.className = 'stage-tab px-2.5 py-2 rounded-xl text-xs font-bold transition text-left border bg-indigo-600 text-white border-indigo-500 shadow-sm';
+      }
+
+      loadNextQuestion();
+    }
+
+    function startRevengeMode() {
+      if (revengeQueue.length === 0) return;
+      isRevengeMode = true;
+      loadNextQuestion();
+    }
+
+    function loadNextQuestion() {
+      isAnswered = false;
+      showPairs = false;
+
+      // UIリセット
+      document.getElementById('feedbackCard').classList.add('hidden');
+      document.getElementById('feedbackCard').classList.remove('flex');
+      document.getElementById('stepHintBox').classList.add('hidden');
+
+      if (isRevengeMode && revengeQueue.length > 0) {
+        const targetTemplateId = revengeQueue[0];
+        currentQuestionObj = QUESTION_TEMPLATES.find(t => t.templateId === targetTemplateId) || QUESTION_TEMPLATES[0];
+        // リベンジ時は類題（variant 1）を出題
+        currentVariantIdx = currentQuestionObj.variants.length > 1 ? 1 : 0;
+        document.getElementById('revengeIndicator').classList.remove('hidden');
+      } else {
+        isRevengeMode = false;
+        document.getElementById('revengeIndicator').classList.add('hidden');
+        const pool = currentStage === 'all'
+          ? QUESTION_TEMPLATES
+          : QUESTION_TEMPLATES.filter(t => t.stage === currentStage);
+        
+        const randomIndex = Math.floor(Math.random() * pool.length);
+        currentQuestionObj = pool[randomIndex];
+        currentVariantIdx = Math.floor(Math.random() * currentQuestionObj.variants.length);
+      }
+
+      const variant = currentQuestionObj.variants[currentVariantIdx];
+
+      // ヘッダー・問題文表示
+      document.getElementById('qCategoryBadge').textContent = currentQuestionObj.stageName;
+      document.getElementById('qCounterText').textContent = `Question #${questionCount}`;
+      document.getElementById('questionPrompt').innerHTML = formatMathRoots(variant.prompt);
+
+      // 選択肢をシャッフルして描画
+      const shuffledChoices = [...variant.choices].sort(() => Math.random() - 0.5);
+      const grid = document.getElementById('choicesGrid');
+      grid.innerHTML = '';
+
+      shuffledChoices.forEach((choice, idx) => {
+        const btn = document.createElement('button');
+        btn.className = 'choice-btn p-4 rounded-xl border-2 border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/40 hover:border-indigo-500 hover:bg-indigo-50/40 dark:hover:bg-indigo-950/30 text-left font-bold text-base sm:text-lg transition flex items-center justify-between group';
+        btn.innerHTML = `
+          <div class="flex items-center gap-3">
+            <span class="w-7 h-7 rounded-lg bg-slate-200 dark:bg-slate-800 group-hover:bg-indigo-600 group-hover:text-white text-slate-600 dark:text-slate-400 text-xs font-mono flex items-center justify-center transition">
+              ${['A', 'B', 'C', 'D'][idx]}
+            </span>
+            <span>${formatMathRoots(choice.text)}</span>
+          </div>
+          <span class="text-xs text-slate-400 opacity-0 group-hover:opacity-100 transition">選択 &rarr;</span>
+        `;
+        btn.onclick = () => handleAnswer(choice, btn);
+        grid.appendChild(btn);
+      });
+
+      // 図形SVG描画
+      renderTriangleSvg(variant.svgData);
+    }
+
+    function handleAnswer(selectedChoice, btnElement) {
+      if (isAnswered) return;
+      isAnswered = true;
+      showPairs = true; // 回答後は自動でペアの補助線を表示して視覚的理解を促す
+      const variant = currentQuestionObj.variants[currentVariantIdx];
+      renderTriangleSvg(variant.svgData);
+
+      // 全ボタンの無効化と正誤ハイライト
+      document.querySelectorAll('.choice-btn').forEach(b => {
+        b.disabled = true;
+        b.classList.add('opacity-75', 'cursor-default');
+      });
+
+      const feedbackCard = document.getElementById('feedbackCard');
+      const feedbackIcon = document.getElementById('feedbackIcon');
+      const feedbackTitle = document.getElementById('feedbackTitle');
+      const feedbackSubtitle = document.getElementById('feedbackSubtitle');
+      const mistakeBox = document.getElementById('mistakeDiagnosisBox');
+      const mistakeText = document.getElementById('mistakeDiagnosisText');
+
+      feedbackCard.classList.remove('hidden');
+      feedbackCard.classList.add('flex', 'animate-pop');
+
+      if (selectedChoice.isCorrect) {
+        // 正解時
+        btnElement.classList.remove(' opacity-75', 'border-slate-200', 'dark:border-slate-800');
+        btnElement.classList.add('border-emerald-500', 'bg-emerald-500/10', 'text-emerald-700', 'dark:text-emerald-300', 'opacity-100');
+
+        streak++;
+        score += 100 + (streak * 20);
+        updateStatusUI();
+
+        // リベンジモードで正解したらキューから削除
+        if (isRevengeMode) {
+          revengeQueue.shift();
+          updateRevengeUI();
+        }
+
+        feedbackCard.className = 'bg-white dark:bg-slate-900 border-2 border-emerald-500 rounded-2xl p-5 shadow-lg transition-all flex flex-col gap-4 animate-pop';
+        feedbackIcon.className = 'w-10 h-10 rounded-xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-xl font-bold shrink-0';
+        feedbackIcon.textContent = '⭕';
+        feedbackTitle.className = 'text-base sm:text-lg font-extrabold text-emerald-600 dark:text-emerald-400';
+        feedbackTitle.textContent = isRevengeMode ? 'リベンジ達成！弱点を完全に克服しました！' : `大正解！ (${streak}連続コンボ🔥)`;
+        feedbackSubtitle.textContent = '正弦定理のペアと計算手順を正確にマスターしています。';
+        mistakeBox.classList.add('hidden');
+
+      } else {
+        // 不正解時：なぜ間違えたのかを丁寧に診断し、弱点キューに追加
+        btnElement.classList.remove('opacity-75', 'border-slate-200', 'dark:border-slate-800');
+        btnElement.classList.add('border-rose-500', 'bg-rose-500/10', 'text-rose-700', 'dark:text-rose-300', 'opacity-100', 'animate-shake');
+
+        streak = 0;
+        updateStatusUI();
+
+        // 弱点キューに未登録なら追加
+        if (!revengeQueue.includes(currentQuestionObj.templateId)) {
+          revengeQueue.push(currentQuestionObj.templateId);
+          updateRevengeUI();
+        }
+
+        feedbackCard.className = 'bg-white dark:bg-slate-900 border-2 border-rose-500 rounded-2xl p-5 shadow-lg transition-all flex flex-col gap-4 animate-pop';
+        feedbackIcon.className = 'w-10 h-10 rounded-xl bg-rose-500/15 text-rose-600 dark:text-rose-400 flex items-center justify-center text-xl font-bold shrink-0';
+        feedbackIcon.textContent = '💡';
+        feedbackTitle.className = 'text-base sm:text-lg font-extrabold text-rose-600 dark:text-rose-400';
+        feedbackTitle.textContent = '惜しい！ここで原因を掴めば次は必ず解けます！';
+        feedbackSubtitle.textContent = 'このパターンの類題が「🛡️弱点克服」にストックされました。解説を確認しましょう。';
+
+        mistakeBox.classList.remove('hidden');
+        mistakeText.innerHTML = formatMathRoots(selectedChoice.diagnosis);
+      }
+
+      // 3ステップ解説の構築
+      const stepsContainer = document.getElementById('stepByStepExplanation');
+      stepsContainer.innerHTML = variant.steps.map(s => `
+        <div class="p-2.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200/70 dark:border-slate-800">
+          ${formatMathRoots(s)}
+        </div>
+      `).join('');
+
+      document.getElementById('goldenRuleText').textContent = currentQuestionObj.goldenRule;
+    }
+
+    function nextQuestion() {
+      questionCount++;
+      loadNextQuestion();
+    }
+
+    function updateStatusUI() {
+      document.getElementById('streakCount').textContent = streak;
+      document.getElementById('scoreCount').textContent = score;
+
+      const levelBadge = document.getElementById('levelBadge');
+      if (score >= 1200) {
+        levelBadge.textContent = 'Lv.4 正弦定理グランドマスター👑';
+      } else if (score >= 600) {
+        levelBadge.textContent = 'Lv.3 熟練の幾何学士✨';
+      } else if (score >= 250) {
+        levelBadge.textContent = 'Lv.2 一人前の測量士📐';
+      }
+    }
+
+    function updateRevengeUI() {
+      const btn = document.getElementById('revengeModeBtn');
+      const badge = document.getElementById('revengeBadge');
+      badge.textContent = revengeQueue.length;
+      btn.disabled = revengeQueue.length === 0;
+    }
+
+    function showStepHint(level) {
+      const variant = currentQuestionObj.variants[currentVariantIdx];
+      const box = document.getElementById('stepHintBox');
+      box.classList.remove('hidden');
+      if (level === 1) {
+        showPairs = true;
+        renderTriangleSvg(variant.svgData);
+        box.innerHTML = formatMathRoots(`<strong>🔍 ヒント1（ペアと公式）:</strong><br>${variant.hint1}`);
+      } else {
+        box.innerHTML = formatMathRoots(`<strong>📝 ヒント2（立式の形）:</strong><br>${variant.hint2}`);
+      }
+    }
+
+    function togglePairLines() {
+      showPairs = !showPairs;
+      const variant = currentQuestionObj.variants[currentVariantIdx];
+      renderTriangleSvg(variant.svgData);
+    }
+
+    function toggleCheatSheet() {
+      const modal = document.getElementById('cheatSheetModal');
+      if (modal.classList.contains('hidden')) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+      } else {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+      }
+    }
+
+    /* =========================================================================
+       SVG 図形描画エンジン（三角形・外接円・向かい合うペアの補助線）
+       ※外接円の中心・半径R・角度・辺ラベルが絶対に重ならない座標設計
+       ========================================================================= */
+    // SVG内でも屋根付き平方根（数式オブジェクト）を正確に描画するヘルパー
+    function renderSvgSideBadge(cx, cy, labelText, isTarget) {
+      const bgFill = isTarget ? '#fdf2f8' : '#ecfdf5';
+      const strokeCol = isTarget ? '#ec4899' : '#10b981';
+      const textCol = isTarget ? '#db2777' : '#047857';
+
+      return `
+        <g transform="translate(${cx - 34}, ${cy - 13})">
+          <rect x="0" y="0" width="68" height="26" rx="6" fill="${bgFill}" stroke="${strokeCol}" stroke-width="1.5" />
+          <foreignObject x="0" y="0" width="68" height="26">
+            <div xmlns="http://www.w3.org/1999/xhtml" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:bold;color:${textCol};line-height:1;">
+              ${formatMathRoots(labelText)}
+            </div>
+          </foreignObject>
+        </g>
+      `;
+    }
+
+    function renderTriangleSvg(data) {
+      const svg = document.getElementById('triangleSvg');
+      const isDark = document.documentElement.classList.contains('dark');
+
+      // 外接円の中心 O(180, 148)、半径 R = 114
+      // 円周上に3頂点 A(上), B(左下), C(右下) を正確に配置
+      const center = { x: 180, y: 148 };
+      const radius = 114;
+      const ptA = { x: 180, y: 34 };
+      const ptB = { x: 81, y: 205 };
+      const ptC = { x: 279, y: 205 };
+
+      // 各辺の中点座標
+      const midA = { x: (ptB.x + ptC.x) / 2, y: (ptB.y + ptC.y) / 2 }; // 辺a (BC: 下)
+      const midB = { x: (ptA.x + ptC.x) / 2, y: (ptA.y + ptC.y) / 2 }; // 辺b (AC: 右上)
+      const midC = { x: (ptA.x + ptB.x) / 2, y: (ptA.y + ptB.y) / 2 }; // 辺c (AB: 左上)
+
+      const strokeBase = isDark ? '#94a3b8' : '#475569';
+      const vertexFill = isDark ? '#e2e8f0' : '#334155';
+
+      let html = `
+        <defs>
+          <marker id="pairArrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+            <path d="M 0 1 L 8 5 L 0 9 z" fill="#f59e0b" />
+          </marker>
+        </defs>
+      `;
+
+      // 三角形本体
+      html += `
+        <polygon points="${ptA.x},${ptA.y} ${ptB.x},${ptB.y} ${ptC.x},${ptC.y}" 
+          fill="rgba(99, 102, 241, 0.08)" stroke="${strokeBase}" stroke-width="2.5" stroke-linejoin="round" />
+      `;
+
+      // 外接円と半径Rの描画（角Bや角Cと重ならないよう、右上の円周方向へ半径を引き出す）
+      if (data.showCircle) {
+        // 中心(180,148)から右上方向(-28度)の円周上の点へ線を引く（辺bが未表示のStage2/4で完全に空きスペースになる）
+        const radAngle = -28 * (Math.PI / 180);
+        const rimX = center.x + radius * Math.cos(radAngle);
+        const rimY = center.y + radius * Math.sin(radAngle);
+        const rBoxX = (center.x + rimX) / 2 - 28;
+        const rBoxY = (center.y + rimY) / 2 - 24;
+
+        html += `
+          <circle cx="${center.x}" cy="${center.y}" r="${radius}" fill="none" stroke="#6366f1" stroke-width="2" stroke-dasharray="5,4" opacity="0.65" />
+          <line x1="${center.x}" y1="${center.y}" x2="${rimX.toFixed(1)}" y2="${rimY.toFixed(1)}" stroke="#6366f1" stroke-width="2.2" />
+          <circle cx="${center.x}" cy="${center.y}" r="4" fill="#6366f1" />
+          <circle cx="${rimX.toFixed(1)}" cy="${rimY.toFixed(1)}" r="3.5" fill="#6366f1" />
+          <text x="${center.x - 10}" y="${center.y + 4}" font-size="11" font-weight="bold" fill="#6366f1" text-anchor="end">O</text>
+          <rect x="${rBoxX.toFixed(1)}" y="${rBoxY.toFixed(1)}" width="62" height="22" rx="6" fill="#eef2ff" stroke="#6366f1" stroke-width="1.5" />
+          <text x="${(rBoxX + 31).toFixed(1)}" y="${(rBoxY + 15).toFixed(1)}" font-size="12" font-weight="bold" fill="#4338ca" text-anchor="middle">${data.rLabel || 'R'}</text>
+        `;
+      }
+
+      // 向かい合うペアの補助線（ヒント時または回答後）
+      if (showPairs && data.highlightPairs) {
+        data.highlightPairs.forEach((pair, idx) => {
+          const color = idx === 0 ? '#f59e0b' : '#ec4899';
+          if (pair[0] === 'A') {
+            html += `<line x1="${ptA.x}" y1="${ptA.y + 38}" x2="${midA.x}" y2="${midA.y - 6}" stroke="${color}" stroke-width="2.5" class="pair-line" />`;
+          } else if (pair[0] === 'B') {
+            html += `<line x1="${ptB.x + 54}" y1="${ptB.y - 18}" x2="${midB.x - 6}" y2="${midB.y + 6}" stroke="${color}" stroke-width="2.5" class="pair-line" />`;
+          } else if (pair[0] === 'C') {
+            html += `<line x1="${ptC.x - 54}" y1="${ptC.y - 18}" x2="${midC.x + 6}" y2="${midC.y + 6}" stroke="${color}" stroke-width="2.5" class="pair-line" />`;
+          }
+        });
+      }
+
+      // 頂点ラベル A, B, C
+      html += `
+        <circle cx="${ptA.x}" cy="${ptA.y}" r="4" fill="${vertexFill}" />
+        <text x="${ptA.x}" y="${ptA.y - 11}" font-size="15" font-weight="bold" fill="#6366f1" text-anchor="middle">A</text>
+        
+        <circle cx="${ptB.x}" cy="${ptB.y}" r="4" fill="${vertexFill}" />
+        <text x="${ptB.x - 16}" y="${ptB.y + 6}" font-size="15" font-weight="bold" fill="#6366f1" text-anchor="middle">B</text>
+        
+        <circle cx="${ptC.x}" cy="${ptC.y}" r="4" fill="${vertexFill}" />
+        <text x="${ptC.x + 16}" y="${ptC.y + 6}" font-size="15" font-weight="bold" fill="#6366f1" text-anchor="middle">C</text>
+      `;
+
+      // 角度ラベル（三角形の内側コーナー付近にスッキリ配置し、中心のRラベルと干渉させない）
+      if (data.A) {
+        const isTarget = data.A.includes('?');
+        html += `
+          <rect x="${ptA.x - 28}" y="${ptA.y + 14}" width="56" height="22" rx="6" fill="${isTarget ? '#fef2f2' : '#fffbeb'}" stroke="${isTarget ? '#ef4444' : '#f59e0b'}" stroke-width="1.5" />
+          <text x="${ptA.x}" y="${ptA.y + 29}" font-size="12" font-weight="bold" fill="${isTarget ? '#dc2626' : '#b45309'}" text-anchor="middle">${data.A}</text>
+        `;
+      }
+      if (data.B) {
+        const isTarget = data.B.includes('?');
+        html += `
+          <rect x="${ptB.x + 14}" y="${ptB.y - 28}" width="54" height="22" rx="6" fill="${isTarget ? '#fef2f2' : '#fffbeb'}" stroke="${isTarget ? '#ef4444' : '#f59e0b'}" stroke-width="1.5" />
+          <text x="${ptB.x + 41}" y="${ptB.y - 13}" font-size="12" font-weight="bold" fill="${isTarget ? '#dc2626' : '#b45309'}" text-anchor="middle">${data.B}</text>
+        `;
+      }
+      if (data.C) {
+        const isTarget = data.C.includes('?');
+        html += `
+          <rect x="${ptC.x - 68}" y="${ptC.y - 28}" width="54" height="22" rx="6" fill="${isTarget ? '#fef2f2' : '#fffbeb'}" stroke="${isTarget ? '#ef4444' : '#f59e0b'}" stroke-width="1.5" />
+          <text x="${ptC.x - 41}" y="${ptC.y - 13}" font-size="12" font-weight="bold" fill="${isTarget ? '#dc2626' : '#b45309'}" text-anchor="middle">${data.C}</text>
+        `;
+      }
+
+      // 辺の長さラベル a(下), b(右上外側), c(左上外側) - すべて屋根付きの数式オブジェクトで描画
+      if (data.a) {
+        html += renderSvgSideBadge(midA.x, midA.y + 22, data.a, data.a.includes('?'));
+      }
+      if (data.b) {
+        html += renderSvgSideBadge(midB.x + 46, midB.y - 8, data.b, data.b.includes('?'));
+      }
+      if (data.c) {
+        html += renderSvgSideBadge(midC.x - 46, midC.y - 8, data.c, data.c.includes('?'));
+      }
+
+      svg.innerHTML = html;
+    }
+
+    window.onload = init;
+  </script>
+</body>
+</html>

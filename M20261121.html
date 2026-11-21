@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>二次関数ジェットコースター・設計シミュレーター</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter & Noto Sans JP -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', 'Noto Sans JP', sans-serif;
+            background-color: #f8fafc;
+            color: #1e293b;
+        }
+        /* カスタムスライダーのスタイル */
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 22px;
+            width: 22px;
+            border-radius: 50%;
+            background: #2563eb;
+            cursor: pointer;
+            margin-top: -8px;
+            box-shadow: 0 2px 6px rgba(37, 99, 235, 0.4);
+            transition: transform 0.1s;
+        }
+        input[type=range]::-webkit-slider-thumb:hover {
+            transform: scale(1.15);
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 6px;
+            cursor: pointer;
+            background: #cbd5e1;
+            border-radius: 999px;
+        }
+        canvas {
+            touch-action: none;
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- ヘッダー -->
+    <header class="bg-gradient-to-r from-blue-700 to-indigo-800 text-white shadow-md">
+        <div class="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8 flex flex-wrap items-center justify-between gap-4">
+            <div class="flex items-center space-x-3">
+                <div class="bg-white/20 p-2.5 rounded-xl backdrop-blur-sm">
+                    <i class="fa-solid fa-roller-coaster text-2xl text-amber-300"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg sm:text-xl font-bold tracking-tight">二次関数ジェットコースター・設計シミュレーター</h1>
+                    <p class="text-xs sm:text-sm text-blue-100">数学Ⅰ「二次関数」探究授業用ツール（1単位 ＝ 実際の 5cm）</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <button id="presetBtn" class="bg-amber-400 hover:bg-amber-300 text-slate-900 font-bold py-2 px-4 rounded-xl text-sm shadow transition flex items-center gap-2">
+                    <i class="fa-solid fa-flag-checkered"></i>
+                    <span>基本ミッション設定 (a=0.5)</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- メインコンテンツ -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 py-6 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- 左側：グラフ＆シミュレーションキャンバス (7カラム) -->
+        <div class="lg:col-span-7 flex flex-col gap-4">
+            <!-- ステータスバナー -->
+            <div id="statusBanner" class="bg-white border-l-4 border-blue-500 p-4 rounded-xl shadow-sm flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <i id="statusIcon" class="fa-solid fa-circle-info text-blue-500 text-xl"></i>
+                    <div>
+                        <p id="statusTitle" class="font-bold text-slate-800 text-sm sm:text-base">コースを設計してビー玉を転がそう！</p>
+                        <p id="statusDesc" class="text-xs sm:text-sm text-slate-500">係数 a とスタート・ゴールの位置を調整して「スタート」を押してください。</p>
+                    </div>
+                </div>
+                <div class="text-right hidden sm:block">
+                    <span class="text-xs font-semibold text-slate-400 block">現在の数式</span>
+                    <span id="formulaDisplay" class="text-lg font-bold text-blue-700 font-mono">y = 0.50x²</span>
+                </div>
+            </div>
+
+            <!-- キャンバスエリア -->
+            <div class="bg-white rounded-2xl shadow-md border border-slate-200 p-3 sm:p-4 relative flex flex-col">
+                <div class="flex justify-between items-center mb-2 px-1">
+                    <div class="flex items-center gap-4 text-xs sm:text-sm font-medium">
+                        <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-emerald-500 inline-block"></span>スタート</span>
+                        <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-rose-500 inline-block"></span>ゴール</span>
+                        <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-amber-500 inline-block shadow"></span>ビー玉</span>
+                    </div>
+                    <div class="text-xs text-slate-500 bg-slate-100 px-2.5 py-1 rounded-lg font-mono">
+                        速度: <span id="speedDisplay" class="font-bold text-slate-800">0.00</span> m/s
+                    </div>
+                </div>
+                
+                <div id="canvasContainer" class="w-full h-[320px] sm:h-[400px] relative rounded-xl overflow-hidden bg-slate-50 border border-slate-200">
+                    <canvas id="simCanvas"></canvas>
+                </div>
+
+                <!-- 再生コントロールボタン -->
+                <div class="grid grid-cols-3 gap-3 mt-4">
+                    <button id="playBtn" class="col-span-2 bg-blue-600 hover:bg-blue-700 active:scale-[0.99] text-white font-bold py-3 px-4 rounded-xl shadow-md transition flex items-center justify-center gap-2 text-base">
+                        <i class="fa-solid fa-play"></i>
+                        <span id="playBtnText">ビー玉を転がす（スタート）</span>
+                    </button>
+                    <button id="resetBtn" class="bg-slate-200 hover:bg-slate-300 active:scale-[0.99] text-slate-700 font-bold py-3 px-4 rounded-xl transition flex items-center justify-center gap-2 text-base">
+                        <i class="fa-solid fa-rotate-left"></i>
+                        <span>リセット</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 生徒の気づき・AI質問プロンプト生成カード -->
+            <div class="bg-indigo-50 border border-indigo-100 rounded-2xl p-4 sm:p-5">
+                <div class="flex items-center justify-between mb-2">
+                    <h3 class="font-bold text-indigo-950 text-sm sm:text-base flex items-center gap-2">
+                        <i class="fa-solid fa-robot text-indigo-600"></i>
+                        <span>探究サポート：AIにヒントをもらう質問文</span>
+                    </h3>
+                    <button id="copyPromptBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold py-1.5 px-3 rounded-lg transition flex items-center gap-1.5">
+                        <i class="fa-regular fa-copy"></i>
+                        <span>質問文をコピー</span>
+                    </button>
+                </div>
+                <p id="aiPromptText" class="text-xs sm:text-sm text-indigo-900 bg-white/80 p-3 rounded-xl border border-indigo-200/60 leading-relaxed select-all">
+                    私たちは高校数学Ⅰの二次関数を使って、ビー玉用のジェットコースターを作っています。コースの谷の部分を y = 0.5x² で設計しました。スタートは x = -2、ゴールは x = 1.5 です。ビー玉が途中で止まる可能性について、答えをすぐに教えず、私たちが原因を考えられるように3つの質問をしてください。
+                </p>
+                <p id="copyFeedback" class="text-xs text-emerald-600 font-bold mt-1.5 hidden">
+                    <i class="fa-solid fa-check"></i> クリップボードにコピーしました！生成AIに貼り付けて質問してみよう。
+                </p>
+            </div>
+        </div>
+
+        <!-- 右側：設計パラメータ＆工作用データ表 (5カラム) -->
+        <div class="lg:col-span-5 flex flex-col gap-5">
+            
+            <!-- パラメータ操作パネル -->
+            <div class="bg-white rounded-2xl shadow-md border border-slate-200 p-5">
+                <h2 class="font-bold text-slate-800 text-base sm:text-lg mb-4 flex items-center gap-2 border-b pb-2.5">
+                    <i class="fa-solid fa-sliders text-blue-600"></i>
+                    <span>1. コースの形を数式で設計する</span>
+                </h2>
+
+                <!-- 係数 a -->
+                <div class="mb-5">
+                    <div class="flex justify-between items-center mb-1.5">
+                        <label for="paramA" class="font-bold text-sm text-slate-700">
+                            グラフの開き具合（係数 <span class="text-blue-600 font-mono text-base">a</span>）
+                        </label>
+                        <span id="valA" class="bg-blue-100 text-blue-800 font-mono font-bold px-2.5 py-0.5 rounded-lg text-sm">0.50</span>
+                    </div>
+                    <input type="range" id="paramA" min="0.1" max="1.5" step="0.05" value="0.5">
+                    <div class="flex justify-between text-xs text-slate-400 mt-1">
+                        <span>0.1 (ゆるやか)</span>
+                        <span>0.5 (標準)</span>
+                        <span>1.5 (急な谷)</span>
+                    </div>
+                    <!-- クイック選択ボタン（授業案第1時用） -->
+                    <div class="grid grid-cols-3 gap-2 mt-2.5">
+                        <button type="button" onclick="setA(0.2)" class="text-xs bg-slate-100 hover:bg-blue-50 hover:text-blue-700 border border-slate-200 py-1.5 rounded-lg font-mono font-semibold transition">y = 0.2x²</button>
+                        <button type="button" onclick="setA(0.5)" class="text-xs bg-slate-100 hover:bg-blue-50 hover:text-blue-700 border border-slate-200 py-1.5 rounded-lg font-mono font-semibold transition">y = 0.5x²</button>
+                        <button type="button" onclick="setA(1.0)" class="text-xs bg-slate-100 hover:bg-blue-50 hover:text-blue-700 border border-slate-200 py-1.5 rounded-lg font-mono font-semibold transition">y = x²</button>
+                    </div>
+                </div>
+
+                <!-- スタート位置 x_start -->
+                <div class="mb-5">
+                    <div class="flex justify-between items-center mb-1.5">
+                        <label for="paramStart" class="font-bold text-sm text-slate-700">
+                            スタート位置 (<span class="text-emerald-600 font-mono">x</span> 座標)
+                        </label>
+                        <div class="text-right">
+                            <span id="valStart" class="bg-emerald-100 text-emerald-800 font-mono font-bold px-2.5 py-0.5 rounded-lg text-sm">x = -2.0</span>
+                            <span id="heightStartCm" class="text-xs text-slate-500 ml-1">(高さ 10.0cm)</span>
+                        </div>
+                    </div>
+                    <input type="range" id="paramStart" min="-3.0" max="-0.5" step="0.1" value="-2.0">
+                </div>
+
+                <!-- ゴール位置 x_goal -->
+                <div class="mb-5">
+                    <div class="flex justify-between items-center mb-1.5">
+                        <label for="paramGoal" class="font-bold text-sm text-slate-700">
+                            ゴール位置 (<span class="text-rose-600 font-mono">x</span> 座標)
+                        </label>
+                        <div class="text-right">
+                            <span id="valGoal" class="bg-rose-100 text-rose-800 font-mono font-bold px-2.5 py-0.5 rounded-lg text-sm">x = 1.5</span>
+                            <span id="heightGoalCm" class="text-xs text-slate-500 ml-1">(高さ 5.6cm)</span>
+                        </div>
+                    </div>
+                    <input type="range" id="paramGoal" min="0.5" max="3.0" step="0.1" value="1.5">
+                </div>
+
+                <!-- 摩擦（現実の条件）の切り替え -->
+                <div class="pt-3 border-t border-slate-100">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="font-bold text-sm text-slate-700 flex items-center gap-1.5">
+                            <i class="fa-solid fa-wind text-slate-400"></i>
+                            <span>現実の条件（レールの摩擦・抵抗）</span>
+                        </span>
+                        <select id="frictionSelect" class="bg-slate-100 border border-slate-300 text-slate-800 text-xs sm:text-sm rounded-lg px-2.5 py-1.5 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="0">なし（理想の数学世界）</option>
+                            <option value="0.08" selected>あり・標準（厚紙レール）</option>
+                            <option value="0.18">あり・大きめ（継ぎ目・凹凸あり）</option>
+                        </select>
+                    </div>
+                    <p class="text-xs text-slate-500 leading-relaxed">
+                        ※「摩擦なし」ではスタートと同じ高さまで必ず上りますが、実際の工作では摩擦によってエネルギーが失われます。
+                    </p>
+                </div>
+            </div>
+
+            <!-- 工作用 設計データ表（1単位 = 5cm） -->
+            <div class="bg-white rounded-2xl shadow-md border border-slate-200 p-5 flex-grow">
+                <div class="flex items-center justify-between mb-3 border-b pb-2.5">
+                    <h2 class="font-bold text-slate-800 text-base sm:text-lg flex items-center gap-2">
+                        <i class="fa-solid fa-ruler-combined text-amber-500"></i>
+                        <span>2. 制作のための設計図データ</span>
+                    </h2>
+                    <span class="text-xs bg-amber-100 text-amber-800 font-bold px-2 py-1 rounded-md">1目盛り ＝ 5cm</span>
+                </div>
+                
+                <p class="text-xs text-slate-500 mb-3">
+                    最も低い場所（頂点 x=0）を基準（0cm）としたときの、各位置での支柱の高さです。
+                </p>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-600 text-xs uppercase">
+                                <th class="py-2 px-3 rounded-tl-lg">横の位置 (x)</th>
+                                <th class="py-2 px-3">グラフの高さ (y)</th>
+                                <th class="py-2 px-3 rounded-tr-lg text-right">実際の高さ (×5cm)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="designTableBody" class="divide-y divide-slate-100 font-mono text-xs sm:text-sm">
+                            <!-- JSで動的に生成 -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        // ==========================================
+        // 状態管理と定数
+        // ==========================================
+        const SCALE_CM = 5.0; // グラフ1単位 = 5cm
+        const GRAVITY = 9.8;  // 重力加速度 (m/s^2)
+
+        const state = {
+            a: 0.5,
+            xStart: -2.0,
+            xGoal: 1.5,
+            friction: 0.08, // 動摩擦係数相当の減衰パラメータ
+            
+            // シミュレーション状態
+            isRunning: false,
+            isFinished: false,
+            ballX: -2.0,
+            ballV: 0.0, // 接線方向の速度 (単位/秒)
+            resultStatus: 'ready', // 'ready', 'running', 'goal', 'stopped'
+            maxReachedX: -2.0,
+            goalPassed: false,
+            goalPassSpeed: 0.0
+        };
+
+        // DOM要素の取得
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+        const container = document.getElementById('canvasContainer');
+
+        const paramA = document.getElementById('paramA');
+        const paramStart = document.getElementById('paramStart');
+        const paramGoal = document.getElementById('paramGoal');
+        const frictionSelect = document.getElementById('frictionSelect');
+
+        const valA = document.getElementById('valA');
+        const valStart = document.getElementById('valStart');
+        const valGoal = document.getElementById('valGoal');
+        const heightStartCm = document.getElementById('heightStartCm');
+        const heightGoalCm = document.getElementById('heightGoalCm');
+        const formulaDisplay = document.getElementById('formulaDisplay');
+        const speedDisplay = document.getElementById('speedDisplay');
+
+        const playBtn = document.getElementById('playBtn');
+        const playBtnText = document.getElementById('playBtnText');
+        const resetBtn = document.getElementById('resetBtn');
+        const presetBtn = document.getElementById('presetBtn');
+
+        const statusBanner = document.getElementById('statusBanner');
+        const statusIcon = document.getElementById('statusIcon');
+        const statusTitle = document.getElementById('statusTitle');
+        const statusDesc = document.getElementById('statusDesc');
+
+        const designTableBody = document.getElementById('designTableBody');
+        const aiPromptText = document.getElementById('aiPromptText');
+        const copyPromptBtn = document.getElementById('copyPromptBtn');
+        const copyFeedback = document.getElementById('copyFeedback');
+
+        // ==========================================
+        // 数学関数 & 物理計算
+        // ==========================================
+        function f(x) {
+            return state.a * x * x;
+        }
+
+        function df(x) {
+            return 2 * state.a * x;
+        }
+
+        // ==========================================
+        // UI更新とデータ表生成
+        // ==========================================
+        function updateUI() {
+            valA.textContent = state.a.toFixed(2);
+            valStart.textContent = `x = ${state.xStart.toFixed(1)}`;
+            valGoal.textContent = `x = ${state.xGoal.toFixed(1)}`;
+
+            const startY = f(state.xStart);
+            const goalY = f(state.xGoal);
+
+            heightStartCm.textContent = `(高さ ${(startY * SCALE_CM).toFixed(1)}cm)`;
+            heightGoalCm.textContent = `(高さ ${(goalY * SCALE_CM).toFixed(1)}cm)`;
+
+            formulaDisplay.textContent = `y = ${state.a === 1 ? '' : state.a.toFixed(2)}x²`;
+
+            updateDesignTable();
+            updateAIPrompt();
+            updateBanner();
+        }
+
+        function updateDesignTable() {
+            const points = new Set([-2, -1, 0, 1, 2, state.xStart, state.xGoal]);
+            const sortedPoints = Array.from(points).sort((a, b) => a - b);
+
+            designTableBody.innerHTML = '';
+            sortedPoints.forEach(x => {
+                const y = f(x);
+                const cm = y * SCALE_CM;
+                
+                let badge = '';
+                let rowClass = 'hover:bg-slate-50';
+                if (Math.abs(x - state.xStart) < 0.01) {
+                    badge = '<span class="ml-1.5 text-[10px] bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded font-sans font-bold">スタート</span>';
+                    rowClass = 'bg-emerald-50/40 font-semibold';
+                } else if (Math.abs(x - state.xGoal) < 0.01) {
+                    badge = '<span class="ml-1.5 text-[10px] bg-rose-100 text-rose-800 px-1.5 py-0.5 rounded font-sans font-bold">ゴール</span>';
+                    rowClass = 'bg-rose-50/40 font-semibold';
+                } else if (x === 0) {
+                    badge = '<span class="ml-1.5 text-[10px] bg-slate-200 text-slate-700 px-1.5 py-0.5 rounded font-sans">最下点</span>';
+                }
+
+                const tr = document.createElement('tr');
+                tr.className = rowClass;
+                tr.innerHTML = `
+                    <td class="py-2 px-3 text-slate-800">${x.toFixed(1)}${badge}</td>
+                    <td class="py-2 px-3 text-slate-600">${y.toFixed(2)}</td>
+                    <td class="py-2 px-3 text-right font-bold text-blue-700">${cm.toFixed(1)} cm</td>
+                `;
+                designTableBody.appendChild(tr);
+            });
+        }
+
+        function updateAIPrompt() {
+            const aStr = state.a === 1 ? 'y = x²' : `y = ${state.a}x²`;
+            aiPromptText.textContent = `私たちは高校数学Ⅰの二次関数を使って、ビー玉用のジェットコースターを作っています。コースの谷の部分を ${aStr} で設計しました。スタートは x = ${state.xStart}、ゴールは x = ${state.xGoal} です。ビー玉が途中で止まる可能性について、答えをすぐに教えず、私たちが原因を考えられるように3つの質問をしてください。`;
+        }
+
+        function updateBanner() {
+            statusBanner.className = 'bg-white border-l-4 p-4 rounded-xl shadow-sm flex items-center justify-between transition-colors duration-300';
+            
+            if (state.resultStatus === 'ready') {
+                statusBanner.classList.add('border-blue-500');
+                statusIcon.className = 'fa-solid fa-circle-info text-blue-500 text-xl';
+                statusTitle.textContent = '準備完了：ビー玉を転がしてみよう！';
+                statusDesc.textContent = `スタート高さ ${(f(state.xStart)*SCALE_CM).toFixed(1)}cm からゴール高さ ${(f(state.xGoal)*SCALE_CM).toFixed(1)}cm を目指します。`;
+            } else if (state.resultStatus === 'running') {
+                statusBanner.classList.add('border-amber-500');
+                statusIcon.className = 'fa-solid fa-spinner fa-spin text-amber-500 text-xl';
+                statusTitle.textContent = '走行中...';
+                statusDesc.textContent = '谷を下って位置エネルギーが運動エネルギーに変わっています！';
+            } else if (state.resultStatus === 'goal') {
+                const excessX = Math.max(0, state.maxReachedX - state.xGoal);
+                const isOverspeed = state.goalPassSpeed > 0.6;
+                
+                if (isOverspeed) {
+                    statusBanner.classList.add('border-amber-500', 'bg-amber-50/40');
+                    statusIcon.className = 'fa-solid fa-gauge-high text-amber-500 text-xl';
+                    statusTitle.textContent = `🚀 ゴール通過！（勢い余ってオーバーラン: 通過速度 ${state.goalPassSpeed.toFixed(2)} m/s）`;
+                    statusDesc.textContent = `ゴール後も x = ${state.maxReachedX.toFixed(2)} まで駆け上がりました。実物ならコースアウトするかも？ギリギリで止まる設計に挑戦しよう！`;
+                } else {
+                    statusBanner.classList.add('border-emerald-500', 'bg-emerald-50/30');
+                    statusIcon.className = 'fa-solid fa-circle-check text-emerald-500 text-xl';
+                    statusTitle.textContent = `🎉 ナイスゴール！（通過速度 ${state.goalPassSpeed.toFixed(2)} m/s）`;
+                    statusDesc.textContent = `ちょうど良いスピードで x = ${state.xGoal.toFixed(1)} のゴールに到達しました！（最高到達点: x = ${state.maxReachedX.toFixed(2)}）`;
+                }
+            } else if (state.resultStatus === 'stopped') {
+                statusBanner.classList.add('border-rose-500', 'bg-rose-50/30');
+                statusIcon.className = 'fa-solid fa-triangle-exclamation text-rose-500 text-xl';
+                statusTitle.textContent = '⚠️ 途中で止まってしまいました！';
+                statusDesc.textContent = `最高到達点は x = ${state.maxReachedX.toFixed(2)} でした。なぜ届かなかったのか、数式や摩擦を見直してみよう！`;
+            }
+        }
+
+        // ==========================================
+        // シミュレーション制御
+        // ==========================================
+        function resetSimulation() {
+            state.isRunning = false;
+            state.isFinished = false;
+            state.ballX = state.xStart;
+            state.ballV = 0.0;
+            state.maxReachedX = state.xStart;
+            state.goalPassed = false;
+            state.goalPassSpeed = 0.0;
+            state.resultStatus = 'ready';
+            playBtnText.textContent = 'ビー玉を転がす（スタート）';
+            playBtn.classList.remove('bg-amber-600', 'hover:bg-amber-700');
+            playBtn.classList.add('bg-blue-600', 'hover:bg-blue-700');
+            speedDisplay.textContent = '0.00';
+            updateUI();
+            draw();
+        }
+
+        function startSimulation() {
+            if (state.isRunning) {
+                state.isRunning = false;
+                playBtnText.textContent = '再開する';
+                return;
+            }
+            if (state.isFinished) {
+                resetSimulation();
+            }
+            state.isRunning = true;
+            state.resultStatus = 'running';
+            playBtnText.textContent = '一時停止';
+            playBtn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+            playBtn.classList.add('bg-amber-600', 'hover:bg-amber-700');
+            updateBanner();
+        }
+
+        // 物理ステップ更新
+        function stepPhysics(dt) {
+            if (!state.isRunning) return;
+
+            const subSteps = 20;
+            const subDt = dt / subSteps;
+            const gScaled = GRAVITY * 0.8;
+
+            for (let i = 0; i < subSteps; i++) {
+                const slope = df(state.ballX);
+                const sinTheta = slope / Math.sqrt(1 + slope * slope);
+                const cosTheta = 1 / Math.sqrt(1 + slope * slope);
+
+                if (state.friction === 0) {
+                    // 【理想の数学世界】力学的エネルギー保存則を厳密に適用
+                    const yStart = f(state.xStart);
+                    const yCurr = f(state.ballX);
+                    const deltaY = yStart - yCurr;
+
+                    if (deltaY <= 0 && state.ballX > 0) {
+                        // スタートと全く同じ高さ（x = -xStart）に到達したら速度0にして反転
+                        state.ballX = -state.xStart;
+                        state.ballV = -0.03;
+                    } else {
+                        // v = sqrt(2 * g * deltaY) に基づき速度を更新
+                        const dir = state.ballV >= 0 ? 1 : -1;
+                        const speed = Math.sqrt(Math.max(0, 2 * gScaled * deltaY));
+                        // 初期始動用の微小速度を保証
+                        state.ballV = dir * Math.max(speed, state.ballX < 0 ? 0.05 : 0);
+                    }
+                } else {
+                    // 【現実の条件】摩擦ありの運動方程式
+                    let accel = -gScaled * sinTheta;
+
+                    if (Math.abs(state.ballV) > 0.0001) {
+                        const frictionAccel = state.friction * gScaled * cosTheta;
+                        if (state.ballV > 0) {
+                            accel -= frictionAccel;
+                        } else {
+                            accel += frictionAccel;
+                        }
+                    }
+
+                    state.ballV += accel * subDt;
+                    state.ballV *= (1 - 0.05 * subDt);
+                }
+
+                const dx = state.ballV * cosTheta * subDt;
+                state.ballX += dx;
+
+                if (state.ballX > state.maxReachedX) {
+                    state.maxReachedX = state.ballX;
+                }
+
+                // ゴール通過判定（止めずに通過させる）
+                if (!state.goalPassed && state.ballX >= state.xGoal) {
+                    state.goalPassed = true;
+                    state.goalPassSpeed = Math.abs(state.ballV) * (SCALE_CM / 100) * 3.5;
+                    state.resultStatus = 'goal';
+                    updateBanner();
+                }
+
+                // 最高到達点に達して速度が0になり、逆走し始めたタイミングでシミュレーション終了
+                if (state.ballX > state.xStart + 0.1 && state.ballV < -0.02) {
+                    state.isRunning = false;
+                    state.isFinished = true;
+                    if (!state.goalPassed) {
+                        state.resultStatus = 'stopped';
+                    }
+                    playBtnText.textContent = 'もう一度転がす';
+                    playBtn.classList.remove('bg-amber-600', 'hover:bg-amber-700');
+                    playBtn.classList.add('bg-blue-600', 'hover:bg-blue-700');
+                    updateBanner();
+                    break;
+                }
+
+                // 画面外（x > 3.5）まで勢いよく飛び出した場合
+                if (state.ballX >= 3.5) {
+                    state.ballX = 3.5;
+                    state.isRunning = false;
+                    state.isFinished = true;
+                    state.resultStatus = 'goal';
+                    playBtnText.textContent = 'もう一度転がす';
+                    playBtn.classList.remove('bg-amber-600', 'hover:bg-amber-700');
+                    playBtn.classList.add('bg-blue-600', 'hover:bg-blue-700');
+                    updateBanner();
+                    break;
+                }
+            }
+
+            const realSpeedMs = Math.abs(state.ballV) * (SCALE_CM / 100) * 3.5;
+            speedDisplay.textContent = realSpeedMs.toFixed(2);
+        }
+
+        // ==========================================
+        // キャンバス描画処理
+        // ==========================================
+        function resizeCanvas() {
+            const rect = container.getBoundingClientRect();
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = rect.width * dpr;
+            canvas.height = rect.height * dpr;
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+            ctx.scale(dpr, dpr);
+            draw();
+        }
+
+        function draw() {
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+            if (width === 0 || height === 0) return;
+
+            ctx.clearRect(0, 0, width, height);
+
+            const xMin = -3.5;
+            const xMax = 3.5;
+            const yMin = -0.6;
+            const yMax = 5.5;
+
+            const toScreenX = (x) => ((x - xMin) / (xMax - xMin)) * width;
+            const toScreenY = (y) => height - ((y - yMin) / (yMax - yMin)) * height;
+
+            // 1. グリッド線（方眼紙風）の描画
+            for (let gx = Math.ceil(xMin); gx <= Math.floor(xMax); gx++) {
+                const sx = toScreenX(gx);
+                ctx.strokeStyle = gx === 0 ? '#94a3b8' : '#e2e8f0';
+                ctx.lineWidth = gx === 0 ? 1.5 : 1;
+                ctx.beginPath();
+                ctx.moveTo(sx, 0);
+                ctx.lineTo(sx, height);
+                ctx.stroke();
+
+                if (gx !== 0) {
+                    ctx.fillStyle = '#64748b';
+                    ctx.font = '11px Inter, sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(gx.toString(), sx, toScreenY(0) + 15);
+                }
+            }
+
+            for (let gy = 0; gy <= Math.floor(yMax); gy++) {
+                const sy = toScreenY(gy);
+                ctx.strokeStyle = gy === 0 ? '#94a3b8' : '#e2e8f0';
+                ctx.lineWidth = gy === 0 ? 1.5 : 1;
+                ctx.beginPath();
+                ctx.moveTo(0, sy);
+                ctx.lineTo(width, sy);
+                ctx.stroke();
+
+                if (gy > 0) {
+                    ctx.fillStyle = '#64748b';
+                    ctx.font = '11px Inter, sans-serif';
+                    ctx.textAlign = 'right';
+                    ctx.fillText(`${gy} (${gy * 5}cm)`, toScreenX(0) - 6, sy + 4);
+                }
+            }
+
+            ctx.fillStyle = '#475569';
+            ctx.font = 'bold 11px Inter, sans-serif';
+            ctx.textAlign = 'right';
+            ctx.fillText('0', toScreenX(0) - 6, toScreenY(0) + 14);
+
+            // 2. 放物線全体（薄い点線ガイド）
+            ctx.save();
+            ctx.strokeStyle = '#cbd5e1';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            for (let px = xMin; px <= xMax; px += 0.05) {
+                const sx = toScreenX(px);
+                const sy = toScreenY(f(px));
+                if (px === xMin) ctx.moveTo(sx, sy);
+                else ctx.lineTo(sx, sy);
+            }
+            ctx.stroke();
+            ctx.restore();
+
+            // 3. 実際のコース区間 [xStart, xGoal] のレール描画
+            ctx.save();
+            ctx.fillStyle = 'rgba(37, 99, 235, 0.08)';
+            ctx.beginPath();
+            ctx.moveTo(toScreenX(state.xStart), toScreenY(0));
+            for (let px = state.xStart; px <= state.xGoal; px += 0.02) {
+                ctx.lineTo(toScreenX(px), toScreenY(f(px)));
+            }
+            ctx.lineTo(toScreenX(state.xGoal), toScreenY(f(state.xGoal)));
+            ctx.lineTo(toScreenX(state.xGoal), toScreenY(0));
+            ctx.closePath();
+            ctx.fill();
+            ctx.restore();
+
+            ctx.save();
+            ctx.strokeStyle = '#2563eb';
+            ctx.lineWidth = 5;
+            ctx.lineCap = 'round';
+            ctx.beginPath();
+            for (let px = state.xStart; px <= state.xGoal; px += 0.02) {
+                const sx = toScreenX(px);
+                const sy = toScreenY(f(px));
+                if (px === state.xStart) ctx.moveTo(sx, sy);
+                else ctx.lineTo(sx, sy);
+            }
+            ctx.lineTo(toScreenX(state.xGoal), toScreenY(f(state.xGoal)));
+            ctx.stroke();
+            ctx.restore();
+
+            // 4. スタート地点とゴール地点のマーカー・支柱線
+            drawPointMarker(toScreenX(state.xStart), toScreenY(f(state.xStart)), toScreenY(0), '#10b981', 'START', `${(f(state.xStart)*SCALE_CM).toFixed(1)}cm`);
+            drawPointMarker(toScreenX(state.xGoal), toScreenY(f(state.xGoal)), toScreenY(0), '#f43f5e', 'GOAL', `${(f(state.xGoal)*SCALE_CM).toFixed(1)}cm`);
+
+            // 最高到達点マーカー（ゴール通過後にオーバーランした場合に表示）
+            if (state.isFinished && state.goalPassed && state.maxReachedX > state.xGoal + 0.05) {
+                const maxSx = toScreenX(state.maxReachedX);
+                const maxSy = toScreenY(f(state.maxReachedX));
+                ctx.save();
+                ctx.fillStyle = '#f59e0b';
+                ctx.beginPath();
+                ctx.arc(maxSx, maxSy, 4, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.font = 'bold 10px Inter, sans-serif';
+                ctx.textAlign = 'left';
+                ctx.fillText(`最高到達点 (x=${state.maxReachedX.toFixed(2)})`, maxSx + 8, maxSy + 4);
+                ctx.restore();
+            }
+
+            // 5. ビー玉の描画
+            const bx = toScreenX(state.ballX);
+            const by = toScreenY(f(state.ballX));
+            const slope = df(state.ballX);
+            const angle = Math.atan(slope);
+            const radius = 10;
+
+            const nx = Math.sin(angle);
+            const ny = Math.cos(angle);
+            const ballScreenX = bx + nx * (radius * 0.6);
+            const ballScreenY = by - ny * (radius + 2);
+
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(ballScreenX + 2, ballScreenY + 3, radius, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(0,0,0,0.2)';
+            ctx.fill();
+
+            const grad = ctx.createRadialGradient(ballScreenX - 3, ballScreenY - 3, 2, ballScreenX, ballScreenY, radius);
+            grad.addColorStop(0, '#fef08a');
+            grad.addColorStop(0.4, '#f59e0b');
+            grad.addColorStop(1, '#b45309');
+
+            ctx.beginPath();
+            ctx.arc(ballScreenX, ballScreenY, radius, 0, Math.PI * 2);
+            ctx.fillStyle = grad;
+            ctx.fill();
+            ctx.strokeStyle = '#78350f';
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        function drawPointMarker(sx, sy, baseY, color, label, heightText) {
+            ctx.save();
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 1.5;
+            ctx.setLineDash([3, 3]);
+            ctx.beginPath();
+            ctx.moveTo(sx, sy);
+            ctx.lineTo(sx, baseY);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.arc(sx, sy, 6, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            ctx.font = 'bold 11px Inter, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillStyle = color;
+            ctx.fillText(label, sx, sy - 24);
+            ctx.fillStyle = '#334155';
+            ctx.fillText(heightText, sx, sy - 11);
+            ctx.restore();
+        }
+
+        // ==========================================
+        // アニメーションループ
+        // ==========================================
+        let lastTime = 0;
+        function animate(timestamp) {
+            if (!lastTime) lastTime = timestamp;
+            const dt = Math.min((timestamp - lastTime) / 1000, 0.05);
+            lastTime = timestamp;
+
+            if (state.isRunning) {
+                stepPhysics(dt);
+                draw();
+            }
+
+            requestAnimationFrame(animate);
+        }
+
+        // ==========================================
+        // イベントリスナー
+        // ==========================================
+        function setA(val) {
+            paramA.value = val;
+            state.a = parseFloat(val);
+            resetSimulation();
+        }
+
+        paramA.addEventListener('input', (e) => {
+            state.a = parseFloat(e.target.value);
+            resetSimulation();
+        });
+
+        paramStart.addEventListener('input', (e) => {
+            state.xStart = parseFloat(e.target.value);
+            resetSimulation();
+        });
+
+        paramGoal.addEventListener('input', (e) => {
+            state.xGoal = parseFloat(e.target.value);
+            resetSimulation();
+        });
+
+        frictionSelect.addEventListener('change', (e) => {
+            state.friction = parseFloat(e.target.value);
+            resetSimulation();
+        });
+
+        playBtn.addEventListener('click', startSimulation);
+        resetBtn.addEventListener('click', resetSimulation);
+
+        presetBtn.addEventListener('click', () => {
+            paramA.value = 0.5;
+            paramStart.value = -2.0;
+            paramGoal.value = 1.5;
+            frictionSelect.value = "0.08";
+
+            state.a = 0.5;
+            state.xStart = -2.0;
+            state.xGoal = 1.5;
+            state.friction = 0.08;
+            resetSimulation();
+        });
+
+        copyPromptBtn.addEventListener('click', () => {
+            const textArea = document.createElement('textarea');
+            textArea.value = aiPromptText.textContent;
+            document.body.appendChild(textArea);
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                copyFeedback.classList.remove('hidden');
+                setTimeout(() => {
+                    copyFeedback.classList.add('hidden');
+                }, 4000);
+            } catch (err) {
+                console.error('Copy failed', err);
+            }
+            document.body.removeChild(textArea);
+        });
+
+        window.addEventListener('resize', resizeCanvas);
+
+        // 初期化（DOM準備完了後に確実に実行）
+        function init() {
+            resizeCanvas();
+            resetSimulation();
+            requestAnimationFrame(animate);
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+    </script>
+</body>
+</html>

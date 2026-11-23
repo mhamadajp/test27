@@ -1,0 +1,2120 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>数学検定3級・準2級 完全攻略＆類題マスター道場</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Noto+Sans+JP:wght@400;500;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      font-family: 'Inter', 'Noto Sans JP', sans-serif;
+    }
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    @keyframes popIn {
+      0% { transform: translateY(14px) scale(0.96); opacity: 0; }
+      100% { transform: translateY(0) scale(1); opacity: 1; }
+    }
+    .animate-pop {
+      animation: popIn 0.25s ease-out forwards;
+    }
+    .math-font {
+      font-family: 'Times New Roman', 'Inter', serif;
+    }
+    /* 数式オブジェクト用スタイル（分数・根号・指数） */
+    .math-expr {
+      display: inline-flex;
+      align-items: center;
+      vertical-align: middle;
+      font-family: 'Times New Roman', 'Noto Sans JP', serif;
+      line-height: 1.2;
+      margin: 0 2px;
+    }
+    .math-frac {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      vertical-align: middle;
+      margin: 0 3px;
+      font-size: 0.92em;
+      line-height: 1.05;
+    }
+    .math-frac > .num {
+      border-bottom: 1.5px solid currentColor;
+      padding: 0 4px 1px;
+      text-align: center;
+      display: block;
+    }
+    .math-frac > .den {
+      padding: 2px 4px 0;
+      text-align: center;
+      display: block;
+    }
+    .math-sqrt {
+      display: inline-flex;
+      align-items: stretch;
+      vertical-align: middle;
+      margin: 0 2px;
+    }
+    .math-sqrt > .rad-sign {
+      font-size: 1.15em;
+      line-height: 1;
+      padding-right: 1px;
+      transform: translateY(1px);
+    }
+    .math-sqrt > .rad-body {
+      border-top: 1.5px solid currentColor;
+      padding: 1px 3px 0 2px;
+      display: inline-flex;
+      align-items: center;
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-slate-50 text-slate-800 selection:bg-indigo-100 selection:text-indigo-900 pb-20">
+
+  <!-- トースト通知 -->
+  <div id="toast-container" class="fixed bottom-6 right-6 z-50 hidden">
+    <div class="bg-slate-900 text-white px-5 py-3.5 rounded-2xl shadow-xl border border-slate-700 flex items-center gap-3 animate-pop">
+      <span class="text-amber-400 text-lg">✨</span>
+      <span id="toast-text" class="font-bold text-sm"></span>
+    </div>
+  </div>
+
+  <!-- トップヘッダー（時間表示・タイマーなし） -->
+  <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-xs">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-600 via-blue-600 to-emerald-600 flex items-center justify-center text-white shadow-md shrink-0 font-black text-lg">
+          ∑
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="text-[11px] font-extrabold tracking-wider uppercase px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">
+              図解＋公式＋無限類題トレーニング
+            </span>
+          </div>
+          <h1 class="text-base sm:text-lg font-extrabold text-slate-900 leading-tight mt-0.5">
+            数学検定3級・準2級 完全攻略＆類題マスター道場
+          </h1>
+        </div>
+      </div>
+
+      <!-- ステータス＆ランク表示 -->
+      <div class="flex items-center gap-3 sm:gap-5">
+        <div class="hidden md:flex items-center gap-4 text-xs font-semibold text-slate-600 bg-slate-100 px-3.5 py-2 rounded-xl border border-slate-200">
+          <div class="flex items-center gap-1.5">
+            <span class="text-emerald-600 font-bold">📘 3級:</span>
+            <span id="header-3kyu-count">0/10問</span>
+          </div>
+          <div class="w-px h-3.5 bg-slate-300"></div>
+          <div class="flex items-center gap-1.5">
+            <span class="text-indigo-600 font-bold">📗 準2級:</span>
+            <span id="header-j2kyu-count">0/10問</span>
+          </div>
+          <div class="w-px h-3.5 bg-slate-300"></div>
+          <div class="flex items-center gap-1.5">
+            <span class="text-amber-600 font-bold">🔥 類題突破:</span>
+            <span id="header-drill-count">0問</span>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2.5 bg-gradient-to-r from-slate-900 to-slate-800 text-white px-3.5 py-2 rounded-xl shadow-xs">
+          <div id="rank-badge-bg" class="w-7 h-7 rounded-lg bg-gradient-to-br from-slate-600 to-slate-500 flex items-center justify-center shrink-0 text-sm">
+            📐
+          </div>
+          <div class="leading-tight">
+            <div id="rank-title" class="text-[10px] text-slate-300 font-medium">Lv.1 数学チャレンジャー</div>
+            <div class="text-xs sm:text-sm font-extrabold text-amber-400 flex items-center gap-1">
+              <span>⚡</span>
+              <span id="xp-display">0 XP</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- メイン3モード切り替えタブ -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 border-t border-slate-100 bg-slate-50/80">
+      <nav class="flex overflow-x-auto no-scrollbar gap-1.5 py-2" aria-label="学習モード">
+        <button id="tab-btn-3kyu" onclick="switchTab('3kyu')" class="flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all whitespace-nowrap bg-emerald-600 text-white shadow-xs">
+          <span>📘 数学検定3級（全10問＋図解＆類題）</span>
+          <span id="tab-badge-3kyu" class="text-xs px-2 py-0.5 rounded-full bg-emerald-500 text-white">0/10</span>
+        </button>
+
+        <button id="tab-btn-j2kyu" onclick="switchTab('j2kyu')" class="flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all whitespace-nowrap text-slate-600 hover:bg-white hover:text-slate-900">
+          <span>📗 数学検定準2級（全10問＋図解＆類題）</span>
+          <span id="tab-badge-j2kyu" class="text-xs px-2 py-0.5 rounded-full bg-slate-200 text-slate-700">0/10</span>
+        </button>
+
+        <button id="tab-btn-mix" onclick="switchTab('mix')" class="flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all whitespace-nowrap text-slate-600 hover:bg-white hover:text-slate-900">
+          <span>🏆 実戦ミックス模試（数値を変えた本番テスト）</span>
+          <span id="tab-badge-mix" class="hidden text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-800"></span>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- メインコンテンツ -->
+  <main id="app-main" class="max-w-7xl mx-auto px-4 sm:px-6 pt-6"></main>
+
+  <script>
+    // ==========================================
+    // 0. HTML数式オブジェクト変換ヘルパー（分数・根号を数式HTMLに変換）
+    // ==========================================
+    function frac(num, den) {
+      return `<span class="math-frac"><span class="num">${num}</span><span class="den">${den}</span></span>`;
+    }
+
+    function sqrt(body) {
+      return `<span class="math-sqrt"><span class="rad-sign">√</span><span class="rad-body">${body}</span></span>`;
+    }
+
+    function formatMath(text) {
+      if (!text) return '';
+      let out = String(text);
+
+      // 括弧付き分数 (a)/(b) や (12√3)/3 など
+      out = out.replace(/\(([^()]+)\)\/\(([^()]+)\)/g, (_, n, d) => frac(n, d));
+      out = out.replace(/\(([^()]+)\)\/([0-9a-zA-Z√]+)/g, (_, n, d) => frac(n, d));
+      out = out.replace(/([0-9a-zA-Z√]+)\/\(([^()]+)\)/g, (_, n, d) => frac(n, d));
+
+      // 通常の分数 a/b（BC/sinA, 4/5, 1/√3 など。日付や「／」全角スラッシュは対象外）
+      out = out.replace(/([0-9a-zA-Z√]+)\/([0-9a-zA-Z√]+)/g, (_, n, d) => frac(n, d));
+
+      // 括弧付き根号 √( ... )
+      out = out.replace(/√\(([^()]+)\)/g, (_, body) => sqrt(body));
+
+      // 通常の根号 √90, √3, √2 など
+      out = out.replace(/√([0-9a-zA-Z]+)/g, (_, body) => sqrt(body));
+
+      return out;
+    }
+
+    // ==========================================
+    // 1. カスタムSVGイラスト図解・グラフ生成関数（文字重なりゼロ・完全レイアウト版）
+    // ==========================================
+    // SVG専用の根号（√）描画ヘルパー
+    function svgSqrt(x, y, body, color = '#1E40AF', fontSize = 12) {
+      const w = String(body).length * (fontSize * 0.62) + 6;
+      const topY = y - fontSize * 0.88;
+      const botY = y + 2;
+      const midY = y - fontSize * 0.35;
+      return `
+        <g>
+          <path d="M ${x - 13} ${midY} L ${x - 9} ${botY} L ${x - 3} ${topY} L ${x + w} ${topY}" fill="none" stroke="${color}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+          <text x="${x}" y="${y}" font-size="${fontSize}" font-weight="bold" fill="${color}" text-anchor="start">${body}</text>
+        </g>`;
+    }
+
+    // SVG専用の縦積み分数描画ヘルパー
+    function svgFrac(cx, cy, num, den, color = '#1E40AF', fontSize = 11) {
+      const halfW = Math.max(String(num).length, String(den).length) * (fontSize * 0.36) + 5;
+      return `
+        <g text-anchor="middle" font-weight="bold" fill="${color}" font-size="${fontSize}">
+          <text x="${cx}" y="${cy - 4}">${num}</text>
+          <line x1="${cx - halfW}" y1="${cy}" x2="${cx + halfW}" y2="${cy}" stroke="${color}" stroke-width="1.5" />
+          <text x="${cx}" y="${cy + fontSize + 1}">${den}</text>
+        </g>`;
+    }
+
+    function renderProblemSVG(code) {
+      switch (code) {
+        // ---------- 3級 問1〜問10 ----------
+        case '3-1':
+          return `
+            <div class="bg-emerald-50/70 border-2 border-emerald-200 rounded-2xl p-4">
+              <div class="text-xs font-extrabold text-emerald-900 mb-2">📊 図解：7個のデータを小さい順に並べて4等分する位置（箱ひげ図のイメージ）</div>
+              <svg viewBox="0 0 460 140" class="w-full max-w-xl mx-auto h-36 bg-white rounded-xl border border-emerald-100">
+                <g font-size="11" font-weight="bold" text-anchor="middle">
+                  <text x="40" y="16" font-size="8.5" fill="#64748B">最小値</text>
+                  <rect x="18" y="22" width="44" height="28" rx="6" fill="#F8FAFC" stroke="#94A3B8" stroke-width="1.5" />
+                  <text x="40" y="40" fill="#334155">4</text>
+
+                  <text x="103" y="16" font-size="8.5" fill="#1D4ED8">第1四分位数</text>
+                  <rect x="81" y="22" width="44" height="28" rx="6" fill="#DBEAFE" stroke="#2563EB" stroke-width="2" />
+                  <text x="103" y="40" fill="#1E40AF">7</text>
+
+                  <rect x="144" y="22" width="44" height="28" rx="6" fill="#F8FAFC" stroke="#94A3B8" stroke-width="1.5" />
+                  <text x="166" y="40" fill="#334155">7</text>
+
+                  <text x="230" y="16" font-size="8.5" fill="#B45309">中央値(第2)</text>
+                  <rect x="208" y="22" width="44" height="28" rx="6" fill="#FEF3C7" stroke="#D97706" stroke-width="2.5" />
+                  <text x="230" y="40" fill="#B45309">8</text>
+
+                  <rect x="272" y="22" width="44" height="28" rx="6" fill="#F8FAFC" stroke="#94A3B8" stroke-width="1.5" />
+                  <text x="294" y="40" fill="#334155">9</text>
+
+                  <text x="357" y="16" font-size="8.5" fill="#1D4ED8">第3四分位数</text>
+                  <rect x="335" y="22" width="44" height="28" rx="6" fill="#DBEAFE" stroke="#2563EB" stroke-width="2" />
+                  <text x="357" y="40" fill="#1E40AF">11</text>
+
+                  <text x="420" y="16" font-size="8.5" fill="#64748B">最大値</text>
+                  <rect x="398" y="22" width="44" height="28" rx="6" fill="#F8FAFC" stroke="#94A3B8" stroke-width="1.5" />
+                  <text x="420" y="40" fill="#334155">12</text>
+                </g>
+                <!-- 箱ひげ図 -->
+                <line x1="40" y1="82" x2="103" y2="82" stroke="#334155" stroke-width="2" />
+                <line x1="40" y1="72" x2="40" y2="92" stroke="#334155" stroke-width="2" />
+                <rect x="103" y="66" width="254" height="32" rx="4" fill="#EFF6FF" stroke="#2563EB" stroke-width="2.5" />
+                <line x1="230" y1="66" x2="230" y2="98" stroke="#D97706" stroke-width="3" />
+                <line x1="357" y1="82" x2="420" y2="82" stroke="#334155" stroke-width="2" />
+                <line x1="420" y1="72" x2="420" y2="92" stroke="#334155" stroke-width="2" />
+                <!-- 四分位範囲 -->
+                <path d="M107 112 H353" stroke="#059669" stroke-width="2" />
+                <polygon points="103,112 110,108 110,116" fill="#059669" />
+                <polygon points="357,112 350,108 350,116" fill="#059669" />
+                <text x="230" y="129" font-size="10.5" font-weight="bold" fill="#065F46" text-anchor="middle">四分位範囲 ＝ 第3四分位数(11) − 第1四分位数(7) ＝ 4</text>
+              </svg>
+            </div>`;
+
+        case '3-2':
+          return `
+            <div class="bg-sky-50/70 border-2 border-sky-200 rounded-2xl p-4">
+              <div class="text-xs font-extrabold text-sky-900 mb-2">🐟 図解：池全体の割合と、捕獲した標本の割合は等しい（比例式）</div>
+              <svg viewBox="0 0 440 115" class="w-full max-w-xl mx-auto h-28 bg-white rounded-xl border border-sky-100">
+                <ellipse cx="115" cy="58" rx="92" ry="42" fill="#E0F2FE" stroke="#0284C7" stroke-width="2.5" />
+                <text x="115" y="44" font-size="11.5" font-weight="bold" fill="#0369A1" text-anchor="middle">池全体：x 匹</text>
+                <rect x="65" y="54" width="100" height="24" rx="12" fill="#FDE047" stroke="#CA8A04" stroke-width="1.5" />
+                <text x="115" y="70" font-size="10.5" font-weight="bold" fill="#854D0E" text-anchor="middle">うち印付き 50 匹</text>
+
+                <text x="232" y="64" font-size="20" font-weight="900" fill="#334155" text-anchor="middle">＝</text>
+
+                <rect x="262" y="18" width="156" height="78" rx="14" fill="#F0FDF4" stroke="#059669" stroke-width="2.5" />
+                <text x="340" y="44" font-size="11.5" font-weight="bold" fill="#065F46" text-anchor="middle">再捕獲：80 匹</text>
+                <rect x="290" y="54" width="100" height="24" rx="12" fill="#FDE047" stroke="#CA8A04" stroke-width="1.5" />
+                <text x="340" y="70" font-size="10.5" font-weight="bold" fill="#854D0E" text-anchor="middle">うち印付き 10 匹</text>
+              </svg>
+            </div>`;
+
+        case '3-3':
+          return `
+            <div class="bg-amber-50/70 border-2 border-amber-200 rounded-2xl p-4">
+              <div class="text-xs font-extrabold text-amber-900 mb-2">📏 図解：2乗の数（平方数）ではさんで大きさを比べる</div>
+              <svg viewBox="0 0 460 110" class="w-full max-w-xl mx-auto h-28 bg-white rounded-xl border border-amber-100">
+                <line x1="35" y1="58" x2="425" y2="58" stroke="#475569" stroke-width="2.5" />
+                <!-- 9 = √81 -->
+                <circle cx="95" cy="58" r="6" fill="#2563EB" />
+                <text x="88" y="36" font-size="13" font-weight="bold" fill="#1E40AF" text-anchor="end">9 ＝</text>
+                ${svgSqrt(105, 36, '81', '#1E40AF', 13)}
+                <text x="95" y="84" font-size="10.5" font-weight="bold" fill="#1D4ED8" text-anchor="middle">超えない最大の整数！</text>
+                <!-- √90 -->
+                <circle cx="230" cy="58" r="7" fill="#DC2626" />
+                ${svgSqrt(186, 36, '90', '#DC2626', 14)}
+                <text x="215" y="36" font-size="12" font-weight="900" fill="#DC2626" text-anchor="start">（約 9.48…）</text>
+                <!-- 10 = √100 -->
+                <circle cx="365" cy="58" r="6" fill="#2563EB" />
+                <text x="355" y="36" font-size="13" font-weight="bold" fill="#1E40AF" text-anchor="end">10 ＝</text>
+                ${svgSqrt(372, 36, '100', '#1E40AF', 13)}
+              </svg>
+            </div>`;
+
+        case '3-4':
+          return `
+            <div class="bg-indigo-50/70 border-2 border-indigo-200 rounded-2xl p-4">
+              <div class="text-xs font-extrabold text-indigo-900 mb-2">📈 図解：2直線の交点 ＝ 連立方程式の解</div>
+              <svg viewBox="0 0 380 160" class="w-full max-w-md mx-auto h-40 bg-white rounded-xl border border-indigo-100">
+                <line x1="40" y1="132" x2="350" y2="132" stroke="#64748B" stroke-width="1.5" />
+                <line x1="75" y1="15" x2="75" y2="148" stroke="#64748B" stroke-width="1.5" />
+                <text x="63" y="145" font-size="10" fill="#475569">O</text>
+                <!-- y = 2x - 1 -->
+                <line x1="65" y1="145" x2="225" y2="22" stroke="#2563EB" stroke-width="2.5" />
+                <text x="232" y="28" font-size="11" font-weight="bold" fill="#1D4ED8">y = 2x − 1</text>
+                <!-- y = -x + 8 -->
+                <line x1="70" y1="28" x2="305" y2="140" stroke="#059669" stroke-width="2.5" />
+                <text x="295" y="122" font-size="11" font-weight="bold" fill="#047857">y = −x + 8</text>
+                <!-- 交点 (3, 5) -->
+                <line x1="165" y1="68" x2="165" y2="132" stroke="#94A3B8" stroke-dasharray="3,3" />
+                <line x1="75" y1="68" x2="165" y2="68" stroke="#94A3B8" stroke-dasharray="3,3" />
+                <circle cx="165" cy="68" r="5.5" fill="#DC2626" />
+                <text x="165" y="146" font-size="11" font-weight="bold" fill="#DC2626" text-anchor="middle">3</text>
+                <text x="63" y="72" font-size="11" font-weight="bold" fill="#DC2626" text-anchor="end">5</text>
+                <rect x="178" y="54" width="88" height="24" rx="6" fill="#FEE2E2" stroke="#EF4444" />
+                <text x="222" y="70" font-size="11" font-weight="900" fill="#B91C1C" text-anchor="middle">交点 (3, 5)</text>
+              </svg>
+            </div>`;
+
+        case '3-5':
+          return `
+            <div class="bg-rose-50/70 border-2 border-rose-200 rounded-2xl p-4">
+              <div class="text-xs font-extrabold text-rose-900 mb-2">🎱 図解：「少なくとも1個が赤」は、全体(1)から「1個も赤が出ない」を引く！</div>
+              <svg viewBox="0 0 460 125" class="w-full max-w-xl mx-auto h-32 bg-white rounded-xl border border-rose-100">
+                <rect x="12" y="12" width="246" height="100" rx="10" fill="#FFE4E6" stroke="#F43F5E" stroke-width="2" />
+                <text x="135" y="34" font-size="11" font-weight="bold" fill="#BE123C" text-anchor="middle">求める確率：少なくとも1個が赤</text>
+                <text x="102" y="68" font-size="13.5" font-weight="900" fill="#9F1239" text-anchor="end">1 −</text>
+                ${svgFrac(118, 63, '1', '5', '#9F1239', 11.5)}
+                <text x="142" y="68" font-size="13.5" font-weight="900" fill="#9F1239" text-anchor="middle">＝</text>
+                ${svgFrac(166, 63, '4', '5', '#9F1239', 12.5)}
+                <text x="135" y="98" font-size="10" font-weight="bold" fill="#BE123C" text-anchor="middle">（全15通り中 12通り）</text>
+
+                <rect x="268" y="12" width="180" height="100" rx="10" fill="#EFF6FF" stroke="#3B82F6" stroke-width="2" />
+                <text x="358" y="34" font-size="10.5" font-weight="bold" fill="#1E40AF" text-anchor="middle">余事象（赤が0個）</text>
+                <text x="358" y="52" font-size="9.5" font-weight="bold" fill="#1D4ED8" text-anchor="middle">青2・白1の計3個から2個</text>
+                <text x="382" y="83" font-size="10" font-weight="900" fill="#1E3A8A" text-anchor="end">3通り ÷ 15通り ＝</text>
+                ${svgFrac(402, 78, '1', '5', '#1E3A8A', 11)}
+              </svg>
+            </div>`;
+
+        case '3-6':
+          return `
+            <div class="bg-blue-50/70 border-2 border-blue-200 rounded-2xl p-4">
+              <div class="text-xs font-extrabold text-blue-900 mb-2">⭕ 図解：円の外部の1点から引いた2本の接線の長さは等しい（△OAP ≡ △OBP）</div>
+              <svg viewBox="0 0 400 165" class="w-full max-w-md mx-auto h-40 bg-white rounded-xl border border-blue-100">
+                <circle cx="130" cy="82" r="52" fill="#EFF6FF" stroke="#2563EB" stroke-width="2.5" />
+                <circle cx="130" cy="82" r="3.5" fill="#1E293B" />
+                <text x="114" y="86" font-size="12" font-weight="bold" fill="#1E293B">O</text>
+
+                <circle cx="320" cy="82" r="4.5" fill="#DC2626" />
+                <text x="330" y="86" font-size="13" font-weight="bold" fill="#DC2626">P</text>
+
+                <circle cx="152" cy="35" r="4" fill="#059669" />
+                <text x="148" y="23" font-size="12" font-weight="bold" fill="#065F46">A</text>
+                <circle cx="152" cy="129" r="4" fill="#059669" />
+                <text x="148" y="148" font-size="12" font-weight="bold" fill="#065F46">B</text>
+
+                <line x1="152" y1="35" x2="320" y2="82" stroke="#DC2626" stroke-width="2.5" />
+                <line x1="152" y1="129" x2="320" y2="82" stroke="#059669" stroke-width="2.5" />
+
+                <line x1="130" y1="82" x2="152" y2="35" stroke="#64748B" stroke-dasharray="3,3" stroke-width="1.5" />
+                <line x1="130" y1="82" x2="152" y2="129" stroke="#64748B" stroke-dasharray="3,3" stroke-width="1.5" />
+                <line x1="130" y1="82" x2="320" y2="82" stroke="#94A3B8" stroke-dasharray="3,3" stroke-width="1.5" />
+
+                <text x="242" y="44" font-size="12" font-weight="bold" fill="#DC2626">PA = 7 cm</text>
+                <text x="242" y="128" font-size="12" font-weight="bold" fill="#059669">PB = 7 cm</text>
+              </svg>
+            </div>`;
+
+        case '3-7':
+          return `
+            <div class="bg-emerald-50/70 border-2 border-emerald-200 rounded-2xl p-4">
+              <div class="text-xs font-extrabold text-emerald-900 mb-2">📐 図解：三平方の定理（5 : 12 : 13 の有名直角三角形）</div>
+              <svg viewBox="0 0 420 160" class="w-full max-w-lg mx-auto h-40 bg-white rounded-xl border border-emerald-100">
+                <polygon points="85,120 295,120 85,28" fill="#ECFDF5" stroke="#059669" stroke-width="2.5" />
+                <rect x="85" y="108" width="12" height="12" fill="none" stroke="#059669" stroke-width="2" />
+                <text x="48" y="78" font-size="12" font-weight="bold" fill="#065F46" text-anchor="middle">5 cm</text>
+                <text x="215" y="64" font-size="12" font-weight="bold" fill="#DC2626" text-anchor="middle">斜辺 13 cm</text>
+                <text x="190" y="142" font-size="12" font-weight="bold" fill="#1D4ED8" text-anchor="middle">底辺 x ＝ 12 cm（13² − 5² ＝ 144）</text>
+                <text x="152" y="102" font-size="11.5" font-weight="900" fill="#047857" text-anchor="middle">面積 ＝ 30 cm²</text>
+              </svg>
+            </div>`;
+
+        case '3-8':
+          return `
+            <div class="bg-purple-50/70 border-2 border-purple-200 rounded-2xl p-4">
+              <div class="text-xs font-extrabold text-purple-900 mb-2">▭ 図解：横の長さを x cm として面積の式を作る</div>
+              <svg viewBox="0 0 420 150" class="w-full max-w-lg mx-auto h-36 bg-white rounded-xl border border-purple-100">
+                <rect x="130" y="34" width="210" height="86" rx="4" fill="#F3E8FF" stroke="#9333EA" stroke-width="2.5" />
+                <text x="235" y="23" font-size="12" font-weight="bold" fill="#6B21A8" text-anchor="middle">横：x cm（x ＞ 3）</text>
+                <text x="68" y="81" font-size="12" font-weight="bold" fill="#6B21A8" text-anchor="middle">縦：(x − 3) cm</text>
+                <text x="235" y="81" font-size="12.5" font-weight="900" fill="#581C87" text-anchor="middle">面積 ＝ x(x − 3) ＝ 70 cm²</text>
+              </svg>
+            </div>`;
+
+        case '3-9':
+          return `
+            <div class="bg-amber-50/70 border-2 border-amber-200 rounded-2xl p-4">
+              <div class="text-xs font-extrabold text-amber-900 mb-2">🔺 図解：相似比が a : b なら、面積比は 2乗の a² : b² になる！</div>
+              <svg viewBox="0 0 440 150" class="w-full max-w-xl mx-auto h-36 bg-white rounded-xl border border-amber-100">
+                <polygon points="35,115 115,115 75,55" fill="#DBEAFE" stroke="#2563EB" stroke-width="2" />
+                <text x="75" y="98" font-size="10.5" font-weight="bold" fill="#1E40AF" text-anchor="middle">27 cm²</text>
+                <text x="75" y="135" font-size="11" font-weight="bold" fill="#1D4ED8" text-anchor="middle">辺の比：3</text>
+
+                <text x="182" y="75" font-size="11.5" font-weight="900" fill="#B45309" text-anchor="middle">面積比 ＝ 3² : 5²</text>
+                <text x="182" y="96" font-size="12" font-weight="900" fill="#DC2626" text-anchor="middle">＝ 9 : 25</text>
+
+                <polygon points="260,115 395,115 327,20" fill="#FEF3C7" stroke="#D97706" stroke-width="2.5" />
+                <text x="327" y="85" font-size="12.5" font-weight="900" fill="#92400E" text-anchor="middle">x ＝ 75 cm²</text>
+                <text x="327" y="135" font-size="11" font-weight="bold" fill="#B45309" text-anchor="middle">辺の比：5</text>
+              </svg>
+            </div>`;
+
+        case '3-10':
+          return `
+            <div class="bg-teal-50/70 border-2 border-teal-200 rounded-2xl p-4">
+              <div class="text-xs font-extrabold text-teal-900 mb-2">📉 図解：点が右上がりに分布 ＝「正の相関」（ただし「必ず上がる」とは断定できない！）</div>
+              <svg viewBox="0 0 420 155" class="w-full max-w-lg mx-auto h-40 bg-white rounded-xl border border-teal-100">
+                <line x1="60" y1="122" x2="380" y2="122" stroke="#475569" stroke-width="1.5" />
+                <line x1="60" y1="18" x2="60" y2="122" stroke="#475569" stroke-width="1.5" />
+                <text x="220" y="143" font-size="11" font-weight="bold" fill="#334155" text-anchor="middle">練習時間（時間） →</text>
+                <text x="28" y="72" font-size="11" font-weight="bold" fill="#334155" text-anchor="middle">得点</text>
+                <!-- 傾向線 -->
+                <line x1="85" y1="104" x2="350" y2="30" stroke="#99F6E4" stroke-width="6" stroke-linecap="round" />
+                <!-- データ点 -->
+                <circle cx="100" cy="98" r="5" fill="#0284C7" />
+                <circle cx="160" cy="82" r="5" fill="#0284C7" />
+                <circle cx="220" cy="50" r="5" fill="#0284C7" />
+                <circle cx="280" cy="68" r="5.5" fill="#DC2626" />
+                <circle cx="340" cy="34" r="5" fill="#0284C7" />
+                <rect x="200" y="84" width="165" height="22" rx="5" fill="#FEF2F2" stroke="#FCA5A5" />
+                <text x="282" y="99" font-size="9.5" font-weight="bold" fill="#DC2626" text-anchor="middle">例外(4時間→4点)あり！</text>
+              </svg>
+            </div>`;
+
+        // ---------- 準2級 問1〜問10 ----------
+        case 'j2-1':
+          return `
+            <div class="bg-indigo-50/70 border-2 border-indigo-200 rounded-2xl p-4">
+              <div class="text-xs font-extrabold text-indigo-900 mb-2">⭕ 図解：ベン図で「共通部分（A∩B）」と「和集合（A∪B）」を整理しよう</div>
+              <svg viewBox="0 0 460 165" class="w-full max-w-xl mx-auto h-40 bg-white rounded-xl border border-indigo-100">
+                <rect x="14" y="10" width="432" height="145" rx="10" fill="#F8FAFC" stroke="#64748B" stroke-width="2" />
+                <text x="28" y="29" font-size="11" font-weight="bold" fill="#475569">全体集合 U ＝ {1, 2, 3, 4, 5, 6, 7, 8, 9, 10}</text>
+                <!-- 円A -->
+                <circle cx="164" cy="82" r="48" fill="#DBEAFE" fill-opacity="0.75" stroke="#2563EB" stroke-width="2" />
+                <text x="96" y="45" font-size="11" font-weight="bold" fill="#1D4ED8" text-anchor="middle">A（偶数）</text>
+                <text x="150" y="77" font-size="11.5" font-weight="bold" fill="#1E3A8A" text-anchor="middle">2, 4</text>
+                <text x="150" y="95" font-size="11.5" font-weight="bold" fill="#1E3A8A" text-anchor="middle">8, 10</text>
+                <!-- 円B -->
+                <circle cx="244" cy="82" r="48" fill="#D1FAE5" fill-opacity="0.75" stroke="#059669" stroke-width="2" />
+                <text x="314" y="45" font-size="11" font-weight="bold" fill="#047857" text-anchor="middle">B（3の倍数）</text>
+                <text x="262" y="86" font-size="12" font-weight="bold" fill="#065F46" text-anchor="middle">3, 9</text>
+                <!-- 共通部分 -->
+                <text x="204" y="87" font-size="14" font-weight="900" fill="#DC2626" text-anchor="middle">6</text>
+                <!-- 外側 -->
+                <text x="392" y="86" font-size="10.5" font-weight="bold" fill="#64748B" text-anchor="middle">外：1, 5, 7</text>
+                <!-- 下部結論 -->
+                <text x="230" y="144" font-size="10.5" font-weight="bold" fill="#DC2626" text-anchor="middle">A∩B ＝ {6} ／ A∪B ＝ {2, 3, 4, 6, 8, 9, 10}</text>
+              </svg>
+            </div>`;
+
+        case 'j2-2':
+          return `
+            <div class="bg-blue-50/70 border-2 border-blue-200 rounded-2xl p-4">
+              <div class="text-xs font-extrabold text-blue-900 mb-2">📏 図解：|X| ＜ c（c＞0）は「原点からの距離が c 未満」⇒ −c ＜ X ＜ c で挟む！</div>
+              <svg viewBox="0 0 440 110" class="w-full max-w-xl mx-auto h-28 bg-white rounded-xl border border-blue-100">
+                <line x1="35" y1="66" x2="405" y2="66" stroke="#475569" stroke-width="2" />
+                <line x1="125" y1="66" x2="315" y2="66" stroke="#2563EB" stroke-width="5" />
+                <line x1="125" y1="46" x2="315" y2="46" stroke="#2563EB" stroke-width="2" />
+                <line x1="125" y1="46" x2="125" y2="66" stroke="#2563EB" stroke-width="2" />
+                <line x1="315" y1="46" x2="315" y2="66" stroke="#2563EB" stroke-width="2" />
+                <circle cx="125" cy="66" r="5" fill="#FFFFFF" stroke="#2563EB" stroke-width="2.5" />
+                <circle cx="315" cy="66" r="5" fill="#FFFFFF" stroke="#2563EB" stroke-width="2.5" />
+                <text x="125" y="88" font-size="12" font-weight="bold" fill="#1E40AF" text-anchor="middle">−1</text>
+                <text x="315" y="88" font-size="12" font-weight="bold" fill="#1E40AF" text-anchor="middle">4</text>
+                <text x="220" y="34" font-size="12" font-weight="900" fill="#1D4ED8" text-anchor="middle">−1 ＜ x ＜ 4（白丸＝端の数値を含まない）</text>
+              </svg>
+            </div>`;
+
+        case 'j2-3':
+          return `
+            <div class="bg-emerald-50/70 border-2 border-emerald-200 rounded-2xl p-4">
+              <div class="text-xs font-extrabold text-emerald-900 mb-2">📈 図解：放物線が x 軸と「ただ1点で交わる（接する）」⇔ 判別式 D ＝ 0</div>
+              <svg viewBox="0 0 400 150" class="w-full max-w-md mx-auto h-36 bg-white rounded-xl border border-emerald-100">
+                <line x1="30" y1="108" x2="370" y2="108" stroke="#334155" stroke-width="2" />
+                <text x="355" y="124" font-size="10.5" font-weight="bold" fill="#334155">x軸</text>
+                <line x1="80" y1="15" x2="80" y2="136" stroke="#64748B" stroke-width="1.5" />
+                <path d="M 115 20 Q 200 196 285 20" fill="none" stroke="#059669" stroke-width="3" />
+                <circle cx="200" cy="108" r="5.5" fill="#DC2626" />
+                <text x="200" y="130" font-size="11.5" font-weight="900" fill="#DC2626" text-anchor="middle">1点で接する (3, 0) ⇒ D ＝ 0</text>
+              </svg>
+            </div>`;
+
+        case 'j2-4':
+          return `
+            <div class="bg-purple-50/70 border-2 border-purple-200 rounded-2xl p-4">
+              <div class="text-xs font-extrabold text-purple-900 mb-2">📐 図解：頂点が (p, q) の放物線は y ＝ a(x − p)² ＋ q とおく！</div>
+              <svg viewBox="0 0 400 155" class="w-full max-w-md mx-auto h-40 bg-white rounded-xl border border-purple-100">
+                <line x1="30" y1="78" x2="370" y2="78" stroke="#64748B" stroke-width="1.5" />
+                <line x1="125" y1="14" x2="125" y2="142" stroke="#64748B" stroke-width="1.5" />
+                <path d="M 95 16 Q 200 220 305 16" fill="none" stroke="#7E22CE" stroke-width="3" />
+                <!-- 通る点 (0, 1) -->
+                <circle cx="125" cy="54" r="5" fill="#2563EB" />
+                <text x="72" y="50" font-size="11" font-weight="bold" fill="#1D4ED8" text-anchor="middle">通る点 (0, 1)</text>
+                <!-- 頂点 (2, -3) -->
+                <circle cx="200" cy="118" r="5.5" fill="#DC2626" />
+                <text x="262" y="128" font-size="11.5" font-weight="900" fill="#DC2626" text-anchor="middle">頂点 (2, −3)</text>
+              </svg>
+            </div>`;
+
+        case 'j2-5':
+          return `
+            <div class="bg-amber-50/70 border-2 border-amber-200 rounded-2xl p-4">
+              <div class="text-xs font-extrabold text-amber-900 mb-2">🏢 図解：30°の直角三角形は「底辺：高さ ＝ ${sqrt('3')}：1」 ⇒ 高さ ＝ 12 × tan30°</div>
+              <svg viewBox="0 0 440 155" class="w-full max-w-lg mx-auto h-40 bg-white rounded-xl border border-amber-100">
+                <polygon points="50,120 290,120 290,34" fill="#FEF3C7" stroke="#D97706" stroke-width="2.5" />
+                <rect x="278" y="108" width="12" height="12" fill="none" stroke="#D97706" stroke-width="2" />
+                <path d="M 88 120 A 38 38 0 0 0 82 108" fill="none" stroke="#DC2626" stroke-width="2" />
+                <text x="110" y="112" font-size="11.5" font-weight="bold" fill="#DC2626">30°</text>
+                <text x="180" y="142" font-size="11.5" font-weight="bold" fill="#92400E" text-anchor="end">水平距離 12 m（比：</text>
+                ${svgSqrt(196, 142, '3', '#92400E', 12)}
+                <text x="208" y="142" font-size="11.5" font-weight="bold" fill="#92400E" text-anchor="start">）</text>
+
+                <text x="364" y="82" font-size="12" font-weight="900" fill="#B45309" text-anchor="end">高さ h ＝ 4</text>
+                ${svgSqrt(380, 82, '3', '#B45309', 12)}
+                <text x="394" y="82" font-size="12" font-weight="900" fill="#B45309" text-anchor="start">m</text>
+              </svg>
+            </div>`;
+
+        case 'j2-6':
+          return `
+            <div class="bg-sky-50/70 border-2 border-sky-200 rounded-2xl p-4">
+              <div class="text-xs font-extrabold text-sky-900 mb-2">⭕ 図解：正弦定理「${frac('a', 'sinA')} ＝ 外接円の直径 2R」</div>
+              <svg viewBox="0 0 440 165" class="w-full max-w-lg mx-auto h-40 bg-white rounded-xl border border-sky-100">
+                <circle cx="130" cy="82" r="56" fill="#E0F2FE" stroke="#0284C7" stroke-width="2.5" />
+                <polygon points="130,26 83,114 177,114" fill="#FFFFFF" fill-opacity="0.85" stroke="#1E293B" stroke-width="2" />
+                <text x="130" y="19" font-size="11.5" font-weight="bold" fill="#DC2626" text-anchor="middle">A (30°)</text>
+                <text x="70" y="124" font-size="11.5" font-weight="bold" fill="#1E293B">B</text>
+                <text x="184" y="124" font-size="11.5" font-weight="bold" fill="#1E293B">C</text>
+                <text x="130" y="130" font-size="11" font-weight="bold" fill="#0369A1" text-anchor="middle">BC ＝ 6 cm</text>
+
+                <rect x="215" y="18" width="205" height="128" rx="10" fill="#F0F9FF" stroke="#BAE6FD" stroke-width="1.5" />
+                ${svgFrac(280, 44, 'BC', 'sin30°', '#0369A1', 11)}
+                <text x="315" y="49" font-size="12" font-weight="bold" fill="#0369A1" text-anchor="start">＝ 2R</text>
+
+                <text x="275" y="86" font-size="11.5" font-weight="bold" fill="#0369A1" text-anchor="end">6 ÷</text>
+                ${svgFrac(292, 81, '1', '2', '#0369A1', 10)}
+                <text x="310" y="86" font-size="11.5" font-weight="bold" fill="#0369A1" text-anchor="start">＝ 12 ＝ 2R</text>
+
+                <text x="317" y="124" font-size="13" font-weight="900" fill="#DC2626" text-anchor="middle">外接円の半径 R ＝ 6 cm</text>
+              </svg>
+            </div>`;
+
+        case 'j2-7':
+          return `
+            <div class="bg-rose-50/70 border-2 border-rose-200 rounded-2xl p-4">
+              <div class="text-xs font-extrabold text-rose-900 mb-2">🪙 図解：反復試行の公式「何回目に表が出るか（₄C₂通り） × 確率の積」</div>
+              <svg viewBox="0 0 460 130" class="w-full max-w-xl mx-auto h-32 bg-white rounded-xl border border-rose-100">
+                <text x="230" y="22" font-size="10.5" font-weight="bold" fill="#881337" text-anchor="middle">表2回・裏2回の並び方は ₄C₂ ＝ 6通り（〇〇××, 〇×〇×, 〇××〇, ×〇〇×, ×〇×〇, ××〇〇）</text>
+                <rect x="22" y="36" width="110" height="76" rx="8" fill="#FFE4E6" stroke="#E11D48" stroke-width="2" />
+                <text x="77" y="68" font-size="12" font-weight="900" fill="#9F1239" text-anchor="middle">₄C₂ ＝ 6通り</text>
+                <text x="77" y="90" font-size="9.5" font-weight="bold" fill="#BE123C" text-anchor="middle">（順番の組合せ）</text>
+
+                <text x="150" y="78" font-size="16" font-weight="900" fill="#334155" text-anchor="middle">×</text>
+
+                <rect x="168" y="36" width="142" height="76" rx="8" fill="#EFF6FF" stroke="#2563EB" stroke-width="2" />
+                <text x="239" y="58" font-size="10.5" font-weight="900" fill="#1E40AF" text-anchor="middle">表2回 × 裏2回</text>
+                ${svgFrac(210, 84, '1', '4', '#1D4ED8', 11)}
+                <text x="239" y="89" font-size="12" font-weight="bold" fill="#1D4ED8" text-anchor="middle">× </text>
+                ${svgFrac(268, 84, '1', '4', '#1D4ED8', 11)}
+
+                <text x="328" y="78" font-size="16" font-weight="900" fill="#334155" text-anchor="middle">＝</text>
+
+                <rect x="346" y="36" width="94" height="76" rx="8" fill="#ECFDF5" stroke="#059669" stroke-width="2" />
+                ${svgFrac(374, 72, '6', '16', '#065F46', 11)}
+                <text x="394" y="77" font-size="12" font-weight="900" fill="#047857" text-anchor="middle">＝</text>
+                ${svgFrac(416, 72, '3', '8', '#047857', 13)}
+              </svg>
+            </div>`;
+
+        case 'j2-7':
+          return `
+            <div class="bg-rose-50/70 border-2 border-rose-200 rounded-2xl p-4">
+              <div class="text-xs font-extrabold text-rose-900 mb-2">🪙 図解：反復試行の公式「何回目に表が出るか（₄C₂通り） × 確率の積」</div>
+              <svg viewBox="0 0 460 125" class="w-full max-w-xl mx-auto h-32 bg-white rounded-xl border border-rose-100">
+                <text x="230" y="24" font-size="10.5" font-weight="bold" fill="#881337" text-anchor="middle">表2回・裏2回の並び方は ₄C₂ ＝ 6通り（〇〇××, 〇×〇×, 〇××〇, ×〇〇×, ×〇×〇, ××〇〇）</text>
+                <rect x="25" y="38" width="110" height="68" rx="8" fill="#FFE4E6" stroke="#E11D48" stroke-width="2" />
+                <text x="80" y="68" font-size="12" font-weight="900" fill="#9F1239" text-anchor="middle">₄C₂ ＝ 6通り</text>
+                <text x="80" y="88" font-size="9.5" font-weight="bold" fill="#BE123C" text-anchor="middle">（順番の組合せ）</text>
+
+                <text x="155" y="76" font-size="16" font-weight="900" fill="#334155" text-anchor="middle">×</text>
+
+                <rect x="175" y="38" width="130" height="68" rx="8" fill="#EFF6FF" stroke="#2563EB" stroke-width="2" />
+                <text x="240" y="64" font-size="11.5" font-weight="900" fill="#1E40AF" text-anchor="middle">表2回 × 裏2回</text>
+                <text x="240" y="86" font-size="11" font-weight="bold" fill="#1D4ED8" text-anchor="middle">確率は 16分の1</text>
+
+                <text x="325" y="76" font-size="16" font-weight="900" fill="#334155" text-anchor="middle">＝</text>
+
+                <rect x="345" y="38" width="90" height="68" rx="8" fill="#ECFDF5" stroke="#059669" stroke-width="2" />
+                <text x="390" y="68" font-size="13" font-weight="900" fill="#065F46" text-anchor="middle">16分の6</text>
+                <text x="390" y="88" font-size="12" font-weight="900" fill="#047857" text-anchor="middle">⇒ 8分の3</text>
+              </svg>
+            </div>`;
+
+        case 'j2-8':
+          return `
+            <div class="bg-indigo-50/70 border-2 border-indigo-200 rounded-2xl p-4">
+              <div class="text-xs font-extrabold text-indigo-900 mb-2">🔢 図解：3桁の偶数は、制限のある「一の位（2か4）」から先に決める！</div>
+              <svg viewBox="0 0 440 120" class="w-full max-w-xl mx-auto h-28 bg-white rounded-xl border border-indigo-100">
+                <rect x="30" y="22" width="105" height="58" rx="8" fill="#EFF6FF" stroke="#3B82F6" stroke-width="2" />
+                <text x="82" y="43" font-size="10.5" font-weight="bold" fill="#1D4ED8" text-anchor="middle">② 百の位</text>
+                <text x="82" y="65" font-size="12.5" font-weight="900" fill="#1E3A8A" text-anchor="middle">残り 4通り</text>
+
+                <rect x="167" y="22" width="105" height="58" rx="8" fill="#EFF6FF" stroke="#3B82F6" stroke-width="2" />
+                <text x="219" y="43" font-size="10.5" font-weight="bold" fill="#1D4ED8" text-anchor="middle">③ 十の位</text>
+                <text x="219" y="65" font-size="12.5" font-weight="900" fill="#1E3A8A" text-anchor="middle">残り 3通り</text>
+
+                <rect x="305" y="22" width="105" height="58" rx="8" fill="#FEF3C7" stroke="#D97706" stroke-width="2.5" />
+                <text x="357" y="43" font-size="10.5" font-weight="bold" fill="#B45309" text-anchor="middle">① 一の位(偶数)</text>
+                <text x="357" y="65" font-size="12.5" font-weight="900" fill="#92400E" text-anchor="middle">2か4の 2通り</text>
+
+                <text x="220" y="105" font-size="12" font-weight="900" fill="#1E293B" text-anchor="middle">積の法則： 4 × 3 × 2 ＝ 24 通り</text>
+              </svg>
+            </div>`;
+
+        case 'j2-9':
+          return `
+            <div class="bg-sky-50/70 border-2 border-sky-200 rounded-2xl p-4">
+              <div class="text-xs font-extrabold text-sky-900 mb-2">📊 図解：ヒストグラムで最も背が高い柱が「最頻階級（モード）」</div>
+              <svg viewBox="0 0 420 145" class="w-full max-w-lg mx-auto h-36 bg-white rounded-xl border border-sky-100">
+                <line x1="45" y1="115" x2="380" y2="115" stroke="#475569" stroke-width="2" />
+                <rect x="60" y="96" width="48" height="19" fill="#93C5FD" stroke="#2563EB" />
+                <text x="84" y="132" font-size="9.5" text-anchor="middle">0–9分</text>
+                <text x="84" y="90" font-size="9.5" font-weight="bold" text-anchor="middle">2人</text>
+
+                <rect x="124" y="68" width="48" height="47" fill="#93C5FD" stroke="#2563EB" />
+                <text x="148" y="132" font-size="9.5" text-anchor="middle">10–19分</text>
+                <text x="148" y="62" font-size="9.5" font-weight="bold" text-anchor="middle">5人</text>
+
+                <rect x="188" y="30" width="48" height="85" fill="#F59E0B" stroke="#B45309" stroke-width="2" />
+                <text x="212" y="132" font-size="10" font-weight="bold" fill="#B45309" text-anchor="middle">20–29分</text>
+                <text x="212" y="22" font-size="10.5" font-weight="900" fill="#B45309" text-anchor="middle">最多 9人!</text>
+
+                <rect x="252" y="58" width="48" height="57" fill="#93C5FD" stroke="#2563EB" />
+                <text x="276" y="132" font-size="9.5" text-anchor="middle">30–39分</text>
+                <text x="276" y="52" font-size="9.5" font-weight="bold" text-anchor="middle">6人</text>
+
+                <rect x="316" y="86" width="48" height="29" fill="#93C5FD" stroke="#2563EB" />
+                <text x="340" y="132" font-size="9.5" text-anchor="middle">40–49分</text>
+                <text x="340" y="80" font-size="9.5" font-weight="bold" text-anchor="middle">3人</text>
+              </svg>
+            </div>`;
+
+        case 'j2-10':
+          return `
+            <div class="bg-purple-50/70 border-2 border-purple-200 rounded-2xl p-4">
+              <div class="text-xs font-extrabold text-purple-900 mb-2">🔄 図解：対偶は「前後を入れ替えて、両方とも否定する」⇒ 元の命題と真偽が一致！</div>
+              <svg viewBox="0 0 440 125" class="w-full max-w-xl mx-auto h-32 bg-white rounded-xl border border-purple-100">
+                <rect x="20" y="14" width="400" height="36" rx="8" fill="#EFF6FF" stroke="#3B82F6" stroke-width="1.5" />
+                <text x="220" y="37" font-size="11.5" font-weight="bold" fill="#1E40AF" text-anchor="middle">元の命題：nが6の倍数 ならば nは3の倍数である（真）</text>
+
+                <text x="220" y="68" font-size="10.5" font-weight="900" fill="#7E22CE" text-anchor="middle">↕ 仮定と結論を逆にして、両方を否定（〜でない）にする！</text>
+
+                <rect x="20" y="78" width="400" height="36" rx="8" fill="#F3E8FF" stroke="#9333EA" stroke-width="2" />
+                <text x="220" y="101" font-size="11.5" font-weight="900" fill="#581C87" text-anchor="middle">対偶：nが3の倍数でない ならば nは6の倍数でない（真）</text>
+              </svg>
+            </div>`;
+
+        default:
+          return '';
+      }
+    }
+
+    // ==========================================
+    // 2. 数学検定3級＆準2級 全20問データ ＋ 類題自動生成ロジック
+    // ==========================================
+    const PROBLEMS_3KYU = [
+      {
+        code: '3-1',
+        num: '問1',
+        topic: '資料の散らばり（四分位数と四分位範囲）',
+        originalQuestion: '次のデータ 4, 7, 7, 8, 9, 11, 12 の中央値・第1四分位数・第3四分位数・四分位範囲を求めなさい。',
+        formulaTitle: '四分位数の見つけ方 3ステップ',
+        formulaDesc: '① データを小さい順に並べる。\n② 全体の真ん中が「中央値（第2四分位数）」。\n③ 中央値を除いた前半の真ん中が「第1四分位数」、後半の真ん中が「第3四分位数」。\n④ 四分位範囲 ＝ 第3四分位数 − 第1四分位数',
+        stepByStep: [
+          'データはすでに小さい順（4, 7, 7, 8, 9, 11, 12）の7個に並んでいる。',
+          '7個の真ん中（4番目）は「8」なので、中央値 ＝ 8。',
+          '前半3個（4, 7, 7）の真ん中は「7」なので、第1四分位数 ＝ 7。',
+          '後半3個（9, 11, 12）の真ん中は「11」なので、第3四分位数 ＝ 11。',
+          '四分位範囲 ＝ 11 − 7 ＝ 4。'
+        ],
+        originalOptions: [
+          '中央値：8 ／ 第1四分位数：7 ／ 第3四分位数：11 ／ 四分位範囲：4',
+          '中央値：8 ／ 第1四分位数：7 ／ 第3四分位数：11 ／ 四分位範囲：8',
+          '中央値：7 ／ 第1四分位数：4 ／ 第3四分位数：12 ／ 四分位範囲：8',
+          '中央値：8 ／ 第1四分位数：7.5 ／ 第3四分位数：10 ／ 四分位範囲：2.5'
+        ],
+        originalAnswer: 0,
+        generateSimilar: () => {
+          const base = [2, 5, 6, 9, 10, 14, 15].map((v) => v + Math.floor(Math.random() * 4));
+          const med = base[3];
+          const q1 = base[1];
+          const q3 = base[5];
+          const iqr = q3 - q1;
+          const correct = `中央値：${med} ／ 第1四分位数：${q1} ／ 第3四分位数：${q3} ／ 四分位範囲：${iqr}`;
+          return {
+            question: `【類題】次の7個のデータ ${base.join(', ')} の中央値・第1四分位数・第3四分位数・四分位範囲を求めなさい。`,
+            options: [
+              correct,
+              `中央値：${med} ／ 第1四分位数：${q1} ／ 第3四分位数：${q3} ／ 四分位範囲：${base[6] - base[0]}`,
+              `中央値：${q1} ／ 第1四分位数：${base[0]} ／ 第3四分位数：${base[6]} ／ 四分位範囲：${iqr}`,
+              `中央値：${med} ／ 第1四分位数：${base[2]} ／ 第3四分位数：${base[4]} ／ 四分位範囲：${base[4] - base[2]}`
+            ],
+            answer: 0,
+            explanation: `小さい順7個の真ん中（4番目）は ${med}。前半3個(${base[0]},${base[1]},${base[2]})の真ん中は ${q1}、後半3個(${base[4]},${base[5]},${base[6]})の真ん中は ${q3}。四分位範囲は ${q3} − ${q1} ＝ ${iqr} です。`
+          };
+        }
+      },
+      {
+        code: '3-2',
+        num: '問2',
+        topic: '標本調査（標識再捕法による母集団の推定）',
+        originalQuestion: 'ある池の魚を50匹捕まえて印を付けて戻した。後日80匹を捕まえたところ、印付きは10匹だった。魚の総数を推定しなさい。',
+        formulaTitle: '標本調査の比例式（母集団の推定）',
+        formulaDesc: '（池全体の総数 x）：（最初に印を付けた数） ＝ （再捕獲した数）：（うち印が付いていた数）\n※割合が等しいことから比例式を立て、内側どうし・外側どうしを掛けて解きます。',
+        stepByStep: [
+          '池の魚の総数を x 匹とする。',
+          '「全体 x 匹のうち50匹が印付き」と「80匹のうち10匹が印付き」の割合が等しいので、x : 50 ＝ 80 : 10。',
+          '10x ＝ 50 × 80 ＝ 4000 となるため、x ＝ 400（匹）。'
+        ],
+        originalOptions: [
+          '約 400 匹',
+          '約 250 匹',
+          '約 500 匹',
+          '約 800 匹'
+        ],
+        originalAnswer: 0,
+        generateSimilar: () => {
+          const marked = [40, 60, 80][Math.floor(Math.random() * 3)];
+          const ratio = [5, 6, 8, 10][Math.floor(Math.random() * 4)];
+          const recapMarked = 10;
+          const recapTotal = recapMarked * ratio;
+          const total = marked * ratio;
+          return {
+            question: `【類題】ある池の魚を${marked}匹捕まえて印を付けて戻した。後日${recapTotal}匹を捕まえたところ、印付きは${recapMarked}匹だった。魚の総数を推定しなさい。`,
+            options: [
+              `約 ${total} 匹`,
+              `約 ${total / 2} 匹`,
+              `約 ${marked + recapTotal} 匹`,
+              `約 ${total * 2} 匹`
+            ],
+            answer: 0,
+            explanation: `x : ${marked} ＝ ${recapTotal} : ${recapMarked} より、${recapMarked}x ＝ ${marked} × ${recapTotal}。よって x ＝ ${total} 匹と推定できます。`
+          };
+        }
+      },
+      {
+        code: '3-3',
+        num: '問3',
+        topic: '平方根の大小と整数部分',
+        originalQuestion: '次の数を超えない最大の整数を求めなさい。\n√90',
+        formulaTitle: '√a の整数部分の求め方',
+        formulaDesc: '√a を挟む2つの「2乗の数（平方数：1, 4, 9, 16, 25, 36, 49, 64, 81, 100, 121…）」を探します。\nn² ＜ a ＜ (n+1)² ならば、√a ＝ n.〇〇… となるため、超えない最大の整数は n です。',
+        stepByStep: [
+          '90 に近い2乗の数を探すと、9² ＝ 81 と 10² ＝ 100 がある。',
+          '81 ＜ 90 ＜ 100 なので、各辺にルートをつけると 9 ＜ √90 ＜ 10。',
+          'よって √90 ＝ 9.48… となり、√90 を超えない最大の整数は 9 である。'
+        ],
+        originalOptions: [
+          '9',
+          '10',
+          '8',
+          '45'
+        ],
+        originalAnswer: 0,
+        generateSimilar: () => {
+          const n = [6, 7, 8, 10, 11][Math.floor(Math.random() * 5)];
+          const a = n * n + Math.floor(Math.random() * (2 * n - 1)) + 1;
+          return {
+            question: `【類題】次の数を超えない最大の整数を求めなさい。\n√${a}`,
+            options: [
+              `${n}`,
+              `${n + 1}`,
+              `${n - 1}`,
+              `${Math.floor(a / 2)}`
+            ],
+            answer: 0,
+            explanation: `${n}² ＝ ${n * n}、${n + 1}² ＝ ${(n + 1) * (n + 1)} であり、${n * n} ＜ ${a} ＜ ${(n + 1) * (n + 1)} なので、${n} ＜ √${a} ＜ ${n + 1}。よって超えない最大の整数は ${n} です。`
+          };
+        }
+      },
+      {
+        code: '3-4',
+        num: '問4',
+        topic: '一次関数のグラフと交点の座標',
+        originalQuestion: '2つの直線の交点の座標を求めなさい。\ny ＝ 2x − 1　　y ＝ −x ＋ 8',
+        formulaTitle: '2直線の交点の求め方',
+        formulaDesc: '2つの直線 y ＝ ax ＋ b と y ＝ cx ＋ d の交点は、右辺どうしをイコールでつないだ方程式\n「ax ＋ b ＝ cx ＋ d」を解いて x を求め、元の式に代入して y を求めます。',
+        stepByStep: [
+          '2つの式から y を消去すると、2x − 1 ＝ −x ＋ 8。',
+          '移項して整理すると、2x ＋ x ＝ 8 ＋ 1 ⇒ 3x ＝ 9 ⇒ x ＝ 3。',
+          'x ＝ 3 を y ＝ 2x − 1 に代入すると、y ＝ 2×3 − 1 ＝ 5。',
+          'よって、交点の座標は (3, 5) である。'
+        ],
+        originalOptions: [
+          '(3, 5)',
+          '(5, 3)',
+          '(2, 3)',
+          '(4, 4)'
+        ],
+        originalAnswer: 0,
+        generateSimilar: () => {
+          const x = [2, 3, 4][Math.floor(Math.random() * 3)];
+          const y = [3, 4, 5, 7][Math.floor(Math.random() * 4)];
+          const b1 = y - 2 * x;
+          const b2 = y + x;
+          const eq1 = `y ＝ 2x ${b1 >= 0 ? '＋ ' + b1 : '− ' + Math.abs(b1)}`;
+          const eq2 = `y ＝ −x ＋ ${b2}`;
+          return {
+            question: `【類題】2つの直線の交点の座標を求めなさい。\n${eq1}　　${eq2}`,
+            options: [
+              `(${x}, ${y})`,
+              `(${y}, ${x})`,
+              `(${x + 1}, ${y - 1})`,
+              `(${x - 1}, ${y + 1})`
+            ],
+            answer: 0,
+            explanation: `右辺を等しくおくと 2x ${b1 >= 0 ? '+ ' + b1 : '- ' + Math.abs(b1)} ＝ -x + ${b2} より、3x ＝ ${b2 - b1} ⇒ x ＝ ${x}。代入して y ＝ ${y} なので、交点は (${x}, ${y}) です。`
+          };
+        }
+      },
+      {
+        code: '3-5',
+        num: '問5',
+        topic: '確率の余事象（「少なくとも1個〜」）',
+        originalQuestion: '赤玉3個、青玉2個、白玉1個の袋から同時に2個取り出す。少なくとも1個が赤である確率を求めなさい。',
+        formulaTitle: '「少なくとも〜」は余事象を使う！',
+        formulaDesc: '「少なくとも1個が赤」＝（赤1個・他1個）＋（赤2個）と直接数えるより、\n全体の確率 1 から「1個も赤が出ない確率（赤以外から2個選ぶ確率）」を引く方が圧倒的に速く正確です！',
+        stepByStep: [
+          '玉は全部で 3＋2＋1 ＝ 6個。ここから2個同時に取り出す組合せは ₆C₂ ＝ (6×5)÷(2×1) ＝ 15通り。',
+          '「少なくとも1個が赤」の反対（余事象）は「2個とも赤以外（青2・白1の計3個から2個）」。',
+          '赤以外3個から2個選ぶ組合せは ₃C₂ ＝ (3×2)÷(2×1) ＝ 3通り。',
+          'よって「1個も赤が出ない確率」は 3/15 ＝ 1/5。求める確率は 1 − 1/5 ＝ 4/5。'
+        ],
+        originalOptions: [
+          '4/5',
+          '1/5',
+          '3/5',
+          '2/3'
+        ],
+        originalAnswer: 0,
+        generateSimilar: () => {
+          const patterns = [
+            { r: 2, b: 2, w: 1, ans: '7/10', opp: '3/10', detail: '全5個から2個は10通り。赤以外3個から2個は3通りなので、1 − 3/10 ＝ 7/10。' },
+            { r: 3, b: 1, w: 1, ans: '9/10', opp: '1/10', detail: '全5個から2個は10通り。赤以外2個から2個は1通りなので、1 − 1/10 ＝ 9/10。' },
+            { r: 2, b: 2, w: 2, ans: '3/5', opp: '2/5', detail: '全6個から2個は15通り。赤以外4個から2個は6通り（6/15＝2/5）なので、1 − 2/5 ＝ 3/5。' }
+          ];
+          const p = patterns[Math.floor(Math.random() * patterns.length)];
+          return {
+            question: `【類題】赤玉${p.r}個、青玉${p.b}個、白玉${p.w}個の袋から同時に2個取り出す。少なくとも1個が赤である確率を求めなさい。`,
+            options: [
+              p.ans,
+              p.opp,
+              '1/2',
+              '1/3'
+            ],
+            answer: 0,
+            explanation: p.detail
+          };
+        }
+      },
+      {
+        code: '3-6',
+        num: '問6',
+        topic: '円の接線の性質と証明',
+        originalQuestion: '円Oの外の点Pから接線PA、PBを引く。PA＝7 cm のときPBの長さを求め、理由を説明しなさい。',
+        formulaTitle: '円の外部の点から引いた2本の接線の性質',
+        formulaDesc: '円の外部の1点 P からその円に引いた2本の接線の長さは等しい（PA ＝ PB）。\n【理由】中心 O と接点 A, B および点 P を結ぶと、∠OAP＝∠OBP＝90°、斜辺 OP 共通、半径 OA＝OB より、直角三角形の斜辺と他の1辺がそれぞれ等しいため △OAP ≡ △OBP となるから。',
+        stepByStep: [
+          '円の外部の1点Pから引いた2本の接線の長さは等しいので、PB ＝ PA ＝ 7 cm。',
+          '理由は、直角三角形 △OAP と △OBP において、斜辺 OP が共通で半径 OA ＝ OB であるため合同（△OAP ≡ △OBP）になるから。'
+        ],
+        originalOptions: [
+          'PB ＝ 7 cm（理由：円の外部の1点から引いた2本の接線の長さは等しく、△OAP ≡ △OBP となるから）',
+          'PB ＝ 14 cm（理由：直径と接線の長さが等しくなるから）',
+          'PB ＝ 3.5 cm（理由：接線は半径の半分になるから）',
+          'PB ＝ 7√2 cm（理由：三平方の定理で斜辺を求めるから）'
+        ],
+        originalAnswer: 0,
+        generateSimilar: () => {
+          const len = [5, 6, 8, 9, 11][Math.floor(Math.random() * 5)];
+          return {
+            question: `【類題】円Oの外部の点Pから円Oに2本の接線PA、PBを引く。PA ＝ ${len} cm のとき、PBの長さとその理由の組合せとして正しいものを選びなさい。`,
+            options: [
+              `PB ＝ ${len} cm（円の外部の1点から引いた2本の接線の長さは等しいため）`,
+              `PB ＝ ${len * 2} cm（接線の長さは2倍になるため）`,
+              `PB ＝ ${len}√3 cm（正三角形ができるため）`,
+              `半径が分からないので求められない`
+            ],
+            answer: 0,
+            explanation: `△OAP と △OBP が直角三角形の合同条件（斜辺と他の1辺がそれぞれ等しい）で合同になるため、PA ＝ PB ＝ ${len} cm です。`
+          };
+        }
+      },
+      {
+        code: '3-7',
+        num: '問7',
+        topic: '三平方の定理と直角三角形の面積',
+        originalQuestion: '直角三角形の斜辺が13 cm、他の1辺が5 cmである。面積を求めなさい。',
+        formulaTitle: '三平方の定理（a² ＋ b² ＝ c²）',
+        formulaDesc: '直角をはさむ2辺を a, b、最も長い斜辺を c とすると「a² ＋ b² ＝ c²」が成り立ちます。\nよく出る整数比：(3, 4, 5)、(5, 12, 13)、(8, 15, 17) を覚えておくと一瞬で解けます！',
+        stepByStep: [
+          '残りの直角をはさむ1辺の長さを x cm とする（x ＞ 0）。',
+          '三平方の定理より、x² ＋ 5² ＝ 13² ⇒ x² ＋ 25 ＝ 169 ⇒ x² ＝ 144 ⇒ x ＝ 12（cm）。',
+          '直角三角形の面積 ＝ 底辺 × 高さ ÷ 2 ＝ 12 × 5 ÷ 2 ＝ 30（cm²）。'
+        ],
+        originalOptions: [
+          '30 cm²',
+          '60 cm²',
+          '32.5 cm²',
+          '65 cm²'
+        ],
+        originalAnswer: 0,
+        generateSimilar: () => {
+          const triples = [
+            { a: 3, b: 4, c: 5, area: 6 },
+            { a: 6, b: 8, c: 10, area: 24 },
+            { a: 8, b: 15, c: 17, area: 60 },
+            { a: 9, b: 12, c: 15, area: 54 }
+          ];
+          const t = triples[Math.floor(Math.random() * triples.length)];
+          return {
+            question: `【類題】直角三角形の斜辺が ${t.c} cm、他の1辺が ${t.a} cm である。この直角三角形の面積を求めなさい。`,
+            options: [
+              `${t.area} cm²`,
+              `${t.area * 2} cm²`,
+              `${(t.a * t.c) / 2} cm²`,
+              `${t.a + t.b + t.c} cm²`
+            ],
+            answer: 0,
+            explanation: `三平方の定理より、もう1辺は √(${t.c}² − ${t.a}²) ＝ ${t.b} cm。面積は ${t.a} × ${t.b} ÷ 2 ＝ ${t.area} cm² です。`
+          };
+        }
+      },
+      {
+        code: '3-8',
+        num: '問8',
+        topic: '二次方程式の文章題（図形の面積）',
+        originalQuestion: '縦が横より3 cm短い長方形の面積が70 cm²である。横の長さを求めなさい。',
+        formulaTitle: '二次方程式の文章題の4ステップ',
+        formulaDesc: '① 求めたい長さを x とおく。\n② 辺の長さの条件から、x の変域（x ＞ 0 など）を必ず確認する。\n③ 面積の式を立てて因数分解（または解の公式）で解く。\n④ 変域に合わないマイナスの解を除外して答えを書く！',
+        stepByStep: [
+          '横の長さを x cm とすると、縦の長さは (x − 3) cm と表せる（縦が正なので x ＞ 3）。',
+          '面積の式は x(x − 3) ＝ 70 ⇒ x² − 3x − 70 ＝ 0。',
+          '因数分解すると (x − 10)(x ＋ 7) ＝ 0 となり、x ＝ 10, −7。',
+          'x ＞ 3 より x ＝ −7 は不適なので、横の長さは 10 cm である。'
+        ],
+        originalOptions: [
+          '10 cm',
+          '7 cm',
+          '10 cm と −7 cm',
+          '14 cm'
+        ],
+        originalAnswer: 0,
+        generateSimilar: () => {
+          const pairs = [
+            { w: 9, diff: 4, area: 45 },
+            { w: 11, diff: 3, area: 88 },
+            { w: 12, diff: 5, area: 84 },
+            { w: 8, diff: 2, area: 48 }
+          ];
+          const p = pairs[Math.floor(Math.random() * pairs.length)];
+          return {
+            question: `【類題】縦が横より ${p.diff} cm 短い長方形の面積が ${p.area} cm² である。横の長さを求めなさい。`,
+            options: [
+              `${p.w} cm`,
+              `${p.w - p.diff} cm`,
+              `${p.w} cm と −${p.w - p.diff} cm`,
+              `${p.w + 2} cm`
+            ],
+            answer: 0,
+            explanation: `横を x cm（x ＞ ${p.diff}）とすると x(x − ${p.diff}) ＝ ${p.area} ⇒ (x − ${p.w})(x ＋ ${p.w - p.diff}) ＝ 0。x ＞ ${p.diff} より x ＝ ${p.w} cm です。`
+          };
+        }
+      },
+      {
+        code: '3-9',
+        num: '問9',
+        topic: '相似な図形の相似比と面積比',
+        originalQuestion: '相似な2つの三角形の対応する辺の比が3：5である。小さい方の面積が27 cm²なら、大きい方の面積を求めなさい。',
+        formulaTitle: '相似比と面積比・体積比の関係',
+        formulaDesc: '相似な2つの図形の相似比（辺の比）が「m : n」のとき、\n・面積比 ＝ m² : n²（2乗の比）\n・体積比 ＝ m³ : n³（3乗の比）になります！',
+        stepByStep: [
+          '対応する辺の比（相似比）が 3 : 5 なので、面積比は 3² : 5² ＝ 9 : 25 である。',
+          '大きい方の三角形の面積を x cm² とすると、27 : x ＝ 9 : 25。',
+          '9x ＝ 27 × 25 より、両辺を9で割ると x ＝ 3 × 25 ＝ 75（cm²）。'
+        ],
+        originalOptions: [
+          '75 cm²',
+          '45 cm²',
+          '125 cm²',
+          '135 cm²'
+        ],
+        originalAnswer: 0,
+        generateSimilar: () => {
+          const configs = [
+            { m: 2, n: 3, sArea: 16, lArea: 36 },
+            { m: 2, n: 5, sArea: 12, lArea: 75 },
+            { m: 3, n: 4, sArea: 18, lArea: 32 },
+            { m: 4, n: 5, sArea: 32, lArea: 50 }
+          ];
+          const c = configs[Math.floor(Math.random() * configs.length)];
+          return {
+            question: `【類題】相似な2つの三角形の対応する辺の比が ${c.m}：${c.n} である。小さい方の面積が ${c.sArea} cm² なら、大きい方の面積を求めなさい。`,
+            options: [
+              `${c.lArea} cm²`,
+              `${(c.sArea * c.n) / c.m} cm²`,
+              `${c.lArea * 2} cm²`,
+              `${c.sArea + c.n * 5} cm²`
+            ],
+            answer: 0,
+            explanation: `相似比が ${c.m} : ${c.n} なので、面積比は ${c.m * c.m} : ${c.n * c.n}。${c.sArea} : x ＝ ${c.m * c.m} : ${c.n * c.n} を解くと x ＝ ${c.lArea} cm² です。`
+          };
+        }
+      },
+      {
+        code: '3-10',
+        num: '問10',
+        topic: '散布図・相関関係と因果関係の区別',
+        originalQuestion: '散布図を見て、正の相関・負の相関・相関がほとんどない、のどれかを答えなさい。また「練習時間を増やせば必ず得点が上がる」と断定できるか説明しなさい。',
+        formulaTitle: '相関の種類 と「相関 ≠ 因果」の鉄則',
+        formulaDesc: '・正の相関：一方が増えると他方も増える傾向（右上がり）\n・負の相関：一方が増えると他方は減る傾向（右下がり）\n【重要】相関関係はあくまで「全体の傾向」であり、個別の例外（例：4時間練習した人より3時間練習した人の方が高得点）が存在するため「必ず〜になる」とは断定できません。',
+        stepByStep: [
+          '散布図の点は全体として右上がりに並んでいるため、「正の相関」がある。',
+          'しかし、練習時間が3時間の人は5点であるのに対し、4時間の人は4点となっている例がある。',
+          'よって「練習時間を増やせば必ず得点が上がる」とは断定できない（相関は全体傾向であり例外が存在するため）。'
+        ],
+        originalOptions: [
+          '正の相関がある。また、全体の傾向に過ぎず例外（3時間で5点、4時間で4点など）もあるため「必ず上がる」とは断定できない。',
+          '正の相関がある。右上がりのグラフなので「練習時間を増やせば必ず得点が上がる」と断定できる。',
+          '負の相関がある。練習時間と得点には全く関係がないため予測できない。',
+          '相関はほとんどない。データが5個しかないためグラフは読めない。'
+        ],
+        originalAnswer: 0,
+        generateSimilar: () => {
+          return {
+            question: '【類題】あるクラスの「読書時間」と「漢字テストの得点」の散布図を描いたところ、全体として右上がりの分布が見られたが、読書時間が長いのに得点が低い生徒も一部いた。最も適切な判断はどれか。',
+            options: [
+              '正の相関があると言えるが、例外も存在するため「読書時間を増やせば必ず得点が上がる」とは断定できない。',
+              '負の相関があるため、読書時間を減らした方がテストの得点が上がる。',
+              '正の相関があるため、読書時間さえ増やせば例外なく全員100点になる。',
+              '相関がほとんどないため、散布図からは何も読み取れない。'
+            ],
+            answer: 0,
+            explanation: '右上がりの分布は「正の相関」を示しますが、相関関係は全体の傾向を表すものであり、因果関係や「必ず〜になる」という断定はできません。'
+          };
+        }
+      }
+    ];
+
+    const PROBLEMS_J2KYU = [
+      {
+        code: 'j2-1',
+        num: '問1',
+        topic: '集合の要素（和集合 A∪B と共通部分 A∩B）',
+        originalQuestion: '全体集合 U＝{1,2,3,4,5,6,7,8,9,10}、A＝{2,4,6,8,10}、B＝{3,6,9}。A∪Bの要素とA∩Bの要素を答えなさい。',
+        formulaTitle: '記号「∪（カップ）」と「∩（キャップ）」の見分け方',
+        formulaDesc: '・A ∪ B（和集合）：A または B の少なくとも一方に入っている要素を「全部合わせたもの」（コップに全部入れるイメージ）。\n・A ∩ B（共通部分）：A と B の「両方に共通して入っている要素」（帽子で重なりを覆うイメージ）。',
+        stepByStep: [
+          'A＝{2, 4, 6, 8, 10}、B＝{3, 6, 9} の両方に共通している要素は 6 だけなので、A∩B ＝ {6}。',
+          'A と B のどちらか一方にでも入っている要素を重複なく小さい順に並べると、A∪B ＝ {2, 3, 4, 6, 8, 9, 10}。'
+        ],
+        originalOptions: [
+          'A∪B ＝ {2, 3, 4, 6, 8, 9, 10} ／ A∩B ＝ {6}',
+          'A∪B ＝ {6} ／ A∩B ＝ {2, 3, 4, 6, 8, 9, 10}',
+          'A∪B ＝ {1, 5, 7} ／ A∩B ＝ {6}',
+          'A∪B ＝ {2, 3, 4, 8, 9, 10} ／ A∩B ＝ {6}'
+        ],
+        originalAnswer: 0,
+        generateSimilar: () => {
+          return {
+            question: '【類題】全体集合 U＝{1,2,3,4,5,6,7,8,9,10}、A＝{1,2,3,6}、B＝{2,4,6,8} のとき、A∪B と A∩B の要素の組合せとして正しいものを選びなさい。',
+            options: [
+              'A∪B ＝ {1, 2, 3, 4, 6, 8} ／ A∩B ＝ {2, 6}',
+              'A∪B ＝ {2, 6} ／ A∩B ＝ {1, 2, 3, 4, 6, 8}',
+              'A∪B ＝ {1, 3, 4, 8} ／ A∩B ＝ {2, 6}',
+              'A∪B ＝ {5, 7, 9, 10} ／ A∩B ＝ {2, 6}'
+            ],
+            answer: 0,
+            explanation: '両方に共通する要素は 2 と 6 なので A∩B＝{2, 6}。すべて合わせた和集合は A∪B＝{1, 2, 3, 4, 6, 8} です。'
+          };
+        }
+      },
+      {
+        code: 'j2-2',
+        num: '問2',
+        topic: '絶対値を含む一次不等式',
+        originalQuestion: '次の不等式を解きなさい。\n|2x − 3| ＜ 5',
+        formulaTitle: '絶対値不等式の基本公式（c ＞ 0 のとき）',
+        formulaDesc: '① |X| ＜ c  ⇔  −c ＜ X ＜ c （c で挟む！）\n② |X| ＞ c  ⇔  X ＜ −c，c ＜ X （外側に広がる！）\n※挟んだ後は、真ん中が「x だけ」になるように全辺に同じ数を足し引き・割り算します。',
+        stepByStep: [
+          '|2x − 3| ＜ 5 は、−5 ＜ 2x − 3 ＜ 5 と変形できる。',
+          'すべての辺に 3 を足すと、−5 ＋ 3 ＜ 2x ＜ 5 ＋ 3 ⇒ −2 ＜ 2x ＜ 8。',
+          'すべての辺を正の数 2 で割ると、−1 ＜ x ＜ 4。'
+        ],
+        originalOptions: [
+          '−1 ＜ x ＜ 4',
+          'x ＜ −1，4 ＜ x',
+          '−4 ＜ x ＜ 1',
+          '1 ＜ x ＜ 4'
+        ],
+        originalAnswer: 0,
+        generateSimilar: () => {
+          const patterns = [
+            { expr: '|2x − 1| ＜ 7', ans: '−3 ＜ x ＜ 4', wrong1: 'x ＜ −3，4 ＜ x', wrong2: '−4 ＜ x ＜ 3', exp: '−7 ＜ 2x − 1 ＜ 7 ⇒ −6 ＜ 2x ＜ 8 ⇒ −3 ＜ x ＜ 4' },
+            { expr: '|3x ＋ 2| ＜ 4', ans: '−2 ＜ x ＜ 2/3', wrong1: 'x ＜ −2，2/3 ＜ x', wrong2: '−2/3 ＜ x ＜ 2', exp: '−4 ＜ 3x ＋ 2 ＜ 4 ⇒ −6 ＜ 3x ＜ 2 ⇒ −2 ＜ x ＜ 2/3' },
+            { expr: '|2x − 5| ＜ 3', ans: '1 ＜ x ＜ 4', wrong1: '−1 ＜ x ＜ 4', wrong2: 'x ＜ 1，4 ＜ x', exp: '−3 ＜ 2x − 5 ＜ 3 ⇒ 2 ＜ 2x ＜ 8 ⇒ 1 ＜ x ＜ 4' }
+          ];
+          const p = patterns[Math.floor(Math.random() * patterns.length)];
+          return {
+            question: `【類題】次の不等式を解きなさい。\n${p.expr}`,
+            options: [
+              p.ans,
+              p.wrong1,
+              p.wrong2,
+              '解なし'
+            ],
+            answer: 0,
+            explanation: p.exp
+          };
+        }
+      },
+      {
+        code: 'j2-3',
+        num: '問3',
+        topic: '二次関数のグラフとx軸の共有点（判別式 D）',
+        originalQuestion: '放物線とx軸がただ1点で交わるように、定数kを定めなさい。\ny ＝ x² − 6x ＋ k',
+        formulaTitle: '判別式 D ＝ b² − 4ac と共有点の個数',
+        formulaDesc: '二次方程式 ax² ＋ bx ＋ c ＝ 0 の判別式 D ＝ b² − 4ac について、\n・D ＞ 0 ⇔ 異なる2点で交わる\n・D ＝ 0 ⇔ ただ1点で交わる（x軸に接する）\n・D ＜ 0 ⇔ 共有点をもたない（離れている）',
+        stepByStep: [
+          '放物線 y ＝ x² − 6x ＋ k が x 軸とただ1点で交わる（接する）条件は、x² − 6x ＋ k ＝ 0 の判別式 D ＝ 0 となること。',
+          'a ＝ 1, b ＝ −6, c ＝ k を代入すると、D ＝ (−6)² − 4×1×k ＝ 36 − 4k。',
+          'D ＝ 0 より、36 − 4k ＝ 0 ⇒ 4k ＝ 36 ⇒ k ＝ 9。'
+        ],
+        originalOptions: [
+          'k ＝ 9',
+          'k ＝ −9',
+          'k ＝ 6',
+          'k ＝ 36'
+        ],
+        originalAnswer: 0,
+        generateSimilar: () => {
+          const halfB = [2, 4, 5, 6][Math.floor(Math.random() * 4)];
+          const b = halfB * 2;
+          const kAns = halfB * halfB;
+          return {
+            question: `【類題】放物線 y ＝ x² − ${b}x ＋ k が x 軸とただ1点で交わる（接する）ように、定数 k の値を定めなさい。`,
+            options: [
+              `k ＝ ${kAns}`,
+              `k ＝ −${kAns}`,
+              `k ＝ ${b}`,
+              `k ＝ ${b * b}`
+            ],
+            answer: 0,
+            explanation: `判別式 D ＝ (−${b})² − 4×1×k ＝ ${b * b} − 4k ＝ 0 とおくと、4k ＝ ${b * b} ⇒ k ＝ ${kAns} です。`
+          };
+        }
+      },
+      {
+        code: 'j2-4',
+        num: '問4',
+        topic: '二次関数の決定（頂点と通る1点）',
+        originalQuestion: '放物線の頂点が(2, −3)で、点(0, 1)を通る。式を求めなさい。',
+        formulaTitle: '頂点が (p, q) の二次関数の基本形',
+        formulaDesc: '頂点の座標が (p, q) と分かっているときは、必ず\n「y ＝ a(x − p)² ＋ q」の形におきます（pの符号が逆になる点に注意！）。\nその後、通る点の座標 (x, y) を代入して a の値を求めます。',
+        stepByStep: [
+          '頂点が (2, −3) なので、求める放物線の式は y ＝ a(x − 2)² − 3 とおける。',
+          'これが点 (0, 1) を通るので、x ＝ 0, y ＝ 1 を代入する。',
+          '1 ＝ a(0 − 2)² − 3 ⇒ 1 ＝ 4a − 3 ⇒ 4a ＝ 4 ⇒ a ＝ 1。',
+          'よって、求める式は y ＝ (x − 2)² − 3（展開すると y ＝ x² − 4x ＋ 1）。'
+        ],
+        originalOptions: [
+          'y ＝ (x − 2)² − 3（または y ＝ x² − 4x ＋ 1）',
+          'y ＝ (x ＋ 2)² − 3（または y ＝ x² ＋ 4x ＋ 1）',
+          'y ＝ −(x − 2)² − 3',
+          'y ＝ 2(x − 2)² − 3'
+        ],
+        originalAnswer: 0,
+        generateSimilar: () => {
+          const patterns = [
+            { p: 1, q: -2, x0: 0, y0: 0, a: 2, ans: 'y ＝ 2(x − 1)² − 2（y ＝ 2x² − 4x）', wrong: 'y ＝ (x − 1)² − 2' },
+            { p: 3, q: -4, x0: 1, y0: 0, a: 1, ans: 'y ＝ (x − 3)² − 4（y ＝ x² − 6x ＋ 5）', wrong: 'y ＝ (x ＋ 3)² − 4' },
+            { p: -1, q: 2, x0: 0, y0: 5, a: 3, ans: 'y ＝ 3(x ＋ 1)² ＋ 2（y ＝ 3x² ＋ 6x ＋ 5）', wrong: 'y ＝ 3(x − 1)² ＋ 2' }
+          ];
+          const item = patterns[Math.floor(Math.random() * patterns.length)];
+          return {
+            question: `【類題】放物線の頂点が (${item.p}, ${item.q}) で、点 (${item.x0}, ${item.y0}) を通る二次関数の式を求めなさい。`,
+            options: [
+              item.ans,
+              item.wrong,
+              `y ＝ −${item.a}(x − ${item.p})² ＋ ${item.q}`,
+              `y ＝ (x − ${item.q})² ＋ ${item.p}`
+            ],
+            answer: 0,
+            explanation: `y ＝ a(x − (${item.p}))² ＋ (${item.q}) に x＝${item.x0}, y＝${item.y0} を代入して a ＝ ${item.a} が求まります。`
+          };
+        }
+      },
+      {
+        code: 'j2-5',
+        num: '問5',
+        topic: '三角比の利用（仰角と建物の高さ）',
+        originalQuestion: '水平な地面上で建物の頂点を見上げる角が30°で、建物からの水平距離は12 mである。目の高さを0 mとして建物の高さを求めなさい。',
+        formulaTitle: '直角三角形の三角比（tanθ ＝ 高さ / 底辺）',
+        formulaDesc: '見上げる角（仰角）が θ、水平距離（底辺）が L のとき、高さ h は\n「h ＝ L × tanθ」で求まります。\n・tan30° ＝ 1/√3\n・tan45° ＝ 1\n・tan60° ＝ √3',
+        stepByStep: [
+          '建物の高さを h m とすると、tan30° ＝ h/12 となる。',
+          'よって h ＝ 12 × tan30° ＝ 12 × (1/√3) ＝ 12/√3。',
+          '分母を有理化すると、(12√3)/3 ＝ 4√3（m）。'
+        ],
+        originalOptions: [
+          '4√3 m',
+          '6√3 m',
+          '12√3 m',
+          '6 m'
+        ],
+        originalAnswer: 0,
+        generateSimilar: () => {
+          const patterns = [
+            { dist: 15, deg: '30°', ans: '5√3 m', w1: '15√3 m', w2: '7.5 m', exp: '15 × tan30° ＝ 15/√3 ＝ 5√3 m' },
+            { dist: 10, deg: '60°', ans: '10√3 m', w1: '10/√3 m', w2: '5√3 m', exp: '10 × tan60° ＝ 10 × √3 ＝ 10√3 m' },
+            { dist: 18, deg: '30°', ans: '6√3 m', w1: '9√3 m', w2: '18√3 m', exp: '18 × tan30° ＝ 18/√3 ＝ 6√3 m' }
+          ];
+          const p = patterns[Math.floor(Math.random() * patterns.length)];
+          return {
+            question: `【類題】水平な地面上で建物の頂点を見上げる角が ${p.deg} で、建物からの水平距離は ${p.dist} m である。目の高さを0 mとして建物の高さを求めなさい。`,
+            options: [
+              p.ans,
+              p.w1,
+              p.w2,
+              `${p.dist} m`
+            ],
+            answer: 0,
+            explanation: `高さ ＝ 水平距離 × tan${p.deg} より、${p.exp} となります。`
+          };
+        }
+      },
+      {
+        code: 'j2-6',
+        num: '問6',
+        topic: '正弦定理と外接円の半径 R',
+        originalQuestion: '三角形ABCで∠A＝30°、辺BC＝6 cmである。外接円の半径を求めなさい。',
+        formulaTitle: '正弦定理（a/sinA ＝ b/sinB ＝ c/sinC ＝ 2R）',
+        formulaDesc: '角Aと向かい合う辺 a（＝BC）が分かっているときは正弦定理を使います！\n「a/sinA ＝ 2R（外接円の直径）」\n※sin30° ＝ 1/2、sin45° ＝ 1/√2、sin60° ＝ √3/2',
+        stepByStep: [
+          '正弦定理より、BC/sinA ＝ 2R（R は外接円の半径）。',
+          'BC ＝ 6、sin30° ＝ 1/2 を代入すると、6/(1/2) ＝ 2R。',
+          '6 ÷ (1/2) ＝ 12 なので、2R ＝ 12 ⇒ R ＝ 6（cm）。'
+        ],
+        originalOptions: [
+          '6 cm',
+          '12 cm',
+          '3 cm',
+          '6√3 cm'
+        ],
+        originalAnswer: 0,
+        generateSimilar: () => {
+          const patterns = [
+            { deg: '30°', bc: 8, r: 8, d: 16, exp: '8/sin30° ＝ 16 ＝ 2R ⇒ R ＝ 8 cm' },
+            { deg: '45°', bc: '6√2', r: 6, d: 12, exp: '(6√2)/sin45° ＝ 6√2 × √2 ＝ 12 ＝ 2R ⇒ R ＝ 6 cm' },
+            { deg: '60°', bc: '5√3', r: 5, d: 10, exp: '(5√3)/sin60° ＝ 5√3 × (2/√3) ＝ 10 ＝ 2R ⇒ R ＝ 5 cm' }
+          ];
+          const p = patterns[Math.floor(Math.random() * patterns.length)];
+          return {
+            question: `【類題】三角形ABCで ∠A ＝ ${p.deg}、辺BC ＝ ${p.bc} cm である。この三角形の外接円の半径を求めなさい。`,
+            options: [
+              `${p.r} cm`,
+              `${p.d} cm`,
+              `${p.r / 2} cm`,
+              `${p.bc} cm`
+            ],
+            answer: 0,
+            explanation: `正弦定理より ${p.exp} となります。`
+          };
+        }
+      },
+      {
+        code: 'j2-7',
+        num: '問7',
+        topic: '反復試行の確率',
+        originalQuestion: '1枚の硬貨を4回投げるとき、表がちょうど2回出る確率を求めなさい。',
+        formulaTitle: '反復試行の確率公式（ₙCᵣ × pʳ × qⁿ⁻ʳ）',
+        formulaDesc: '同じ条件の試行を n 回繰り返し、確率 p の事象がちょうど r 回起こる確率は\n「ₙCᵣ × pʳ × (1 − p)ⁿ⁻ʳ」で求めます。\n※コイン4回投げの分母は 2⁴ ＝ 16 通りです！',
+        stepByStep: [
+          '4回のうちどの2回で表が出るかの組合せは ₄C₂ ＝ (4×3)÷(2×1) ＝ 6通り。',
+          '1回ごとに表が出る確率は 1/2、裏が出る確率も 1/2。',
+          '求める確率は ₄C₂ × (1/2)² × (1/2)² ＝ 6 × (1/4) × (1/4) ＝ 6/16 ＝ 3/8。'
+        ],
+        originalOptions: [
+          '3/8',
+          '1/4',
+          '1/16',
+          '1/2'
+        ],
+        originalAnswer: 0,
+        generateSimilar: () => {
+          const patterns = [
+            { n: 4, r: 3, ans: '1/4', w1: '3/8', w2: '3/16', exp: '₄C₃ × (1/2)³ × (1/2)¹ ＝ 4 × (1/16) ＝ 4/16 ＝ 1/4' },
+            { n: 3, r: 2, ans: '3/8', w1: '1/8', w2: '2/3', exp: '₃C₂ × (1/2)² × (1/2)¹ ＝ 3 × (1/8) ＝ 3/8' },
+            { n: 5, r: 2, ans: '5/16', w1: '1/32', w2: '10/16', exp: '₅C₂ × (1/2)² × (1/2)³ ＝ 10 × (1/32) ＝ 10/32 ＝ 5/16' }
+          ];
+          const p = patterns[Math.floor(Math.random() * patterns.length)];
+          return {
+            question: `【類題】1枚の硬貨を ${p.n} 回投げるとき、表がちょうど ${p.r} 回出る確率を求めなさい。`,
+            options: [
+              p.ans,
+              p.w1,
+              p.w2,
+              '1/2'
+            ],
+            answer: 0,
+            explanation: `反復試行の公式より、${p.exp} となります。`
+          };
+        }
+      },
+      {
+        code: 'j2-8',
+        num: '問8',
+        topic: '場合の数（条件付きの整数作り）',
+        originalQuestion: '数字 1, 2, 3, 4, 5 を重複なく使って3桁の偶数を作る。何通りあるか。',
+        formulaTitle: '整数作りの鉄則：制限の強い位から先に決める！',
+        formulaDesc: '・「偶数」の条件 ⇒ 一の位が偶数（2, 4など）でなければならない。\n・「3桁の整数」で0を含む場合 ⇒ 百の位に0は使えない。\nこのように「条件がついている位」を最初に決めてから、残りの位を並べます。',
+        stepByStep: [
+          '3桁の偶数になるためには、一の位が「2」または「4」の 2通り でなければならない。',
+          '一の位に1枚使ったあと、残りの数字4個から百の位を選ぶ方法は 4通り。',
+          'さらに残りの数字3個から十の位を選ぶ方法は 3通り。',
+          '積の法則より、2 × 4 × 3 ＝ 24（通り）。'
+        ],
+        originalOptions: [
+          '24 通り',
+          '60 通り',
+          '36 通り',
+          '12 通り'
+        ],
+        originalAnswer: 0,
+        generateSimilar: () => {
+          const patterns = [
+            { digits: '1, 2, 3, 4, 5', cond: '3桁の奇数', ans: '36 通り', w1: '24 通り', w2: '60 通り', exp: '一の位が奇数(1,3,5)の3通り × 残り4通り × 残り3通り ＝ 36通り。' },
+            { digits: '1, 2, 3, 4, 5, 6', cond: '3桁の偶数', ans: '60 通り', w1: '120 通り', w2: '48 通り', exp: '一の位が偶数(2,4,6)の3通り × 残り5通り × 残り4通り ＝ 60通り。' }
+          ];
+          const p = patterns[Math.floor(Math.random() * patterns.length)];
+          return {
+            question: `【類題】数字 ${p.digits} を重複なく使って ${p.cond} を作るとき、全部で何通りあるか。`,
+            options: [
+              p.ans,
+              p.w1,
+              p.w2,
+              '18 通り'
+            ],
+            answer: 0,
+            explanation: p.exp
+          };
+        }
+      },
+      {
+        code: 'j2-9',
+        num: '問9',
+        topic: 'データの分析（度数分布表と最頻階級）',
+        originalQuestion: '階級別の度数が 0–9分: 2人、10–19分: 5人、20–29分: 9人、30–39分: 6人、40–49分: 3人 である。最頻階級と総人数を答えなさい。',
+        formulaTitle: '最頻値（モード）と最頻階級の定義',
+        formulaDesc: '・最頻階級：度数分布表（ヒストグラム）において、度数が最も多い階級（一番背が高い棒の階級）。\n・最頻値（モード）：最頻階級の「階級値（真ん中の値）」。今回は「最頻階級」を聞かれているので範囲で答えます！',
+        stepByStep: [
+          '各階級の度数を比べると、20–29分の階級が 9人 で最も多い。よって最頻階級は「20–29分」。',
+          '総人数はすべての階級の度数を合計して、2 ＋ 5 ＋ 9 ＋ 6 ＋ 3 ＝ 25（人）。'
+        ],
+        originalOptions: [
+          '最頻階級：20–29分 ／ 総人数：25人',
+          '最頻階級：30–39分 ／ 総人数：25人',
+          '最頻階級：9人 ／ 総人数：25人',
+          '最頻階級：20–29分 ／ 総人数：22人'
+        ],
+        originalAnswer: 0,
+        generateSimilar: () => {
+          return {
+            question: '【類題】あるクラスの通学時間の度数が 0–14分: 4人、15–29分: 11人、30–44分: 8人、45–59分: 5人、60–74分: 2人 である。最頻階級と総人数の組合せを選びなさい。',
+            options: [
+              '最頻階級：15–29分 ／ 総人数：30人',
+              '最頻階級：30–44分 ／ 総人数：30人',
+              '最頻階級：11人 ／ 総人数：30人',
+              '最頻階級：15–29分 ／ 総人数：28人'
+            ],
+            answer: 0,
+            explanation: '最も人数が多いのは 15–29分（11人）。総人数は 4 ＋ 11 ＋ 8 ＋ 5 ＋ 2 ＝ 30人です。'
+          };
+        }
+      },
+      {
+        code: 'j2-10',
+        num: '問10',
+        topic: '命題と対偶の作り方・真偽判定',
+        originalQuestion: '命題「整数nが6の倍数ならばnは3の倍数である」の対偶を書き、真偽を答えなさい。',
+        formulaTitle: '命題「p ⇒ q」の逆・裏・対偶',
+        formulaDesc: '元の命題「p ならば q」に対して、\n・逆：q ならば p\n・裏：pでない ならば qでない\n・対偶：qでない ならば pでない（逆＋裏）\n【重要定理】元の命題と、その「対偶」の真偽は必ず一致します！',
+        stepByStep: [
+          '元の命題の仮定 p は「nが6の倍数」、結論 q は「nは3の倍数である」。',
+          '対偶は結論と仮定を入れ替えて否定するので、「整数nが3の倍数でないならば、nは6の倍数でない」。',
+          '6の倍数は必ず3の倍数（6k ＝ 3×2k）なので元の命題は「真」。よって対偶も「真」である。'
+        ],
+        originalOptions: [
+          '対偶：「整数nが3の倍数でないならば、nは6の倍数でない」 ／ 真偽：真',
+          '対偶：「整数nが3の倍数ならば、nは6の倍数である」 ／ 真偽：偽',
+          '対偶：「整数nが6の倍数でないならば、nは3の倍数でない」 ／ 真偽：偽',
+          '対偶：「整数nが3の倍数でないならば、nは6の倍数でない」 ／ 真偽：偽'
+        ],
+        originalAnswer: 0,
+        generateSimilar: () => {
+          return {
+            question: '【類題】命題「実数 x, y について、x ＋ y ＞ 0 ならば x ＞ 0 または y ＞ 0 である」の対偶と真偽の組合せとして正しいものを選びなさい。（※「AまたはB」の否定は「Aでない かつ Bでない」）',
+            options: [
+              '対偶：「x ≦ 0 かつ y ≦ 0 ならば x ＋ y ≦ 0 である」 ／ 真偽：真',
+              '対偶：「x ≦ 0 または y ≦ 0 ならば x ＋ y ≦ 0 である」 ／ 真偽：偽',
+              '対偶：「x ＞ 0 または y ＞ 0 ならば x ＋ y ＞ 0 である」 ／ 真偽：偽',
+              '対偶：「x ＋ y ≦ 0 ならば x ≦ 0 かつ y ≦ 0 である」 ／ 真偽：真'
+            ],
+            answer: 0,
+            explanation: '結論「x＞0 または y＞0」の否定は「x≦0 かつ y≦0」、仮定「x＋y＞0」の否定は「x＋y≦0」。0以下の2数を足すと必ず0以下になるため、対偶は「真」です。'
+          };
+        }
+      }
+    ];
+
+    // ==========================================
+    // 3. 状態管理
+    // ==========================================
+    const state = {
+      activeTab: '3kyu', // '3kyu' | 'j2kyu' | 'mix'
+      xp: 0,
+      solved3Kyu: {},
+      solvedJ2Kyu: {},
+      drillSolvedCount: 0,
+      selectedIdx3: 0,
+      selectedIdxJ2: 0,
+      origSelection: {},
+      origSubmitted: {},
+      activeDrill: {}, // code -> generated similar problem
+      drillSelection: {},
+      drillSubmitted: {},
+      // 実戦ミックス模試状態
+      mixMode: 'select', // 'select' | 'running' | 'result'
+      mixQuestions: [],
+      mixIdx: 0,
+      mixAnswers: {},
+      mixChecked: {},
+      bestMixScore: null
+    };
+
+    let toastTimer = null;
+    function showToast(msg) {
+      const container = document.getElementById('toast-container');
+      const textEl = document.getElementById('toast-text');
+      textEl.textContent = msg;
+      container.classList.remove('hidden');
+      if (toastTimer) clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        container.classList.add('hidden');
+      }, 3200);
+    }
+
+    function updateHeaderStats() {
+      const c3 = Object.keys(state.solved3Kyu).length;
+      const cj2 = Object.keys(state.solvedJ2Kyu).length;
+
+      document.getElementById('header-3kyu-count').textContent = `${c3}/10問`;
+      document.getElementById('header-j2kyu-count').textContent = `${cj2}/10問`;
+      document.getElementById('header-drill-count').textContent = `${state.drillSolvedCount}問`;
+      document.getElementById('tab-badge-3kyu').textContent = `${c3}/10`;
+      document.getElementById('tab-badge-j2kyu').textContent = `${cj2}/10`;
+      document.getElementById('xp-display').textContent = `${state.xp} XP`;
+
+      if (state.bestMixScore !== null) {
+        const mixBadge = document.getElementById('tab-badge-mix');
+        mixBadge.textContent = `最高 ${state.bestMixScore}点`;
+        mixBadge.classList.remove('hidden');
+      }
+
+      const rankTitleEl = document.getElementById('rank-title');
+      const rankBadgeBg = document.getElementById('rank-badge-bg');
+      if (state.xp >= 1200) {
+        rankTitleEl.textContent = 'Lv.4 数学検定グランドマスター';
+        rankBadgeBg.textContent = '🏆';
+        rankBadgeBg.className = 'w-7 h-7 rounded-lg bg-gradient-to-br from-amber-500 to-yellow-400 flex items-center justify-center shrink-0 text-sm';
+      } else if (state.xp >= 700) {
+        rankTitleEl.textContent = 'Lv.3 準2級・解法マスター';
+        rankBadgeBg.textContent = '📗';
+        rankBadgeBg.className = 'w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-600 to-blue-600 flex items-center justify-center shrink-0 text-sm';
+      } else if (state.xp >= 250) {
+        rankTitleEl.textContent = 'Lv.2 3級・図解アナリスト';
+        rankBadgeBg.textContent = '📘';
+        rankBadgeBg.className = 'w-7 h-7 rounded-lg bg-gradient-to-br from-emerald-600 to-teal-500 flex items-center justify-center shrink-0 text-sm';
+      } else {
+        rankTitleEl.textContent = 'Lv.1 数学チャレンジャー';
+        rankBadgeBg.textContent = '📐';
+        rankBadgeBg.className = 'w-7 h-7 rounded-lg bg-gradient-to-br from-slate-600 to-slate-500 flex items-center justify-center shrink-0 text-sm';
+      }
+    }
+
+    function switchTab(tab) {
+      state.activeTab = tab;
+      const tabs = ['3kyu', 'j2kyu', 'mix'];
+      const activeColors = {
+        '3kyu': 'bg-emerald-600 text-white shadow-xs',
+        'j2kyu': 'bg-indigo-600 text-white shadow-xs',
+        'mix': 'bg-amber-600 text-white shadow-xs'
+      };
+      tabs.forEach((t) => {
+        const btn = document.getElementById(`tab-btn-${t}`);
+        if (t === tab) {
+          btn.className = `flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all whitespace-nowrap ${activeColors[t]}`;
+        } else {
+          btn.className = 'flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all whitespace-nowrap text-slate-600 hover:bg-white hover:text-slate-900';
+        }
+      });
+      render();
+    }
+
+    // ==========================================
+    // 4. イベントハンドラ
+    // ==========================================
+    function selectProblemIndex(level, idx) {
+      if (level === '3kyu') state.selectedIdx3 = idx;
+      else state.selectedIdxJ2 = idx;
+      render();
+    }
+
+    function selectOrigOption(code, optIdx) {
+      if (state.origSubmitted[code]) return;
+      state.origSelection[code] = optIdx;
+      render();
+    }
+
+    function submitOrigProblem(level, code) {
+      const sel = state.origSelection[code];
+      if (sel === undefined) return;
+      state.origSubmitted[code] = true;
+
+      const list = level === '3kyu' ? PROBLEMS_3KYU : PROBLEMS_J2KYU;
+      const prob = list.find((p) => p.code === code);
+      if (sel === prob.originalAnswer) {
+        const solvedMap = level === '3kyu' ? state.solved3Kyu : state.solvedJ2Kyu;
+        if (!solvedMap[code]) {
+          solvedMap[code] = true;
+          state.xp += 50;
+          showToast(`🎉 ${prob.num}（${prob.topic}）クリア！ +50 XP 獲得！`);
+        } else {
+          showToast('✨ 正解です！類題にも挑戦してみよう！');
+        }
+      }
+      // まだ類題が生成されていなければ1問目を自動生成しておく
+      if (!state.activeDrill[code]) {
+        state.activeDrill[code] = prob.generateSimilar();
+      }
+      render();
+    }
+
+    function createNewDrill(level, code) {
+      const list = level === '3kyu' ? PROBLEMS_3KYU : PROBLEMS_J2KYU;
+      const prob = list.find((p) => p.code === code);
+      state.activeDrill[code] = prob.generateSimilar();
+      delete state.drillSelection[code];
+      delete state.drillSubmitted[code];
+      render();
+    }
+
+    function selectDrillOption(code, optIdx) {
+      if (state.drillSubmitted[code]) return;
+      state.drillSelection[code] = optIdx;
+      render();
+    }
+
+    function submitDrillProblem(code) {
+      const sel = state.drillSelection[code];
+      if (sel === undefined) return;
+      state.drillSubmitted[code] = true;
+      const drill = state.activeDrill[code];
+      if (sel === drill.answer) {
+        state.drillSolvedCount += 1;
+        state.xp += 40;
+        showToast('🔥 類題クリア！自力で解ける力がつきました！ +40 XP');
+      }
+      render();
+    }
+
+    // 実戦ミックス模試開始（各問の類題生成ロジックを使って毎回違う数値の10問テストを作成）
+    function startMixExam(targetLevel) {
+      let pool = [];
+      if (targetLevel === '3kyu') {
+        pool = PROBLEMS_3KYU.map((p) => ({
+          tag: `3級 ${p.num}`,
+          topic: p.topic,
+          code: p.code,
+          ...p.generateSimilar()
+        }));
+      } else if (targetLevel === 'j2kyu') {
+        pool = PROBLEMS_J2KYU.map((p) => ({
+          tag: `準2級 ${p.num}`,
+          topic: p.topic,
+          code: p.code,
+          ...p.generateSimilar()
+        }));
+      } else {
+        // 3級5問 + 準2級5問のミックス10問
+        const p3 = [...PROBLEMS_3KYU].sort(() => Math.random() - 0.5).slice(0, 5).map((p) => ({
+          tag: `3級 ${p.num}`,
+          topic: p.topic,
+          code: p.code,
+          ...p.generateSimilar()
+        }));
+        const pj2 = [...PROBLEMS_J2KYU].sort(() => Math.random() - 0.5).slice(0, 5).map((p) => ({
+          tag: `準2級 ${p.num}`,
+          topic: p.topic,
+          code: p.code,
+          ...p.generateSimilar()
+        }));
+        pool = [...p3, ...pj2];
+      }
+      state.mixQuestions = pool;
+      state.mixIdx = 0;
+      state.mixAnswers = {};
+      state.mixChecked = {};
+      state.mixMode = 'running';
+      render();
+    }
+
+    function selectMixOption(optIdx) {
+      if (state.mixChecked[state.mixIdx]) return;
+      state.mixAnswers[state.mixIdx] = optIdx;
+      render();
+    }
+
+    function confirmMixOption() {
+      if (state.mixAnswers[state.mixIdx] === undefined) return;
+      state.mixChecked[state.mixIdx] = true;
+      render();
+    }
+
+    function nextMixQuestion() {
+      if (state.mixIdx < state.mixQuestions.length - 1) {
+        state.mixIdx += 1;
+        render();
+      }
+    }
+
+    function finishMixExam() {
+      let correctCount = 0;
+      state.mixQuestions.forEach((q, idx) => {
+        if (state.mixAnswers[idx] === q.answer) correctCount++;
+      });
+      const score = correctCount * 10; // 各10点・100点満点
+      const earned = correctCount * 35;
+      state.xp += earned;
+      if (state.bestMixScore === null || score > state.bestMixScore) {
+        state.bestMixScore = score;
+      }
+      state.mixMode = 'result';
+      showToast(`🏆 実戦テスト採点完了！ ${score}点 / 100点（+${earned} XP）`);
+      render();
+    }
+
+    function resetMixToSelect() {
+      state.mixMode = 'select';
+      render();
+    }
+
+    // ==========================================
+    // 5. レンダリング関数（3級・準2級 学習道場）
+    // ==========================================
+    function renderGradeWorkspace(level) {
+      const is3 = level === '3kyu';
+      const list = is3 ? PROBLEMS_3KYU : PROBLEMS_J2KYU;
+      const curIdx = is3 ? state.selectedIdx3 : state.selectedIdxJ2;
+      const solvedMap = is3 ? state.solved3Kyu : state.solvedJ2Kyu;
+      const prob = list[curIdx];
+      const themeAccent = is3 ? 'emerald' : 'indigo';
+
+      // 上部問題セレクター（問1〜問10）
+      const navButtons = list.map((item, idx) => {
+        const isSel = idx === curIdx;
+        const isDone = !!solvedMap[item.code];
+        return `
+          <button onclick="selectProblemIndex('${level}', ${idx})" class="p-2.5 rounded-xl border-2 text-left transition-all ${
+            isSel
+              ? `bg-${themeAccent}-50 border-${themeAccent}-600 shadow-2xs`
+              : 'bg-slate-50 border-slate-200 hover:bg-white'
+          }">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-extrabold text-${themeAccent}-700">${item.num}</span>
+              ${isDone ? '<span class="text-emerald-600 text-xs font-bold">✅</span>' : ''}
+            </div>
+            <div class="text-[11px] font-bold text-slate-700 truncate mt-0.5">${item.topic}</div>
+          </button>`;
+      }).join('');
+
+      // 本題の選択肢HTML
+      const origSel = state.origSelection[prob.code];
+      const origSub = !!state.origSubmitted[prob.code];
+      const origOptsHTML = prob.originalOptions.map((opt, oIdx) => {
+        const isSel = origSel === oIdx;
+        const isCor = prob.originalAnswer === oIdx;
+        let cls = 'bg-slate-50 border-slate-200 hover:border-indigo-400 text-slate-800';
+        if (origSub) {
+          if (isCor) cls = 'bg-emerald-50 border-emerald-500 text-emerald-950 font-extrabold';
+          else if (isSel && !isCor) cls = 'bg-rose-50 border-rose-500 text-rose-950';
+          else cls = 'bg-slate-50/50 border-slate-200/60 text-slate-400';
+        } else if (isSel) {
+          cls = `bg-${themeAccent}-50 border-${themeAccent}-600 text-${themeAccent}-950 ring-2 ring-${themeAccent}-100`;
+        }
+        return `
+          <button onclick="selectOrigOption('${prob.code}', ${oIdx})" class="w-full text-left p-3.5 rounded-xl border-2 text-xs sm:text-sm font-bold transition-all flex items-center gap-3 ${cls}">
+            <span class="w-6 h-6 rounded-lg flex items-center justify-center text-xs font-extrabold shrink-0 ${
+              origSub && isCor ? 'bg-emerald-600 text-white' : isSel ? `bg-${themeAccent}-600 text-white` : 'bg-white border border-slate-300 text-slate-600'
+            }">${['ア', 'イ', 'ウ', 'エ'][oIdx]}</span>
+            <span class="flex-1 leading-relaxed">${formatMath(opt)}</span>
+            ${origSub && isCor ? '<span class="text-emerald-600 text-base">⭕</span>' : ''}
+            ${origSub && isSel && !isCor ? '<span class="text-rose-600 text-base">❌</span>' : ''}
+          </button>`;
+      }).join('');
+
+      // ステップ解説リスト
+      const stepsHTML = prob.stepByStep.map((st, sIdx) => `
+        <li class="flex items-start gap-2.5 text-xs sm:text-sm text-slate-200 leading-relaxed">
+          <span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-extrabold text-xs shrink-0 mt-0.5">Step ${sIdx + 1}</span>
+          <span>${formatMath(st)}</span>
+        </li>
+      `).join('');
+
+      // 類題セクション
+      if (!state.activeDrill[prob.code]) {
+        state.activeDrill[prob.code] = prob.generateSimilar();
+      }
+      const drill = state.activeDrill[prob.code];
+      const drillSel = state.drillSelection[prob.code];
+      const drillSub = !!state.drillSubmitted[prob.code];
+
+      const drillOptsHTML = drill.options.map((opt, oIdx) => {
+        const isSel = drillSel === oIdx;
+        const isCor = drill.answer === oIdx;
+        let cls = 'bg-white border-slate-200 hover:border-amber-400 text-slate-800';
+        if (drillSub) {
+          if (isCor) cls = 'bg-emerald-50 border-emerald-500 text-emerald-950 font-extrabold ring-2 ring-emerald-200';
+          else if (isSel && !isCor) cls = 'bg-rose-50 border-rose-500 text-rose-950';
+          else cls = 'bg-slate-50 border-slate-200 text-slate-400';
+        } else if (isSel) {
+          cls = 'bg-amber-50 border-amber-500 text-amber-950 ring-2 ring-amber-100';
+        }
+        return `
+          <button onclick="selectDrillOption('${prob.code}', ${oIdx})" class="w-full text-left p-3.5 rounded-xl border-2 text-xs sm:text-sm font-bold transition-all flex items-center gap-3 ${cls}">
+            <span class="w-6 h-6 rounded-lg flex items-center justify-center text-xs font-extrabold shrink-0 ${
+              drillSub && isCor ? 'bg-emerald-600 text-white' : isSel ? 'bg-amber-500 text-slate-950' : 'bg-slate-100 text-slate-600'
+            }">${['ア', 'イ', 'ウ', 'エ'][oIdx]}</span>
+            <span class="flex-1 leading-relaxed">${formatMath(opt)}</span>
+            ${drillSub && isCor ? '<span class="text-emerald-600 text-base">⭕</span>' : ''}
+            ${drillSub && isSel && !isCor ? '<span class="text-rose-600 text-base">❌</span>' : ''}
+          </button>`;
+      }).join('');
+
+      return `
+        <div class="space-y-6">
+          <!-- 問題番号ナビゲーション（10問グリッド） -->
+          <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-xs font-extrabold text-slate-600">
+                ${is3 ? '📘 数学検定3級 模擬テスト 第3回（全10問）' : '📗 数学検定準2級 模擬テスト 第3回（全10問）'}
+              </span>
+              <span class="text-xs font-bold text-${themeAccent}-700">
+                クリア状況：${Object.keys(solvedMap).length} / 10 問
+              </span>
+            </div>
+            <div class="grid grid-cols-2 sm:grid-cols-5 gap-2">${navButtons}</div>
+          </div>
+
+          <!-- メイン学習カード（本題 ＋ 図解・公式 ＋ 類題道場） -->
+          <div class="bg-white rounded-3xl border border-slate-200 shadow-2xs overflow-hidden">
+            <!-- ヘッダー -->
+            <div class="bg-gradient-to-r ${is3 ? 'from-emerald-900 via-teal-900 to-slate-900' : 'from-indigo-950 via-blue-950 to-slate-900'} p-6 sm:p-8 text-white">
+              <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                <span class="px-3 py-1 rounded-full text-xs font-extrabold bg-white/15 text-white border border-white/20">
+                  ${is3 ? '数学検定3級' : '数学検定準2級'} ・ ${prob.num}（配点10点相当）
+                </span>
+                ${solvedMap[prob.code] ? '<span class="text-xs font-bold bg-emerald-500/25 text-emerald-300 px-3 py-1 rounded-full border border-emerald-400/30">✅ 本題クリア済</span>' : ''}
+              </div>
+              <h2 class="text-xl sm:text-2xl font-extrabold">${prob.num}　${prob.topic}</h2>
+            </div>
+
+            <div class="p-6 sm:p-8 space-y-8">
+              <!-- 1. 模試の本題 -->
+              <div class="space-y-4">
+                <div class="bg-slate-50 border-2 border-slate-200 rounded-2xl p-5">
+                  <div class="text-xs font-extrabold text-slate-500 mb-1.5">📝 模擬テストの問題</div>
+                  <p class="text-base sm:text-lg font-extrabold text-slate-900 leading-relaxed whitespace-pre-line">${formatMath(prob.originalQuestion)}</p>
+                </div>
+
+                <!-- 視覚図解・グラフ -->
+                ${renderProblemSVG(prob.code)}
+
+                <!-- 選択肢 -->
+                <div class="space-y-2.5">${origOptsHTML}</div>
+
+                ${!origSub ? `
+                  <button onclick="submitOrigProblem('${level}', '${prob.code}')" ${origSel === undefined ? 'disabled' : ''} class="px-7 py-3 rounded-xl bg-slate-900 hover:bg-${themeAccent}-600 disabled:bg-slate-200 disabled:text-slate-400 text-white font-extrabold text-sm transition-colors shadow-2xs">
+                    解答を判定して「解き方のポイント」を見る（+50 XP）
+                  </button>
+                ` : `
+                  <!-- 解き方のポイント＆途中式ステップ解説 -->
+                  <div class="bg-slate-900 text-white rounded-3xl p-6 space-y-4 shadow-md">
+                    <div class="flex items-center justify-between flex-wrap gap-2">
+                      <span class="font-extrabold text-base ${origSel === prob.originalAnswer ? 'text-emerald-400' : 'text-rose-400'}">
+                        ${origSel === prob.originalAnswer ? '⭕ 大正解！解法のポイントを完璧に押さえよう！' : '❌ おしい！下の公式とステップを見て解き方を身につけよう！'}
+                      </span>
+                    </div>
+
+                    <div class="bg-indigo-950/90 border border-indigo-500/40 rounded-2xl p-4 space-y-1.5">
+                      <div class="text-xs font-extrabold text-amber-400">🔑 今後同じ問題が出たときの鉄則：【${formatMath(prob.formulaTitle)}】</div>
+                      <p class="text-xs sm:text-sm text-indigo-100 leading-relaxed whitespace-pre-line">${formatMath(prob.formulaDesc)}</p>
+                    </div>
+
+                    <div class="space-y-2">
+                      <div class="text-xs font-extrabold text-slate-400">📋 途中式・考え方の流れ</div>
+                      <ul class="space-y-2">${stepsHTML}</ul>
+                    </div>
+                  </div>
+                `}
+              </div>
+
+              <!-- 2. 知識を定着させる「無限類題トレーニング」 -->
+              <div class="bg-gradient-to-br from-amber-50/90 via-orange-50/50 to-yellow-50/80 border-2 border-amber-300 rounded-3xl p-6 sm:p-7 space-y-4">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                  <div>
+                    <span class="px-3 py-1 rounded-full bg-amber-500 text-slate-950 text-xs font-extrabold">
+                      🔥 類題チャレンジ道場（+40 XP）
+                    </span>
+                    <h3 class="text-base sm:text-lg font-extrabold text-slate-900 mt-2">
+                      同じパターンの類題を自力で解いて完全定着させよう！
+                    </h3>
+                  </div>
+                  <button onclick="createNewDrill('${level}', '${prob.code}')" class="px-4 py-2 rounded-xl bg-white hover:bg-amber-100 border border-amber-300 text-amber-900 font-extrabold text-xs shadow-2xs transition-colors">
+                    🔄 別の数値の類題を出す
+                  </button>
+                </div>
+
+                <div class="bg-white border border-amber-200 rounded-2xl p-4">
+                  <p class="text-sm sm:text-base font-extrabold text-slate-900 leading-relaxed whitespace-pre-line">${formatMath(drill.question)}</p>
+                </div>
+
+                <div class="space-y-2.5">${drillOptsHTML}</div>
+
+                ${!drillSub ? `
+                  <button onclick="submitDrillProblem('${prob.code}')" ${drillSel === undefined ? 'disabled' : ''} class="px-6 py-3 rounded-xl bg-amber-600 hover:bg-amber-500 disabled:bg-slate-200 disabled:text-slate-400 text-white font-extrabold text-sm transition-colors">
+                    類題の答え合わせをする
+                  </button>
+                ` : `
+                  <div class="bg-slate-900 text-white rounded-2xl p-4 space-y-1.5">
+                    <div class="text-xs font-extrabold ${drillSel === drill.answer ? 'text-emerald-400' : 'text-rose-400'}">
+                      ${drillSel === drill.answer ? '⭕ 類題突破！同じパターンが出てももう大丈夫！' : '❌ 類題の解説を確認して、上の「別の数値の類題を出す」でリベンジしよう！'}
+                    </div>
+                    <p class="text-xs sm:text-sm text-slate-200 leading-relaxed">${formatMath(drill.explanation)}</p>
+                  </div>
+                `}
+              </div>
+
+              <!-- 前後の問題ナビ -->
+              <div class="flex items-center justify-between pt-2 border-t border-slate-100">
+                <button onclick="selectProblemIndex('${level}', ${Math.max(0, curIdx - 1)})" ${curIdx === 0 ? 'disabled' : ''} class="px-4 py-2.5 rounded-xl font-bold text-sm text-slate-600 hover:bg-slate-100 disabled:opacity-30">
+                  ← 前の問題へ
+                </button>
+                ${curIdx < list.length - 1 ? `
+                  <button onclick="selectProblemIndex('${level}', ${curIdx + 1})" class="px-5 py-2.5 rounded-xl font-bold text-sm bg-${themeAccent}-600 text-white hover:bg-${themeAccent}-700 shadow-2xs">
+                    次の問題（${list[curIdx + 1].num}）へ →
+                  </button>
+                ` : `
+                  <button onclick="switchTab('mix')" class="px-5 py-2.5 rounded-xl font-bold text-sm bg-amber-600 text-white hover:bg-amber-700 shadow-2xs">
+                    🏆 実戦ミックス模試に挑戦する →
+                  </button>
+                `}
+              </div>
+            </div>
+          </div>
+        </div>`;
+    }
+
+    function renderMixExam() {
+      if (state.mixMode === 'select') {
+        return `
+          <div class="max-w-4xl mx-auto bg-white rounded-3xl border border-slate-200 shadow-2xs p-6 sm:p-10 text-center space-y-6">
+            <div class="w-16 h-16 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center mx-auto text-3xl">🏆</div>
+            <div class="space-y-2 max-w-xl mx-auto">
+              <span class="text-xs font-extrabold uppercase tracking-wider px-3 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
+                数値が毎回自動生成される実戦テスト（100点満点・時間制限なし）
+              </span>
+              <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900">実戦ミックス模擬テスト</h2>
+              <p class="text-slate-600 text-sm sm:text-base leading-relaxed">
+                模擬テスト第3回の全単元から、数値や条件を変えた実戦問題（10問×10点＝100点満点）を出題します。答えの丸暗記ではなく「解き方の手順」が身についているか試しましょう！
+              </p>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2 text-left">
+              <div class="border-2 border-emerald-200 hover:border-emerald-500 rounded-2xl p-5 flex flex-col justify-between bg-emerald-50/30">
+                <div class="space-y-1.5">
+                  <span class="text-xs font-extrabold text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded">3級 100点模試</span>
+                  <h3 class="text-base font-extrabold text-slate-900">数学検定3級 実戦10問</h3>
+                  <p class="text-xs text-slate-600 leading-relaxed">資料・標本調査・平方根・一次関数・確率・円・三平方・相似・散布図の類題10問。</p>
+                </div>
+                <button onclick="startMixExam('3kyu')" class="mt-5 w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs sm:text-sm">
+                  3級模試を始める →
+                </button>
+              </div>
+
+              <div class="border-2 border-indigo-200 hover:border-indigo-500 rounded-2xl p-5 flex flex-col justify-between bg-indigo-50/30">
+                <div class="space-y-1.5">
+                  <span class="text-xs font-extrabold text-indigo-800 bg-indigo-100 px-2.5 py-0.5 rounded">準2級 100点模試</span>
+                  <h3 class="text-base font-extrabold text-slate-900">数学検定準2級 実戦10問</h3>
+                  <p class="text-xs text-slate-600 leading-relaxed">集合・絶対値不等式・判別式・二次関数・三角比・正弦定理・反復試行・対偶の類題10問。</p>
+                </div>
+                <button onclick="startMixExam('j2kyu')" class="mt-5 w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-xs sm:text-sm">
+                  準2級模試を始める →
+                </button>
+              </div>
+
+              <div class="border-2 border-amber-300 hover:border-amber-500 rounded-2xl p-5 flex flex-col justify-between bg-amber-50/40">
+                <div class="space-y-1.5">
+                  <span class="text-xs font-extrabold text-amber-800 bg-amber-200/80 px-2.5 py-0.5 rounded">総合ミックス</span>
+                  <h3 class="text-base font-extrabold text-slate-900">3級＋準2級 総合10問</h3>
+                  <p class="text-xs text-slate-600 leading-relaxed">3級から5問、準2級から5問をランダム選抜！幅広い単元対応力を試します。</p>
+                </div>
+                <button onclick="startMixExam('mix')" class="mt-5 w-full py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-extrabold text-xs sm:text-sm">
+                  総合ミックスに挑む ⚡
+                </button>
+              </div>
+            </div>
+          </div>`;
+      }
+
+      if (state.mixMode === 'running') {
+        const q = state.mixQuestions[state.mixIdx];
+        const isChecked = !!state.mixChecked[state.mixIdx];
+        const selIdx = state.mixAnswers[state.mixIdx];
+        const pct = Math.round(((state.mixIdx + 1) / state.mixQuestions.length) * 100);
+
+        const optsHTML = q.options.map((opt, idx) => {
+          const isSel = selIdx === idx;
+          const isCor = q.answer === idx;
+          let style = 'bg-white border-slate-200 hover:border-indigo-400 text-slate-800';
+          if (isChecked) {
+            if (isCor) style = 'bg-emerald-50 border-emerald-500 text-emerald-950 ring-2 ring-emerald-200';
+            else if (isSel && !isCor) style = 'bg-rose-50 border-rose-500 text-rose-950';
+            else style = 'bg-slate-50 border-slate-200 text-slate-400';
+          } else if (isSel) {
+            style = 'bg-indigo-50 border-indigo-600 text-indigo-950 ring-2 ring-indigo-100';
+          }
+          return `
+            <button onclick="selectMixOption(${idx})" class="w-full text-left p-4 rounded-2xl border-2 font-bold text-sm sm:text-base transition-all flex items-center gap-3.5 ${style}">
+              <span class="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-extrabold shrink-0 ${
+                isChecked && isCor ? 'bg-emerald-600 text-white' : isSel ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-600'
+              }">${['ア', 'イ', 'ウ', 'エ'][idx]}</span>
+              <span class="flex-1 leading-snug">${formatMath(opt)}</span>
+              ${isChecked && isCor ? '<span class="text-emerald-600 text-lg">⭕</span>' : ''}
+              ${isChecked && isSel && !isCor ? '<span class="text-rose-600 text-lg">❌</span>' : ''}
+            </button>`;
+        }).join('');
+
+        return `
+          <div class="max-w-4xl mx-auto bg-white rounded-3xl border border-slate-200 shadow-2xs overflow-hidden">
+            <div class="bg-slate-900 text-white px-6 py-4 flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <span class="px-2.5 py-1 rounded-lg bg-amber-500 text-slate-950 font-extrabold text-xs">
+                  第 ${state.mixIdx + 1} 問 / 全 ${state.mixQuestions.length} 問（各10点）
+                </span>
+                <span class="text-xs text-slate-300 font-semibold">${q.tag}：${q.topic}</span>
+              </div>
+              <button onclick="resetMixToSelect()" class="text-xs text-slate-400 hover:text-white underline">コース選択へ戻る</button>
+            </div>
+            <div class="w-full bg-slate-200 h-2">
+              <div class="bg-amber-500 h-2 transition-all duration-300" style="width: ${pct}%"></div>
+            </div>
+
+            <div class="p-6 sm:p-8 space-y-6">
+              <div class="bg-slate-50 border border-slate-200 rounded-2xl p-5">
+                <p class="text-base sm:text-lg font-extrabold text-slate-900 leading-relaxed whitespace-pre-line">${formatMath(q.question)}</p>
+              </div>
+
+              <div class="space-y-3">${optsHTML}</div>
+
+              ${!isChecked ? `
+                <button onclick="confirmMixOption()" ${selIdx === undefined ? 'disabled' : ''} class="px-8 py-3.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-200 disabled:text-slate-400 text-white font-extrabold text-sm transition-colors">
+                  解答を確定して解説を見る
+                </button>
+              ` : `
+                <div class="space-y-4">
+                  ${renderProblemSVG(q.code)}
+                  <div class="bg-slate-900 text-white rounded-2xl p-5 space-y-3">
+                    <div class="font-extrabold text-base">
+                      ${selIdx === q.answer
+                        ? '<span class="text-emerald-400">⭕ 正解！（+10点）</span>'
+                        : `<span class="text-rose-400">❌ 不正解（正解は ${['ア', 'イ', 'ウ', 'エ'][q.answer]}）</span>`}
+                    </div>
+                    <p class="text-xs sm:text-sm text-slate-200 leading-relaxed">${formatMath(q.explanation)}</p>
+                    <div class="pt-2 flex justify-end">
+                      ${state.mixIdx < state.mixQuestions.length - 1 ? `
+                        <button onclick="nextMixQuestion()" class="px-6 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-sm">
+                          次の問題へ進む →
+                        </button>
+                      ` : `
+                        <button onclick="finishMixExam()" class="px-6 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-sm">
+                          100点満点レポートを見る 🏆
+                        </button>
+                      `}
+                    </div>
+                  </div>
+                </div>
+              `}
+            </div>
+          </div>`;
+      }
+
+      if (state.mixMode === 'result') {
+        let totalCorrect = 0;
+        state.mixQuestions.forEach((q, idx) => {
+          if (state.mixAnswers[idx] === q.answer) totalCorrect++;
+        });
+        const score = totalCorrect * 10;
+        const passed = score >= 60; // 数検一次合格ライン目安（60〜70%）
+
+        const reviewHTML = state.mixQuestions.map((q, idx) => {
+          const isRight = state.mixAnswers[idx] === q.answer;
+          return `
+            <div class="p-4 bg-white flex items-start gap-3">
+              <div class="mt-0.5 shrink-0 font-bold">${isRight ? '⭕' : '❌'}</div>
+              <div class="space-y-1 text-xs sm:text-sm">
+                <div class="font-bold text-slate-900">問${idx + 1}（${q.tag}・${q.topic}）</div>
+                <div class="text-slate-600">正解：<span class="font-bold text-emerald-700">${formatMath(q.options[q.answer])}</span></div>
+                <p class="text-slate-500 text-xs leading-relaxed">${formatMath(q.explanation)}</p>
+              </div>
+            </div>`;
+        }).join('');
+
+        return `
+          <div class="max-w-4xl mx-auto bg-white rounded-3xl border border-slate-200 shadow-2xs p-6 sm:p-10 space-y-8">
+            <div class="text-center space-y-3">
+              <div class="w-20 h-20 rounded-3xl mx-auto flex items-center justify-center text-4xl ${passed ? 'bg-amber-100' : 'bg-indigo-100'}">🏆</div>
+              <div class="inline-block px-3.5 py-1 rounded-full text-xs font-extrabold bg-slate-900 text-amber-400">
+                ${passed ? '🎉 合格ライン突破！解法のパターンが身についています！' : '📚 あと一歩！間違えた単元の「類題道場」で復習しよう！'}
+              </div>
+              <h2 class="text-3xl sm:text-4xl font-black text-slate-900">
+                得点 ${score} 点 <span class="text-lg font-bold text-slate-500">（100点満点中 ・ ${totalCorrect}/10問正解）</span>
+              </h2>
+            </div>
+
+            <div class="space-y-3">
+              <h3 class="text-sm font-extrabold text-slate-900">📝 全問振り返り＆解説</h3>
+              <div class="divide-y divide-slate-200 border border-slate-200 rounded-2xl overflow-hidden">${reviewHTML}</div>
+            </div>
+
+            <div class="flex flex-wrap justify-center gap-3 pt-2">
+              <button onclick="resetMixToSelect()" class="px-6 py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-sm">
+                新しい数値で再テストする 🔄
+              </button>
+              <button onclick="switchTab('3kyu')" class="px-6 py-3 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-extrabold text-sm">
+                3級・類題道場へ
+              </button>
+              <button onclick="switchTab('j2kyu')" class="px-6 py-3 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-extrabold text-sm">
+                準2級・類題道場へ
+              </button>
+            </div>
+          </div>`;
+      }
+    }
+
+    function render() {
+      updateHeaderStats();
+      const mainEl = document.getElementById('app-main');
+      if (state.activeTab === '3kyu') {
+        mainEl.innerHTML = renderGradeWorkspace('3kyu');
+      } else if (state.activeTab === 'j2kyu') {
+        mainEl.innerHTML = renderGradeWorkspace('j2kyu');
+      } else if (state.activeTab === 'mix') {
+        mainEl.innerHTML = renderMixExam();
+      }
+    }
+
+    window.onload = function () {
+      render();
+    };
+  </script>
+</body>
+</html>

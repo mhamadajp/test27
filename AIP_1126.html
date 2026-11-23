@@ -1,0 +1,1953 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>生成AIを使う人の権利と責任アカデミー｜GUGA試験対応</title>
+  <!-- Tailwind CSS の読み込み -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts (Inter & Noto Sans JP) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Noto+Sans+JP:wght@400;500;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      font-family: 'Inter', 'Noto Sans JP', sans-serif;
+    }
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    @keyframes popIn {
+      0% { transform: translateY(16px) scale(0.95); opacity: 0; }
+      100% { transform: translateY(0) scale(1); opacity: 1; }
+    }
+    .animate-pop {
+      animation: popIn 0.25s ease-out forwards;
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-slate-50 text-slate-800 selection:bg-indigo-100 selection:text-indigo-900 pb-20">
+
+  <!-- トースト通知エリア -->
+  <div id="toast-container" class="fixed bottom-6 right-6 z-50 hidden">
+    <div class="bg-slate-900 text-white px-5 py-3.5 rounded-2xl shadow-xl border border-slate-700 flex items-center gap-3 animate-pop">
+      <span class="text-amber-400 text-lg">✨</span>
+      <span id="toast-text" class="font-bold text-sm"></span>
+    </div>
+  </div>
+
+  <!-- トップヘッダー（時間表示・タイマーは一切なし） -->
+  <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3">
+      <!-- ブランドタイトル -->
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-600 to-blue-600 flex items-center justify-center text-white shadow-md shrink-0">
+          <!-- シールドアイコン SVG -->
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+          </svg>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="text-[11px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">
+              GUGA 2027年2月試験対応・第4章
+            </span>
+          </div>
+          <h1 class="text-base sm:text-lg font-extrabold text-slate-900 leading-tight mt-0.5">
+            生成AIを使う人の権利と責任アカデミー
+          </h1>
+        </div>
+      </div>
+
+      <!-- ステータス＆ランク表示 -->
+      <div class="flex items-center gap-3 sm:gap-5">
+        <div class="hidden md:flex items-center gap-4 text-xs font-semibold text-slate-600 bg-slate-100 px-3.5 py-2 rounded-xl border border-slate-200">
+          <div class="flex items-center gap-1.5">
+            <span class="text-indigo-600 font-bold">📖</span>
+            <span id="header-lecture-count">講義: 0/11章</span>
+          </div>
+          <div class="w-px h-3.5 bg-slate-300"></div>
+          <div class="flex items-center gap-1.5">
+            <span class="text-emerald-600 font-bold">🛡️</span>
+            <span id="header-case-count">審査: 0/10問</span>
+          </div>
+        </div>
+
+        <!-- ランク＆XP -->
+        <div class="flex items-center gap-2.5 bg-gradient-to-r from-slate-900 to-slate-800 text-white px-3.5 py-2 rounded-xl shadow-sm">
+          <div id="rank-badge-bg" class="w-7 h-7 rounded-lg bg-gradient-to-br from-slate-600 to-slate-500 flex items-center justify-center shrink-0 text-sm">
+            🧭
+          </div>
+          <div class="leading-tight">
+            <div id="rank-title" class="text-[10px] text-slate-300 font-medium">Lv.1 見習いAIユーザー</div>
+            <div class="text-xs sm:text-sm font-extrabold text-amber-400 flex items-center gap-1">
+              <span>⚡</span>
+              <span id="xp-display">0 XP</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- メイン3モード切り替えタブ -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 border-t border-slate-100 bg-slate-50/70">
+      <nav class="flex overflow-x-auto no-scrollbar gap-1.5 py-2" aria-label="学習ステージ">
+        <button id="tab-btn-lecture" onclick="switchTab('lecture')" class="flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all whitespace-nowrap bg-indigo-600 text-white shadow-sm">
+          <span>📖 ステージ1：ビジュアル講義（全11章）</span>
+          <span id="tab-badge-lecture" class="text-xs px-2 py-0.5 rounded-full bg-indigo-500 text-white">0/11</span>
+        </button>
+
+        <button id="tab-btn-cases" onclick="switchTab('cases')" class="flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all whitespace-nowrap text-slate-600 hover:bg-white hover:text-slate-900">
+          <span>🔍 ステージ2：AI審査官ケース演習（C1〜C3・Q4〜Q5）</span>
+          <span id="tab-badge-cases" class="text-xs px-2 py-0.5 rounded-full bg-slate-200 text-slate-700">0/10</span>
+        </button>
+
+        <button id="tab-btn-exam" onclick="switchTab('exam')" class="flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all whitespace-nowrap text-slate-600 hover:bg-white hover:text-slate-900">
+          <span>🏆 ステージ3：GUGA試験対応 模擬テスト（全20問）</span>
+          <span id="tab-badge-exam" class="hidden text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-800"></span>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- メインコンテンツエリア -->
+  <main id="app-main" class="max-w-7xl mx-auto px-4 sm:px-6 pt-6"></main>
+
+  <script>
+    // ==========================================
+    // 1. カスタムSVGイラスト図解（学習ガイド図1〜図6準拠）
+    // ==========================================
+    function getDiagramSVG(chapterId) {
+      if (chapterId === 1) {
+        return `
+          <div class="bg-gradient-to-b from-blue-50/80 to-emerald-50/80 border-2 border-indigo-100 rounded-3xl p-5 sm:p-6 space-y-4">
+            <div class="flex items-center justify-between flex-wrap gap-2">
+              <span class="text-xs font-extrabold text-indigo-800 bg-white px-3 py-1 rounded-full border border-indigo-200 shadow-xs">
+                📊 図解1：AIを使う前から公開までの4ステップ確認
+              </span>
+              <span class="text-xs text-slate-500 font-medium">「正確さ」だけでなく全工程を人がチェック！</span>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+              <div class="bg-white rounded-2xl p-4 border-2 border-blue-200 shadow-xs flex flex-col items-center text-center">
+                <span class="px-3 py-1 rounded-full bg-blue-600 text-white text-xs font-extrabold mb-3">① 目的を決める</span>
+                <svg viewBox="0 0 120 90" class="w-28 h-20 mb-2">
+                  <rect x="15" y="10" width="90" height="55" rx="10" fill="#EFF6FF" stroke="#3B82F6" stroke-width="2.5" />
+                  <rect x="28" y="20" width="64" height="34" rx="4" fill="#FFFFFF" stroke="#93C5FD" stroke-width="1.5" />
+                  <line x1="36" y1="30" x2="78" y2="30" stroke="#2563EB" stroke-width="3" stroke-linecap="round" />
+                  <line x1="36" y1="40" x2="65" y2="40" stroke="#60A5FA" stroke-width="3" stroke-linecap="round" />
+                  <circle cx="84" cy="42" r="7" fill="#10B981" />
+                  <path d="M80 42 L83 45 L88 39" stroke="white" stroke-width="2" fill="none" stroke-linecap="round" />
+                  <circle cx="30" cy="74" r="10" fill="#FDE68A" stroke="#D97706" stroke-width="2" />
+                  <path d="M16 90 C16 82, 44 82, 44 90" fill="#1E3A8A" />
+                  <text x="68" y="80" font-size="10" font-weight="bold" fill="#1D4ED8" text-anchor="middle">誰のために？</text>
+                </svg>
+                <p class="text-xs font-bold text-slate-800 leading-snug">誰のために何をするか（個人用か・学校公開か）を先に決める</p>
+              </div>
+
+              <div class="bg-white rounded-2xl p-4 border-2 border-emerald-200 shadow-xs flex flex-col items-center text-center">
+                <span class="px-3 py-1 rounded-full bg-emerald-600 text-white text-xs font-extrabold mb-3">② 入力を確かめる</span>
+                <svg viewBox="0 0 120 90" class="w-28 h-20 mb-2">
+                  <rect x="18" y="14" width="76" height="52" rx="6" fill="#1E293B" />
+                  <rect x="23" y="19" width="66" height="42" rx="3" fill="#F8FAFC" />
+                  <rect x="30" y="27" width="10" height="10" rx="2" fill="#10B981" />
+                  <path d="M32 32 L34 34 L38 29" stroke="white" stroke-width="1.8" fill="none" />
+                  <line x1="45" y1="32" x2="80" y2="32" stroke="#475569" stroke-width="2.5" stroke-linecap="round" />
+                  <rect x="30" y="43" width="10" height="10" rx="2" fill="#10B981" />
+                  <path d="M32 48 L34 50 L38 45" stroke="white" stroke-width="1.8" fill="none" />
+                  <line x1="45" y1="48" x2="75" y2="48" stroke="#475569" stroke-width="2.5" stroke-linecap="round" />
+                  <rect x="82" y="46" width="24" height="22" rx="4" fill="#F59E0B" stroke="#B45309" stroke-width="2" />
+                  <path d="M87 46 V39 A7 7 0 0 1 101 39 V46" fill="none" stroke="#B45309" stroke-width="2.5" />
+                  <circle cx="94" cy="56" r="2.5" fill="#78350F" />
+                </svg>
+                <p class="text-xs font-bold text-slate-800 leading-snug">個人情報・秘密・他人の著作物が入っていないか確認する</p>
+              </div>
+
+              <div class="bg-white rounded-2xl p-4 border-2 border-blue-200 shadow-xs flex flex-col items-center text-center">
+                <span class="px-3 py-1 rounded-full bg-blue-600 text-white text-xs font-extrabold mb-3">③ 出力を確かめる</span>
+                <svg viewBox="0 0 120 90" class="w-28 h-20 mb-2">
+                  <rect x="16" y="16" width="68" height="48" rx="6" fill="#EFF6FF" stroke="#3B82F6" stroke-width="2.5" />
+                  <circle cx="50" cy="40" r="14" fill="#10B981" />
+                  <path d="M43 40 L48 45 L58 34" stroke="white" stroke-width="3" fill="none" stroke-linecap="round" />
+                  <circle cx="88" cy="48" r="15" fill="#FEF3C7" stroke="#D97706" stroke-width="3" />
+                  <line x1="99" y1="59" x2="110" y2="72" stroke="#92400E" stroke-width="4" stroke-linecap="round" />
+                  <text x="88" y="52" font-size="12" font-weight="bold" fill="#B45309" text-anchor="middle">!</text>
+                </svg>
+                <p class="text-xs font-bold text-slate-800 leading-snug">事実関係の誤りや、誰かへの不利益・偏りがないか確認する</p>
+              </div>
+
+              <div class="bg-white rounded-2xl p-4 border-2 border-emerald-200 shadow-xs flex flex-col items-center text-center">
+                <span class="px-3 py-1 rounded-full bg-emerald-600 text-white text-xs font-extrabold mb-3">④ 人が判断する</span>
+                <svg viewBox="0 0 120 90" class="w-28 h-20 mb-2">
+                  <rect x="20" y="14" width="52" height="64" rx="6" fill="#FFFFFF" stroke="#059669" stroke-width="2.5" />
+                  <rect x="35" y="10" width="22" height="8" rx="3" fill="#059669" />
+                  <rect x="28" y="28" width="12" height="12" rx="2" fill="#10B981" />
+                  <path d="M30 34 L33 37 L38 31" stroke="white" stroke-width="2" fill="none" />
+                  <text x="55" y="38" font-size="10" font-weight="bold" fill="#065F46" text-anchor="middle">承認</text>
+                  <rect x="28" y="48" width="12" height="12" rx="2" fill="#F1F5F9" stroke="#94A3B8" stroke-width="1.5" />
+                  <text x="55" y="58" font-size="10" font-weight="bold" fill="#475569" text-anchor="middle">修正</text>
+                  <circle cx="92" cy="42" r="12" fill="#FDE68A" stroke="#D97706" stroke-width="2" />
+                  <path d="M74 78 C74 62, 110 62, 110 78" fill="#1E293B" />
+                </svg>
+                <p class="text-xs font-bold text-slate-800 leading-snug">担当教員や責任者が修正・承認を行い、使ってよいか最終決定する</p>
+              </div>
+            </div>
+          </div>`;
+      }
+      if (chapterId === 2) {
+        return `
+          <div class="bg-gradient-to-r from-emerald-50/80 via-teal-50/70 to-blue-50/80 border-2 border-emerald-200 rounded-3xl p-5 sm:p-6 space-y-4">
+            <div class="flex items-center justify-between flex-wrap gap-2">
+              <span class="text-xs font-extrabold text-emerald-900 bg-white px-3 py-1 rounded-full border border-emerald-200 shadow-xs">
+                🎨 図解2：「生成できたこと」と「利用できること」を3段階で分ける
+              </span>
+              <span class="text-xs text-emerald-800 font-bold">色を変えても「類似性＋依拠性」があれば侵害リスク！</span>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div class="bg-white rounded-2xl p-4 border-2 border-blue-200 shadow-xs flex flex-col items-center text-center">
+                <span class="px-3.5 py-1 rounded-full bg-blue-600 text-white text-xs font-extrabold mb-3">段階① 入力段階</span>
+                <svg viewBox="0 0 140 90" class="w-32 h-20 mb-2">
+                  <rect x="20" y="15" width="70" height="50" rx="6" fill="#EFF6FF" stroke="#3B82F6" stroke-width="2" />
+                  <polygon points="30,55 48,32 62,48 72,38 82,55" fill="#60A5FA" />
+                  <circle cx="72" cy="27" r="5" fill="#FBBF24" />
+                  <circle cx="105" cy="35" r="16" fill="#FEF3C7" stroke="#F59E0B" stroke-width="2.5" />
+                  <text x="105" y="41" font-size="18" font-weight="900" fill="#D97706" text-anchor="middle">?</text>
+                </svg>
+                <div class="font-extrabold text-sm text-slate-900 mb-1">他人の画像・文章を入れてよいか？</div>
+                <p class="text-xs text-slate-600 leading-relaxed">ネット上の漫画や写真を無断保存してAIに読み込ませる前に、許諾や著作権法第30条の4の適用範囲を確認します。</p>
+              </div>
+
+              <div class="bg-white rounded-2xl p-4 border-2 border-emerald-300 shadow-xs flex flex-col items-center text-center">
+                <span class="px-3.5 py-1 rounded-full bg-emerald-600 text-white text-xs font-extrabold mb-3">段階② 生成段階</span>
+                <svg viewBox="0 0 150 90" class="w-36 h-20 mb-2">
+                  <rect x="10" y="18" width="46" height="46" rx="6" fill="#FEF2F2" stroke="#EF4444" stroke-width="2" />
+                  <circle cx="33" cy="36" r="10" fill="#FCA5A5" />
+                  <path d="M20 58 Q33 46 46 58" fill="#EF4444" />
+                  <text x="33" y="76" font-size="9" font-weight="bold" fill="#DC2626" text-anchor="middle">元キャラ</text>
+                  <path d="M62 41 H82 L77 36 M82 41 L77 46" stroke="#059669" stroke-width="2.5" fill="none" stroke-linecap="round" />
+                  <rect x="90" y="18" width="46" height="46" rx="6" fill="#EFF6FF" stroke="#3B82F6" stroke-width="2" />
+                  <rect x="112" y="10" width="24" height="14" rx="4" fill="#6366F1" />
+                  <text x="124" y="20" font-size="8" font-weight="bold" fill="white" text-anchor="middle">AI</text>
+                  <circle cx="113" cy="36" r="10" fill="#93C5FD" />
+                  <path d="M100 58 Q113 46 126 58" fill="#3B82F6" />
+                  <text x="113" y="76" font-size="9" font-weight="bold" fill="#2563EB" text-anchor="middle">色だけ変更</text>
+                </svg>
+                <div class="font-extrabold text-sm text-slate-900 mb-1">類似性と依拠性が残っていないか？</div>
+                <p class="text-xs text-slate-600 leading-relaxed">髪や服の色を変えても、顔立ち・特徴的な衣装・ポーズ（創作的表現）が共通していれば侵害となるおそれがあります。</p>
+              </div>
+
+              <div class="bg-white rounded-2xl p-4 border-2 border-indigo-200 shadow-xs flex flex-col items-center text-center">
+                <span class="px-3.5 py-1 rounded-full bg-indigo-600 text-white text-xs font-extrabold mb-3">段階③ 利用段階</span>
+                <svg viewBox="0 0 140 90" class="w-32 h-20 mb-2">
+                  <rect x="14" y="16" width="66" height="52" rx="6" fill="#F8FAFC" stroke="#64748B" stroke-width="2" />
+                  <rect x="24" y="24" width="46" height="14" rx="4" fill="#2563EB" />
+                  <text x="47" y="34" font-size="8" font-weight="bold" fill="white" text-anchor="middle">学校サイト公開</text>
+                  <rect x="88" y="14" width="42" height="58" rx="4" fill="#FEF3C7" stroke="#D97706" stroke-width="2" />
+                  <text x="109" y="28" font-size="8" font-weight="bold" fill="#92400E" text-anchor="middle">利用条件</text>
+                  <text x="109" y="42" font-size="8" fill="#065F46" text-anchor="middle">✓ 公開可？</text>
+                  <text x="109" y="54" font-size="8" fill="#065F46" text-anchor="middle">✓ 改変可？</text>
+                  <text x="109" y="66" font-size="8" fill="#065F46" text-anchor="middle">✓ 出典表示</text>
+                </svg>
+                <div class="font-extrabold text-sm text-slate-900 mb-1">公開先と利用条件が合っているか？</div>
+                <p class="text-xs text-slate-600 leading-relaxed">個人鑑賞と学校サイトでの一般公開では条件が全く異なります。迷ったら公開を保留し担当教員に相談します。</p>
+              </div>
+            </div>
+          </div>`;
+      }
+      if (chapterId === 5) {
+        return `
+          <div class="bg-gradient-to-r from-amber-50/80 to-emerald-50/80 border-2 border-amber-200 rounded-3xl p-5 sm:p-6 space-y-4">
+            <div class="flex items-center justify-between flex-wrap gap-2">
+              <span class="text-xs font-extrabold text-amber-900 bg-white px-3 py-1 rounded-full border border-amber-200 shadow-xs">
+                🛡️ 図解3：入力の最小化（個人情報を送らず目的を達成する技術）
+              </span>
+              <span class="text-xs text-amber-800 font-bold">「消して送る」より「最初から入れない」！</span>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+              <div class="bg-white rounded-2xl p-4 border border-amber-200 text-center">
+                <div class="text-xs font-extrabold text-blue-700 bg-blue-50 py-1 px-2 rounded-lg mb-2">① 目的を小さくする</div>
+                <svg viewBox="0 0 120 75" class="w-28 h-16 mx-auto mb-2">
+                  <circle cx="60" cy="37" r="26" fill="#EFF6FF" stroke="#3B82F6" stroke-width="2" />
+                  <circle cx="60" cy="37" r="14" fill="#DBEAFE" stroke="#2563EB" stroke-width="2" />
+                  <circle cx="60" cy="37" r="5" fill="#1D4ED8" />
+                </svg>
+                <p class="text-xs font-bold text-slate-800">「待機時間の改善案が欲しい」と目的の本質だけを抜き出す</p>
+              </div>
+
+              <div class="bg-white rounded-2xl p-4 border border-rose-200 text-center">
+                <div class="text-xs font-extrabold text-rose-700 bg-rose-50 py-1 px-2 rounded-lg mb-2">② 不要な情報を除く</div>
+                <svg viewBox="0 0 120 75" class="w-28 h-16 mx-auto mb-2">
+                  <rect x="20" y="8" width="80" height="16" rx="3" fill="#FEE2E2" />
+                  <text x="50" y="19" font-size="9" font-weight="bold" fill="#991B1B" text-anchor="middle">氏名・所属</text>
+                  <text x="88" y="19" font-size="10" font-weight="900" fill="#DC2626">✕</text>
+                  <rect x="20" y="29" width="80" height="16" rx="3" fill="#FEE2E2" />
+                  <text x="50" y="40" font-size="9" font-weight="bold" fill="#991B1B" text-anchor="middle">持病・病歴</text>
+                  <text x="88" y="40" font-size="10" font-weight="900" fill="#DC2626">✕</text>
+                  <rect x="20" y="50" width="80" height="18" rx="3" fill="#D1FAE5" stroke="#10B981" stroke-width="1.5" />
+                  <text x="50" y="62" font-size="9" font-weight="bold" fill="#065F46" text-anchor="middle">待機時間</text>
+                  <text x="88" y="62" font-size="10" font-weight="900" fill="#059669">✓</text>
+                </svg>
+                <p class="text-xs font-bold text-slate-800">「2年唯一の天文部員」「持病」などの個人事情を削る</p>
+              </div>
+
+              <div class="bg-white rounded-2xl p-4 border border-emerald-200 text-center">
+                <div class="text-xs font-extrabold text-emerald-700 bg-emerald-50 py-1 px-2 rounded-lg mb-2">③ 個人記録を送らない</div>
+                <svg viewBox="0 0 120 75" class="w-28 h-16 mx-auto mb-2">
+                  <rect x="12" y="14" width="32" height="46" rx="4" fill="#F1F5F9" stroke="#94A3B8" stroke-width="1.5" />
+                  <line x1="18" y1="24" x2="38" y2="24" stroke="#64748B" stroke-width="2" />
+                  <line x1="18" y1="34" x2="38" y2="34" stroke="#64748B" stroke-width="2" />
+                  <line x1="18" y1="44" x2="38" y2="44" stroke="#64748B" stroke-width="2" />
+                  <path d="M50 37 H66 L61 32 M66 37 L61 42" stroke="#10B981" stroke-width="2.5" fill="none" />
+                  <rect x="72" y="14" width="38" height="46" rx="6" fill="#ECFDF5" stroke="#059669" stroke-width="2" />
+                  <rect x="80" y="40" width="6" height="14" fill="#10B981" />
+                  <rect x="89" y="30" width="6" height="24" fill="#059669" />
+                  <rect x="98" y="22" width="6" height="32" fill="#047857" />
+                </svg>
+                <p class="text-xs font-bold text-slate-800">個人の生データではなく、特定できない集計・一般条件だけ使う</p>
+              </div>
+
+              <div class="bg-white rounded-2xl p-4 border border-indigo-200 text-center">
+                <div class="text-xs font-extrabold text-indigo-700 bg-indigo-50 py-1 px-2 rounded-lg mb-2">④ 校内で確認して選ぶ</div>
+                <svg viewBox="0 0 120 75" class="w-28 h-16 mx-auto mb-2">
+                  <circle cx="40" cy="30" r="11" fill="#FDE68A" stroke="#D97706" stroke-width="2" />
+                  <path d="M24 62 C24 46, 56 46, 56 62" fill="#2563EB" />
+                  <circle cx="80" cy="30" r="11" fill="#FDE68A" stroke="#D97706" stroke-width="2" />
+                  <path d="M64 62 C64 46, 96 46, 96 62" fill="#059669" />
+                  <circle cx="60" cy="16" r="9" fill="#10B981" />
+                  <path d="M56 16 L59 19 L65 13" stroke="white" stroke-width="2" fill="none" />
+                </svg>
+                <p class="text-xs font-bold text-slate-800">AIが出した一般案を、学校の状況とルールに合わせて人が選ぶ</p>
+              </div>
+            </div>
+          </div>`;
+      }
+      if (chapterId === 6) {
+        return `
+          <div class="bg-gradient-to-r from-purple-50/90 via-rose-50/70 to-amber-50/80 border-2 border-purple-200 rounded-3xl p-5 sm:p-6 space-y-4">
+            <div class="flex items-center justify-between flex-wrap gap-2">
+              <span class="text-xs font-extrabold text-purple-900 bg-white px-3 py-1 rounded-full border border-purple-200 shadow-xs">
+                🔄 図解4：偏り（バイアス）がAIによって拡大再生産されるループ
+              </span>
+              <span class="text-xs text-rose-700 font-bold">「全員同じAI計算」でも元データが偏っていれば不公平！</span>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+              <div class="bg-white rounded-2xl p-4 border-2 border-blue-200 text-center">
+                <span class="px-2.5 py-0.5 rounded-full bg-blue-600 text-white text-xs font-extrabold">① 過去の記録</span>
+                <svg viewBox="0 0 120 75" class="w-28 h-16 mx-auto my-2">
+                  <rect x="25" y="10" width="45" height="55" rx="4" fill="#EFF6FF" stroke="#3B82F6" stroke-width="2" />
+                  <circle cx="40" cy="26" r="6" fill="#93C5FD" />
+                  <line x1="50" y1="26" x2="62" y2="26" stroke="#3B82F6" stroke-width="2" />
+                  <rect x="55" y="20" width="45" height="50" rx="4" fill="#DBEAFE" stroke="#2563EB" stroke-width="2" />
+                  <text x="77" y="48" font-size="10" font-weight="bold" fill="#1E40AF" text-anchor="middle">経験者14/18</text>
+                </svg>
+                <p class="text-xs font-bold text-slate-800">応募機会の差や経済状況など、過去の偏りを含んだデータ</p>
+              </div>
+
+              <div class="bg-white rounded-2xl p-4 border-2 border-purple-200 text-center">
+                <span class="px-2.5 py-0.5 rounded-full bg-purple-600 text-white text-xs font-extrabold">② AIの推定</span>
+                <svg viewBox="0 0 120 75" class="w-28 h-16 mx-auto my-2">
+                  <rect x="25" y="12" width="70" height="46" rx="8" fill="#F3E8FF" stroke="#9333EA" stroke-width="2.5" />
+                  <circle cx="48" cy="32" r="5" fill="#7E22CE" />
+                  <circle cx="72" cy="32" r="5" fill="#7E22CE" />
+                  <path d="M50 45 Q60 52 70 45" stroke="#7E22CE" stroke-width="2.5" fill="none" />
+                  <path d="M98 48 V22 L92 28 M98 22 L104 28" stroke="#DC2626" stroke-width="3" fill="none" />
+                </svg>
+                <p class="text-xs font-bold text-slate-800">記録に多い特徴（旅行経験等）を「優秀な証拠」と誤認して高評価</p>
+              </div>
+
+              <div class="bg-white rounded-2xl p-4 border-2 border-amber-200 text-center">
+                <span class="px-2.5 py-0.5 rounded-full bg-amber-600 text-white text-xs font-extrabold">③ 選考で使用</span>
+                <svg viewBox="0 0 120 75" class="w-28 h-16 mx-auto my-2">
+                  <circle cx="30" cy="28" r="9" fill="#10B981" />
+                  <text x="30" y="55" font-size="9" font-weight="bold" fill="#059669" text-anchor="middle">高評価</text>
+                  <circle cx="60" cy="28" r="9" fill="#10B981" />
+                  <text x="60" y="55" font-size="9" font-weight="bold" fill="#059669" text-anchor="middle">高評価</text>
+                  <circle cx="90" cy="28" r="9" fill="#94A3B8" />
+                  <text x="90" y="55" font-size="9" font-weight="bold" fill="#64748B" text-anchor="middle">低評価</text>
+                </svg>
+                <p class="text-xs font-bold text-slate-800">特定の属性を持つ人ばかりが有利になり、機会が奪われる</p>
+              </div>
+
+              <div class="bg-white rounded-2xl p-4 border-2 border-rose-200 text-center">
+                <span class="px-2.5 py-0.5 rounded-full bg-rose-600 text-white text-xs font-extrabold">④ 次の記録へ蓄積</span>
+                <svg viewBox="0 0 120 75" class="w-28 h-16 mx-auto my-2">
+                  <ellipse cx="60" cy="20" rx="28" ry="8" fill="#FEE2E2" stroke="#DC2626" stroke-width="2" />
+                  <path d="M32 20 V52 A28 8 0 0 0 88 52 V20" fill="#FEF2F2" stroke="#DC2626" stroke-width="2" />
+                  <path d="M46 46 L56 36 L64 41 L76 28" stroke="#DC2626" stroke-width="3" fill="none" stroke-linecap="round" />
+                </svg>
+                <p class="text-xs font-bold text-slate-800">同じ特徴の合格者がさらに増え、データの偏りが固定・拡大する</p>
+              </div>
+            </div>
+          </div>`;
+      }
+      if (chapterId === 8) {
+        return `
+          <div class="bg-gradient-to-r from-sky-50/90 to-indigo-50/80 border-2 border-sky-200 rounded-3xl p-5 sm:p-6 space-y-4">
+            <div class="flex items-center justify-between flex-wrap gap-2">
+              <span class="text-xs font-extrabold text-sky-900 bg-white px-3 py-1 rounded-full border border-sky-200 shadow-xs">
+                🏛️ 図解5：AIガバナンスは「一度決めて終わり」ではない（継続改善サイクル）
+              </span>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+              <div class="bg-white rounded-2xl p-4 border-2 border-blue-200 text-center">
+                <span class="px-3 py-1 rounded-full bg-blue-600 text-white text-xs font-extrabold">1. 決める (Plan)</span>
+                <svg viewBox="0 0 120 75" class="w-28 h-16 mx-auto my-2">
+                  <rect x="30" y="10" width="60" height="55" rx="6" fill="#EFF6FF" stroke="#2563EB" stroke-width="2" />
+                  <line x1="42" y1="25" x2="78" y2="25" stroke="#1D4ED8" stroke-width="2.5" />
+                  <line x1="42" y1="38" x2="78" y2="38" stroke="#1D4ED8" stroke-width="2.5" />
+                  <line x1="42" y1="51" x2="65" y2="51" stroke="#1D4ED8" stroke-width="2.5" />
+                </svg>
+                <p class="text-xs font-bold text-slate-800">承認ツール・入力範囲・確認担当者をあらかじめ決める</p>
+              </div>
+
+              <div class="bg-white rounded-2xl p-4 border-2 border-emerald-200 text-center">
+                <span class="px-3 py-1 rounded-full bg-emerald-600 text-white text-xs font-extrabold">2. 使う (Do)</span>
+                <svg viewBox="0 0 120 75" class="w-28 h-16 mx-auto my-2">
+                  <rect x="24" y="16" width="72" height="44" rx="6" fill="#ECFDF5" stroke="#059669" stroke-width="2" />
+                  <rect x="36" y="28" width="48" height="20" rx="10" fill="#10B981" />
+                  <text x="60" y="41" font-size="10" font-weight="bold" fill="white" text-anchor="middle">承認済みAI</text>
+                </svg>
+                <p class="text-xs font-bold text-slate-800">シャドーAIを避け、承認済みの方法で利用記録を残して使う</p>
+              </div>
+
+              <div class="bg-white rounded-2xl p-4 border-2 border-sky-200 text-center">
+                <span class="px-3 py-1 rounded-full bg-sky-600 text-white text-xs font-extrabold">3. 確かめる (Check)</span>
+                <svg viewBox="0 0 120 75" class="w-28 h-16 mx-auto my-2">
+                  <circle cx="55" cy="35" r="20" fill="#E0F2FE" stroke="#0284C7" stroke-width="3" />
+                  <line x1="70" y1="50" x2="88" y2="66" stroke="#0369A1" stroke-width="4" stroke-linecap="round" />
+                  <path d="M47 35 L53 41 L64 29" stroke="#0284C7" stroke-width="3" fill="none" />
+                </svg>
+                <p class="text-xs font-bold text-slate-800">誤り・不利益の発生や運用状況に無理がないか点検する</p>
+              </div>
+
+              <div class="bg-white rounded-2xl p-4 border-2 border-indigo-200 text-center">
+                <span class="px-3 py-1 rounded-full bg-indigo-600 text-white text-xs font-extrabold">4. 直す (Act)</span>
+                <svg viewBox="0 0 120 75" class="w-28 h-16 mx-auto my-2">
+                  <path d="M40 37 A20 20 0 1 1 60 57" fill="none" stroke="#4F46E5" stroke-width="3.5" stroke-linecap="round" />
+                  <polygon points="40,30 33,40 47,40" fill="#4F46E5" />
+                  <circle cx="60" cy="37" r="7" fill="#C7D2FE" />
+                </svg>
+                <p class="text-xs font-bold text-slate-800">新機能や規約変更、問題事例を受けてルールと運用を見直す</p>
+              </div>
+            </div>
+          </div>`;
+      }
+      if (chapterId === 10) {
+        return `
+          <div class="bg-gradient-to-r from-indigo-50/90 to-purple-50/80 border-2 border-indigo-200 rounded-3xl p-5 sm:p-6 space-y-4">
+            <div class="flex items-center justify-between flex-wrap gap-2">
+              <span class="text-xs font-extrabold text-indigo-900 bg-white px-3 py-1 rounded-full border border-indigo-200 shadow-xs">
+                ⚖️ 図解6：判断の四段階（根拠と結論の天秤で「論理の飛躍」を見抜く）
+              </span>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+              <div class="bg-white rounded-2xl p-4 border border-blue-200 text-center">
+                <span class="px-2.5 py-0.5 rounded-full bg-blue-600 text-white text-xs font-extrabold">① 主張を取り出す</span>
+                <svg viewBox="0 0 120 75" class="w-28 h-16 mx-auto my-2">
+                  <rect x="22" y="14" width="76" height="46" rx="8" fill="#EFF6FF" stroke="#3B82F6" stroke-width="2" />
+                  <rect x="32" y="34" width="56" height="10" rx="2" fill="#FDE047" />
+                  <line x1="34" y1="39" x2="86" y2="39" stroke="#1D4ED8" stroke-width="2.5" />
+                </svg>
+                <p class="text-xs font-bold text-slate-800">「何をしてよい（やるべき）と言っているか」結論を抜き出す</p>
+              </div>
+
+              <div class="bg-white rounded-2xl p-4 border border-emerald-200 text-center">
+                <span class="px-2.5 py-0.5 rounded-full bg-emerald-600 text-white text-xs font-extrabold">② 根拠と照合する</span>
+                <svg viewBox="0 0 120 75" class="w-28 h-16 mx-auto my-2">
+                  <path d="M22 18 H58 V60 H22 Z M62 18 H98 V60 H62 Z" fill="#ECFDF5" stroke="#059669" stroke-width="2" />
+                  <line x1="68" y1="34" x2="92" y2="34" stroke="#F59E0B" stroke-width="4" />
+                </svg>
+                <p class="text-xs font-bold text-slate-800">資料R1〜R3のどの文が根拠になるか一文ずつ照らし合わせる</p>
+              </div>
+
+              <div class="bg-white rounded-2xl p-4 border border-rose-200 text-center">
+                <span class="px-2.5 py-0.5 rounded-full bg-rose-600 text-white text-xs font-extrabold">③ 飛躍を探す</span>
+                <svg viewBox="0 0 120 75" class="w-28 h-16 mx-auto my-2">
+                  <polygon points="60,24 52,62 68,62" fill="#64748B" />
+                  <line x1="22" y1="34" x2="98" y2="20" stroke="#334155" stroke-width="3" />
+                  <rect x="14" y="36" width="26" height="16" rx="3" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.5" />
+                  <text x="27" y="47" font-size="8" font-weight="bold" fill="#1E40AF" text-anchor="middle">根拠</text>
+                  <rect x="82" y="22" width="26" height="16" rx="3" fill="#FFE4E6" stroke="#E11D48" stroke-width="1.5" />
+                  <text x="95" y="33" font-size="8" font-weight="bold" fill="#9F1239" text-anchor="middle">結論</text>
+                </svg>
+                <p class="text-xs font-bold text-slate-800">資料に書いていないことを「確認済み」と飛躍していないか探す</p>
+              </div>
+
+              <div class="bg-white rounded-2xl p-4 border border-indigo-200 text-center">
+                <span class="px-2.5 py-0.5 rounded-full bg-indigo-600 text-white text-xs font-extrabold">④ 条件を設計する</span>
+                <svg viewBox="0 0 120 75" class="w-28 h-16 mx-auto my-2">
+                  <rect x="30" y="10" width="60" height="56" rx="6" fill="#EEF2FF" stroke="#4F46E5" stroke-width="2" />
+                  <rect x="38" y="20" width="10" height="10" rx="2" fill="#10B981" />
+                  <text x="68" y="28" font-size="9" font-weight="bold" fill="#312E81" text-anchor="middle">条件A</text>
+                  <rect x="38" y="36" width="10" height="10" rx="2" fill="#10B981" />
+                  <text x="68" y="44" font-size="9" font-weight="bold" fill="#312E81" text-anchor="middle">条件B</text>
+                  <rect x="38" y="52" width="10" height="10" rx="2" fill="#CBD5E1" />
+                  <text x="68" y="60" font-size="9" font-weight="bold" fill="#64748B" text-anchor="middle">条件C</text>
+                </svg>
+                <p class="text-xs font-bold text-slate-800">「全部禁止」で終わらず、何を変えれば安全に進められるか設計する</p>
+              </div>
+            </div>
+          </div>`;
+      }
+      return '';
+    }
+
+    // ==========================================
+    // 2. 学習データ（全11章講義・ケース演習・模擬試験20問）
+    // ==========================================
+    const CHAPTERS = [
+      {
+        id: 1,
+        title: '正しさだけでは判断できない',
+        subtitle: '正確性・権利・公平性・責任の4観点とリスク思考',
+        category: '基本マインドセット',
+        hasDiagram: true,
+        summary: 'AIがどれほど正確で自然な文章や本物そっくりの画像を作れても、それをAIに入力したり外部へ公開したりしてよいとは限りません。また、一見効率のよいAIの提案が誰かを不当に排除することもあります。確認すべき対象は「答えの正しさ」だけでなく、①入力する情報、②作成方法、③利用目的、④他者への影響のすべてです。',
+        deepDive: [
+          {
+            heading: 'なぜ「正確な情報」でも問題になるのか？',
+            body: 'たとえば、クラスの正確な名簿データを外部の生成AIにそのまま貼り付けて「グループ分けをして」と頼めば、出力結果は正確でも「個人情報の無断外部送信」という重大な問題になります。また、本物の人気漫画の画像を加工して学校サイトに載せれば、画像が鮮明でも「著作権侵害」になります。AI活用では「内容が事実と合っているか（正確性）」と「使ってよいか（権利・倫理・手続）」を完全に切り分けて考える必要があります。'
+          },
+          {
+            heading: 'リスク・コンプライアンス・AI倫理の3つの物差し',
+            body: '「リスク」とは、望ましくない結果が起こる可能性と、起きたときの影響の大きさを掛け合わせて考える見方です。自分ひとりで使う英単語の語呂合わせと、他人の進路や成績を左右する推薦選考を同じ確認量で扱ってはいけません。「コンプライアンス」は法律や学校の規則など守るべきルールを遵守すること、「AI倫理」は人の尊厳や公平性を踏まえて何が望ましいか考えることです。校則に書かれていない「ルールの空白」があっても、相手への不利益や傷つきが消えるわけではありません。'
+          }
+        ],
+        tableData: {
+          title: '高校生活における4つの判断観点チェック表',
+          headers: ['判断する観点', '高校生活の具体例', '必ず確かめること'],
+          rows: [
+            ['① 正確性', '進路説明会の日程をAIで要約する', '最新の学校の公式案内・配布プリントと日付や場所が一致するか'],
+            ['② 権利と情報管理', '友人の作文や相談文をAIで添削する', '本人への事前説明と許可があるか、送信先AIの保存・学習設定は安全か'],
+            ['③ 公平性', '海外姉妹校交流の代表をAIで選ぶ', '評価基準や応募機会（端末の有無など）に特定の生徒への偏りがないか'],
+            ['④ 責任と手続', 'AIが作った広報文を学校サイトに掲載する', '誰が事実と権利を確認し、誰（担当教員など）が最終公開を承認するか']
+          ]
+        },
+        keyPoints: [
+          { name: 'リスクベースの確認', desc: '他人の権利・進路・健康など「影響度が高い用途」ほど、確認の段階と人間の関与を厚くする。' },
+          { name: 'ルールの空白とAI倫理', desc: '「禁止と書いていないから何をしてもよい」ではなく、他者への不利益や尊厳を基準に望ましい行動を選ぶ。' }
+        ],
+        quiz: {
+          question: 'AI活用における「リスクに応じた対応」として最も適切なものはどれですか？',
+          options: [
+            '自分用の英単語の語呂合わせ作成でも、進路推薦の選考でも、全く同じ確認手順にする。',
+            '法律や校内ルールに明記されていない事柄であれば、他者に不利益が生じても問題ない。',
+            '他人の進路や成績など影響度が大きい用途ほど、人の検証や確認を丁寧に行う。',
+            'AIが生成した文章の事実関係さえ正確であれば、そのまま外部公開してよい。'
+          ],
+          answer: 2,
+          explanation: 'リスクとは「望ましくない結果が起こる可能性とその影響」です。他人の進路や権利に関わる影響度の高い用途ほど、丁寧な確認と人の判断が不可欠です。'
+        }
+      },
+      {
+        id: 2,
+        title: '著作権を三つの段階で考える',
+        subtitle: '入力・生成・利用の3段階と類似性・依拠性・第30条の4',
+        category: '著作権・知的財産',
+        hasDiagram: true,
+        summary: '著作物とは「人の思想や感情を創作的に表現したもの」（小説、写真、イラスト、音楽など）です。単なる事実データやアイデア自体は保護されませんが、具体的な表現には創作した瞬間に著作権が発生します。AI利用では「入力」「生成」「利用」の3つの段階ごとに権利を確認します。',
+        deepDive: [
+          {
+            heading: '「類似性」と「依拠性」の2つが揃うと著作権侵害に！',
+            body: 'AI生成物が既存の著作物の著作権を侵害しているかどうかは、①既存作品の創作的表現と特徴が共通しているか（類似性）、②既存作品をもとにして作られたか（依拠性）の2点で判断されます。単に「作風（タッチや雰囲気）が似ているだけ」の場合と、特定のキャラクターの顔立ち・特徴的な衣装・ポーズといった表現を引き継ぐ場合を区別します。髪や服の色を変えたり、文章の語尾を変えたりしただけでは類似性・依拠性は消えず、決して安全とは言えません。'
+          },
+          {
+            heading: '著作者人格権と「学習段階（第30条の4）」の誤解に注意',
+            body: '著作権には財産権だけでなく、著作者の名誉やこだわりを守る「著作者人格権（氏名表示権・同一性保持権など）」があります。勝手にキャラクターの色や形を改変する行為は、意に反する改変として著作者人格権の侵害にもなり得ます。また、日本の著作権法第30条の4にはAI開発などの情報解析（非享受目的）に関する規定がありますが、「AIの学習で認められる行為がある」ことは「生徒がネット上の素材をAIに入力し、生成物を学校サイト等で公開してよい」という意味では全くありません。'
+          }
+        ],
+        keyPoints: [
+          { name: '複製と翻案', desc: '複製はそのままコピーすること。翻案は元の表現に依拠しつつ創作的な変更（変形・脚色など）を加えること。どちらも原則として著作権者の許諾が必要。' },
+          { name: '出典表示の限界', desc: '出典や作者名を書けば、他人のイラストや文章を自由に複製・改変・公開してよいわけではない。' }
+        ],
+        quiz: {
+          question: '既存の人気漫画キャラクター画像をAIに取り込み、髪色と服の色だけを変えて文化祭ポスターとして学校公式サイトに公開する行為について、最も適切な判断はどれですか？',
+          options: [
+            '色を変えたので別の著作物になり、自由に公開できる。',
+            '文化祭は営利目的ではないため、著作権者の許諾は一切不要である。',
+            '顔や特徴的な衣装の形・ポーズが共通していれば、類似性・依拠性が認められ著作権侵害となるおそれがある。',
+            '著作権法第30条の4により、AIを使った画像加工はすべて適法となる。'
+          ],
+          answer: 2,
+          explanation: '色を変えただけでは創作的表現の共通性（類似性）と元画像への依存（依拠性）が消えないため、無断公開は著作権侵害や著作者人格権侵害のおそれがあります。'
+        }
+      },
+      {
+        id: 3,
+        title: '引用と生成物の権利を整理する',
+        subtitle: '引用・転載の区別、AI生成物の著作物性、商標権・肖像権など',
+        category: '著作権・知的財産',
+        hasDiagram: false,
+        summary: '「引用と書いて出典URLを貼れば何でも載せてよい」というのは典型的な誤解です。引用と転載の法的な違い、AI生成物に著作権が発生する条件、さらには著作権以外の知的財産権・人格権、そして「商用利用可」という規約の本当の意味を整理しましょう。',
+        deepDive: [
+          {
+            heading: '授業での利用例外と、学校公式サイト公開の決定的な違い',
+            body: '著作権法第35条では、授業の過程における複製や公衆送信について一定の例外が認められています。しかし、誰でも閲覧できる「学校公式サイト」や「SNS」で文化祭ポスターを公開する行為は、授業の枠を超えた一般公開（公衆送信）であり、授業の例外は適用されません。「学校行事だから」「無料（非営利）だから」「引用と書いたから」という理由だけでは無断利用は正当化できません。'
+          },
+          {
+            heading: 'AI生成物は誰のもの？（著作物性の判断）',
+            body: 'AIが短い指示（プロンプト）を受けて自律的に生成しただけの画像や文章には、人の思想・感情の創作的表現がないため「著作物性（著作権）」は認められません。一方で、人間が具体的な創作意図を持ち、プロンプトの試行錯誤、構図の指定、加筆修正などの「創作的関与」を積み重ねて制作した場合は、著作物として認められる余地があります。自分の関与を証明できるよう、制作意図や修正履歴の記録を残すことが大切です。'
+          }
+        ],
+        tableData: {
+          title: '「引用・転載・要約・翻案」と「著作権以外の権利」整理表',
+          headers: ['用語・権利', '保護対象と法的な意味', '高校生活での注意点'],
+          rows: [
+            ['引用 vs 転載', '引用は自分の論述に不可欠な範囲で取り込むこと。転載は他者の表現を別の場所に載せること。', '引用には①公表済み②明瞭な区別③主従関係（自分が主）④必然性⑤出所明示が必要。ポスターに画像を載せるのは転載。'],
+            ['要約・翻案', '要点を短くまとめる（要約）、元の表現をもとに作り変える（翻案）。', 'AIに他人の記事を要約させても、元の創作的表現が残っていれば権利者の許諾が必要になる。'],
+            ['商標権・意匠権・特許権', '商標権（商品・サービスのロゴや名称）、意匠権（物品のデザイン）、特許権（技術的発明）。', '有名企業のロゴを部活動の宣伝ポスターに入れたり、既存製品そっくりのグッズを文化祭で販売したりすると侵害になる。'],
+            ['肖像権・パブリシティ権', '肖像権（みだりに容貌を撮影・公表されない権利）、パブリシティ権（著名人の氏名・肖像の顧客吸引力）。', '友人の顔写真を無断でAI加工して広報に使う（肖像権）、有名人の顔を商品宣伝に使う（パブリシティ権）はいずれもNG。']
+          ]
+        },
+        keyPoints: [
+          { name: '① 素材の権利 → ② サービスの条件 → ③ 使い方', desc: 'AIサービスの利用規約に「商用利用可」とあっても、それはAI運営会社との契約条件に過ぎず、第三者の著作権・商標権・肖像権を侵害しない保証にはならない。' }
+        ],
+        quiz: {
+          question: '「AIサービスの利用規約に『生成物の商用利用可』と書いてあるので、生成された有名キャラクター風の画像をグッズ化して販売しても問題ない」という考えの誤りはどこですか？',
+          options: [
+            '学校の文化祭では商用利用規約が適用されない点。',
+            'サービス規約上の利用許可と、第三者が持つ著作権・商標権などの権利処理は別問題である点。',
+            '商用利用可のAIで生成した画像には、自動的に特許権が発生する点。',
+            '出典URLを記載すれば、どのようなキャラクターも販売できる点。'
+          ],
+          answer: 1,
+          explanation: '「商用利用可」はAI運営会社がユーザーに利用を認める契約条件であり、結果として第三者の著作権や商標権を侵害した場合の責任を免除・保証するものではありません。'
+        }
+      },
+      {
+        id: 4,
+        title: '個人情報と秘密を区別する',
+        subtitle: '個人識別符号・要配慮個人情報・マスキングと匿名加工の違い',
+        category: '個人情報・秘密保持',
+        hasDiagram: false,
+        summary: '個人情報とは、生きている個人に関する情報で、氏名や生年月日などにより特定の個人を識別できるものです。他の情報と容易に照合して特定できる場合も含まれるため、「名前さえ消せば安全（マスキングすれば匿名加工情報になる）」という思い込みは非常に危険です。',
+        deepDive: [
+          {
+            heading: '「利用目的の制限」と「本人への説明」',
+            body: '生徒会が「文化祭の運営改善のため」という目的で来場者や生徒からアンケートを集めた場合、そのデータを海外の外部AIサーバーへ送信することまで本人が了承したとは言えません。外部AIに入力することは、サービスの仕組みによっては「第三者提供」や「業務委託」に該当し、法令上の手続や本人への通知・同意が必要になります。生徒が自己判断でアンケート文面をAIに貼り付けてはいけません。'
+          },
+          {
+            heading: 'なぜ「名前を消す（マスキング）」だけでは不十分なのか？',
+            body: 'たとえばアンケートから氏名欄を削除しても、「2年生で唯一の天文部員です。持病の治療のため長く並べませんでした」という記述が残っていれば、学校内の人であれば誰のことか容易に特定できてしまいます。しかも「持病（病歴）」は、差別や偏見を防ぐため特に慎重な扱いが求められる『要配慮個人情報』です。単なる氏名削除（マスキング）を、個人情報保護法上の厳格な基準で加工された『匿名加工情報』や『仮名加工情報』と呼んではいけません。'
+          }
+        ],
+        tableData: {
+          title: '個人情報・プライバシー・秘密保持の分類表',
+          headers: ['用語', '法的な意味と保護の必要性', '具体的な例'],
+          rows: [
+            ['個人識別符号', '法令で定められた身体特徴の変換符号や公的番号。これ単体で特定個人を識別する。', 'マイナンバー、旅券（パスポート）番号、一定の基準を満たす顔認証データや指紋データ'],
+            ['要配慮個人情報', '本人の人種・信条・社会的身分・病歴など、不当な差別や偏見が生じないよう特に配慮が必要な情報。', '持病や通院歴（病歴）、障害の有無、犯罪被害の事実、健康診断の結果'],
+            ['プライバシー', '私生活上の事柄をみだりに他人に知られたり公開されたりしない人格的利益。', '本人が周囲に公表していない家庭の経済状況、交友関係、悩み相談の内容'],
+            ['秘密保持・営業秘密', '組織として外部に出さないと決めた情報。企業の営業秘密は「秘密管理性・有用性・非公知性」の3要件が重要。', '未公開の定期試験問題、教員会議の非公開資料、文化祭の未発表企画データ']
+          ]
+        },
+        keyPoints: [
+          { name: 'マスキング（氏名削除）', desc: '名前や住所の一部を黒塗り・削除するだけの簡易な処理。他の属性と照合して本人が分かれば個人情報のまま。' },
+          { name: '仮名加工情報 vs 匿名加工情報', desc: '仮名加工情報は他の情報と照合しない限り特定できないよう加工したもの（原則内部分析用）。匿名加工情報は特定の個人を識別できず、かつ元の個人情報に復元できないよう法令基準で加工したもの。' }
+        ],
+        quiz: {
+          question: 'アンケート回答から氏名を削除した「2年で唯一の天文部員です。持病の治療のため長く並べませんでした」という文章について、適切な説明はどれですか？',
+          options: [
+            '氏名が削除されているため、法令上の「匿名加工情報」となり外部AIに自由に入力できる。',
+            '所属の組み合わせから本人が推測でき、さらに要配慮個人情報（病歴・健康情報）を含むため外部送信すべきでない。',
+            '個人を特定できても、学校行事のアンケートであれば本人の同意なく外部AIに送信してよい。',
+            '病歴は個人情報保護法の対象外なので、氏名さえ消せばプライバシーの問題はない。'
+          ],
+          answer: 1,
+          explanation: '「2年で唯一の天文部員」という希少な属性により特定が可能であり、持病という要配慮個人情報も含まれるため、単なる氏名削除（マスキング）では不十分です。'
+        }
+      },
+      {
+        id: 5,
+        title: '入力を減らして目的を達成する',
+        subtitle: '「学習に使われない」と「保存されない」の違い・最小化・初動対応',
+        category: '個人情報・秘密保持',
+        hasDiagram: true,
+        summary: '「AIの学習利用をオフにしたから安全」「学校が承認したAIだから何でも入れてよい」という2つの誤解を解消しましょう。最も確実な安全策は、個人の記録を削って目的だけを抽象化する「入力の最小化」です。また、万が一誤送信したときの正しい初動対応も身につけます。',
+        deepDive: [
+          {
+            heading: '「学習に使われない」と「保存されない」は全くの別物！',
+            body: '多くの生成AIサービスには「入力データをモデルの再学習に使わない（オプトアウト）」設定があります。しかし、学習利用をオフにしても、不正利用監視やサービス維持のために「一定期間（例：30日間）サーバーに会話履歴が保存される」「運営会社の管理者が閲覧できる可能性がある」ケースは少なくありません。また、学校承認済みツールであっても、入力してよい情報の範囲は校内ルールで制限されています。'
+          },
+          {
+            heading: 'AIを使わない判断と、誤送信時の「隠蔽・拡散」禁止',
+            body: '個人の病状に基づく行事参加の可否や、生徒の成績・進路に重大な影響を与える判断は、効率を優先してAIに委ねるべきではありません。一方、もし誤って個人情報や未公開資料をAIに送信してしまったら、①追加の送信や公開を即座に止める、②送信した内容・時刻・相手先・公開範囲を正確に記録する、③すぐに担当教員へ報告する、の3つを徹底します。怒られるのを恐れてチャット履歴を消して隠したり、友人にスクリーンショットを送ってSNS等で相談したりする行為は被害を拡大させる最悪の対応です。'
+          }
+        ],
+        keyPoints: [
+          { name: 'どれか1つだけでは不十分', desc: '「名前を消す」「学習利用を切る」「学校承認AIを使う」のどれか1つだけを満たしても安全は保証されない。すべてを組み合わせて確認する。' }
+        ],
+        quiz: {
+          question: '誤って生徒の相談記録を未承認の外部AIに送信してしまった直後の行動として、最も適切なものはどれですか？',
+          options: [
+            '誰にも知られないよう、ブラウザの履歴とチャット履歴をすぐに削除して黙っておく。',
+            '対処法を相談するため、送信した画面のスクリーンショットをSNSのグループに送る。',
+            '追加の送信を止め、送信内容・時刻・相手先の記録を保ったまま、すぐに担当教員へ報告する。',
+            'AIに「この情報は忘れるように」と指示を送り、AIが「了解」と答えたら対応を完了する。'
+          ],
+          answer: 2,
+          explanation: '事故時は被害拡大防止（追加送信停止）と事実把握（記録保持）の上で、速やかに責任者（担当教員）へ報告することが鉄則です。隠蔽や拡散は被害を悪化させます。'
+        }
+      },
+      {
+        id: 6,
+        title: '公平性とバイアスを考える',
+        subtitle: '偏りの再生産ループ、相関と因果の区別、公平な選考プロセス',
+        category: '公平性・AI倫理',
+        hasDiagram: true,
+        summary: '「人間が選ぶとえこひいきが出るから、全員を同じAIの計算式で採点すれば公平だ」と考える人は多いですが、実はここに大きな落とし穴があります。過去のデータに偏り（バイアス）が含まれていると、AIはその偏りを学習し、将来の不公平を拡大再生産してしまいます。',
+        deepDive: [
+          {
+            heading: '「相関関係」と「因果関係」の混同が差別を生む',
+            body: '「相関関係」とは2つの事柄が一緒に変化する傾向があること、「因果関係」とは一方が原因となって他方の結果を引き起こすことです。たとえば「過去3年の海外姉妹校交流の参加者18人のうち14人に海外旅行経験があった」という記録があっても、旅行経験があるから交流能力が高い（因果）とは言えません。そもそも海外旅行経験は家庭の経済状況と強く結びつく属性であり、能力を直接測る指標の代わりに使うと経済的理由による不当な排除につながります。また、選ばれなかった応募者全体のデータが記録されていない点も重要な限界です。'
+          },
+          {
+            heading: '人間の審査でも偏りは起きる！改善の5ステップ',
+            body: 'AIの自動順位付けをやめて「複数の教員が評価する」ようにしても、評価基準が曖昧なままでは教員同士が同じ無意識の偏り（アンコンシャス・バイアス）を共有している可能性があります。公平な選考を実現するには、①目的に合う評価基準（意欲・協働経験など）を先に明文化する、②オンラインだけでなく紙の申請も認めて応募機会を確保する、③全候補者から同じ項目の情報を集める、④特定の属性に不利が偏っていないか点検する、⑤人が選考理由を説明し、候補者が質問や再確認を申し出られる窓口を設けることが不可欠です。'
+          }
+        ],
+        keyPoints: [
+          { name: 'AIは「順位付け」ではなく「点検の補助」に', desc: '候補者の属性からAIに点数を付けさせるのではなく、評価基準の抜け漏れチェックや案内文の分かりやすさ点検など、補助的な役割に限定する。' }
+        ],
+        quiz: {
+          question: '「過去3年の海外交流参加者18人のうち14人に海外旅行経験があった」というデータから言えることと言えないことの区別として、正しいものはどれですか？',
+          options: [
+            '海外旅行経験がある生徒は、ない生徒よりも交流への意欲や能力が高いという因果関係が証明された。',
+            '過去の参加者には旅行経験者が多かったとは言えるが、応募者全体のデータがないため旅行経験が能力を表すとは言えない。',
+            '効率を高めるため、次回からは海外旅行経験者だけに応募資格を限定するのが最も公平である。',
+            'AIにこの18人のデータを学習させれば、偏りのない完璧な選考基準を自動で作れる。'
+          ],
+          answer: 1,
+          explanation: 'データから事実として言えるのは「過去18人中14人に経験があった」ことだけです。選ばれた人だけのデータから能力との因果関係を導くのは論理の飛躍です。'
+        }
+      },
+      {
+        id: 7,
+        title: 'AI倫理を行動に置き換える',
+        subtitle: 'ELSIの視点と、AI事業者ガイドライン10の共通指針',
+        category: '公平性・AI倫理',
+        hasDiagram: false,
+        summary: 'AI倫理とは、AIの開発・提供・利用に伴う「社会としての望ましさ」を考えることです。総務省・経済産業省の「AI事業者ガイドライン」で示される10の共通指針と、ELSI（エルシー）の視点を高校生活の具体的な行動へと落とし込みましょう。',
+        deepDive: [
+          {
+            heading: 'ELSI（倫理的・法的・社会的課題）の3つのレンズ',
+            body: '新しい技術である生成AIを社会で受け入れる際には、ELSI（Ethical, Legal and Social Issues）の3つの視点を結びつけて考えます。すなわち、「法律に違反していないか（法的課題）」「人の尊厳を傷つけたり差別を生んだりしないか（倫理的課題）」「学習機会の格差や環境負荷の増大など社会全体に悪影響がないか（社会的課題）」の3つです。'
+          },
+          {
+            heading: '個人の便利さと社会・学び・環境への影響',
+            body: 'レポートや課題を丸ごとAIに書かせれば短期的には早く終わりますが、自分自身で考えて言葉で説明する力が育たず、学びの機会を損ないます。また、高性能な有料AIを使える生徒とそうでない生徒の間で学習機会の格差が生まれる懸念もあります。さらに、生成AIの稼働にはデータセンターの膨大な計算資源と電力・水資源が消費されるため、何でも無制限に生成するのではなく目的を明確にして必要な範囲で使う視点も重要です。'
+          }
+        ],
+        tableData: {
+          title: 'AI事業者ガイドライン「10の共通指針」と高校生活での実践',
+          headers: ['共通指針の観点', '高校生活・学校活動で実行する具体的行動'],
+          rows: [
+            ['1. 人間中心', '本人の意思を尊重し、進路指導や代表選考の最終決定をAIだけで行わない。'],
+            ['2. 安全性', '誤案内で事故や混乱が起きないよう、避難経路や日程などの重要情報は人が必ず照合する。'],
+            ['3. 公平性', '推薦や選考の基準に、能力と無関係な性別・家庭環境・経済状況を使わない。'],
+            ['4. プライバシー保護', '友人や生徒の悩み相談・アンケート回答を無断で外部AIに入力しない。'],
+            ['5. セキュリティ確保', 'パスワードやAPIキーなどの認証情報を厳重に守り、アクセス範囲を制限する。'],
+            ['6. 透明性', '全情報を公開することではなく、どの作業にAIを使いどこを人が確認したかを適切に説明する。'],
+            ['7. アカウンタビリティ', '「AIが決めました」と言い訳せず、人間が判断理由を記録し質問に答え修正する責任を持つ。'],
+            ['8. 教育とリテラシー', 'AIのハルシネーション（誤り）やバイアスの限界を学び、使い方を継続的に見直す。'],
+            ['9. 公正競争確保', '他者を不当に排除したり権利を侵害したりせず、公正なルールを守って活動する。'],
+            ['10. イノベーション', '新しい活用方法を試しつつ、その効果とリスクを検証してより良い運用へ改善する。']
+          ]
+        },
+        keyPoints: [
+          { name: '透明性 ≠ 全情報公開', desc: '透明性とは相手が納得・判断できるプロセス説明を示すことであり、個人情報や秘密情報まで全て公開することではない。' },
+          { name: 'アカウンタビリティ（説明責任）', desc: 'AIを使った場合でも、最終的な決定と結果に対する説明・修正の責任は人間と組織が負う。' }
+        ],
+        quiz: {
+          question: 'AI活用における「透明性」と「アカウンタビリティ（説明責任）」の説明として、最も適切なものはどれですか？',
+          options: [
+            '透明性を高めるため、AIに入力した生徒の個人情報や内部資料もすべてインターネット上に公開する。',
+            'AIが自動計算した結果であることを明記すれば、判断の理由を説明したり修正したりする責任は免除される。',
+            'どの工程にAIを使いどこを人が確認したかを適切な範囲で示し、判断理由を記録して説明・修正できるようにする。',
+            '透明性と説明責任はAI開発企業だけが負うものであり、AIを利用する学校や生徒には関係がない。'
+          ],
+          answer: 2,
+          explanation: '透明性は「秘密や個人情報をすべて公開すること」ではなく、相手が納得・判断できる必要な情報を適切に示すことです。また、最終的な説明責任は使う人・組織が負います。'
+        }
+      },
+      {
+        id: 8,
+        title: '個人の注意を組織の仕組みにする',
+        subtitle: 'AIガバナンス、シャドーAI、Human-in-the-Loop、セキュリティ',
+        category: 'ガバナンス・法規',
+        hasDiagram: true,
+        summary: '「AIを使うときは気をつけましょう」という個人の心がけだけでは、情報漏えいや権利侵害は防げません。組織として役割・ルール・点検・改善のサイクルを整える「AIガバナンス」と、身近なセキュリティ対策を学びましょう。',
+        deepDive: [
+          {
+            heading: '「シャドーAI」がなぜ危険なのか？',
+            body: '学校や組織が安全性や利用規約を確認して承認したツール以外のAIを、生徒や職員が勝手に活動へ使うことを「シャドーAI」と呼びます。「無料で使えるから」「友達も使っているから」「学校にバレなければ大丈夫」という理由で未承認AIに生徒会の非公開資料や個人情報を入力すると、データの保存場所や学習利用の有無を組織が一切管理できず、情報漏えい時に削除依頼などの対応もできなくなります。'
+          },
+          {
+            heading: 'Human-in-the-Loop（人間介在）の実質化とセキュリティ',
+            body: '人間が確認する仕組みを「Human-in-the-Loop」と呼びます。ただし、確認者が中身を読まずに「承認ボタン」を機械的に押すだけでは意味がありません。判断に必要な根拠資料、十分な確認時間、そして「問題があればAIの利用を止める・使わない」という権限を持つ人が確認することが不可欠です。またセキュリティ面では、AIで自然な日本語の偽メールを作る「フィッシング詐欺」に注意し、メール内リンクではなく公式窓口で確認すること、パスワードやAPIキーをAIに入力しないこと、多要素認証（MFA）を使うことが重要です。'
+          }
+        ],
+        tableData: {
+          title: '学校で決めておくべきAIガバナンス5項目',
+          headers: ['決めておく項目', '学校・生徒会での具体的なルール例'],
+          rows: [
+            ['① ツールと契約', '使用できるのは学校承認済みツールのみ。年齢制限、アカウント条件、学習オフ設定を確認する。'],
+            ['② 入力可能な情報', '公開済みの日程や一般案内は入力可。生徒名簿、相談記録、未公開試験問題は入力禁止。'],
+            ['③ 確認と公開承認', 'AI出力を誰が元の資料と照合し、誰（担当教員）がサイト公開の最終承認を行うかを明記する。'],
+            ['④ 記録と事故時相談', 'どの作業にAIを使いどう修正したかを記録し、誤送信等の事故が起きた際の連絡先を周知する。'],
+            ['⑤ 定期的な見直し', 'AIの新機能追加や利用規約の変更、ヒヤリハット事例を受けてルールを定期的に改定する。']
+          ]
+        },
+        keyPoints: [
+          { name: 'フィッシングと多要素認証', desc: 'フィッシングは信頼できる相手を装いID・パスワードを盗む手口。知識情報（パスワード）・所持情報（スマホ認証）・生体情報など異なる要素を組み合わせる「多要素認証」で防御する。' }
+        ],
+        quiz: {
+          question: '組織における「シャドーAI」の説明として最も適切なものはどれですか？',
+          options: [
+            '学校や組織が公式に承認したAIツールを、マニュアル通りに利用すること。',
+            'AIの学習データの裏側に隠れているバイアス（偏り）のこと。',
+            '学校や組織の承認を得ていない外部AIツールに、生徒会の非公開資料などを入力して利用すること。',
+            'セキュリティを高めるために、AIの画面をダークモードにして作業すること。'
+          ],
+          answer: 2,
+          explanation: '組織の許可・管理外で無断利用されるAIが「シャドーAI」です。情報漏えいや規約違反のリスクが管理できないため禁止されます。'
+        }
+      },
+      {
+        id: 9,
+        title: '法律とガイドラインの役割',
+        subtitle: 'ハードローとソフトロー、日本のAI法、国際ルール、安全保障',
+        category: 'ガバナンス・法規',
+        hasDiagram: false,
+        summary: '私たちの行動を規律するルールには「法律」「ガイドライン」「利用規約」「校内ルール」の4種類があり、それぞれ性質と強制力が異なります。また、日本のAI推進法や国際的なルール（G7広島AIプロセス、EU AI Act）、AI安全保障の考え方も押さえましょう。',
+        deepDive: [
+          {
+            heading: 'ハードローとソフトロー、4つのルールの関係',
+            body: '「法律」は議会で制定され法的強制力を持つ枠組み（ハードロー）です。これに対し、「ガイドライン（AI事業者ガイドラインなど）」は法的強制力によらず望ましい取組や実務の指針を示す規範（ソフトロー）と呼ばれます。ソフトローだからといって「守らなくても一切問題ない」わけではなく、社会的信頼や事故防止のために極めて重要です。さらに、サービス提供者との契約である「利用規約」や、組織内の運用手順である「校内ルール」もあり、どれか1つを守れば他の確認が不要になるわけではありません。'
+          },
+          {
+            heading: '日本のAI法・国際ルール・AI安全保障とリスキリング',
+            body: '日本の「人工知能関連技術の研究開発及び活用の推進に関する法律（AI法）」は、AI戦略本部や基本計画を通じてAIの研究開発・活用の推進とリスク対応を両立させる枠組みです。ただし、このAI法があるからといって既存の著作権法や個人情報保護法を確認しなくてよくなるわけではありません。国際的には、G7広島AIプロセスで高度なAIに関する国際指針・行動規範が進められ、EU AI Actでは用途のリスク度合いに応じた規制枠組みが採られています（日本とEUは同じ制度ではなく、一律禁止でもありません）。また、重要インフラの保護や特定技術への過度な依存を防ぐ「AI安全保障」の観点から国内基盤モデルや人材育成も重視されますが、国産AIであっても契約や権利の確認は同様に必要です。技術変化に合わせて新しい知識・技能を学び直す「リスキリング」も重要です。'
+          }
+        ],
+        tableData: {
+          title: '性質が異なる4種類のルールの役割比較',
+          headers: ['ルールの種類', '性質と役割', '具体的な判断の例'],
+          rows: [
+            ['① 法律（ハードロー）', '社会全体で守るべき法的拘束力のある枠組み', '著作権法（類似性・依拠性）や個人情報保護法（要配慮個人情報等）を確認する'],
+            ['② ガイドライン（ソフトロー）', '法的強制力によらず望ましい実務や倫理の考え方を示す指針', 'AI事業者ガイドラインの公平性や透明性の観点を学校の運用に反映する'],
+            ['③ 利用規約・ライセンス', 'AIサービス提供者と利用者の間の契約条件', '年齢制限、商用利用可否、入力データの学習利用オプトアウト条件を確認する'],
+            ['④ 校内ルール', '学校内の安全な運用手順と責任分担を定める規則', '公開前に必ず担当教員の承認を得る、未承認AI（シャドーAI）を使わない']
+          ]
+        },
+        keyPoints: [
+          { name: '国産AI＝無条件で安全ではない', desc: '日本の企業が開発した国産基盤モデルであっても、他人の著作物の無断公開や個人情報の無断入力が許されるわけではなく、同じ確認手順が必要。' }
+        ],
+        quiz: {
+          question: '日本の「人工知能関連技術の研究開発及び活用の推進に関する法律（AI法）」や国内外のルールに関する説明として正しいものはどれですか？',
+          options: [
+            '日本のAI法が施行されたため、AI利用に関しては既存の著作権法や個人情報保護法を確認する必要がなくなった。',
+            '国産AIモデルであれば日本の法律に完全に適合しているため、利用規約や権利確認を省略してよい。',
+            '日本のAI法があっても既存の著作権法や個人情報保護法の確認は必要であり、法律・ガイドライン・規約はそれぞれ別に確認する。',
+            'EU AI Actと日本の法律は全く同じ内容であり、すべての生成AIの利用が一律に禁止されている。'
+          ],
+          answer: 2,
+          explanation: 'AI推進法は研究開発と活用の推進・リスク対応の枠組みであり、既存の著作権法や個人情報保護法に取って代わるものではありません。'
+        }
+      },
+      {
+        id: 10,
+        title: '判断を深めるための道具',
+        subtitle: '論理の飛躍を見抜く「判断の4段階」と実行可能な条件設計',
+        category: '実践思考スキル',
+        hasDiagram: true,
+        summary: 'AIの回答や人の意見を比較検討するとき、「なんとなく良さそう」「個人の感想」で終わらせてはいけません。資料のどこに根拠があるかを突き止め、根拠から結論への「論理の飛躍」を発見し、「全部禁止」ではなく目的を達成できる代替条件を設計する思考道具を身につけます。',
+        deepDive: [
+          {
+            heading: '「論理の飛躍」を具体的に見抜くトレーニング',
+            body: 'たとえば「このAIはモデル学習に使わない設定ができるので、会話履歴も保存されないから個人情報を送っても安全だ」という主張を検証してみましょう。①主張は「個人情報を送っても安全だ」、②資料R3の根拠は「モデル学習に使わない設定が選べる（保存期間と閲覧範囲は不明）」です。③ここで「学習しない＝保存されない」と混同し、資料に書いていないことを「安全確認済み」と断定している点が『論理の飛躍』です。④そこで「保存期間を確認し、そもそも個人情報を削った条件で入力する」と代替条件を設計します。'
+          },
+          {
+            heading: '「全部禁止」で終わらず、使える範囲と相談ルートを設計する',
+            body: '文化祭広報の制作計画（Q5）のように、手元に「使える素材（同意済みの図形や公開済み日程）」と「使えない素材（無断保存の漫画や病歴付き感想）」が混在する場合、リスクを恐れて「AIは一切禁止！」と結論づけるだけでは工夫が足りません。使える素材だけを承認済みAIに入力して下書きを作らせ、人間が内容と権利を点検し、担当教員の承認を経て公開する——このように「目的を保ちつつ安全に進める手順」を設計する力が求められます。また、専門的な法的判断が必要な場合は自分で断定せず教員や専門家へ相談につなぎます。'
+          }
+        ],
+        tableData: {
+          title: '比較検討するときの4つのチェック観点',
+          headers: ['比較の観点', '自分自身に問いかける質問'],
+          rows: [
+            ['① 資料との整合', '参照資料R1〜R3のどの文が根拠になっているか？資料の記述と矛盾する箇所はないか？'],
+            ['② 分からないこと', '資料に書かれていない「不明な事項」を、勝手に確認済みとして扱わず不明のまま残しているか？'],
+            ['③ 他者への影響', 'その判断によって、誰の個人情報・著作権・応募機会が左右されるか？'],
+            ['④ 実行できる代替案', '「全部禁止」で終わらず、目的を達成しつつ入力や公開方法を変える現実的な手順があるか？']
+          ]
+        },
+        keyPoints: [
+          { name: '仕組みの前提条件まで疑う', desc: '「複数の教員が評価する」という改善案でも、評価基準の明文化・採点理由の記録・再確認窓口の設置まで揃って初めて公平性が機能する。' }
+        ],
+        quiz: {
+          question: '「このAIはモデル学習に使わない設定ができるので、会話履歴もサーバーに一切保存されないから安全だ」という主張の『論理の飛躍』はどれですか？',
+          options: [
+            'モデル学習への利用有無と、サーバーへの履歴保存期間・閲覧範囲を混同し、資料にないことを断定している点。',
+            'AIの学習には膨大な電力がかかることを無視している点。',
+            '会話履歴が保存されると、自動的に著作権が発生すると誤解している点。',
+            'モデル学習に使わない設定にすると、AIの回答精度が著しく低下する点。'
+          ],
+          answer: 0,
+          explanation: '「学習に使わない」ことと「保存されない」ことは別の条件です。資料に明記されていない保存期間や閲覧範囲を確認済みのように断定している点が論理の飛躍です。'
+        }
+      },
+      {
+        id: 11,
+        title: '試験直前！混同しやすい8つの言葉ペア',
+        subtitle: 'GUGA試験で狙われる「ひっかけ概念」の完全区別と解答手順',
+        category: '試験対策総まとめ',
+        hasDiagram: false,
+        summary: 'GUGAの試験問題では、似た意味に思える2つの言葉を巧みにすり替えた「ひっかけ選択肢」が頻出します。下の8枚のカードをクリックして、それぞれの決定的な違いを頭に焼き付けましょう。また、選択肢の「必ず」「すべて」「不要」といった断定語の正しい見抜き方も確認します。',
+        deepDive: [
+          {
+            heading: '試験問題を解くときの鉄則手順',
+            body: '4択問題を解くときは、①まず問題文が「最も適切なもの」を問うているのか「不適切なもの」を問うているのかを確認します。②選択肢の中に「必ず」「すべて」「一切〜ない」「確認は不要」といった強い断定語がある場合、例外や前提条件を無視している可能性が高いですが、断定語があるという理由だけで機械的に除外せず、「何を根拠にそう言えるか」を必ず読みましょう。③正解を選んだ後も、残りの3つの誤った選択肢について「どの言葉とどの言葉を混同しているか」を説明できれば完璧です。'
+          }
+        ],
+        flipPairs: [
+          { termA: '正確性', termB: '公開の適切さ', diff: '内容が事実として正確でも、著作権や個人情報・校内ルールの問題が解決していなければ公開してはいけない。' },
+          { termA: '商用利用可（規約）', termB: '第三者の許諾', diff: 'AIサービスの規約上の利用許可と、元画像やキャラクター等の第三者の権利処理は全く別物。' },
+          { termA: 'マスキング（氏名削除）', termB: '匿名加工情報', diff: '名前を消しただけでは他の属性と組み合わせて特定できる場合があり、法定基準を満たす匿名加工情報にはならない。' },
+          { termA: '学習利用しない', termB: '保存されない', diff: 'モデル学習をオフにしても、一定期間の履歴保存や管理者閲覧が行われるサービスがある。' },
+          { termA: '相関関係', termB: '因果関係', diff: '一緒に見られる特徴（例：参加者に旅行経験者が多い）だけで、それが能力の原因だと断定してはいけない。' },
+          { termA: '透明性', termB: '全情報の公開', diff: '透明性とは判断に必要なプロセス説明を適切に示すことであり、個人情報や秘密情報まで全て晒すことではない。' },
+          { termA: '公平性', termB: '一律の機械処理', diff: '全員に同じAI処理を適用しても、元のデータや応募機会（端末格差など）に偏りがあれば不公平になる。' },
+          { termA: 'AIの補助', termB: '判断の委任', diff: '下書き作成や抜け漏れ点検にAIを使うことと、人の進路や処遇の最終決定をAIに丸投げすることは明確に分ける。' }
+        ],
+        quiz: {
+          question: '試験問題の選択肢を見抜く際の姿勢として、最も適切なものはどれですか？',
+          options: [
+            '「必ず」「すべて」「不要」などの断定語が含まれていたら、文脈を読まずにすべて不正解にする。',
+            '選択肢の言葉が「正確性と公開の適切さ」「学習利用と保存」などの混同しやすい概念をすり替えていないか根拠と照合する。',
+            '専門用語が多く並んでいる選択肢を常に正解として選ぶ。',
+            '迷ったら「AIが自動で判断する」と書かれた選択肢を選ぶ。'
+          ],
+          answer: 1,
+          explanation: '断定語は注意のサインですが、機械的に除外するのではなく「何が根拠で、どの概念をすり替えているか」を丁寧に見極めることが大切です。'
+        }
+      }
+    ];
+
+    const CASE_STUDIES = [
+      {
+        id: 'C1',
+        badge: '比較審査ミッション 1',
+        title: '文化祭ポスターと著作権',
+        scene: '広報委員が、文化祭ポスターを学校公式サイトで一般公開する前に確認する場面です。',
+        references: [
+          { id: 'R1', title: '学校の制作ルール', text: '自分たちの写真・絵、または利用範囲を確認した許諾済み素材を使う。著名な作品の画像を改変する場合は担当教員に相談する。' },
+          { id: 'R2', title: '素材の状況', text: '生徒が出版社の公式サイトから漫画キャラクターの画像を保存した。許諾は得ていない。AIで髪色と服の色を変えたが、顔・特徴的な衣装の形・ポーズは元画像と共通している。' },
+          { id: 'R3', title: 'AIサービスの規約', text: '生成物の商用利用は認める。ただし、第三者の権利を侵害しないことは利用者が確認する。' }
+        ],
+        aiA: '公開できます。R3で商用利用が認められており、今回は無料の文化祭です。色も変更したので元作品とは別作品になっています。未確認事項はありません。代替案は不要です。',
+        aiB: '現状では公開を保留します。R2では元画像を利用し、特徴的な表現が残っています。色の変更とR3の商用利用可だけでは第三者の権利の問題は解消しません。許諾の範囲と具体的な類似の程度は未確認です。担当教員に相談し、自分たちで描いた元作品に依存しない図案や許諾済み素材に変更します。',
+        tasks: [
+          {
+            q: 'Step 1：AI回答Aの誤りをすべて選んでください（複数選択可）',
+            type: 'multi',
+            options: [
+              'R3の「商用利用可」を「第三者の著作権侵害が許される」と誤解している。',
+              '「無料（非営利）の文化祭だから無断公開してよい」と誤った前提を置いている。',
+              '髪色や服の色を変えただけで、顔・衣装・ポーズが共通しているのに「別作品になった」と飛躍している。',
+              'R1にある「担当教員への相談」や許諾確認を無視して「未確認事項なし」としている。'
+            ],
+            correctIndices: [0, 1, 2, 3],
+            explanation: 'AI回答Aは4つすべての点で重大な誤り（飛躍と根拠無視）を犯しています！'
+          },
+          {
+            q: 'Step 2：もしこのポスターに「作者名と出版社の出典URL」を記載すれば、学校公式サイトで今すぐ公開できるでしょうか？',
+            type: 'single',
+            options: [
+              'はい、出典を明記すれば法律上の「引用」になるため公開できる。',
+              'いいえ、ポスターのメイン画像として無断で載せる行為は「引用」ではなく「転載・翻案」にあたり、出典表示だけでは許諾の代わりにならない。',
+              'はい、非営利の学校サイトであれば出典URLを貼るだけで著作権法が免除される。'
+            ],
+            correctIndex: 1,
+            explanation: '引用が成立するには「自分の文章が主で引用が従」「必要性」「明瞭な区別」など厳しい要件があります。ポスターのイラストとして使うのは「転載・翻案」にあたるため、出典表示だけでは公開できません。'
+          }
+        ]
+      },
+      {
+        id: 'C2',
+        badge: '比較審査ミッション 2',
+        title: 'アンケートと外部AIへの入力',
+        scene: '生徒会が、文化祭来場者アンケートから運営の改善点をまとめる場面です。',
+        references: [
+          { id: 'R1', title: '利用目的と校内ルール', text: '回答は文化祭の運営改善に利用する。外部AIへの送信は案内していない。学校が承認したAIでも、個人を識別できる記述・健康情報・未公開の校内情報を入力してはいけない。公開は担当教員の承認後に行う。' },
+          { id: 'R2', title: '回答の一例', text: '2年で唯一の天文部員です。持病の治療のため長く並べませんでした。展示は面白かったです。※氏名欄は削除済み。' },
+          { id: 'R3', title: 'サービスの説明', text: '入力データをモデル学習に使わない設定が選べる。会話履歴の保存期間と管理者の閲覧範囲は、この資料からは分からない。' }
+        ],
+        aiA: 'そのまま送信して大丈夫です。氏名を削除してあり、学習に使わない設定なら情報は保存されません。改善案は「天文部員向けに治療中専用の列を作る」です。確認は不要です。',
+        aiB: 'そのまま送信しません。所属の組合せで本人が分かるおそれがあり、健康に関する記述も含まれ、R1に反します。学習に使わないことと、保存されないことは別です。代替入力は「待機時間を短くする方法を、個人の事情に触れずに3案提案してください」です。保存・閲覧範囲と利用手続を担当教員に確認します。',
+        tasks: [
+          {
+            q: 'Step 1：AI回答Aの問題点として正しい組合せを選んでください',
+            type: 'single',
+            options: [
+              '氏名を消しても「2年で唯一の天文部員」で個人特定が可能であり、「持病」という健康情報も含まれる（R1・R2違反）。さらに「学習オフ＝保存されない」とR3にない断定をしている。',
+              'AI回答Aの提案通り「天文部員専用の治療中列」を作るのが最も合理的だが、担当教員への報告だけ抜けている。',
+              '学校が承認したAIツールであれば、R2のテキストをそのまま送信してもR1のルールには違反しない。'
+            ],
+            correctIndex: 0,
+            explanation: 'R1では「承認済みAIであっても、個人識別記述や健康情報を入力してはいけない」と明記されています。また、学習オフと保存期間は別問題です。'
+          },
+          {
+            q: 'Step 2：AI回答Bの代替入力「待機時間を短くする方法を、個人の事情に触れずに3案提案してください」が優れている理由はどれですか？',
+            type: 'single',
+            options: [
+              '個人の病歴や所属というリスク情報を完全に削りつつ、「待機時間の短縮」という運営改善の目的を達成できるから。',
+              'AIに3案出させれば、担当教員の承認なしでそのまま実行できるから。',
+              '個人情報を削ることで、自動的に法令上の匿名加工情報になるから。'
+            ],
+            correctIndex: 0,
+            explanation: 'これが「入力の最小化」です。目的達成に不要な個人属性・要配慮個人情報を入力データから除くことで、安全かつ便利にAIを活用できます。'
+          }
+        ]
+      },
+      {
+        id: 'C3',
+        badge: '比較審査ミッション 3',
+        title: '公平な選考とAIの提案',
+        scene: '海外姉妹校交流の代表を6人選ぶため、選考方法を検討する場面です。',
+        references: [
+          { id: 'R1', title: '今年の選考基準', text: '参加意欲、協働経験、活動で学びたいことを共通の基準で確認する。家庭環境や性別は評価項目にしない。希望者全員に同じ情報と申込機会を用意する。' },
+          { id: 'R2', title: '過去の記録', text: '過去3年の参加者18人のうち14人に海外旅行経験があった。応募者全体の人数・経験・評価点は記録されていない。' },
+          { id: 'R3', title: '現在の状況', text: 'オンライン申込のみでは申請が難しい生徒がいる。候補者の面接・作品・希望理由はまだ集めていない。' }
+        ],
+        aiA: '海外旅行経験者は交流に向いていると分かります。効率のため経験者だけに応募を絞り、英語が得意そうな人をAIで順位付けすれば公平です。全員を同じ方法で処理するので人の確認は不要です。',
+        aiB: '過去の参加者には旅行経験者が多いとは言えますが、応募者全体の情報がないので旅行経験が能力を表すとは判断できません。R1の基準を事前に示し、紙でも申請できるようにします。全候補者から同じ項目を集め、複数の教員が評価し、再確認の窓口を設けます。AIは基準の抜け漏れ点検に使い、属性からの順位付けはさせません。',
+        tasks: [
+          {
+            q: 'Step 1：AI回答Aが犯している「公平性・データ分析上の誤り」をすべて選んでください',
+            type: 'multi',
+            options: [
+              '過去参加者18人のデータだけから「旅行経験者は交流に向いている」と因果関係を飛躍させている（R2の限界無視）。',
+              '海外旅行経験という家庭の経済状況と結びつきやすい属性で応募を絞り、R1の「機会の平等・家庭環境を使わない」に反している。',
+              'オンライン申込のみだとR3にある「申請が難しい生徒」の機会を奪うことを見落としている。',
+              '「AIで順位付けすれば人の確認は不要」とし、人間中心・説明責任を放棄している。'
+            ],
+            correctIndices: [0, 1, 2, 3],
+            explanation: 'すべて正解です！一律にAIで処理しても、前提データや応募機会に偏りがあれば不公平が拡大します。'
+          },
+          {
+            q: 'Step 2：AI回答Bの「複数の教員が評価する」をさらに改善し、人間側の無意識の偏り（バイアス）も防ぐ工夫として最も適切なものはどれですか？',
+            type: 'single',
+            options: [
+              '教員の直感を重視するため、評価基準（ルーブリック）はあえて作らず自由に採点する。',
+              '評価基準と配点を事前に明文化して採点理由を記録し、候補者が結果について質問・再確認を申し出られる窓口を整える。',
+              '最終的な順位付けだけは、人間よりも客観的なAIに100%任せる。'
+            ],
+            correctIndex: 1,
+            explanation: '複数人でも同じ偏りを共有する可能性があるため、①明確な評価基準の共有、②判断理由の記録、③再確認（異議・質問）の窓口設置が重要です。'
+          }
+        ]
+      },
+      {
+        id: 'Q4',
+        badge: 'ルール設計ミッション（Q4）',
+        title: '校内AIルールのアップグレード',
+        scene: '現行の校内ルールは「AIは便利なので使ってよい。ただし気をつける」という曖昧な一文だけです。生徒会として実効性のあるルールに書き換えましょう！',
+        references: [
+          { id: '現状', title: 'ダメな現行ルール', text: '「AIは便利なので使ってよい。ただし気をつける」→ 誰が・何を・どう確認するかが全く分からない状態。' },
+          { id: '原則', title: 'ガバナンスの5要素', text: '①ツールと契約、②入力可能な情報、③確認と公開承認、④記録と事故時相談、⑤定期的な見直し' }
+        ],
+        tasks: [
+          {
+            q: 'ミッション1：友人が「未承認の無料AIでも、便利だし学校にバレなければ使っていいよね？」と言っています。最も適切な指摘はどれですか？',
+            type: 'single',
+            options: [
+              '未承認ツールを組織活動で使う「シャドーAI」は、情報の保存先や学習利用の有無が管理できず漏えいリスクがあるため、承認済みツールを使うか事前に申請すべき。',
+              '無料で使えるAIであれば契約上の問題はないので、個人情報さえ入れなければ許可なく使ってよい。',
+              '学校に知られなければ校内ルール違反にはならないが、法律違反になる。'
+            ],
+            correctIndex: 0,
+            explanation: '未承認AIの利用は「シャドーAI」と呼ばれ、組織のガバナンス（管理・点検・事故対応）が機能しなくなるため禁止されます。'
+          },
+          {
+            q: 'ミッション2：新しい校内ルールの条文として最も適切なものをすべて選んでください',
+            type: 'multi',
+            options: [
+              '【ツール】利用は学校が承認したAIツールに限定し、アカウント条件や学習オフ設定を確認する。',
+              '【入力制限】承認済みAIであっても、生徒の個人情報・健康情報・未公開の試験や運営資料は入力しない。',
+              '【公開承認】AI出力を広報等に使う場合は、作成者が事実と権利を確認した上で、公開前に担当教員の承認を得る。',
+              '【事故対応】誤送信が起きた場合は履歴を消さずに追加送信を止め、速やかに担当教員へ報告する。'
+            ],
+            correctIndices: [0, 1, 2, 3],
+            explanation: '抽象的な「気をつける」から、具体的な「ツール・入力・確認承認・事故対応」を備えた使えるガバナンスルールへと進化しました！'
+          }
+        ]
+      },
+      {
+        id: 'Q5',
+        badge: '総合統合ミッション（Q5）',
+        title: '文化祭広報の制作計画と承認フロー',
+        scene: '文化祭の一般公開用案内文とポスターを作る総合演習です。「全部禁止」にせず、安全にAIを活用する計画を立てましょう。',
+        references: [
+          { id: 'D1', title: '公式情報', text: '公式日程は11月7日10〜15時、会場は本校体育館。日程・会場の外部入力は学校が認めている。' },
+          { id: 'D2', title: '手元の素材①〜④', text: '素材①：クラスで制作した抽象図形（制作生徒全員が利用に同意）。素材②：許諾未取得の漫画画像。素材③：氏名・病歴を含む感想。素材④：公開済みの一般案内。' },
+          { id: 'D3', title: '校内手続', text: '承認済みAIには個人情報・未公開情報を送らない。公開前に担当教員が内容と権利を確認し承認する。現在はまだ承認前。' }
+        ],
+        tasks: [
+          {
+            q: 'ミッション1：D2の素材①〜④のうち、「今回のAI入力およびサイト公開に使ってよい素材」をすべて選んでください',
+            type: 'multi',
+            options: [
+              '素材①：クラスで制作した抽象図形（制作生徒全員の同意あり）',
+              '素材②：許諾未取得の漫画画像',
+              '素材③：氏名・病歴を含む感想',
+              '素材④：公開済みの一般案内'
+            ],
+            correctIndices: [0, 3],
+            explanation: '素材①（権利処理・同意済み）と素材④（公開済み一般情報）は利用可能です。素材②は著作権侵害のおそれ、素材③は個人情報・要配慮個人情報のため保留（使用不可）とします。'
+          },
+          {
+            q: 'ミッション2：案内文作成から学校サイト公開までの「正しい手順」を選んでください',
+            type: 'single',
+            options: [
+              '承認済みAIにD1と素材④のみを入力して下書き作成 → 生徒が日程や表現の誤りを確認 → 担当教員に内容と権利の確認・承認を依頼 → 承認後に公開する。',
+              'AIが作った案内文を先に学校サイトへ公開し、文化祭の終了後に担当教員へ事後報告する。',
+              '素材③の氏名だけを消してAIに要約させ、担当教員が不在なら生徒会長の判断だけで公開する。'
+            ],
+            correctIndex: 0,
+            explanation: 'D3に基づき、担当教員の事前承認を得るまでは公開できません。承認担当者が不在の場合は、勝手に公開せず担当教員の確認を待つ（または公開予定を調整する）のが正しい判断です。'
+          }
+        ]
+      }
+    ];
+
+    const MOCK_QUESTIONS = [
+      { id: 'T1', tag: 'ワークシート T1', category: '著作権・知的財産', question: 'AI生成物の利用について最も適切な説明はどれか。', options: ['AIが作れば既存作品の権利は関係しない。', '色を変えれば必ず別作品になる。', '生成と公開の各段階で権利を確認する。', '無料公開なら許諾は不要である。'], answer: 2, explanation: '入力・生成・利用（公開）の各段階で、既存作品の創作的表現との類似性・依拠性や利用条件を確認する必要があります。無料（非営利）でも無断公開はできません。' },
+      { id: 'T2', tag: 'ワークシート T2', category: '著作権・知的財産', question: '引用について最も適切な説明はどれか。', options: ['出典URLさえ付ければ全文転載できる。', '必要性や主従関係、区別、出所明示等を確認する。', 'AIが書き換えれば引用の条件は常に不要である。', '学校サイトへの掲載はすべて授業の例外になる。'], answer: 1, explanation: '引用が適法となるには、公表済みであること、引用の必然性、主従関係（自分の文章が主）、明瞭な区別、出所明示などの要件を満たす必要があります。' },
+      { id: 'T3', tag: 'ワークシート T3', category: '個人情報・秘密保持', question: '氏名を削除したアンケートの扱いとして適切なのはどれか。', options: ['名前がなければ個人情報ではない。', '健康情報だけなら無条件に送信できる。', '法令上の匿名加工情報に自動的になる。', '他の情報との組合せや利用ルールも確認する。'], answer: 3, explanation: '氏名を削除（マスキング）しても、希少な部活動や学年などの属性の組合せで個人を特定できる場合があり、また要配慮個人情報（健康情報）や校内ルールの確認も不可欠です。' },
+      { id: 'T4', tag: 'ワークシート T4', category: '個人情報・秘密保持', question: '学習利用を無効にしたAIについて正しいのはどれか。', options: ['保存期間や閲覧範囲は別に確認する。', '履歴は必ず即時削除される。', '学校の入力制限は適用されない。', '未公開試験問題も自由に送れる。'], answer: 0, explanation: '「モデル学習に使われない」ことと「サーバーに保存されない」ことは別です。保存期間、管理者の閲覧範囲、学校の入力制限を別途確認する必要があります。' },
+      { id: 'T5', tag: 'ワークシート T5', category: '著作権・知的財産', question: 'AI生成物の著作物性について最も適切なのはどれか。', options: ['AIを使ったものには一切認められない。', '入力者には必ず認められる。', '人の創作意図や創作的関与等を個別に検討する。', 'サービスが商用利用可なら必ず認められる。'], answer: 2, explanation: 'AI生成物に著作権が発生するかどうかは、単なる簡単な指示だけでなく、人の創作意図や具体的な創作的関与があったかによって個別に判断されます。' },
+      { id: 'T6', tag: 'ワークシート T6', category: '公平性・AI倫理', question: '公平な選考の改善として適切なのはどれか。', options: ['過去の参加者の属性だけで応募者を絞る。', '目的に合う基準と応募機会、再確認の手順を整える。', '全員に同じAIを使えば評価基準は不要。', 'AIの点数は人が確認しないほうが公平。'], answer: 1, explanation: '過去の偏りを引き継がないために、目的に合致した評価基準の策定、応募機会（紙申請など）の確保、人間による説明と再確認の窓口が重要です。' },
+      { id: 'T7', tag: 'ワークシート T7', category: '公平性・AI倫理', question: '透明性とアカウンタビリティの実践として適切なのはどれか。', options: ['個人情報も含め全入力を公開する。', 'AIの回答だと示せば責任を負わない。', '判断の理由は記録せず結果だけ示す。', '利用箇所や確認過程を適切に説明し、理由を記録する。'], answer: 3, explanation: '透明性は必要な説明を適切な範囲で示すことであり、アカウンタビリティは判断理由を記録して質問に答え修正する責任を果たすことです。' },
+      { id: 'T8', tag: 'ワークシート T8', category: 'ガバナンス・法規', question: 'シャドーAIの例はどれか。', options: ['学校承認済みのツールを規則に従い使う。', 'AIを使わず校内で手作業する。', '未承認AIへ生徒会の非公開資料を送る。', '新ツールの承認を担当者に申請する。'], answer: 2, explanation: 'シャドーAIとは、組織や学校の承認を得ていないAIツールを無断で業務や活動に利用する行為を指します。' },
+      { id: 'T9', tag: 'ワークシート T9', category: 'ガバナンス・法規', question: '情報を誤送信した直後の対応として適切なのはどれか。', options: ['追加送信を止め、必要な記録を保ち担当者へ報告する。', '履歴を消して誰にも知らせない。', '友人全員へ送信画面を拡散する。', 'AIに問題ないと言われれば対応不要。'], answer: 0, explanation: '追加送信・公開を止め、送信内容・時刻・相手先の記録を残した上で、速やかに担当者へ報告することが正しい初動対応です。' },
+      { id: 'T10', tag: 'ワークシート T10', category: 'ガバナンス・法規', question: '日本のAI法と既存の法律の関係として適切なのはどれか。', options: ['AI法があれば著作権法は不要になる。', 'AI法があっても既存法令の確認は必要である。', 'AIに関する問題はすべて校内ルールだけで決まる。', 'ガイドラインと法律はすべて同じ強制力を持つ。'], answer: 1, explanation: '日本のAI推進法（人工知能関連技術の研究開発及び活用の推進に関する法律）があっても、著作権法や個人情報保護法などの既存法令の遵守は必要です。' },
+      { id: 'T11', tag: 'ワークシート T11', category: '公平性・AI倫理', question: 'リスクに応じた対応として適切なのはどれか。', options: ['AIの用途によらず確認の程度を同一にする。', '国産AIなら権利確認を省略する。', '影響が大きい用途ほど人の検証や監督を丁寧にする。', '便利さが高ければリスクを考えなくてよい。'], answer: 2, explanation: 'リスクベースアプローチに基づき、人の進路や権利に与える影響が大きい用途ほど、人間による慎重な検証と監督が必要です。' },
+      { id: 'T12', tag: 'ワークシート T12', category: '著作権・知的財産', question: '商用利用可のAIサービスで生成した画像について正しいのはどれか。', options: ['第三者の権利を侵害していないことまで保証される。', '商標や人物の権利は一切関係しない。', '人の創作的関与は検討不要になる。', '規約の許可と第三者の権利を分けて確認する。'], answer: 3, explanation: 'AIサービスの利用規約で「商用利用可」とされていても、著作権・商標権・肖像権など第三者の権利侵害の有無は利用者自身が確認しなければなりません。' },
+      { id: 'EX1', tag: 'シラバス発展 1', category: '著作権・知的財産', question: '著作権法第30条の4（情報解析等の非享受目的利用）と、生成AIの利用段階の関係として最も適切なものはどれか。', options: ['AIの学習段階で認められる利用があることは、生徒が既存画像をAIに入力し生成物を公開する行為もすべて自由であることを意味する。', '著作権法第30条の4は、学校公式サイトでのポスター公開にそのまま適用される。', 'AIの学習段階で情報解析として認められる場合と、利用者が既存作品に類似・依拠した生成物を公開・利用する段階は区別して判断する。', '営利目的でなければ、著作権者の利益を不当に害する場合であっても無制限に利用できる。'], answer: 2, explanation: '学習（情報解析）段階の規定と、生成物を公開・利用する段階の著作権侵害判断（類似性・依拠性）は切り分けて考える必要があります。' },
+      { id: 'EX2', tag: 'シラバス発展 2', category: '著作権・知的財産', question: '企業ロゴや著名人の肖像を無断でAI生成ポスターに組み込んで宣伝に利用した場合、著作権以外に侵害するおそれがある権利の組合せとして最も適切なものはどれか。', options: ['商標権・パブリシティ権', '個人識別符号・要配慮個人情報', '仮名加工情報・ソフトロー', 'リスキリング・多要素認証'], answer: 0, explanation: '商品・サービスを区別する名称やマークは「商標権」、著名人の氏名・肖像が持つ顧客吸引力は「パブリシティ権」によって保護されます。' },
+      { id: 'EX3', tag: 'シラバス発展 3', category: '個人情報・秘密保持', question: '個人情報保護法における「個人識別符号」と「要配慮個人情報」の説明として最も適切なものはどれか。', options: ['マイナンバーや一定の顔認証データは個人識別符号に該当し、病歴や障害などは要配慮個人情報に該当する。', 'ニックネームや好きな食べ物は個人識別符号に該当し、通学時間は要配慮個人情報に該当する。', '個人識別符号は生存する個人だけでなく、歴史上の人物にも適用される。', '要配慮個人情報は、本人の同意がなくても外部のAIサービスに自由に提供できる。'], answer: 0, explanation: '個人識別符号はマイナンバーや生体認証データなど単体で個人を識別できるもの、要配慮個人情報は病歴・障害・人種・信条など差別や偏見を防ぐため特に配慮が必要な情報です。' },
+      { id: 'EX4', tag: 'シラバス発展 4', category: '公平性・AI倫理', question: 'AI活用に伴う倫理的・法的・社会的課題をまとめて捉える概念「ELSI」の観点から、生徒が課題をすべてAIに丸投げすることの問題点として適切なものはどれか。', options: ['短期的には効率的でも、自分で考えて説明する力が育ちにくくなり、また有料ツールの有無などによる学習機会の格差にもつながる。', 'ELSIは法律の条文のみを指す言葉であるため、学習機会や環境負荷については考慮しない。', 'AIに課題を丸投げすれば、すべての生徒に全く同じ思考力が身につくため公平である。', 'ELSIの観点からは、電力消費を気にせず大量に生成を繰り返すことが推奨されている。'], answer: 0, explanation: 'ELSIはEthical（倫理的）・Legal（法的）・Social（社会的）Issuesの略で、学びの質や機会の格差、環境負荷なども含めて望ましさを考えます。' },
+      { id: 'EX5', tag: 'シラバス発展 5', category: '公平性・AI倫理', question: 'データ分析における「相関関係」と「因果関係」の区別として、最も適切なものはどれか。', options: ['「過去に表彰された生徒に読書好きが多い」という相関があれば、「読書をさせれば必ず表彰される」という因果関係が証明されたと言える。', '相関は二つの事柄が一緒に変化する関係であり、一方の属性だけで能力や結果の原因（因果）と断定してはいけない。', 'AIは相関関係だけでなく、データの背後にある因果関係も常に100%正確に判定できる。', '選考においては、能力を直接測るよりも、相関がありそうな家庭環境や出身地域を代理指標として使う方が公平である。'], answer: 1, explanation: '相関と因果の混同はAIバイアスや不公平な選考の大きな原因です。一緒に見られる傾向（相関）だけで能力や原因と断定してはいけません。' },
+      { id: 'EX6', tag: 'シラバス発展 6', category: 'ガバナンス・法規', question: '人間がAIのプロセスに介在して確認する仕組み「Human-in-the-Loop」を形骸化させないために必要な条件はどれか。', options: ['確認者が内容を読まずに素早く承認ボタンだけを押せるようにすること。', '判断に必要な資料と十分な時間、そしてAIの利用を止めたり修正したりする権限を持つ人が確認すること。', '人間が介在すると遅くなるため、最終承認も別のAIに任せること。', '一度承認システムを作ったら、規約変更や問題事例が起きても見直さないこと。'], answer: 1, explanation: 'Human-in-the-Loopは単なる形式的な承認ではなく、適切な資料・時間・停止権限を持つ人間が実質的に確認・判断できる体制が必要です。' },
+      { id: 'EX7', tag: 'シラバス発展 7', category: 'ガバナンス・法規', question: 'AIが悪用された身近なセキュリティ脅威である「フィッシング」への対策として、最も適切なものはどれか。', options: ['文章の日本語が不自然なメールだけを疑い、自然な敬語で書かれたメールのリンクはすべて信頼する。', 'メール内のリンクから直接ログイン画面へ進み、パスワードとAPIキーを入力する。', 'AIで自然な文章が作られる前提に立ち、メール内のリンクに頼らず学校の既知の公式窓口で確認し、多要素認証を有効にする。', 'フィッシングメールが届いたら、内容をAIにそのまま貼り付けて本物かどうか質問する。'], answer: 2, explanation: '生成AIの普及により非常に自然な文面のフィッシングメールが作られます。公式窓口からの確認と多要素認証（MFA）の設定が有効です。' },
+      { id: 'EX8', tag: 'シラバス発展 8', category: 'ガバナンス・法規', question: '国際的なAIルールの動向（G7広島AIプロセス、EU AI Act）に関する説明として最も適切なものはどれか。', options: ['G7広島AIプロセスでは、高度なAIシステムに関する国際的な指針や行動規範などの取組が進められている。', 'EU AI Actでは、医療や教育を含むすべてのAI技術の開発と利用が全面的に禁止されている。', '日本のAI法とEU AI Actは完全に同一の罰則規定を持つ法律である。', '国際的なガイドラインはソフトローであるため、企業が内容を把握する必要は一切ない。'], answer: 0, explanation: 'G7広島AIプロセスでは国際指針・行動規範が策定され、EU AI Actではリスクの程度に応じた規制枠組みが採用されています。日本とEUの制度は異なります。' }
+    ];
+
+    // ==========================================
+    // 3. アプリケーション状態管理
+    // ==========================================
+    const state = {
+      activeTab: 'lecture',
+      xp: 0,
+      completedChapters: [],
+      completedCaseTasks: {},
+      selectedChapterId: 1,
+      chapterQuizSelection: null,
+      chapterQuizSubmitted: false,
+      flippedCards: {},
+      mobileMenuOpen: false,
+      selectedCaseId: 'C1',
+      caseSelections: {},
+      caseSubmitted: {},
+      examMode: 'select', // 'select' | 'running' | 'result'
+      examQuestions: [],
+      currentExamIdx: 0,
+      examAnswers: {},
+      examChecked: {},
+      bestExamScore: null
+    };
+
+    let toastTimer = null;
+    function showToast(msg) {
+      const container = document.getElementById('toast-container');
+      const textEl = document.getElementById('toast-text');
+      textEl.textContent = msg;
+      container.classList.remove('hidden');
+      if (toastTimer) clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        container.classList.add('hidden');
+      }, 3200);
+    }
+
+    function updateHeaderStats() {
+      const totalCaseTasks = CASE_STUDIES.reduce((acc, c) => acc + c.tasks.length, 0);
+      const doneCaseTasks = Object.keys(state.completedCaseTasks).length;
+
+      document.getElementById('header-lecture-count').textContent = `講義: ${state.completedChapters.length}/${CHAPTERS.length}章`;
+      document.getElementById('header-case-count').textContent = `審査: ${doneCaseTasks}/${totalCaseTasks}問`;
+      document.getElementById('tab-badge-lecture').textContent = `${state.completedChapters.length}/${CHAPTERS.length}`;
+      document.getElementById('tab-badge-cases').textContent = `${doneCaseTasks}/${totalCaseTasks}`;
+      document.getElementById('xp-display').textContent = `${state.xp} XP`;
+
+      if (state.bestExamScore !== null) {
+        const examBadge = document.getElementById('tab-badge-exam');
+        examBadge.textContent = `最高 ${state.bestExamScore}%`;
+        examBadge.classList.remove('hidden');
+      }
+
+      const rankTitleEl = document.getElementById('rank-title');
+      const rankBadgeBg = document.getElementById('rank-badge-bg');
+      if (state.xp >= 1200) {
+        rankTitleEl.textContent = 'Lv.4 AIガバナンス・グランドマスター';
+        rankBadgeBg.textContent = '🏆';
+        rankBadgeBg.className = 'w-7 h-7 rounded-lg bg-gradient-to-br from-amber-500 to-yellow-400 flex items-center justify-center shrink-0 text-sm';
+      } else if (state.xp >= 750) {
+        rankTitleEl.textContent = 'Lv.3 上級AI審査官';
+        rankBadgeBg.textContent = '🛡️';
+        rankBadgeBg.className = 'w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center shrink-0 text-sm';
+      } else if (state.xp >= 300) {
+        rankTitleEl.textContent = 'Lv.2 ジュニア倫理アナリスト';
+        rankBadgeBg.textContent = '🔍';
+        rankBadgeBg.className = 'w-7 h-7 rounded-lg bg-gradient-to-br from-emerald-600 to-teal-500 flex items-center justify-center shrink-0 text-sm';
+      } else {
+        rankTitleEl.textContent = 'Lv.1 見習いAIユーザー';
+        rankBadgeBg.textContent = '🧭';
+        rankBadgeBg.className = 'w-7 h-7 rounded-lg bg-gradient-to-br from-slate-600 to-slate-500 flex items-center justify-center shrink-0 text-sm';
+      }
+    }
+
+    function switchTab(tab) {
+      state.activeTab = tab;
+      const tabs = ['lecture', 'cases', 'exam'];
+      const activeColors = {
+        lecture: 'bg-indigo-600 text-white shadow-sm',
+        cases: 'bg-emerald-600 text-white shadow-sm',
+        exam: 'bg-amber-600 text-white shadow-sm'
+      };
+      tabs.forEach((t) => {
+        const btn = document.getElementById(`tab-btn-${t}`);
+        if (t === tab) {
+          btn.className = `flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all whitespace-nowrap ${activeColors[t]}`;
+        } else {
+          btn.className = 'flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all whitespace-nowrap text-slate-600 hover:bg-white hover:text-slate-900';
+        }
+      });
+      render();
+    }
+
+    // ==========================================
+    // 4. イベントハンドラ（講義・ケース・模擬試験）
+    // ==========================================
+    function selectChapter(id) {
+      state.selectedChapterId = id;
+      state.chapterQuizSelection = null;
+      state.chapterQuizSubmitted = false;
+      state.mobileMenuOpen = false;
+      render();
+    }
+
+    function toggleMobileMenu() {
+      state.mobileMenuOpen = !state.mobileMenuOpen;
+      render();
+    }
+
+    function selectChapterQuizOption(idx) {
+      if (state.chapterQuizSubmitted) return;
+      state.chapterQuizSelection = idx;
+      render();
+    }
+
+    function submitChapterQuiz() {
+      if (state.chapterQuizSelection === null) return;
+      state.chapterQuizSubmitted = true;
+      const chap = CHAPTERS.find((c) => c.id === state.selectedChapterId);
+      if (state.chapterQuizSelection === chap.quiz.answer) {
+        if (!state.completedChapters.includes(chap.id)) {
+          state.completedChapters.push(chap.id);
+          state.xp += 50;
+          showToast(`🎉 第${chap.id}章クリア！ +50 XP 獲得！`);
+        } else {
+          showToast('✨ 正解です！（クリア済み）');
+        }
+      }
+      render();
+    }
+
+    function toggleFlipCard(idx) {
+      state.flippedCards[idx] = !state.flippedCards[idx];
+      render();
+    }
+
+    function selectCase(caseId) {
+      state.selectedCaseId = caseId;
+      render();
+    }
+
+    function selectCaseOption(taskKey, optIdx, type) {
+      if (state.caseSubmitted[taskKey]) return;
+      if (type === 'single') {
+        state.caseSelections[taskKey] = [optIdx];
+      } else {
+        const cur = state.caseSelections[taskKey] || [];
+        if (cur.includes(optIdx)) {
+          state.caseSelections[taskKey] = cur.filter((i) => i !== optIdx);
+        } else {
+          state.caseSelections[taskKey] = [...cur, optIdx];
+        }
+      }
+      render();
+    }
+
+    function submitCaseTask(caseId, taskIdx) {
+      const taskKey = `${caseId}-${taskIdx}`;
+      const selected = state.caseSelections[taskKey] || [];
+      if (selected.length === 0) return;
+
+      const cs = CASE_STUDIES.find((c) => c.id === caseId);
+      const task = cs.tasks[taskIdx];
+      state.caseSubmitted[taskKey] = true;
+
+      let isCorrect = false;
+      if (task.type === 'single') {
+        isCorrect = selected[0] === task.correctIndex;
+      } else {
+        const s1 = [...selected].sort().join(',');
+        const s2 = [...task.correctIndices].sort().join(',');
+        isCorrect = s1 === s2;
+      }
+
+      if (isCorrect && !state.completedCaseTasks[taskKey]) {
+        state.completedCaseTasks[taskKey] = true;
+        state.xp += 60;
+        showToast('🛡️ ミッション判定成功！ +60 XP 獲得！');
+      } else if (isCorrect) {
+        showToast('✨ 正解です！');
+      }
+      render();
+    }
+
+    function startMockExam(count) {
+      state.examQuestions = count === 12 ? MOCK_QUESTIONS.slice(0, 12) : [...MOCK_QUESTIONS];
+      state.currentExamIdx = 0;
+      state.examAnswers = {};
+      state.examChecked = {};
+      state.examMode = 'running';
+      render();
+    }
+
+    function selectExamOption(optIdx) {
+      if (state.examChecked[state.currentExamIdx]) return;
+      state.examAnswers[state.currentExamIdx] = optIdx;
+      render();
+    }
+
+    function confirmExamOption() {
+      if (state.examAnswers[state.currentExamIdx] === undefined) return;
+      state.examChecked[state.currentExamIdx] = true;
+      render();
+    }
+
+    function nextExamQuestion() {
+      state.currentExamIdx += 1;
+      render();
+    }
+
+    function finishMockExam() {
+      let correctCount = 0;
+      state.examQuestions.forEach((q, idx) => {
+        if (state.examAnswers[idx] === q.answer) correctCount++;
+      });
+      const earned = correctCount * 25;
+      state.xp += earned;
+      const pct = Math.round((correctCount / state.examQuestions.length) * 100);
+      if (state.bestExamScore === null || pct > state.bestExamScore) {
+        state.bestExamScore = pct;
+      }
+      state.examMode = 'result';
+      showToast(`🏆 模擬テスト完了！正答率 ${pct}%（+${earned} XP）`);
+      render();
+    }
+
+    function resetExamToSelect() {
+      state.examMode = 'select';
+      render();
+    }
+
+    // ==========================================
+    // 5. レンダリング関数
+    // ==========================================
+    function renderLecture() {
+      const chap = CHAPTERS.find((c) => c.id === state.selectedChapterId);
+      const isChapDone = state.completedChapters.includes(chap.id);
+      const pct = Math.round((state.completedChapters.length / CHAPTERS.length) * 100);
+
+      const sidebarItems = CHAPTERS.map((c) => {
+        const done = state.completedChapters.includes(c.id);
+        const sel = c.id === state.selectedChapterId;
+        return `
+          <button onclick="selectChapter(${c.id})" class="w-full text-left p-3.5 transition-colors flex items-start gap-3 ${sel ? 'bg-indigo-50/90 border-l-4 border-indigo-600' : 'hover:bg-slate-50'}">
+            <div class="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-extrabold shrink-0 mt-0.5 ${done ? 'bg-emerald-500 text-white' : sel ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-600'}">
+              ${done ? '✓' : c.id}
+            </div>
+            <div class="min-w-0 flex-1">
+              <div class="text-[11px] font-semibold text-slate-400">${c.category}</div>
+              <div class="text-sm font-bold truncate ${sel ? 'text-indigo-950' : 'text-slate-700'}">${c.title}</div>
+            </div>
+          </button>`;
+      }).join('');
+
+      const deepDiveHTML = (chap.deepDive || []).map((sec, idx) => `
+        <div class="bg-slate-50/80 border border-slate-200/90 rounded-2xl p-5 space-y-2">
+          <h4 class="font-extrabold text-slate-900 text-sm sm:text-base flex items-center gap-2">
+            <span class="w-6 h-6 rounded-full bg-indigo-100 text-indigo-700 text-xs font-black flex items-center justify-center shrink-0">${idx + 1}</span>
+            <span>${sec.heading}</span>
+          </h4>
+          <p class="text-xs sm:text-sm text-slate-700 leading-relaxed pl-8">${sec.body}</p>
+        </div>
+      `).join('');
+
+      let tableHTML = '';
+      if (chap.tableData) {
+        const ths = chap.tableData.headers.map((h) => `<th class="p-3.5 font-extrabold whitespace-nowrap">${h}</th>`).join('');
+        const trs = chap.tableData.rows.map((row) => {
+          const tds = row.map((cell, cIdx) => `
+            <td class="p-3.5 leading-relaxed ${cIdx === 0 ? 'font-extrabold text-slate-900 bg-slate-50/50 whitespace-nowrap' : 'text-slate-700'}">${cell}</td>
+          `).join('');
+          return `<tr class="hover:bg-slate-50/80">${tds}</tr>`;
+        }).join('');
+        tableHTML = `
+          <div class="space-y-3">
+            <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
+              <span>📋</span>
+              <span>${chap.tableData.title}</span>
+            </h3>
+            <div class="overflow-x-auto rounded-2xl border border-slate-200 shadow-xs">
+              <table class="w-full text-left border-collapse text-xs sm:text-sm">
+                <thead><tr class="bg-slate-800 text-white">${ths}</tr></thead>
+                <tbody class="divide-y divide-slate-200 bg-white">${trs}</tbody>
+              </table>
+            </div>
+          </div>`;
+      }
+
+      const keyPointsHTML = (chap.keyPoints || []).map((item) => `
+        <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs">
+          <div class="font-extrabold text-slate-900 text-sm mb-1.5 flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-indigo-500"></span>
+            <span>${item.name}</span>
+          </div>
+          <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">${item.desc}</p>
+        </div>
+      `).join('');
+
+      let flipHTML = '';
+      if (chap.flipPairs) {
+        const cards = chap.flipPairs.map((pair, idx) => {
+          const flipped = !!state.flippedCards[idx];
+          if (!flipped) {
+            return `
+              <button onclick="toggleFlipCard(${idx})" class="text-left p-5 rounded-2xl border-2 transition-all min-h-[130px] flex flex-col justify-between bg-rose-50/60 text-slate-900 border-rose-200 hover:border-rose-400">
+                <div class="flex items-center justify-between w-full">
+                  <span class="text-[11px] font-bold uppercase tracking-wider text-rose-600 bg-rose-100 px-2 py-0.5 rounded">混同注意ペア #${idx + 1}</span>
+                  <span class="text-xs text-slate-400">タップで解説 🔄</span>
+                </div>
+                <div class="my-2 flex items-center justify-center gap-2 text-center font-extrabold text-sm sm:text-base flex-wrap">
+                  <span class="bg-white px-2.5 py-1 rounded-lg border border-rose-200 shadow-xs">${pair.termA}</span>
+                  <span class="text-rose-500 text-xs font-black">VS</span>
+                  <span class="bg-white px-2.5 py-1 rounded-lg border border-rose-200 shadow-xs">${pair.termB}</span>
+                </div>
+              </button>`;
+          } else {
+            return `
+              <button onclick="toggleFlipCard(${idx})" class="text-left p-5 rounded-2xl border-2 transition-all min-h-[130px] flex flex-col justify-between bg-slate-900 text-white border-slate-800 shadow-md">
+                <div class="text-xs font-bold text-amber-400 mb-1">${pair.termA} ≠ ${pair.termB}</div>
+                <p class="text-xs sm:text-sm text-slate-100 leading-relaxed">${pair.diff}</p>
+              </button>`;
+          }
+        }).join('');
+        flipHTML = `
+          <div class="space-y-4">
+            <div class="flex items-center justify-between">
+              <h3 class="text-base font-extrabold text-slate-900">🔄 カードをクリックして「決定的な違い」をめくろう！</h3>
+              <span class="text-xs text-slate-500">全8ペア</span>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">${cards}</div>
+          </div>`;
+      }
+
+      const quizOptionsHTML = chap.quiz.options.map((opt, idx) => {
+        const isSel = state.chapterQuizSelection === idx;
+        const isAns = chap.quiz.answer === idx;
+        let btnStyle = 'bg-slate-800 border-slate-700 hover:bg-slate-700 text-slate-100';
+        if (state.chapterQuizSubmitted) {
+          if (isAns) btnStyle = 'bg-emerald-900/80 border-emerald-400 text-emerald-100';
+          else if (isSel && !isAns) btnStyle = 'bg-rose-900/80 border-rose-400 text-rose-100';
+          else btnStyle = 'bg-slate-800/50 border-slate-700/50 text-slate-400';
+        } else if (isSel) {
+          btnStyle = 'bg-indigo-600 border-indigo-400 text-white';
+        }
+        return `
+          <button onclick="selectChapterQuizOption(${idx})" class="w-full text-left p-3.5 rounded-xl border-2 text-xs sm:text-sm font-medium transition-all flex items-start gap-3 ${btnStyle}">
+            <span class="font-extrabold shrink-0 mt-0.5">${['ア', 'イ', 'ウ', 'エ'][idx]}.</span>
+            <span class="flex-1">${opt}</span>
+            ${state.chapterQuizSubmitted && isAns ? '<span class="text-emerald-400 font-bold">⭕</span>' : ''}
+            ${state.chapterQuizSubmitted && isSel && !isAns ? '<span class="text-rose-400 font-bold">❌</span>' : ''}
+          </button>`;
+      }).join('');
+
+      return `
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          <!-- モバイル用章選択ボタン -->
+          <div class="lg:hidden">
+            <button onclick="toggleMobileMenu()" class="w-full flex items-center justify-between bg-white p-4 rounded-2xl border border-slate-200 shadow-xs font-bold text-slate-800">
+              <span class="flex items-center gap-2">
+                <span class="w-7 h-7 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center text-xs font-extrabold">${chap.id}</span>
+                <span>第${chap.id}章：${chap.title}</span>
+              </span>
+              <span>${state.mobileMenuOpen ? '▲' : '▼'}</span>
+            </button>
+          </div>
+
+          <!-- 左サイドバー：全11章リスト -->
+          <aside class="lg:col-span-4 bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden ${state.mobileMenuOpen ? 'block' : 'hidden lg:block'}">
+            <div class="p-4 bg-slate-900 text-white flex items-center justify-between">
+              <span class="font-bold text-sm">📚 学習カリキュラム（全11章）</span>
+              <span class="text-xs text-slate-300">達成率 ${pct}%</span>
+            </div>
+            <div class="w-full bg-slate-200 h-1.5">
+              <div class="bg-indigo-600 h-1.5 transition-all duration-500" style="width: ${pct}%"></div>
+            </div>
+            <div class="divide-y divide-slate-100 max-h-[70vh] overflow-y-auto">${sidebarItems}</div>
+          </aside>
+
+          <!-- 右メインエリア：講義本文 -->
+          <section class="lg:col-span-8 space-y-6">
+            <div class="bg-white rounded-3xl border border-slate-200 shadow-xs overflow-hidden">
+              <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 p-6 sm:p-8 text-white">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                  <span class="px-3 py-1 rounded-full text-xs font-bold bg-indigo-500/30 text-indigo-200 border border-indigo-400/30">
+                    STEP 7 ・ 第${chap.id}章 / ${chap.category}
+                  </span>
+                  ${isChapDone ? '<span class="text-xs font-bold bg-emerald-500/20 text-emerald-300 px-3 py-1 rounded-full border border-emerald-400/30">✅ マスター済み</span>' : ''}
+                </div>
+                <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight mb-2">${chap.id}. ${chap.title}</h2>
+                <p class="text-indigo-200 text-sm sm:text-base font-medium">${chap.subtitle}</p>
+              </div>
+
+              <div class="p-6 sm:p-8 space-y-8">
+                <!-- コアメッセージ -->
+                <div class="bg-indigo-50/70 border border-indigo-100 rounded-2xl p-5 flex gap-4 items-start">
+                  <div class="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center shrink-0 mt-0.5 text-lg">💡</div>
+                  <div>
+                    <h3 class="text-xs font-extrabold uppercase tracking-wider text-indigo-700 mb-1">この章のコア・メッセージ</h3>
+                    <p class="text-slate-800 text-sm sm:text-base leading-relaxed font-medium">${chap.summary}</p>
+                  </div>
+                </div>
+
+                <!-- イラスト図解 -->
+                ${chap.hasDiagram ? getDiagramSVG(chap.id) : ''}
+
+                <!-- 詳細講義解説 -->
+                <div class="space-y-4">
+                  <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
+                    <span>📖</span>
+                    <span>詳しく理解しよう（講義解説）</span>
+                  </h3>
+                  <div class="grid grid-cols-1 gap-4">${deepDiveHTML}</div>
+                </div>
+
+                <!-- 整理テーブル -->
+                ${tableHTML}
+
+                <!-- 重要概念カード -->
+                <div class="space-y-3">
+                  <h3 class="text-base font-extrabold text-slate-900 border-l-4 border-indigo-600 pl-3">試験で問われる重要ポイント</h3>
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">${keyPointsHTML}</div>
+                </div>
+
+                <!-- 第11章フリップカード -->
+                ${flipHTML}
+
+                <!-- 章末理解度チェック -->
+                <div class="bg-slate-900 text-white rounded-3xl p-6 sm:p-7 space-y-4">
+                  <div class="flex items-center gap-2 text-amber-400 font-extrabold text-sm">
+                    <span>⭐ 第${chap.id}章 マスター確認クイズ（正解で +50 XP）</span>
+                  </div>
+                  <p class="font-bold text-sm sm:text-base leading-relaxed">${chap.quiz.question}</p>
+                  <div class="space-y-2.5">${quizOptionsHTML}</div>
+                  ${!state.chapterQuizSubmitted ? `
+                    <button onclick="submitChapterQuiz()" ${state.chapterQuizSelection === null ? 'disabled' : ''} class="w-full sm:w-auto px-6 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 disabled:bg-slate-700 disabled:text-slate-500 text-slate-950 font-extrabold text-sm transition-colors">
+                      回答を判定する
+                    </button>
+                  ` : `
+                    <div class="bg-slate-800 border border-slate-700 rounded-2xl p-4 space-y-2">
+                      <div class="font-extrabold text-sm">
+                        ${state.chapterQuizSelection === chap.quiz.answer
+                          ? '<span class="text-emerald-400">⭕ 正解です！素晴らしい理解力です。</span>'
+                          : '<span class="text-rose-400">❌ おしい！解説を確認してポイントを押さえましょう。</span>'}
+                      </div>
+                      <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">${chap.quiz.explanation}</p>
+                    </div>
+                  `}
+                </div>
+
+                <!-- 前後ナビ -->
+                <div class="flex items-center justify-between pt-2 border-t border-slate-100">
+                  <button onclick="selectChapter(${Math.max(1, chap.id - 1)})" ${chap.id === 1 ? 'disabled' : ''} class="px-4 py-2.5 rounded-xl font-bold text-sm text-slate-600 hover:bg-slate-100 disabled:opacity-30">
+                    ← 前の章へ
+                  </button>
+                  ${chap.id < CHAPTERS.length ? `
+                    <button onclick="selectChapter(${chap.id + 1})" class="px-5 py-2.5 rounded-xl font-bold text-sm bg-indigo-600 text-white hover:bg-indigo-700 shadow-xs">
+                      第${chap.id + 1}章へ進む →
+                    </button>
+                  ` : `
+                    <button onclick="switchTab('cases')" class="px-5 py-2.5 rounded-xl font-bold text-sm bg-emerald-600 text-white hover:bg-emerald-700 shadow-xs">
+                      ステージ2（ケース演習）へ進む →
+                    </button>
+                  `}
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>`;
+    }
+
+    function renderCases() {
+      const cs = CASE_STUDIES.find((c) => c.id === state.selectedCaseId);
+      const caseButtons = CASE_STUDIES.map((item) => {
+        const isSel = item.id === state.selectedCaseId;
+        const allDone = item.tasks.every((_, idx) => state.completedCaseTasks[`${item.id}-${idx}`]);
+        return `
+          <button onclick="selectCase('${item.id}')" class="text-left p-3.5 rounded-xl border-2 transition-all ${isSel ? 'bg-emerald-50 border-emerald-600 shadow-xs' : 'bg-slate-50 border-slate-200 hover:bg-white'}">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-[11px] font-extrabold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded">${item.id}</span>
+              ${allDone ? '<span class="text-emerald-600 font-bold text-xs">✅</span>' : ''}
+            </div>
+            <div class="font-bold text-xs sm:text-sm text-slate-900 truncate">${item.title}</div>
+          </button>`;
+      }).join('');
+
+      const refsHTML = cs.references.map((r) => `
+        <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-1.5">
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 rounded bg-slate-800 text-white text-xs font-extrabold">${r.id}</span>
+            <span class="font-bold text-xs text-slate-700">${r.title}</span>
+          </div>
+          <p class="text-xs sm:text-sm text-slate-700 leading-relaxed pt-1">${r.text}</p>
+        </div>
+      `).join('');
+
+      const compareHTML = (cs.aiA && cs.aiB) ? `
+        <div class="space-y-3">
+          <h3 class="text-sm font-extrabold text-slate-900">⚖️ 2つのAI回答候補を比較審査しよう</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="bg-rose-50/50 border-2 border-rose-200 rounded-2xl p-5 space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="px-2.5 py-1 rounded-lg bg-rose-600 text-white text-xs font-extrabold">AI回答 A</span>
+                <span class="text-xs font-semibold text-rose-700">要注意候補</span>
+              </div>
+              <p class="text-xs sm:text-sm text-slate-800 leading-relaxed font-medium pt-1">「${cs.aiA}」</p>
+            </div>
+            <div class="bg-emerald-50/50 border-2 border-emerald-200 rounded-2xl p-5 space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="px-2.5 py-1 rounded-lg bg-emerald-600 text-white text-xs font-extrabold">AI回答 B</span>
+                <span class="text-xs font-semibold text-emerald-700">慎重検討候補</span>
+              </div>
+              <p class="text-xs sm:text-sm text-slate-800 leading-relaxed font-medium pt-1">「${cs.aiB}」</p>
+            </div>
+          </div>
+        </div>` : '';
+
+      const tasksHTML = cs.tasks.map((task, tIdx) => {
+        const taskKey = `${cs.id}-${tIdx}`;
+        const selected = state.caseSelections[taskKey] || [];
+        const isSub = !!state.caseSubmitted[taskKey];
+
+        const optsHTML = task.options.map((opt, oIdx) => {
+          const checked = selected.includes(oIdx);
+          const isCorrectOpt = task.type === 'single' ? task.correctIndex === oIdx : task.correctIndices.includes(oIdx);
+          let cardClass = 'bg-slate-800 border-slate-700 hover:bg-slate-700 text-slate-100';
+          if (isSub) {
+            if (isCorrectOpt) cardClass = 'bg-emerald-900/80 border-emerald-400 text-emerald-100';
+            else if (checked && !isCorrectOpt) cardClass = 'bg-rose-900/80 border-rose-400 text-rose-100';
+            else cardClass = 'bg-slate-800/40 border-slate-700/40 text-slate-400';
+          } else if (checked) {
+            cardClass = 'bg-emerald-700/50 border-emerald-400 text-white';
+          }
+
+          return `
+            <button onclick="selectCaseOption('${taskKey}', ${oIdx}, '${task.type}')" class="w-full text-left p-3.5 rounded-xl border-2 text-xs sm:text-sm font-medium transition-all flex items-start gap-3 ${cardClass}">
+              <div class="mt-0.5 shrink-0 font-bold text-emerald-400">${checked ? '☑️' : '⬜'}</div>
+              <span class="flex-1">${opt}</span>
+            </button>`;
+        }).join('');
+
+        return `
+          <div class="bg-slate-900 text-white rounded-3xl p-6 space-y-4 shadow-md">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <span class="text-xs font-extrabold uppercase tracking-wider text-emerald-400">
+                ${task.type === 'multi' ? '複数選択ミッション（該当するものをすべて選択）' : '単一選択ミッション'}
+              </span>
+              <span class="text-xs font-bold text-amber-400">正解で +60 XP</span>
+            </div>
+            <h4 class="font-bold text-sm sm:text-base leading-relaxed">${task.q}</h4>
+            <div class="space-y-2.5">${optsHTML}</div>
+            ${!isSub ? `
+              <button onclick="submitCaseTask('${cs.id}', ${tIdx})" ${selected.length === 0 ? 'disabled' : ''} class="px-6 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 disabled:bg-slate-700 disabled:text-slate-500 text-slate-950 font-extrabold text-sm transition-colors">
+                審査結果を確定する
+              </button>
+            ` : `
+              <div class="bg-slate-800 border border-slate-700 rounded-2xl p-4 space-y-1.5">
+                <div class="text-sm font-extrabold text-emerald-400">💡 審査官のポイント解説</div>
+                <p class="text-xs sm:text-sm text-slate-200 leading-relaxed">${task.explanation}</p>
+              </div>
+            `}
+          </div>`;
+      }).join('');
+
+      return `
+        <div class="space-y-6">
+          <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
+            <div class="text-xs font-extrabold text-slate-500 uppercase tracking-wider mb-3">
+              審査ミッションを選択してください（生徒用ワークシート準拠）
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5">${caseButtons}</div>
+          </div>
+
+          <div class="bg-white rounded-3xl border border-slate-200 shadow-xs overflow-hidden">
+            <div class="bg-gradient-to-r from-emerald-900 via-teal-900 to-slate-900 p-6 sm:p-8 text-white">
+              <span class="inline-block px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/30 text-emerald-200 border border-emerald-400/30 mb-2">${cs.badge}</span>
+              <h2 class="text-2xl sm:text-3xl font-extrabold mb-2">${cs.id}：${cs.title}</h2>
+              <p class="text-emerald-100 text-sm sm:text-base">${cs.scene}</p>
+            </div>
+            <div class="p-6 sm:p-8 space-y-8">
+              <div class="space-y-3">
+                <h3 class="text-sm font-extrabold text-slate-900">📄 与えられた参照資料（根拠はここだけにある！）</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">${refsHTML}</div>
+              </div>
+              ${compareHTML}
+              <div class="space-y-6">${tasksHTML}</div>
+            </div>
+          </div>
+        </div>`;
+    }
+
+    function renderExam() {
+      if (state.examMode === 'select') {
+        return `
+          <div class="max-w-4xl mx-auto bg-white rounded-3xl border border-slate-200 shadow-xs p-6 sm:p-10 text-center space-y-6">
+            <div class="w-16 h-16 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center mx-auto text-3xl">🏆</div>
+            <div class="space-y-2 max-w-xl mx-auto">
+              <span class="text-xs font-extrabold uppercase tracking-wider px-3 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
+                GUGA 2027年2月試験シラバス第4章 対応
+              </span>
+              <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900">実戦形式 模擬テストチャレンジ</h2>
+              <p class="text-slate-600 text-sm sm:text-base leading-relaxed">
+                制限時間やタイマーはありません。一問ずつ資料と根拠を丁寧に照らし合わせ、「断定語のワナ」や「概念のすり替え」を見抜きましょう！
+              </p>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 max-w-2xl mx-auto text-left">
+              <div class="border-2 border-slate-200 hover:border-amber-500 rounded-2xl p-6 flex flex-col justify-between transition-all bg-slate-50/50">
+                <div class="space-y-2">
+                  <span class="text-xs font-extrabold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-md">標準コース（全12問）</span>
+                  <h3 class="text-lg font-extrabold text-slate-900">ワークシート確認問題 T1〜T12</h3>
+                  <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">生徒用ワークシート収録の試験型問題12問に順番に挑戦します。基礎固めに最適です。</p>
+                </div>
+                <button onclick="startMockExam(12)" class="mt-6 w-full py-3 rounded-xl bg-slate-900 hover:bg-indigo-600 text-white font-extrabold text-sm transition-colors">
+                  12問コースを開始する →
+                </button>
+              </div>
+
+              <div class="border-2 border-amber-300 hover:border-amber-500 rounded-2xl p-6 flex flex-col justify-between transition-all bg-amber-50/30">
+                <div class="space-y-2">
+                  <span class="text-xs font-extrabold text-amber-800 bg-amber-200/70 px-2.5 py-1 rounded-md">完全制覇コース（全20問）</span>
+                  <h3 class="text-lg font-extrabold text-slate-900">T1〜T12 ＋ シラバス発展8問</h3>
+                  <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">ELSI、第30条の4、相関と因果、広島AIプロセス、フィッシング対策まで網羅した本番レベル演習！</p>
+                </div>
+                <button onclick="startMockExam(20)" class="mt-6 w-full py-3 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-extrabold text-sm transition-colors shadow-xs">
+                  20問完全制覇に挑む ⚡
+                </button>
+              </div>
+            </div>
+          </div>`;
+      }
+
+      if (state.examMode === 'running') {
+        const q = state.examQuestions[state.currentExamIdx];
+        const isChecked = !!state.examChecked[state.currentExamIdx];
+        const selIdx = state.examAnswers[state.currentExamIdx];
+        const progressPct = Math.round(((state.currentExamIdx + 1) / state.examQuestions.length) * 100);
+
+        const optsHTML = q.options.map((opt, idx) => {
+          const isSel = selIdx === idx;
+          const isCor = q.answer === idx;
+          let style = 'bg-white border-slate-200 hover:border-indigo-400 text-slate-800';
+          if (isChecked) {
+            if (isCor) style = 'bg-emerald-50 border-emerald-500 text-emerald-950 ring-2 ring-emerald-200';
+            else if (isSel && !isCor) style = 'bg-rose-50 border-rose-500 text-rose-950';
+            else style = 'bg-slate-50 border-slate-200 text-slate-400';
+          } else if (isSel) {
+            style = 'bg-indigo-50 border-indigo-600 text-indigo-950 ring-2 ring-indigo-100';
+          }
+
+          return `
+            <button onclick="selectExamOption(${idx})" class="w-full text-left p-4 rounded-2xl border-2 font-bold text-sm sm:text-base transition-all flex items-start gap-3.5 ${style}">
+              <span class="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-extrabold shrink-0 mt-0.5 ${isChecked && isCor ? 'bg-emerald-600 text-white' : isSel ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-600'}">
+                ${idx + 1}
+              </span>
+              <span class="flex-1 leading-snug">${opt}</span>
+              ${isChecked && isCor ? '<span class="text-emerald-600 text-lg">⭕</span>' : ''}
+              ${isChecked && isSel && !isCor ? '<span class="text-rose-600 text-lg">❌</span>' : ''}
+            </button>`;
+        }).join('');
+
+        return `
+          <div class="max-w-4xl mx-auto bg-white rounded-3xl border border-slate-200 shadow-xs overflow-hidden">
+            <div class="bg-slate-900 text-white px-6 py-4 flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <span class="px-2.5 py-1 rounded-lg bg-amber-500 text-slate-950 font-extrabold text-xs">
+                  第 ${state.currentExamIdx + 1} 問 / 全 ${state.examQuestions.length} 問
+                </span>
+                <span class="text-xs text-slate-300 font-semibold hidden sm:inline">分野：${q.category}</span>
+              </div>
+              <button onclick="resetExamToSelect()" class="text-xs text-slate-400 hover:text-white underline">コース選択へ戻る</button>
+            </div>
+            <div class="w-full bg-slate-200 h-2">
+              <div class="bg-amber-500 h-2 transition-all duration-300" style="width: ${progressPct}%"></div>
+            </div>
+            <div class="p-6 sm:p-8 space-y-6">
+              <div>
+                <span class="inline-block text-xs font-bold text-indigo-600 bg-indigo-50 px-2.5 py-0.5 rounded mb-2">${q.tag} ・ ${q.category}</span>
+                <h3 class="text-lg sm:text-xl font-extrabold text-slate-900 leading-relaxed">${q.question}</h3>
+              </div>
+              <div class="space-y-3">${optsHTML}</div>
+              ${!isChecked ? `
+                <div class="pt-2">
+                  <button onclick="confirmExamOption()" ${selIdx === undefined ? 'disabled' : ''} class="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-200 disabled:text-slate-400 text-white font-extrabold text-sm transition-colors shadow-xs">
+                    この選択肢で解答する
+                  </button>
+                </div>
+              ` : `
+                <div class="bg-slate-900 text-white rounded-2xl p-5 sm:p-6 space-y-3">
+                  <div class="font-extrabold text-base">
+                    ${selIdx === q.answer
+                      ? `<span class="text-emerald-400">⭕ 正解！（選択肢 ${q.answer + 1}）</span>`
+                      : `<span class="text-rose-400">❌ 不正解（正解は選択肢 ${q.answer + 1}）</span>`}
+                  </div>
+                  <p class="text-xs sm:text-sm text-slate-200 leading-relaxed">${q.explanation}</p>
+                  <div class="pt-2 flex justify-end">
+                    ${state.currentExamIdx < state.examQuestions.length - 1 ? `
+                      <button onclick="nextExamQuestion()" class="px-6 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-sm">
+                        次の問題へ →
+                      </button>
+                    ` : `
+                      <button onclick="finishMockExam()" class="px-6 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-sm">
+                        成績レポートを見る 🏆
+                      </button>
+                    `}
+                  </div>
+                </div>
+              `}
+            </div>
+          </div>`;
+      }
+
+      if (state.examMode === 'result') {
+        let totalCorrect = 0;
+        const catStats = {};
+        state.examQuestions.forEach((q, idx) => {
+          if (!catStats[q.category]) catStats[q.category] = { total: 0, correct: 0 };
+          catStats[q.category].total += 1;
+          if (state.examAnswers[idx] === q.answer) {
+            totalCorrect += 1;
+            catStats[q.category].correct += 1;
+          }
+        });
+        const scorePct = Math.round((totalCorrect / state.examQuestions.length) * 100);
+        const passed = scorePct >= 80;
+
+        const catBars = Object.entries(catStats).map(([cat, st]) => {
+          const cPct = Math.round((st.correct / st.total) * 100);
+          return `
+            <div class="space-y-1">
+              <div class="flex justify-between text-xs sm:text-sm font-bold">
+                <span class="text-slate-800">${cat}</span>
+                <span class="${cPct >= 80 ? 'text-emerald-600' : 'text-amber-600'}">${st.correct} / ${st.total} 問（${cPct}%）</span>
+              </div>
+              <div class="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden">
+                <div class="h-2.5 rounded-full ${cPct >= 80 ? 'bg-emerald-500' : 'bg-amber-500'}" style="width: ${cPct}%"></div>
+              </div>
+            </div>`;
+        }).join('');
+
+        const reviewList = state.examQuestions.map((q, idx) => {
+          const isRight = state.examAnswers[idx] === q.answer;
+          return `
+            <div class="p-4 bg-white flex items-start gap-3">
+              <div class="mt-0.5 shrink-0 font-bold">${isRight ? '⭕' : '❌'}</div>
+              <div class="space-y-1 text-xs sm:text-sm">
+                <div class="font-bold text-slate-900">問${idx + 1}（${q.category}）：${q.question}</div>
+                <div class="text-slate-600">正解：<span class="font-bold text-emerald-700">${q.options[q.answer]}</span></div>
+                <p class="text-slate-500 text-xs leading-relaxed">${q.explanation}</p>
+              </div>
+            </div>`;
+        }).join('');
+
+        return `
+          <div class="max-w-4xl mx-auto bg-white rounded-3xl border border-slate-200 shadow-xs p-6 sm:p-10 space-y-8">
+            <div class="text-center space-y-3">
+              <div class="w-20 h-20 rounded-3xl mx-auto flex items-center justify-center text-4xl ${passed ? 'bg-amber-100' : 'bg-indigo-100'}">🏆</div>
+              <div class="inline-block px-3.5 py-1 rounded-full text-xs font-extrabold bg-slate-900 text-amber-400">
+                ${passed ? '🎉 合格ライン突破！素晴らしい理解度です' : '📚 あと一歩！苦手分野を復習しよう'}
+              </div>
+              <h2 class="text-3xl sm:text-4xl font-black text-slate-900">
+                正答率 ${scorePct}% <span class="text-lg font-bold text-slate-500">（${totalCorrect} / ${state.examQuestions.length} 問正解）</span>
+              </h2>
+            </div>
+
+            <div class="bg-slate-50 rounded-2xl p-6 border border-slate-200 space-y-4">
+              <h3 class="text-sm font-extrabold text-slate-900">📊 分野別マスター度分析</h3>
+              <div class="space-y-3.5">${catBars}</div>
+            </div>
+
+            <div class="space-y-3">
+              <h3 class="text-sm font-extrabold text-slate-900">📝 解答一覧と復習チェック</h3>
+              <div class="divide-y divide-slate-200 border border-slate-200 rounded-2xl overflow-hidden">${reviewList}</div>
+            </div>
+
+            <div class="flex flex-wrap justify-center gap-3 pt-2">
+              <button onclick="resetExamToSelect()" class="px-6 py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-sm">
+                もう一度模擬テストに挑戦する
+              </button>
+              <button onclick="switchTab('lecture')" class="px-6 py-3 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-extrabold text-sm">
+                ビジュアル講義で復習する
+              </button>
+            </div>
+          </div>`;
+      }
+    }
+
+    function render() {
+      updateHeaderStats();
+      const mainEl = document.getElementById('app-main');
+      if (state.activeTab === 'lecture') {
+        mainEl.innerHTML = renderLecture();
+      } else if (state.activeTab === 'cases') {
+        mainEl.innerHTML = renderCases();
+      } else if (state.activeTab === 'exam') {
+        mainEl.innerHTML = renderExam();
+      }
+    }
+
+    // 初期描画
+    window.onload = function () {
+      render();
+    };
+  </script>
+</body>
+</html>

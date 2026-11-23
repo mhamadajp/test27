@@ -1,0 +1,2126 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>高校数学A「外心」インタラクティブ授業＆復習アプリ</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Inter & Noto Sans JP -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      font-family: 'Inter', 'Noto Sans JP', sans-serif;
+    }
+    /* スクロールバーの視認性向上 */
+    ::-webkit-scrollbar {
+      height: 6px;
+      width: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-slate-100 text-slate-900 flex flex-col">
+
+  <!-- ヘッダーバー -->
+  <header class="bg-slate-900 text-white px-4 py-3 shadow-md sticky top-0 z-30">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-2.5">
+        <div class="bg-teal-500 p-2 rounded-xl text-slate-950 flex items-center justify-center">
+          <!-- コンパスアイコン SVG -->
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10" />
+            <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" />
+          </svg>
+        </div>
+        <div>
+          <div class="text-xs text-teal-300 font-bold tracking-wide">高校数学A｜図形の性質</div>
+          <h1 class="text-base sm:text-lg font-extrabold leading-tight">
+            三角形の「外心」— 興味から本質・入試応用へ
+          </h1>
+        </div>
+      </div>
+
+      <!-- 右側コントロール：比較表ボタン＆モード切替 -->
+      <div class="flex items-center gap-2">
+        <button
+          id="btn-open-compare"
+          type="button"
+          class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-teal-300 border border-slate-700 text-xs sm:text-sm font-bold flex items-center gap-1.5 transition cursor-pointer"
+        >
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>
+          </svg>
+          <span>内心I vs 外心O 比較表</span>
+        </button>
+
+        <div class="bg-slate-800 p-1 rounded-xl border border-slate-700 flex text-xs font-bold">
+          <button
+            id="btn-mode-teacher"
+            type="button"
+            class="px-2.5 py-1.5 rounded-lg flex items-center gap-1 transition cursor-pointer bg-amber-500 text-slate-950 shadow"
+          >
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <path d="M2 3h20"/><path d="M21 3v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V3"/><path d="m7 21 5-5 5 5"/>
+            </svg>
+            <span>授業提示</span>
+          </button>
+          <button
+            id="btn-mode-student"
+            type="button"
+            class="px-2.5 py-1.5 rounded-lg flex items-center gap-1 transition cursor-pointer text-slate-300 hover:text-white"
+          >
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+            </svg>
+            <span>生徒復習</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- 50分授業タイムライン・ステップナビゲーション -->
+  <nav class="bg-white border-b border-slate-200 px-3 py-2.5 shadow-sm overflow-x-auto">
+    <div id="timeline-nav" class="max-w-7xl mx-auto flex items-center gap-1.5 min-w-max">
+      <!-- JSで8ステップのボタンを動的生成 -->
+    </div>
+  </nav>
+
+  <!-- メインコンテンツエリア -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-3 sm:p-5 flex flex-col gap-4">
+    <!-- ステップタイトル＆到達目標ヘッダー -->
+    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div>
+        <div class="flex flex-wrap items-center gap-2 mb-1">
+          <span id="step-time-badge" class="bg-teal-100 text-teal-800 text-xs font-extrabold px-2.5 py-0.5 rounded-full">
+            目安時間：0〜5分
+          </span>
+          <span id="step-goal-text" class="text-xs text-slate-500 font-semibold">
+            到達目標：...
+          </span>
+        </div>
+        <h2 id="step-title-text" class="text-lg sm:text-xl font-extrabold text-slate-900">
+          ステップタイトル
+        </h2>
+      </div>
+
+      <!-- 前へ・次へナビボタン -->
+      <div class="flex items-center gap-2 self-end sm:self-center shrink-0">
+        <button
+          id="btn-prev-step"
+          type="button"
+          class="px-3 py-2 rounded-xl border border-slate-300 bg-white text-slate-700 text-xs font-bold flex items-center gap-1 disabled:opacity-40 hover:bg-slate-50 cursor-pointer"
+        >
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="15 18 9 12 15 6"/></svg>
+          前へ
+        </button>
+        <button
+          id="btn-next-step"
+          type="button"
+          class="px-3.5 py-2 rounded-xl bg-slate-900 text-white text-xs font-bold flex items-center gap-1 disabled:opacity-40 hover:bg-slate-800 cursor-pointer"
+        >
+          次の活動へ
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- 左右2カラムレイアウト -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+      <!-- 左側：インタラクティブ図形キャンバス（7カラム） -->
+      <div id="left-panel" class="lg:col-span-7 flex flex-col gap-3">
+        <!-- JSでステップに応じたSVGキャンバスと操作バーを描画 -->
+      </div>
+
+      <!-- 右側：授業展開・板書・丁寧解説・演習（5カラム） -->
+      <div id="right-panel" class="lg:col-span-5 flex flex-col gap-4">
+        <!-- JSでステップに応じた解説・問題・演習を描画 -->
+      </div>
+    </div>
+  </main>
+
+  <!-- 内心I vs 外心O 比較モーダル -->
+  <div
+    id="compare-modal"
+    class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden items-center justify-center p-4"
+  >
+    <div
+      id="compare-modal-content"
+      class="bg-white rounded-2xl max-w-2xl w-full p-5 sm:p-6 shadow-2xl border border-slate-200 max-h-[90vh] overflow-y-auto"
+    >
+      <div class="flex items-center justify-between border-b border-slate-200 pb-3 mb-4">
+        <h3 class="text-base sm:text-lg font-extrabold text-slate-900 flex items-center gap-2">
+          <svg class="w-5 h-5 text-teal-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/>
+          </svg>
+          内心 I と 外心 O の徹底比較（何の距離をそろえるか？）
+        </h3>
+        <button
+          id="btn-close-compare"
+          type="button"
+          class="px-3 py-1 bg-slate-100 hover:bg-slate-200 rounded-lg text-xs font-bold text-slate-700 cursor-pointer"
+        >
+          閉じる
+        </button>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-xs sm:text-sm border-collapse">
+          <thead>
+            <tr class="bg-slate-100 text-slate-800">
+              <th class="p-2.5 border border-slate-200 text-left">比較する点</th>
+              <th class="p-2.5 border border-slate-200 text-left text-pink-700 bg-pink-50/60">内心 I</th>
+              <th class="p-2.5 border border-slate-200 text-left text-teal-800 bg-teal-50/60">外心 O（今回の主役）</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-200">
+            <tr>
+              <td class="p-2.5 border border-slate-200 font-bold bg-slate-50">等距離の対象</td>
+              <td class="p-2.5 border border-slate-200"><strong>3辺</strong>（を含む直線）</td>
+              <td class="p-2.5 border border-slate-200 font-bold text-teal-800">3頂点（A, B, C）</td>
+            </tr>
+            <tr>
+              <td class="p-2.5 border border-slate-200 font-bold bg-slate-50">距離の測り方</td>
+              <td class="p-2.5 border border-slate-200">各辺へ下ろした垂線の長さ</td>
+              <td class="p-2.5 border border-slate-200">頂点へ結んだ線分の長さ（OA=OB=OC）</td>
+            </tr>
+            <tr>
+              <td class="p-2.5 border border-slate-200 font-bold bg-slate-50">作図に使う線</td>
+              <td class="p-2.5 border border-slate-200">内角の二等分線</td>
+              <td class="p-2.5 border border-slate-200 font-bold text-blue-700">辺の垂直二等分線</td>
+            </tr>
+            <tr>
+              <td class="p-2.5 border border-slate-200 font-bold bg-slate-50">円との関係</td>
+              <td class="p-2.5 border border-slate-200">3辺に接する「内接円」</td>
+              <td class="p-2.5 border border-slate-200 font-bold text-teal-800">3頂点を通る「外接円」</td>
+            </tr>
+            <tr>
+              <td class="p-2.5 border border-slate-200 font-bold bg-slate-50">位置</td>
+              <td class="p-2.5 border border-slate-200">常に三角形の内部</td>
+              <td class="p-2.5 border border-slate-200">鋭角→内部／直角→斜辺中点／鈍角→外部</td>
+            </tr>
+            <tr>
+              <td class="p-2.5 border border-slate-200 font-bold bg-slate-50">使う主な根拠</td>
+              <td class="p-2.5 border border-slate-200">角の二等分・面積 S = rs</td>
+              <td class="p-2.5 border border-slate-200">等しい半径・円周角・三平方の定理</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="mt-4 bg-amber-50 border border-amber-200 p-3 rounded-xl text-xs sm:text-sm text-slate-800 leading-relaxed">
+        <strong>先生のまとめ：</strong>
+        「内心も外心も『等距離』を実現する点です。ただし、<strong>何までの距離をそろえるか（辺なのか、頂点なのか）</strong>で作図方法がまったく変わります！（※正三角形のときだけ内心と外心は一致します）」
+      </div>
+    </div>
+  </div>
+
+  <!-- JavaScript ロジック -->
+  <script>
+    // ==========================================
+    // 1. 授業指導案データ（全8ステップ）
+    // ==========================================
+    const LESSON_STEPS = [
+      {
+        id: 0,
+        time: '0〜5分',
+        shortTitle: '1. 場所を予想',
+        title: '生活場面から考える：3地点から等距離の場所を探そう',
+        goal: '3頂点から同じ直線距離になる位置を直感で予想し、「何までの距離か」を意識する。',
+        teacherPrompt:
+          '「3か所の観測点A, B, Cから、同じ直線距離になる場所に基準局Pを置きたい。土地の制約は考えないとき、どこに置けばよいだろう？」',
+        boardSummary: [
+          '条件：3地点 A, B, C からの直線距離がすべて同じ',
+          'よくある予想：「三角形の真ん中（重心？）」「3本の線が集まる所」',
+          '注意：まだ「外心」という名前は使わず、本当に3つの長さが等しいか確かめよう！',
+        ],
+        studentNote:
+          'まずは図の基準局 P をドラッグして動かしてみましょう！A・B・C までの距離が3つともピッタリ同じになる場所はどこにあるでしょうか？「真ん中っぽい重心 G」と比べると意外な違いが見えてきます。',
+      },
+      {
+        id: 1,
+        time: '5〜9分',
+        shortTitle: '2. 距離の意味',
+        title: '何を測るかを確定しよう（PA = PB = PC）',
+        goal: '距離を「3頂点へ結んだ線分の長さ」として式に表し、まず2点から等距離の点を考える。',
+        teacherPrompt:
+          '「基準局PからAまでの距離はどの線分？ BとCは？ まずはAとBの2点だけから同じ距離になる場所を探してみよう。1か所だけかな？」',
+        boardSummary: [
+          '欲しい条件：PA = PB = PC（測る先は「辺」ではなく「頂点」！）',
+          'AとBの2点だけから等距離（PA = PB）になる点は1つだけではない！',
+          '線分ABの中点M以外にも、ABの上にも下にもたくさん見つかる。',
+        ],
+        studentNote:
+          '「辺までの垂線（内心）」ではなく「頂点までの線分（外心）」を測ることが大切です。タブ③の2点探索モードで P を動かして、PA = PB になる場所にスタンプを打つと、ある美しい直線が浮かび上がります！',
+      },
+      {
+        id: 2,
+        time: '9〜18分',
+        shortTitle: '3. 垂直二等分線',
+        title: '発見と証明：なぜ垂直二等分線なのか？',
+        goal: '2点から等距離の点の集まりが「垂直二等分線」になる理由を三角形の合同で説明できる。',
+        teacherPrompt:
+          '「中点Mを通るだけなら、斜めの線でも等しくなるかな？ △PMA と △PMB で等しいものを3つ見つけて、なぜ PA = PB と言えるか説明しよう。」',
+        boardSummary: [
+          '中点を通り、その線分に垂直な直線 ＝ 垂直二等分線',
+          '合同の理由：① AM = BM（中点） ② PM は共通 ③ ∠PMA = ∠PMB = 90°',
+          '2辺とその間の角がそれぞれ等しいので △PMA ≡ △PMB → よって PA = PB',
+          '結論：PA = PB ⇔ 点Pは線分ABの垂直二等分線上にある',
+        ],
+        studentNote:
+          '角度スライダーを動かして、中点Mを通る線が「90°（垂直）」のときだけすべての点で PA = PB になることを確かめましょう。証明の3条件を色分けして確認できます。',
+      },
+      {
+        id: 3,
+        time: '18〜24分',
+        shortTitle: '4. 外心と外接円',
+        title: '3点へ拡張！外心 O と外接円の誕生',
+        goal: '2本の垂直二等分線の交点Oが3頂点から等距離になる理由を説明し、外接円と結びつける。',
+        teacherPrompt:
+          '「ABの垂直二等分線上なら OA = OB。Cへの距離もそろえるにはどうする？ 3本目の垂直二等分線もたまたま交わったのかな？」',
+        boardSummary: [
+          '① 3辺の垂直二等分線の交点を「外心 O」という',
+          '② ABの垂直二等分線上より OA = OB、ACの垂直二等分線上より OA = OC → よって OA = OB = OC = R',
+          '③ OB = OC なので、3本目（BCの垂直二等分線）も必ず点Oを通る！',
+          '④ Oを中心・半径Rの円は3頂点 A, B, C を通る → 「外接円」',
+        ],
+        studentNote:
+          '「OA = OB」と「OA = OC」の2つの等式がつながることで、自動的に「OB = OC」が成り立つのがポイントです。ステップボタンで作図の順序を追い、頂点をドラッグして確かめましょう。',
+      },
+      {
+        id: 4,
+        time: '24〜30分',
+        shortTitle: '5. 位置の比較',
+        title: '三角形の形と外心の位置（鋭角・直角・鈍角）',
+        goal: '三角形の形（鋭角・直角・鈍角）によって外心Oの位置が変わることを図と対応させて説明できる。',
+        teacherPrompt:
+          '「『外心』という名前だから、いつも三角形の外側にあるのかな？ 鋭角・直角・鈍角の3種類で作図して位置を比べてみよう！」',
+        boardSummary: [
+          '鋭角三角形（3つの角すべて90°未満） → 三角形の「内部」',
+          '直角三角形（1つの角が90°） → 「斜辺の中点」（斜辺が外接円の直径！）',
+          '鈍角三角形（1つの角が90°より大きい） → 三角形の「外部」（最長辺の反対側）',
+          '現実への戻し：鈍角三角形の敷地内にしか局を置けないなら、3地点等距離とは両立しない！',
+        ],
+        studentNote:
+          '「外心＝必ず外側」という誤解に注意！直角三角形のとき外心が「斜辺の中点」になる性質（半径＝斜辺の半分）は入試で超頻出です。右上の「内心I vs 外心O 比較表」も確認しましょう。',
+      },
+      {
+        id: 5,
+        time: '30〜36分',
+        shortTitle: '6. 基本演習',
+        title: '基本問題で性質を使う（角度と半径）',
+        goal: '等しい半径（二等辺三角形）や円周角の定理・直角三角形の性質を使って基本問題を解ける。',
+        teacherPrompt:
+          '「問題1：∠BAC = 64° のとき、円周角64°が見ている弧はどっち？ 問題2：∠A = 90°, AB = 6, AC = 8 のとき、どの辺が外接円の直径になる？」',
+        boardSummary: [
+          '問題1：同じ弧BCに対する中心角 ∠BOC = 64° × 2 = 128°。OB = OC（半径）より ∠OBC = (180° − 128°) ÷ 2 = 26°',
+          '問題2：∠A = 90° より斜辺BCが直径。三平方の定理で BC = √(6² + 8²) = 10 → 半径 R = 10 ÷ 2 = 5',
+          '注意：R = 10（直径のまま）にするミスに気をつけよう！',
+        ],
+        studentNote:
+          '図の中で「どれとどれが外接円の半径で等しいか（OA = OB = OC）」に等長マークを入れることが、角度・長さ問題を解く最強の第一歩です。',
+      },
+      {
+        id: 6,
+        time: '36〜46分',
+        shortTitle: '7. 入試応用',
+        title: '入試形式の角度と長さ（鈍角と補助線）',
+        goal: '鈍角三角形の中心角の選び方、および二等辺三角形での補助線・三平方の定理による半径導出ができる。',
+        teacherPrompt:
+          '「問題3：∠BAC = 110° のとき、なぜ中心角を単純に 220° と答えない？ 問題4：AB = AC = 5, BC = 8 の二等辺三角形で、外心Oはどこにあり半径Rはいくつか？」',
+        boardSummary: [
+          '問題3：110°×2 = 220° は反射角（大きい側）。小さい方の ∠BOC = 360° − 220° = 140°、∠OBC = 20°',
+          '問題4：AM = √(5² − 4²) = 3。∠Aは鈍角なのでOはMの下側。OM = x とおくと OA = 3 + x',
+          '直角三角形OMBで OA = OB より (3 + x)² = x² + 4² → 6x = 7 → x = 7/6、よって R = 3 + 7/6 = 25/6',
+        ],
+        studentNote:
+          '入試頻出の2パターンです！問題3は「どちらの弧を見込んでいるか」、問題4は「外心は垂直二等分線上にあること」と「OA = OB（同じ半径）」を方程式にするのがポイントです。',
+      },
+      {
+        id: 7,
+        time: '46〜50分',
+        shortTitle: '8. 出口＆復習',
+        title: '出口課題＆復習用オリジナル演習ドリル',
+        goal: '自分の言葉で外心の探し方と理由を説明し、基礎〜入試レベルの演習で知識を定着させる。',
+        teacherPrompt:
+          '「最後に、3地点から同じ距離の場所を探す人に、外心をどう探すか・なぜそれでよいかを自分の言葉で説明してみよう！」',
+        boardSummary: [
+          'まとめ：「3頂点から等距離にしたいとき、2辺の垂直二等分線の交点を探す。2つの等しさがつながり、3頂点へ同じ距離になる。その点が外心で、同じ距離を半径にすれば外接円ができる。」',
+        ],
+        studentNote:
+          '自分の言葉で説明できるかチェックする「出口課題」と、定期テスト・模試対策に使えるオリジナル演習（練習A〜E）を用意しました。全問正解を目指しましょう！',
+      },
+    ];
+
+    const DRILL_PROBLEMS = [
+      {
+        id: 'A',
+        level: '基礎',
+        q: '3辺の垂直二等分線の交点をOとする。OA = 7 なら OB と OC はいくつか。また中心O・半径7の円は何を通るか。',
+        a: 'OB = OC = 7。3頂点 A, B, C を通る。（根拠：外心Oから3頂点への距離はすべて等しいため）',
+      },
+      {
+        id: 'B',
+        level: '基礎',
+        q: '直角三角形の直角を挟む2辺が 9, 12 である。外心の位置と外接円半径 R を求めよ。',
+        a: '三平方の定理より斜辺 = √(9² + 12²) = √225 = 15。外心は「斜辺の中点」、半径 R = 15/2。',
+      },
+      {
+        id: 'C',
+        level: '標準',
+        q: '∠BAC = 72° の鋭角三角形の外心をOとする。小さい方の ∠BOC と ∠OBC を求めよ。',
+        a: '同じ弧BCに対する中心角 ∠BOC = 72° × 2 = 144°。OB = OC より底角 ∠OBC = (180° − 144°) ÷ 2 = 18°。',
+      },
+      {
+        id: 'D',
+        level: '標準',
+        q: '∠BAC = 124° の鈍角三角形の外心をOとする。小さい方の ∠BOC と ∠OBC を求めよ。',
+        a: '反射角は 124° × 2 = 248°。小さい方の ∠BOC = 360° − 248° = 112°。OB = OC より ∠OBC = (180° − 112°) ÷ 2 = 34°。',
+      },
+      {
+        id: 'E',
+        level: '入試',
+        q: 'AB = AC = 13、BC = 10 の二等辺三角形の外接円半径 R を求め、外心が内部か外部か説明せよ。',
+        a: 'BCの中点をMとすると AM = √(13² − 5²) = 12。Mを0、A方向を正としてOの座標を t とおくと、OA² = (12 − t)²、OB² = 5² + t²。等置して 144 − 24t + t² = 25 + t² → 24t = 119 → t = 119/24。0 < 119/24 < 12 なので外心Oは「内部」にあり、R = 12 − 119/24 = 169/24。',
+      },
+    ];
+
+    // ==========================================
+    // 2. アプリケーション状態 (State)
+    // ==========================================
+    const state = {
+      viewMode: 'teacher', // 'teacher' | 'student'
+      currentStep: 0,
+      draggingTarget: null, // 'A' | 'B' | 'C' | 'P' | null
+
+      // Step 0, 1, 3, 4 共通の頂点座標
+      triPoints: {
+        A: { x: 200, y: 85 },
+        B: { x: 130, y: 345 },
+        C: { x: 495, y: 345 },
+      },
+
+      // Step 0
+      pointP: { x: 290, y: 245 },
+      showCentroid: false,
+      showIncenterInStep0: false,
+      showAnswerOInStep0: false,
+
+      // Step 1
+      step1SubMode: 'vertex', // 'vertex' | 'side' | 'twoPoints'
+      stamps: [],
+
+      // Step 2
+      bisectorAngle: 65, // 40〜140
+      proofPointT: -95,
+      proofStep: 0,
+      showReverseProof: false,
+
+      // Step 3
+      constructStage: 1, // 1〜5
+
+      // Step 4
+      shapePreset: 'acute',
+
+      // Step 5
+      basicProbTab: 1, // 1 | 2
+      prob1Step: 0,
+      prob1AngleA: 64,
+      prob2Step: 0,
+
+      // Step 6
+      advProbTab: 3, // 3 | 4
+      prob3Step: 0,
+      prob4HintLevel: 0, // 0〜4
+
+      // Step 7
+      exitText: '',
+      showExitAnswer: false,
+      exitQuiz2: null,
+      exitQuiz3: null,
+      openDrillAnswers: {},
+    };
+
+    // ==========================================
+    // 3. 幾何学計算ユーティリティ
+    // ==========================================
+    const dist = (p1, p2) => Math.hypot(p1.x - p2.x, p1.y - p2.y);
+    const midpoint = (p1, p2) => ({ x: (p1.x + p2.x) / 2, y: (p1.y + p2.y) / 2 });
+
+    function getCircumcenter(A, B, C) {
+      const D = 2 * (A.x * (B.y - C.y) + B.x * (C.y - A.y) + C.x * (A.y - B.y));
+      if (Math.abs(D) < 1e-3) return null;
+      const A2 = A.x * A.x + A.y * A.y;
+      const B2 = B.x * B.x + B.y * B.y;
+      const C2 = C.x * C.x + C.y * C.y;
+      const ux = (A2 * (B.y - C.y) + B2 * (C.y - A.y) + C2 * (A.y - B.y)) / D;
+      const uy = (A2 * (C.x - B.x) + B2 * (A.x - C.x) + C2 * (B.x - A.x)) / D;
+      const O = { x: ux, y: uy };
+      return { O, R: dist(O, A) };
+    }
+
+    function getCentroid(A, B, C) {
+      return { x: (A.x + B.x + C.x) / 3, y: (A.y + B.y + C.y) / 3 };
+    }
+
+    function getIncenter(A, B, C) {
+      const a = dist(B, C);
+      const b = dist(C, A);
+      const c = dist(A, B);
+      const sum = a + b + c;
+      if (sum < 1e-3) return null;
+      const I = {
+        x: (a * A.x + b * B.x + c * C.x) / sum,
+        y: (a * A.y + b * B.y + c * C.y) / sum,
+      };
+      const s = sum / 2;
+      const area = Math.sqrt(Math.max(0, s * (s - a) * (s - b) * (s - c)));
+      return { I, r: area / s };
+    }
+
+    function getFootOfPerpendicular(P, A, B) {
+      const dx = B.x - A.x;
+      const dy = B.y - A.y;
+      const len2 = dx * dx + dy * dy;
+      if (len2 < 1e-6) return A;
+      const t = ((P.x - A.x) * dx + (P.y - A.y) * dy) / len2;
+      return { x: A.x + t * dx, y: A.y + t * dy };
+    }
+
+    function getTriangleAngles(A, B, C) {
+      const a = dist(B, C);
+      const b = dist(C, A);
+      const c = dist(A, B);
+      const clamp = (v) => Math.max(-1, Math.min(1, v));
+      const angA = (Math.acos(clamp((b * b + c * c - a * a) / (2 * b * c))) * 180) / Math.PI;
+      const angB = (Math.acos(clamp((a * a + c * c - b * b) / (2 * a * c))) * 180) / Math.PI;
+      const angC = 180 - angA - angB;
+      return { A: angA, B: angB, C: angC };
+    }
+
+    function getPerpBisectorLine(p1, p2, length = 1200) {
+      const m = midpoint(p1, p2);
+      const dx = p2.x - p1.x;
+      const dy = p2.y - p1.y;
+      const len = Math.hypot(dx, dy);
+      if (len < 1e-6) return { x1: m.x, y1: m.y, x2: m.x, y2: m.y, m };
+      const nx = -dy / len;
+      const ny = dx / len;
+      return {
+        x1: m.x - nx * length,
+        y1: m.y - ny * length,
+        x2: m.x + nx * length,
+        y2: m.y + ny * length,
+        m,
+      };
+    }
+
+    // SVG記号生成ヘルパー
+    function svgRightAngle(vertex, p1, p2, size = 12, color = '#3b82f6') {
+      const v1x = p1.x - vertex.x;
+      const v1y = p1.y - vertex.y;
+      const len1 = Math.hypot(v1x, v1y);
+      const v2x = p2.x - vertex.x;
+      const v2y = p2.y - vertex.y;
+      const len2 = Math.hypot(v2x, v2y);
+      if (len1 < 1e-4 || len2 < 1e-4) return '';
+      const u1 = { x: (v1x / len1) * size, y: (v1y / len1) * size };
+      const u2 = { x: (v2x / len2) * size, y: (v2y / len2) * size };
+      const pt1 = { x: vertex.x + u1.x, y: vertex.y + u1.y };
+      const pt2 = { x: vertex.x + u1.x + u2.x, y: vertex.y + u1.y + u2.y };
+      const pt3 = { x: vertex.x + u2.x, y: vertex.y + u2.y };
+      return `<polyline points="${pt1.x},${pt1.y} ${pt2.x},${pt2.y} ${pt3.x},${pt3.y}" fill="none" stroke="${color}" stroke-width="1.8" />`;
+    }
+
+    function svgTickMark(p1, p2, count = 1, color = '#ea580c', size = 6) {
+      const m = midpoint(p1, p2);
+      const dx = p2.x - p1.x;
+      const dy = p2.y - p1.y;
+      const len = Math.hypot(dx, dy);
+      if (len < 15) return '';
+      const ux = dx / len;
+      const uy = dy / len;
+      const nx = -uy;
+      const ny = ux;
+      const offsets = count === 1 ? [0] : [-3.5, 3.5];
+      return offsets
+        .map((off) => {
+          const cx = m.x + ux * off;
+          const cy = m.y + uy * off;
+          return `<line x1="${cx - nx * size}" y1="${cy - ny * size}" x2="${cx + nx * size}" y2="${cy + ny * size}" stroke="${color}" stroke-width="2.2" stroke-linecap="round" />`;
+        })
+        .join('');
+    }
+
+    const GRID_DEFS = `
+      <defs>
+        <pattern id="mathGrid" width="30" height="30" patternUnits="userSpaceOnUse">
+          <path d="M 30 0 L 0 0 0 30" fill="none" stroke="#e2e8f0" stroke-width="1" />
+        </pattern>
+      </defs>
+    `;
+
+    // ==========================================
+    // 4. SVG座標変換＆ドラッグ制御
+    // ==========================================
+    function getSvgCoordsFromEvent(e, svgEl) {
+      if (!svgEl) return null;
+      const clientX = e.touches && e.touches.length > 0 ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches && e.touches.length > 0 ? e.touches[0].clientY : e.clientY;
+      const pt = svgEl.createSVGPoint();
+      pt.x = clientX;
+      pt.y = clientY;
+      const ctm = svgEl.getScreenCTM();
+      if (!ctm) return null;
+      const transformed = pt.matrixTransform(ctm.inverse());
+      return {
+        x: Math.max(30, Math.min(570, transformed.x)),
+        y: Math.max(30, Math.min(410, transformed.y)),
+      };
+    }
+
+    window.addEventListener('mousemove', (e) => {
+      if (!state.draggingTarget) return;
+      const svgEl = document.getElementById('interactive-svg');
+      const coords = getSvgCoordsFromEvent(e, svgEl);
+      if (!coords) return;
+      if (state.draggingTarget === 'P') {
+        state.pointP = coords;
+      } else if (['A', 'B', 'C'].includes(state.draggingTarget)) {
+        state.triPoints[state.draggingTarget] = coords;
+      }
+      renderLeftPanel();
+    });
+
+    window.addEventListener(
+      'touchmove',
+      (e) => {
+        if (!state.draggingTarget) return;
+        e.preventDefault();
+        const svgEl = document.getElementById('interactive-svg');
+        const coords = getSvgCoordsFromEvent(e, svgEl);
+        if (!coords) return;
+        if (state.draggingTarget === 'P') {
+          state.pointP = coords;
+        } else if (['A', 'B', 'C'].includes(state.draggingTarget)) {
+          state.triPoints[state.draggingTarget] = coords;
+        }
+        renderLeftPanel();
+      },
+      { passive: false }
+    );
+
+    window.addEventListener('mouseup', () => {
+      state.draggingTarget = null;
+    });
+    window.addEventListener('touchend', () => {
+      state.draggingTarget = null;
+    });
+
+    function startDrag(target, e) {
+      e.stopPropagation();
+      state.draggingTarget = target;
+    }
+
+    function handleSvgCanvasClick(e) {
+      if (state.draggingTarget) return;
+      if (state.currentStep === 0 || state.currentStep === 1) {
+        const svgEl = document.getElementById('interactive-svg');
+        const coords = getSvgCoordsFromEvent(e, svgEl);
+        if (coords) {
+          state.pointP = coords;
+          renderLeftPanel();
+        }
+      }
+    }
+
+    // ==========================================
+    // 5. アクション関数群
+    // ==========================================
+    function setStep(idx) {
+      state.currentStep = idx;
+      if (idx === 4) {
+        applyShapePreset('acute', false);
+      }
+      renderAll();
+    }
+
+    function applyShapePreset(type, shouldRender = true) {
+      state.shapePreset = type;
+      if (type === 'acute') {
+        state.triPoints = { A: { x: 255, y: 75 }, B: { x: 145, y: 340 }, C: { x: 465, y: 340 } };
+      } else if (type === 'right') {
+        state.triPoints = { A: { x: 175, y: 120 }, B: { x: 175, y: 340 }, C: { x: 455, y: 340 } };
+      } else if (type === 'obtuse') {
+        state.triPoints = { A: { x: 255, y: 115 }, B: { x: 155, y: 205 }, C: { x: 455, y: 205 } };
+      }
+      if (shouldRender) renderLeftPanel();
+    }
+
+    function addStampIfEqual() {
+      const twoPtA = { x: 170, y: 220 };
+      const twoPtB = { x: 430, y: 220 };
+      const d2A = Number((dist(state.pointP, twoPtA) / 10).toFixed(1));
+      const d2B = Number((dist(state.pointP, twoPtB) / 10).toFixed(1));
+      if (Math.abs(d2A - d2B) <= 0.3) {
+        state.stamps.push({ ...state.pointP });
+        renderLeftPanel();
+      }
+    }
+
+    // ==========================================
+    // 6. 左パネル（インタラクティブ図形）の描画
+    // ==========================================
+    function renderLeftPanel() {
+      const container = document.getElementById('left-panel');
+      const step = state.currentStep;
+
+      // ------------------------------------------
+      // STEP 0: 基準局Pの予想シミュレーション
+      // ------------------------------------------
+      if (step === 0) {
+        const { A, B, C } = state.triPoints;
+        const P = state.pointP;
+        const circumData = getCircumcenter(A, B, C);
+        const centroid = getCentroid(A, B, C);
+        const incenterData = getIncenter(A, B, C);
+
+        const distPA = (dist(P, A) / 10).toFixed(1);
+        const distPB = (dist(P, B) / 10).toFixed(1);
+        const distPC = (dist(P, C) / 10).toFixed(1);
+        const maxDiff = Math.max(
+          Math.abs(Number(distPA) - Number(distPB)),
+          Math.abs(Number(distPB) - Number(distPC)),
+          Math.abs(Number(distPC) - Number(distPA))
+        );
+        const isMatch = maxDiff <= 0.4;
+
+        let extraSvg = '';
+        if (state.showAnswerOInStep0 && circumData) {
+          extraSvg += `
+            <circle cx="${circumData.O.x}" cy="${circumData.O.y}" r="${circumData.R}" fill="rgba(13, 148, 136, 0.06)" stroke="#0d9488" stroke-width="2.5" stroke-dasharray="6 4" />
+            <line x1="${circumData.O.x}" y1="${circumData.O.y}" x2="${A.x}" y2="${A.y}" stroke="#0d9488" stroke-width="1.5" stroke-dasharray="4 4" />
+            <line x1="${circumData.O.x}" y1="${circumData.O.y}" x2="${B.x}" y2="${B.y}" stroke="#0d9488" stroke-width="1.5" stroke-dasharray="4 4" />
+            <line x1="${circumData.O.x}" y1="${circumData.O.y}" x2="${C.x}" y2="${C.y}" stroke="#0d9488" stroke-width="1.5" stroke-dasharray="4 4" />
+            <circle cx="${circumData.O.x}" cy="${circumData.O.y}" r="7" fill="#0d9488" />
+            <text x="${circumData.O.x + 10}" y="${circumData.O.y + 5}" fill="#0f766e" font-weight="bold" font-size="15">正解の場所 O</text>
+          `;
+        }
+        if (state.showCentroid) {
+          extraSvg += `
+            <circle cx="${centroid.x}" cy="${centroid.y}" r="7" fill="#8b5cf6" />
+            <text x="${centroid.x + 10}" y="${centroid.y - 8}" fill="#6d28d9" font-weight="bold" font-size="14">重心 G（距離は不揃い）</text>
+          `;
+        }
+        if (state.showIncenterInStep0 && incenterData) {
+          extraSvg += `
+            <circle cx="${incenterData.I.x}" cy="${incenterData.I.y}" r="${incenterData.r}" fill="none" stroke="#ec4899" stroke-width="1.5" stroke-dasharray="3 3" />
+            <circle cx="${incenterData.I.x}" cy="${incenterData.I.y}" r="7" fill="#ec4899" />
+            <text x="${incenterData.I.x + 10}" y="${incenterData.I.y + 16}" fill="#be185d" font-weight="bold" font-size="14">内心 I（辺までの距離が同じ）</text>
+          `;
+        }
+
+        container.innerHTML = `
+          <div class="relative bg-white rounded-2xl border-2 border-slate-200 shadow-inner overflow-hidden">
+            <svg id="interactive-svg" viewBox="0 0 600 420" class="w-full h-auto touch-none select-none cursor-crosshair" onclick="handleSvgCanvasClick(event)">
+              ${GRID_DEFS}
+              <rect width="600" height="420" fill="url(#mathGrid)" />
+              ${extraSvg}
+              <polygon points="${A.x},${A.y} ${B.x},${B.y} ${C.x},${C.y}" fill="rgba(30, 41, 59, 0.03)" stroke="#1e293b" stroke-width="3" stroke-linejoin="round" />
+              <line x1="${P.x}" y1="${P.y}" x2="${A.x}" y2="${A.y}" stroke="#ea580c" stroke-width="2.5" />
+              <line x1="${P.x}" y1="${P.y}" x2="${B.x}" y2="${B.y}" stroke="#ea580c" stroke-width="2.5" />
+              <line x1="${P.x}" y1="${P.y}" x2="${C.x}" y2="${C.y}" stroke="#ea580c" stroke-width="2.5" />
+
+              <g transform="translate(${(P.x + A.x) / 2}, ${(P.y + A.y) / 2})">
+                <rect x="-24" y="-12" width="48" height="22" rx="6" fill="white" stroke="#fdba74" stroke-width="1.5" />
+                <text text-anchor="middle" dy="4" font-size="12" font-weight="bold" fill="#c2410c">${distPA}</text>
+              </g>
+              <g transform="translate(${(P.x + B.x) / 2}, ${(P.y + B.y) / 2})">
+                <rect x="-24" y="-12" width="48" height="22" rx="6" fill="white" stroke="#fdba74" stroke-width="1.5" />
+                <text text-anchor="middle" dy="4" font-size="12" font-weight="bold" fill="#c2410c">${distPB}</text>
+              </g>
+              <g transform="translate(${(P.x + C.x) / 2}, ${(P.y + C.y) / 2})">
+                <rect x="-24" y="-12" width="48" height="22" rx="6" fill="white" stroke="#fdba74" stroke-width="1.5" />
+                <text text-anchor="middle" dy="4" font-size="12" font-weight="bold" fill="#c2410c">${distPC}</text>
+              </g>
+
+              <circle cx="${A.x}" cy="${A.y}" r="7" fill="#1e293b" />
+              <text x="${A.x - 16}" y="${A.y - 10}" font-size="18" font-weight="bold" fill="#1e293b">観測点A</text>
+              <circle cx="${B.x}" cy="${B.y}" r="7" fill="#1e293b" />
+              <text x="${B.x - 18}" y="${B.y + 20}" font-size="18" font-weight="bold" fill="#1e293b">観測点B</text>
+              <circle cx="${C.x}" cy="${C.y}" r="7" fill="#1e293b" />
+              <text x="${C.x + 12}" y="${C.y + 20}" font-size="18" font-weight="bold" fill="#1e293b">観測点C</text>
+
+              <g class="cursor-grab active:cursor-grabbing" onmousedown="startDrag('P', event)" ontouchstart="startDrag('P', event)">
+                <circle cx="${P.x}" cy="${P.y}" r="18" fill="${isMatch ? 'rgba(13, 148, 136, 0.25)' : 'rgba(234, 88, 12, 0.2)'}" />
+                <circle cx="${P.x}" cy="${P.y}" r="9" fill="${isMatch ? '#0d9488' : '#ea580c'}" stroke="white" stroke-width="2.5" />
+                <text x="${P.x}" y="${P.y - 16}" text-anchor="middle" font-size="15" font-weight="bold" fill="${isMatch ? '#0f766e' : '#c2410c'}">
+                  基準局 P（ドラッグで移動）
+                </text>
+              </g>
+            </svg>
+            ${
+              isMatch
+                ? `<div class="absolute top-3 left-3 bg-teal-600 text-white px-3 py-1.5 rounded-full text-xs sm:text-sm font-bold shadow-md flex items-center gap-1.5">
+                    <span>✨ すごい！3地点からの距離がほぼピッタリ同じです！</span>
+                  </div>`
+                : ''
+            }
+          </div>
+
+          <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 flex flex-col gap-3">
+            <div class="grid grid-cols-3 gap-2 text-center">
+              <div class="bg-white p-2 rounded-lg border border-orange-200">
+                <div class="text-xs text-slate-500 font-semibold">PA の距離</div>
+                <div class="text-lg font-extrabold text-orange-600">${distPA}</div>
+              </div>
+              <div class="bg-white p-2 rounded-lg border border-orange-200">
+                <div class="text-xs text-slate-500 font-semibold">PB の距離</div>
+                <div class="text-lg font-extrabold text-orange-600">${distPB}</div>
+              </div>
+              <div class="bg-white p-2 rounded-lg border border-orange-200">
+                <div class="text-xs text-slate-500 font-semibold">PC の距離</div>
+                <div class="text-lg font-extrabold text-orange-600">${distPC}</div>
+              </div>
+            </div>
+
+            <div class="flex flex-wrap gap-2">
+              <button type="button" onclick="state.showCentroid = !state.showCentroid; renderLeftPanel();"
+                class="px-3 py-1.5 rounded-lg text-xs font-bold border transition cursor-pointer ${
+                  state.showCentroid ? 'bg-purple-600 text-white border-purple-600' : 'bg-white text-purple-700 border-purple-300 hover:bg-purple-50'
+                }">
+                ${state.showCentroid ? '✓ 重心Gを表示中' : '比較：重心G（真ん中）を表示'}
+              </button>
+              <button type="button" onclick="state.showIncenterInStep0 = !state.showIncenterInStep0; renderLeftPanel();"
+                class="px-3 py-1.5 rounded-lg text-xs font-bold border transition cursor-pointer ${
+                  state.showIncenterInStep0 ? 'bg-pink-600 text-white border-pink-600' : 'bg-white text-pink-700 border-pink-300 hover:bg-pink-50'
+                }">
+                ${state.showIncenterInStep0 ? '✓ 内心Iを表示中' : '比較：内心I（辺への距離）'}
+              </button>
+              <button type="button" onclick="state.showAnswerOInStep0 = !state.showAnswerOInStep0; renderLeftPanel();"
+                class="px-3 py-1.5 rounded-lg text-xs font-bold border transition ml-auto cursor-pointer ${
+                  state.showAnswerOInStep0 ? 'bg-teal-600 text-white border-teal-600' : 'bg-white text-teal-700 border-teal-300 hover:bg-teal-50'
+                }">
+                ${state.showAnswerOInStep0 ? '正解を隠す' : '正解の場所を表示'}
+              </button>
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      // ------------------------------------------
+      // STEP 1: 距離の意味（頂点 vs 辺）＆ 2点探索
+      // ------------------------------------------
+      if (step === 1) {
+        const { A, B, C } = state.triPoints;
+        const P = state.pointP;
+        const footAB = getFootOfPerpendicular(P, A, B);
+        const footBC = getFootOfPerpendicular(P, B, C);
+        const footCA = getFootOfPerpendicular(P, C, A);
+
+        const twoPtA = { x: 170, y: 220 };
+        const twoPtB = { x: 430, y: 220 };
+        const twoPtM = midpoint(twoPtA, twoPtB);
+        const d2A = (dist(P, twoPtA) / 10).toFixed(1);
+        const d2B = (dist(P, twoPtB) / 10).toFixed(1);
+        const isTwoEq = Math.abs(Number(d2A) - Number(d2B)) <= 0.3;
+
+        let innerSvg = '';
+        if (state.step1SubMode !== 'twoPoints') {
+          innerSvg += `<polygon points="${A.x},${A.y} ${B.x},${B.y} ${C.x},${C.y}" fill="rgba(30, 41, 59, 0.03)" stroke="#1e293b" stroke-width="3" />`;
+          if (state.step1SubMode === 'vertex') {
+            innerSvg += `
+              <line x1="${P.x}" y1="${P.y}" x2="${A.x}" y2="${A.y}" stroke="#ea580c" stroke-width="3" />
+              <line x1="${P.x}" y1="${P.y}" x2="${B.x}" y2="${B.y}" stroke="#ea580c" stroke-width="3" />
+              <line x1="${P.x}" y1="${P.y}" x2="${C.x}" y2="${C.y}" stroke="#ea580c" stroke-width="3" />
+              <text x="300" y="34" text-anchor="middle" font-size="15" font-weight="bold" fill="#c2410c">
+                【目標】頂点 A, B, C へ結んだ線分 PA = PB = PC をそろえる！
+              </text>
+            `;
+          } else {
+            innerSvg += `
+              <line x1="${P.x}" y1="${P.y}" x2="${footAB.x}" y2="${footAB.y}" stroke="#ec4899" stroke-width="2.5" stroke-dasharray="5 3" />
+              <line x1="${P.x}" y1="${P.y}" x2="${footBC.x}" y2="${footBC.y}" stroke="#ec4899" stroke-width="2.5" stroke-dasharray="5 3" />
+              <line x1="${P.x}" y1="${P.y}" x2="${footCA.x}" y2="${footCA.y}" stroke="#ec4899" stroke-width="2.5" stroke-dasharray="5 3" />
+              ${svgRightAngle(footAB, P, B, 10, '#ec4899')}
+              ${svgRightAngle(footBC, P, C, 10, '#ec4899')}
+              ${svgRightAngle(footCA, P, A, 10, '#ec4899')}
+              <text x="300" y="34" text-anchor="middle" font-size="15" font-weight="bold" fill="#be185d">
+                【注意】辺に下ろした垂線をそろえるのは「内心」の考え方！
+              </text>
+            `;
+          }
+          innerSvg += `
+            <circle cx="${A.x}" cy="${A.y}" r="7" fill="#1e293b" />
+            <text x="${A.x - 14}" y="${A.y - 10}" font-size="18" font-weight="bold" fill="#1e293b">A</text>
+            <circle cx="${B.x}" cy="${B.y}" r="7" fill="#1e293b" />
+            <text x="${B.x - 18}" y="${B.y + 20}" font-size="18" font-weight="bold" fill="#1e293b">B</text>
+            <circle cx="${C.x}" cy="${C.y}" r="7" fill="#1e293b" />
+            <text x="${C.x + 10}" y="${C.y + 20}" font-size="18" font-weight="bold" fill="#1e293b">C</text>
+          `;
+        } else {
+          const stampsHtml = state.stamps
+            .map(
+              (s) => `
+              <circle cx="${s.x}" cy="${s.y}" r="6" fill="#0d9488" />
+              <text x="${s.x + 9}" y="${s.y + 4}" font-size="11" font-weight="bold" fill="#0f766e">等距離!</text>
+            `
+            )
+            .join('');
+
+          innerSvg += `
+            <line x1="${twoPtA.x}" y1="${twoPtA.y}" x2="${twoPtB.x}" y2="${twoPtB.y}" stroke="#1e293b" stroke-width="3.5" />
+            <circle cx="${twoPtM.x}" cy="${twoPtM.y}" r="6" fill="#3b82f6" />
+            <text x="${twoPtM.x + 8}" y="${twoPtM.y + 18}" font-size="14" font-weight="bold" fill="#1d4ed8">中点 M</text>
+            ${stampsHtml}
+            <line x1="${P.x}" y1="${P.y}" x2="${twoPtA.x}" y2="${twoPtA.y}" stroke="${isTwoEq ? '#0d9488' : '#ea580c'}" stroke-width="2.5" />
+            <line x1="${P.x}" y1="${P.y}" x2="${twoPtB.x}" y2="${twoPtB.y}" stroke="${isTwoEq ? '#0d9488' : '#ea580c'}" stroke-width="2.5" />
+            <circle cx="${twoPtA.x}" cy="${twoPtA.y}" r="8" fill="#1e293b" />
+            <text x="${twoPtA.x - 24}" y="${twoPtA.y + 6}" font-size="18" font-weight="bold" fill="#1e293b">A</text>
+            <circle cx="${twoPtB.x}" cy="${twoPtB.y}" r="8" fill="#1e293b" />
+            <text x="${twoPtB.x + 12}" y="${twoPtB.y + 6}" font-size="18" font-weight="bold" fill="#1e293b">B</text>
+            <text x="300" y="34" text-anchor="middle" font-size="14" font-weight="bold" fill="#1e40af">
+              PA = PB になる場所（緑色に光る所）を探してスタンプを押そう！
+            </text>
+          `;
+        }
+
+        container.innerHTML = `
+          <div class="flex flex-wrap gap-1.5 bg-slate-200/70 p-1.5 rounded-xl">
+            <button type="button" onclick="state.step1SubMode='vertex'; renderLeftPanel();"
+              class="flex-1 py-2 px-3 rounded-lg text-xs sm:text-sm font-bold transition cursor-pointer ${
+                state.step1SubMode === 'vertex' ? 'bg-white text-orange-600 shadow-sm' : 'text-slate-600 hover:text-slate-900'
+              }">
+              ① 正しい測り方：頂点への距離
+            </button>
+            <button type="button" onclick="state.step1SubMode='side'; renderLeftPanel();"
+              class="flex-1 py-2 px-3 rounded-lg text-xs sm:text-sm font-bold transition cursor-pointer ${
+                state.step1SubMode === 'side' ? 'bg-white text-pink-600 shadow-sm' : 'text-slate-600 hover:text-slate-900'
+              }">
+              ② よくある誤解：辺への垂線
+            </button>
+            <button type="button" onclick="state.step1SubMode='twoPoints'; renderLeftPanel();"
+              class="flex-1 py-2 px-3 rounded-lg text-xs sm:text-sm font-bold transition cursor-pointer ${
+                state.step1SubMode === 'twoPoints' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-600 hover:text-slate-900'
+              }">
+              ③ まずAとBの2点だけで探そう！
+            </button>
+          </div>
+
+          <div class="relative bg-white rounded-2xl border-2 border-slate-200 shadow-inner overflow-hidden">
+            <svg id="interactive-svg" viewBox="0 0 600 400" class="w-full h-auto touch-none select-none cursor-crosshair" onclick="handleSvgCanvasClick(event)">
+              ${GRID_DEFS}
+              <rect width="600" height="400" fill="url(#mathGrid)" />
+              ${innerSvg}
+              <g class="cursor-grab active:cursor-grabbing" onmousedown="startDrag('P', event)" ontouchstart="startDrag('P', event)">
+                <circle cx="${P.x}" cy="${P.y}" r="16" fill="rgba(59, 130, 246, 0.2)" />
+                <circle cx="${P.x}" cy="${P.y}" r="8" fill="#2563eb" stroke="white" stroke-width="2" />
+                <text x="${P.x + 12}" y="${P.y - 10}" font-size="15" font-weight="bold" fill="#1d4ed8">P</text>
+              </g>
+            </svg>
+          </div>
+
+          ${
+            state.step1SubMode === 'twoPoints'
+              ? `<div class="bg-blue-50 p-3 rounded-xl border border-blue-200 flex flex-wrap items-center justify-between gap-2">
+                  <div class="flex items-center gap-4 text-sm font-bold">
+                    <span class="text-slate-700">PA = <span class="text-blue-700 text-base">${d2A}</span></span>
+                    <span class="text-slate-700">PB = <span class="text-blue-700 text-base">${d2B}</span></span>
+                    ${isTwoEq ? '<span class="bg-teal-600 text-white px-2.5 py-0.5 rounded-full text-xs">PA = PB 一致！</span>' : ''}
+                  </div>
+                  <div class="flex gap-2">
+                    <button type="button" onclick="addStampIfEqual()" ${!isTwoEq ? 'disabled' : ''}
+                      class="px-3 py-1.5 rounded-lg text-xs font-bold transition ${
+                        isTwoEq ? 'bg-teal-600 text-white hover:bg-teal-700 shadow-sm cursor-pointer' : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                      }">
+                      ここにスタンプを残す
+                    </button>
+                    <button type="button" onclick="state.stamps=[]; renderLeftPanel();"
+                      class="px-3 py-1.5 rounded-lg text-xs font-bold bg-white text-slate-600 border border-slate-300 hover:bg-slate-50 cursor-pointer">
+                      リセット
+                    </button>
+                  </div>
+                </div>`
+              : ''
+          }
+        `;
+        return;
+      }
+
+      // ------------------------------------------
+      // STEP 2: 垂直二等分線の実験と合同証明
+      // ------------------------------------------
+      if (step === 2) {
+        const s2A = { x: 160, y: 240 };
+        const s2B = { x: 440, y: 240 };
+        const s2M = midpoint(s2A, s2B);
+        const rad = (state.bisectorAngle * Math.PI) / 180;
+        const dir = { x: Math.cos(rad), y: -Math.sin(rad) };
+        const s2P = { x: s2M.x + dir.x * state.proofPointT, y: s2M.y + dir.y * state.proofPointT };
+        const s2PA = (dist(s2P, s2A) / 10).toFixed(1);
+        const s2PB = (dist(s2P, s2B) / 10).toFixed(1);
+        const isPerp = state.bisectorAngle === 90;
+
+        const lineEnd1 = { x: s2M.x - dir.x * 220, y: s2M.y - dir.y * 220 };
+        const lineEnd2 = { x: s2M.x + dir.x * 220, y: s2M.y + dir.y * 220 };
+
+        container.innerHTML = `
+          <div class="relative bg-white rounded-2xl border-2 border-slate-200 shadow-inner overflow-hidden">
+            <svg viewBox="0 0 600 400" class="w-full h-auto select-none">
+              ${GRID_DEFS}
+              <rect width="600" height="400" fill="url(#mathGrid)" />
+              ${
+                isPerp && state.proofStep >= 1
+                  ? `<polygon points="${s2P.x},${s2P.y} ${s2M.x},${s2M.y} ${s2A.x},${s2A.y}" fill="rgba(59, 130, 246, 0.12)" />
+                     <polygon points="${s2P.x},${s2P.y} ${s2M.x},${s2M.y} ${s2B.x},${s2B.y}" fill="rgba(16, 185, 129, 0.12)" />`
+                  : ''
+              }
+              <line x1="${s2A.x}" y1="${s2A.y}" x2="${s2B.x}" y2="${s2B.y}" stroke="#1e293b" stroke-width="3.5" />
+              ${svgTickMark(s2A, s2M, 1, state.proofStep >= 1 ? '#dc2626' : '#64748b', 7)}
+              ${svgTickMark(s2M, s2B, 1, state.proofStep >= 1 ? '#dc2626' : '#64748b', 7)}
+
+              <line x1="${lineEnd1.x}" y1="${lineEnd1.y}" x2="${lineEnd2.x}" y2="${lineEnd2.y}"
+                stroke="${isPerp ? '#2563eb' : '#94a3b8'}" stroke-width="${isPerp ? '3' : '2'}" stroke-dasharray="${isPerp ? 'none' : '6 4'}" />
+
+              <line x1="${s2P.x}" y1="${s2P.y}" x2="${s2M.x}" y2="${s2M.y}"
+                stroke="${state.proofStep >= 2 ? '#16a34a' : '#2563eb'}" stroke-width="${state.proofStep >= 2 ? '4.5' : '2.5'}" />
+
+              ${isPerp ? svgRightAngle(s2M, s2P, s2B, 14, state.proofStep >= 3 ? '#2563eb' : '#64748b') : ''}
+
+              <line x1="${s2P.x}" y1="${s2P.y}" x2="${s2A.x}" y2="${s2A.y}" stroke="#ea580c" stroke-width="${state.proofStep >= 4 ? '4' : '2.5'}" />
+              <line x1="${s2P.x}" y1="${s2P.y}" x2="${s2B.x}" y2="${s2B.y}" stroke="#ea580c" stroke-width="${state.proofStep >= 4 ? '4' : '2.5'}" />
+
+              ${
+                state.proofStep >= 4 && isPerp
+                  ? svgTickMark(s2P, s2A, 2, '#ea580c', 7) + svgTickMark(s2P, s2B, 2, '#ea580c', 7)
+                  : ''
+              }
+
+              <g transform="translate(${(s2P.x + s2A.x) / 2 - 20}, ${(s2P.y + s2A.y) / 2})">
+                <rect x="-26" y="-12" width="52" height="22" rx="6" fill="white" stroke="#ea580c" stroke-width="1.5" />
+                <text text-anchor="middle" dy="4" font-size="12" font-weight="bold" fill="#c2410c">PA=${s2PA}</text>
+              </g>
+              <g transform="translate(${(s2P.x + s2B.x) / 2 + 20}, ${(s2P.y + s2B.y) / 2})">
+                <rect x="-26" y="-12" width="52" height="22" rx="6" fill="white" stroke="#ea580c" stroke-width="1.5" />
+                <text text-anchor="middle" dy="4" font-size="12" font-weight="bold" fill="#c2410c">PB=${s2PB}</text>
+              </g>
+
+              <circle cx="${s2A.x}" cy="${s2A.y}" r="7" fill="#1e293b" />
+              <text x="${s2A.x - 22}" y="${s2A.y + 6}" font-size="17" font-weight="bold" fill="#1e293b">A</text>
+              <circle cx="${s2B.x}" cy="${s2B.y}" r="7" fill="#1e293b" />
+              <text x="${s2B.x + 12}" y="${s2B.y + 6}" font-size="17" font-weight="bold" fill="#1e293b">B</text>
+              <circle cx="${s2M.x}" cy="${s2M.y}" r="6" fill="#2563eb" />
+              <text x="${s2M.x - 6}" y="${s2M.y + 22}" font-size="16" font-weight="bold" fill="#1d4ed8">M</text>
+              <circle cx="${s2P.x}" cy="${s2P.y}" r="8" fill="#ea580c" stroke="white" stroke-width="2" />
+              <text x="${s2P.x + 12}" y="${s2P.y - 6}" font-size="17" font-weight="bold" fill="#c2410c">P</text>
+
+              <text x="300" y="32" text-anchor="middle" font-size="15" font-weight="bold" fill="${isPerp ? '#1d4ed8' : '#b45309'}">
+                ${
+                  isPerp
+                    ? '角度 = 90°（垂直二等分線）→ どこにPを動かしても PA = PB！'
+                    : `角度 = ${state.bisectorAngle}°（斜めの線）→ 中点を通っても PA ≠ PB！`
+                }
+              </text>
+            </svg>
+          </div>
+
+          <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 flex flex-col gap-3">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div class="bg-white p-2.5 rounded-lg border border-slate-200">
+                <div class="flex justify-between text-xs font-bold mb-1">
+                  <span class="text-slate-700">① 線の傾き（90°が垂直）</span>
+                  <span class="${isPerp ? 'text-blue-600' : 'text-amber-600'}">${state.bisectorAngle}°</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <input type="range" min="40" max="140" step="5" value="${state.bisectorAngle}"
+                    oninput="state.bisectorAngle=Number(this.value); renderLeftPanel();"
+                    class="w-full accent-blue-600" />
+                  <button type="button" onclick="state.bisectorAngle=90; renderLeftPanel();"
+                    class="px-2 py-1 bg-blue-600 text-white text-xs font-bold rounded shrink-0 hover:bg-blue-700 cursor-pointer">
+                    90°にする
+                  </button>
+                </div>
+              </div>
+
+              <div class="bg-white p-2.5 rounded-lg border border-slate-200">
+                <div class="flex justify-between text-xs font-bold mb-1">
+                  <span class="text-slate-700">② 点Pを直線上で動かす</span>
+                  <span class="text-orange-600">${state.proofPointT === 0 ? '中点M上' : state.proofPointT < 0 ? '上側' : '下側'}</span>
+                </div>
+                <input type="range" min="-150" max="120" step="5" value="${state.proofPointT}"
+                  oninput="state.proofPointT=Number(this.value); renderLeftPanel();"
+                  class="w-full accent-orange-600" />
+              </div>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-1.5">
+              <span class="text-xs font-bold text-slate-600 mr-1">合同の証明ステップ：</span>
+              ${[
+                { s: 1, label: '① AM = BM' },
+                { s: 2, label: '② PM共通' },
+                { s: 3, label: '③ 直角90°' },
+                { s: 4, label: '結論 PA = PB' },
+              ]
+                .map(
+                  (item) => `
+                <button type="button" onclick="state.bisectorAngle=90; state.proofStep=${item.s}; renderLeftPanel();"
+                  class="px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer ${
+                    state.proofStep >= item.s && isPerp ? 'bg-blue-600 text-white' : 'bg-white text-slate-700 border border-slate-300 hover:bg-blue-50'
+                  }">
+                  ${item.label}
+                </button>`
+                )
+                .join('')}
+              <button type="button" onclick="state.proofStep=0; renderLeftPanel();"
+                class="px-2 py-1 text-xs text-slate-500 hover:text-slate-800 cursor-pointer">
+                クリア
+              </button>
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      // ------------------------------------------
+      // STEP 3: 3点拡張 → 外心Oと外接円
+      // ------------------------------------------
+      if (step === 3) {
+        const { A, B, C } = state.triPoints;
+        const circumData = getCircumcenter(A, B, C);
+        const bisAB = getPerpBisectorLine(A, B);
+        const bisAC = getPerpBisectorLine(A, C);
+        const bisBC = getPerpBisectorLine(B, C);
+        const st = state.constructStage;
+
+        container.innerHTML = `
+          <div class="relative bg-white rounded-2xl border-2 border-slate-200 shadow-inner overflow-hidden">
+            <svg id="interactive-svg" viewBox="0 0 600 420" class="w-full h-auto touch-none select-none">
+              ${GRID_DEFS}
+              <rect width="600" height="420" fill="url(#mathGrid)" />
+              ${
+                st >= 5 && circumData
+                  ? `<circle cx="${circumData.O.x}" cy="${circumData.O.y}" r="${circumData.R}" fill="rgba(13, 148, 136, 0.06)" stroke="#0d9488" stroke-width="3" />`
+                  : ''
+              }
+              ${
+                st >= 1
+                  ? `<line x1="${bisAB.x1}" y1="${bisAB.y1}" x2="${bisAB.x2}" y2="${bisAB.y2}" stroke="#3b82f6" stroke-width="2" stroke-dasharray="6 4" />
+                     ${svgRightAngle(bisAB.m, B, { x: bisAB.x1, y: bisAB.y1 }, 10, '#3b82f6')}
+                     ${svgTickMark(A, bisAB.m, 1, '#3b82f6', 5)}
+                     ${svgTickMark(bisAB.m, B, 1, '#3b82f6', 5)}`
+                  : ''
+              }
+              ${
+                st >= 2
+                  ? `<line x1="${bisAC.x1}" y1="${bisAC.y1}" x2="${bisAC.x2}" y2="${bisAC.y2}" stroke="#8b5cf6" stroke-width="2" stroke-dasharray="6 4" />
+                     ${svgRightAngle(bisAC.m, C, { x: bisAC.x1, y: bisAC.y1 }, 10, '#8b5cf6')}
+                     ${svgTickMark(A, bisAC.m, 2, '#8b5cf6', 5)}
+                     ${svgTickMark(bisAC.m, C, 2, '#8b5cf6', 5)}`
+                  : ''
+              }
+              ${
+                st >= 4
+                  ? `<line x1="${bisBC.x1}" y1="${bisBC.y1}" x2="${bisBC.x2}" y2="${bisBC.y2}" stroke="#10b981" stroke-width="2.2" stroke-dasharray="4 4" />
+                     ${svgRightAngle(bisBC.m, C, { x: bisBC.x1, y: bisBC.y1 }, 10, '#10b981')}`
+                  : ''
+              }
+
+              <polygon points="${A.x},${A.y} ${B.x},${B.y} ${C.x},${C.y}" fill="none" stroke="#1e293b" stroke-width="3" stroke-linejoin="round" />
+
+              ${
+                st >= 3 && circumData
+                  ? `<line x1="${circumData.O.x}" y1="${circumData.O.y}" x2="${A.x}" y2="${A.y}" stroke="#ea580c" stroke-width="2.5" />
+                     <line x1="${circumData.O.x}" y1="${circumData.O.y}" x2="${B.x}" y2="${B.y}" stroke="#ea580c" stroke-width="2.5" />
+                     <line x1="${circumData.O.x}" y1="${circumData.O.y}" x2="${C.x}" y2="${C.y}" stroke="#ea580c" stroke-width="2.5" />
+                     ${svgTickMark(circumData.O, A, 3, '#ea580c', 6)}
+                     ${svgTickMark(circumData.O, B, 3, '#ea580c', 6)}
+                     ${svgTickMark(circumData.O, C, 3, '#ea580c', 6)}
+                     <circle cx="${circumData.O.x}" cy="${circumData.O.y}" r="7.5" fill="#ea580c" stroke="white" stroke-width="2" />
+                     <text x="${circumData.O.x + 11}" y="${circumData.O.y + 18}" font-size="18" font-weight="bold" fill="#c2410c">外心 O</text>`
+                  : ''
+              }
+
+              <g class="cursor-grab active:cursor-grabbing" onmousedown="startDrag('A', event)" ontouchstart="startDrag('A', event)">
+                <circle cx="${A.x}" cy="${A.y}" r="15" fill="rgba(30, 41, 59, 0.12)" />
+                <circle cx="${A.x}" cy="${A.y}" r="7" fill="#1e293b" />
+                <text x="${A.x - 10}" y="${A.y - 14}" font-size="18" font-weight="bold" fill="#1e293b">A</text>
+              </g>
+              <g class="cursor-grab active:cursor-grabbing" onmousedown="startDrag('B', event)" ontouchstart="startDrag('B', event)">
+                <circle cx="${B.x}" cy="${B.y}" r="15" fill="rgba(30, 41, 59, 0.12)" />
+                <circle cx="${B.x}" cy="${B.y}" r="7" fill="#1e293b" />
+                <text x="${B.x - 20}" y="${B.y + 22}" font-size="18" font-weight="bold" fill="#1e293b">B</text>
+              </g>
+              <g class="cursor-grab active:cursor-grabbing" onmousedown="startDrag('C', event)" ontouchstart="startDrag('C', event)">
+                <circle cx="${C.x}" cy="${C.y}" r="15" fill="rgba(30, 41, 59, 0.12)" />
+                <circle cx="${C.x}" cy="${C.y}" r="7" fill="#1e293b" />
+                <text x="${C.x + 12}" y="${C.y + 22}" font-size="18" font-weight="bold" fill="#1e293b">C</text>
+              </g>
+            </svg>
+            <div class="absolute bottom-2 right-3 bg-white/90 px-2.5 py-1 rounded-md text-xs text-slate-600 font-medium border border-slate-200">
+              ※ 頂点 A, B, C をドラッグして自由に動かせます
+            </div>
+          </div>
+
+          <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 flex flex-wrap gap-1.5">
+            ${[
+              { s: 1, label: '① ABの垂直二等分線' },
+              { s: 2, label: '② ACの垂直二等分線' },
+              { s: 3, label: '③ 交点O (OA=OB=OC)' },
+              { s: 4, label: '④ 3本目もOを通る！' },
+              { s: 5, label: '⑤ 外接円を描く' },
+            ]
+              .map(
+                (item) => `
+              <button type="button" onclick="state.constructStage=${item.s}; renderLeftPanel();"
+                class="px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                  st === item.s
+                    ? 'bg-teal-600 text-white shadow-sm'
+                    : st > item.s
+                    ? 'bg-teal-100 text-teal-800 border border-teal-300'
+                    : 'bg-white text-slate-700 border border-slate-300 hover:bg-slate-100'
+                }">
+                ${item.label}
+              </button>`
+              )
+              .join('')}
+          </div>
+        `;
+        return;
+      }
+
+      // ------------------------------------------
+      // STEP 4: 鋭角・直角・鈍角で外心の位置を比較
+      // ------------------------------------------
+      if (step === 4) {
+        const { A, B, C } = state.triPoints;
+        const circumData = getCircumcenter(A, B, C);
+        const bisAB = getPerpBisectorLine(A, B);
+        const bisAC = getPerpBisectorLine(A, C);
+        const angles = getTriangleAngles(A, B, C);
+        const maxAng = Math.max(angles.A, angles.B, angles.C);
+        const triType = Math.abs(maxAng - 90) < 0.8 ? 'right' : maxAng > 90 ? 'obtuse' : 'acute';
+
+        const typeInfo = {
+          acute: { label: '鋭角三角形', pos: '三角形の【内部】', badge: 'bg-emerald-600' },
+          right: { label: '直角三角形', pos: '【斜辺の中点】', badge: 'bg-blue-600' },
+          obtuse: { label: '鈍角三角形', pos: '三角形の【外部】', badge: 'bg-rose-600' },
+        }[triType];
+
+        container.innerHTML = `
+          <div class="relative bg-white rounded-2xl border-2 border-slate-200 shadow-inner overflow-hidden">
+            <svg id="interactive-svg" viewBox="0 0 600 420" class="w-full h-auto touch-none select-none">
+              ${GRID_DEFS}
+              <rect width="600" height="420" fill="url(#mathGrid)" />
+              <line x1="${bisAB.x1}" y1="${bisAB.y1}" x2="${bisAB.x2}" y2="${bisAB.y2}" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="5 5" />
+              <line x1="${bisAC.x1}" y1="${bisAC.y1}" x2="${bisAC.x2}" y2="${bisAC.y2}" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="5 5" />
+              ${
+                circumData
+                  ? `<circle cx="${circumData.O.x}" cy="${circumData.O.y}" r="${circumData.R}" fill="rgba(13, 148, 136, 0.05)" stroke="#0d9488" stroke-width="2.5" />`
+                  : ''
+              }
+              <polygon points="${A.x},${A.y} ${B.x},${B.y} ${C.x},${C.y}" fill="rgba(30, 41, 59, 0.05)" stroke="#1e293b" stroke-width="3.5" stroke-linejoin="round" />
+
+              ${Math.abs(angles.B - 90) < 1 ? svgRightAngle(B, A, C, 14, '#1e293b') : ''}
+              ${Math.abs(angles.A - 90) < 1 ? svgRightAngle(A, B, C, 14, '#1e293b') : ''}
+              ${Math.abs(angles.C - 90) < 1 ? svgRightAngle(C, A, B, 14, '#1e293b') : ''}
+
+              ${
+                circumData
+                  ? `<line x1="${circumData.O.x}" y1="${circumData.O.y}" x2="${A.x}" y2="${A.y}" stroke="#ea580c" stroke-width="2.5" />
+                     <line x1="${circumData.O.x}" y1="${circumData.O.y}" x2="${B.x}" y2="${B.y}" stroke="#ea580c" stroke-width="2.5" />
+                     <line x1="${circumData.O.x}" y1="${circumData.O.y}" x2="${C.x}" y2="${C.y}" stroke="#ea580c" stroke-width="2.5" />
+                     <circle cx="${circumData.O.x}" cy="${circumData.O.y}" r="8" fill="#ea580c" stroke="white" stroke-width="2" />
+                     <text x="${circumData.O.x + 12}" y="${circumData.O.y + 18}" font-size="18" font-weight="bold" fill="#c2410c">O</text>`
+                  : ''
+              }
+
+              <g class="cursor-grab active:cursor-grabbing" onmousedown="startDrag('A', event)" ontouchstart="startDrag('A', event)">
+                <circle cx="${A.x}" cy="${A.y}" r="15" fill="rgba(30, 41, 59, 0.12)" />
+                <circle cx="${A.x}" cy="${A.y}" r="7" fill="#1e293b" />
+                <text x="${A.x - 12}" y="${A.y - 14}" font-size="16" font-weight="bold" fill="#1e293b">A (${Math.round(angles.A)}°)</text>
+              </g>
+              <g class="cursor-grab active:cursor-grabbing" onmousedown="startDrag('B', event)" ontouchstart="startDrag('B', event)">
+                <circle cx="${B.x}" cy="${B.y}" r="15" fill="rgba(30, 41, 59, 0.12)" />
+                <circle cx="${B.x}" cy="${B.y}" r="7" fill="#1e293b" />
+                <text x="${B.x - 24}" y="${B.y + 22}" font-size="16" font-weight="bold" fill="#1e293b">B (${Math.round(angles.B)}°)</text>
+              </g>
+              <g class="cursor-grab active:cursor-grabbing" onmousedown="startDrag('C', event)" ontouchstart="startDrag('C', event)">
+                <circle cx="${C.x}" cy="${C.y}" r="15" fill="rgba(30, 41, 59, 0.12)" />
+                <circle cx="${C.x}" cy="${C.y}" r="7" fill="#1e293b" />
+                <text x="${C.x + 12}" y="${C.y + 22}" font-size="16" font-weight="bold" fill="#1e293b">C (${Math.round(angles.C)}°)</text>
+              </g>
+            </svg>
+            <div class="absolute top-3 left-3">
+              <span class="${typeInfo.badge} text-white px-3 py-1 rounded-full text-xs sm:text-sm font-bold shadow">
+                ${typeInfo.label} → ${typeInfo.pos}
+              </span>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-3 gap-2">
+            <button type="button" onclick="applyShapePreset('acute')"
+              class="py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold border-2 transition cursor-pointer ${
+                triType === 'acute' ? 'bg-emerald-50 border-emerald-600 text-emerald-800' : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+              }">
+              ① 鋭角三角形（内部）
+            </button>
+            <button type="button" onclick="applyShapePreset('right')"
+              class="py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold border-2 transition cursor-pointer ${
+                triType === 'right' ? 'bg-blue-50 border-blue-600 text-blue-800' : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+              }">
+              ② 直角三角形（斜辺中点）
+            </button>
+            <button type="button" onclick="applyShapePreset('obtuse')"
+              class="py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold border-2 transition cursor-pointer ${
+                triType === 'obtuse' ? 'bg-rose-50 border-rose-600 text-rose-800' : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+              }">
+              ③ 鈍角三角形（外部）
+            </button>
+          </div>
+        `;
+        return;
+      }
+
+      // ------------------------------------------
+      // STEP 5: 基本問題（問題1・問題2）
+      // ------------------------------------------
+      if (step === 5) {
+        if (state.basicProbTab === 1) {
+          const center = { x: 300, y: 225 };
+          const radius = 155;
+          const centralAngle = state.prob1AngleA * 2;
+          const baseAngle = (180 - centralAngle) / 2;
+          const radHalf = ((centralAngle / 2) * Math.PI) / 180;
+          const ptA = { x: center.x - 45, y: center.y - Math.sqrt(radius * radius - 45 * 45) };
+          const ptB = { x: center.x - radius * Math.sin(radHalf), y: center.y + radius * Math.cos(radHalf) };
+          const ptC = { x: center.x + radius * Math.sin(radHalf), y: center.y + radius * Math.cos(radHalf) };
+          const p1s = state.prob1Step;
+
+          container.innerHTML = `
+            <div class="bg-white rounded-2xl border-2 border-slate-200 shadow-inner overflow-hidden">
+              <svg viewBox="0 0 600 410" class="w-full h-auto select-none">
+                ${GRID_DEFS}
+                <rect width="600" height="410" fill="url(#mathGrid)" />
+                <circle cx="${center.x}" cy="${center.y}" r="${radius}" fill="none" stroke="#0d9488" stroke-width="2.5" />
+                ${
+                  p1s >= 1
+                    ? `<path d="M ${ptB.x} ${ptB.y} A ${radius} ${radius} 0 0 0 ${ptC.x} ${ptC.y}" fill="none" stroke="#10b981" stroke-width="6" stroke-linecap="round" />`
+                    : ''
+                }
+                ${
+                  p1s >= 3
+                    ? `<polygon points="${center.x},${center.y} ${ptB.x},${ptB.y} ${ptC.x},${ptC.y}" fill="rgba(234, 88, 12, 0.14)" />`
+                    : ''
+                }
+                <polygon points="${ptA.x},${ptA.y} ${ptB.x},${ptB.y} ${ptC.x},${ptC.y}" fill="none" stroke="#1e293b" stroke-width="3" />
+                <line x1="${center.x}" y1="${center.y}" x2="${ptB.x}" y2="${ptB.y}" stroke="#ea580c" stroke-width="2.5" />
+                <line x1="${center.x}" y1="${center.y}" x2="${ptC.x}" y2="${ptC.y}" stroke="#ea580c" stroke-width="2.5" />
+                ${p1s >= 3 ? svgTickMark(center, ptB, 1, '#ea580c', 7) + svgTickMark(center, ptC, 1, '#ea580c', 7) : ''}
+
+                <text x="${ptA.x + 8}" y="${ptA.y + 32}" font-size="16" font-weight="bold" fill="#1e293b">${state.prob1AngleA}°</text>
+                ${
+                  p1s >= 2
+                    ? `<text x="${center.x}" y="${center.y + 38}" text-anchor="middle" font-size="17" font-weight="bold" fill="#c2410c">${centralAngle}°</text>`
+                    : ''
+                }
+                ${
+                  p1s >= 3
+                    ? `<text x="${ptB.x + 28}" y="${ptB.y - 8}" font-size="16" font-weight="bold" fill="#0f766e">${baseAngle}°</text>`
+                    : ''
+                }
+
+                <circle cx="${ptA.x}" cy="${ptA.y}" r="6" fill="#1e293b" />
+                <text x="${ptA.x - 10}" y="${ptA.y - 10}" font-size="17" font-weight="bold" fill="#1e293b">A</text>
+                <circle cx="${ptB.x}" cy="${ptB.y}" r="6" fill="#1e293b" />
+                <text x="${ptB.x - 22}" y="${ptB.y + 16}" font-size="17" font-weight="bold" fill="#1e293b">B</text>
+                <circle cx="${ptC.x}" cy="${ptC.y}" r="6" fill="#1e293b" />
+                <text x="${ptC.x + 12}" y="${ptC.y + 16}" font-size="17" font-weight="bold" fill="#1e293b">C</text>
+                <circle cx="${center.x}" cy="${center.y}" r="7" fill="#ea580c" />
+                <text x="${center.x - 6}" y="${center.y - 12}" font-size="17" font-weight="bold" fill="#c2410c">O</text>
+              </svg>
+            </div>
+
+            <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 flex flex-col gap-2.5">
+              <div class="flex flex-wrap gap-1.5">
+                ${[
+                  { s: 0, label: '問題図' },
+                  { s: 1, label: '① 見る弧BCを確認' },
+                  { s: 2, label: '② 中心角 ∠BOC' },
+                  { s: 3, label: '③ 二等辺△OBCの底角' },
+                ]
+                  .map(
+                    (b) => `
+                  <button type="button" onclick="state.prob1Step=${b.s}; renderLeftPanel();"
+                    class="px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                      p1s === b.s ? 'bg-orange-600 text-white' : 'bg-white text-slate-700 border border-slate-300 hover:bg-orange-50'
+                    }">
+                    ${b.label}
+                  </button>`
+                  )
+                  .join('')}
+              </div>
+              <div class="flex items-center gap-3 bg-white px-3 py-2 rounded-lg border border-slate-200">
+                <span class="text-xs font-bold text-slate-600 shrink-0">実験：∠BAC を変えてみる</span>
+                <input type="range" min="30" max="80" step="2" value="${state.prob1AngleA}"
+                  oninput="state.prob1AngleA=Number(this.value); renderLeftPanel(); renderRightPanel();"
+                  class="w-full accent-teal-600" />
+                <button type="button" onclick="state.prob1AngleA=64; renderLeftPanel(); renderRightPanel();"
+                  class="text-xs font-bold text-teal-700 underline shrink-0 cursor-pointer">
+                  64°に戻す
+                </button>
+              </div>
+            </div>
+          `;
+        } else {
+          const ptB = { x: 150, y: 230 };
+          const ptC = { x: 450, y: 230 };
+          const ptO = midpoint(ptB, ptC);
+          const radius = 150;
+          const ptA = { x: ptB.x + 180 * 0.6, y: ptB.y - 180 * 0.8 };
+          const p2s = state.prob2Step;
+
+          container.innerHTML = `
+            <div class="bg-white rounded-2xl border-2 border-slate-200 shadow-inner overflow-hidden">
+              <svg viewBox="0 0 600 410" class="w-full h-auto select-none">
+                ${GRID_DEFS}
+                <rect width="600" height="410" fill="url(#mathGrid)" />
+                <circle cx="${ptO.x}" cy="${ptO.y}" r="${radius}" fill="rgba(13, 148, 136, 0.04)" stroke="#0d9488" stroke-width="2.5" />
+                <polygon points="${ptA.x},${ptA.y} ${ptB.x},${ptB.y} ${ptC.x},${ptC.y}" fill="none" stroke="#1e293b" stroke-width="3.5" />
+                ${svgRightAngle(ptA, ptB, ptC, 14, '#1e293b')}
+                ${p2s >= 1 ? `<line x1="${ptB.x}" y1="${ptB.y}" x2="${ptC.x}" y2="${ptC.y}" stroke="#ea580c" stroke-width="4" />` : ''}
+                ${
+                  p2s >= 3
+                    ? `<line x1="${ptO.x}" y1="${ptO.y}" x2="${ptA.x}" y2="${ptA.y}" stroke="#ea580c" stroke-width="2" stroke-dasharray="5 4" />
+                       ${svgTickMark(ptO, ptB, 1, '#ea580c', 7)}
+                       ${svgTickMark(ptO, ptC, 1, '#ea580c', 7)}
+                       ${svgTickMark(ptO, ptA, 1, '#ea580c', 7)}`
+                    : ''
+                }
+                <text x="${(ptA.x + ptB.x) / 2 - 22}" y="${(ptA.y + ptB.y) / 2}" font-size="17" font-weight="bold" fill="#1e293b">6</text>
+                <text x="${(ptA.x + ptC.x) / 2 + 14}" y="${(ptA.y + ptC.y) / 2}" font-size="17" font-weight="bold" fill="#1e293b">8</text>
+                ${
+                  p2s >= 2
+                    ? `<text x="${ptO.x}" y="${ptO.y + 26}" text-anchor="middle" font-size="16" font-weight="bold" fill="#2563eb">斜辺 BC = √(6² + 8²) = 10</text>`
+                    : ''
+                }
+                ${
+                  p2s >= 3
+                    ? `<text x="${(ptB.x + ptO.x) / 2}" y="${ptO.y - 10}" text-anchor="middle" font-size="16" font-weight="bold" fill="#c2410c">R = 5</text>
+                       <text x="${(ptC.x + ptO.x) / 2}" y="${ptO.y - 10}" text-anchor="middle" font-size="16" font-weight="bold" fill="#c2410c">R = 5</text>`
+                    : ''
+                }
+                <circle cx="${ptA.x}" cy="${ptA.y}" r="6" fill="#1e293b" />
+                <text x="${ptA.x - 10}" y="${ptA.y - 12}" font-size="17" font-weight="bold" fill="#1e293b">A</text>
+                <circle cx="${ptB.x}" cy="${ptB.y}" r="6" fill="#1e293b" />
+                <text x="${ptB.x - 22}" y="${ptB.y + 8}" font-size="17" font-weight="bold" fill="#1e293b">B</text>
+                <circle cx="${ptC.x}" cy="${ptC.y}" r="6" fill="#1e293b" />
+                <text x="${ptC.x + 12}" y="${ptC.y + 8}" font-size="17" font-weight="bold" fill="#1e293b">C</text>
+                ${
+                  p2s >= 1
+                    ? `<circle cx="${ptO.x}" cy="${ptO.y}" r="7" fill="#ea580c" />
+                       <text x="${ptO.x - 6}" y="${ptO.y + 46}" font-size="16" font-weight="bold" fill="#c2410c">外心 O（斜辺の中点）</text>`
+                    : ''
+                }
+              </svg>
+            </div>
+            <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 flex flex-wrap gap-1.5">
+              ${[
+                { s: 0, label: '問題図' },
+                { s: 1, label: '① 外心の位置（斜辺中点）' },
+                { s: 2, label: '② 三平方で直径BC' },
+                { s: 3, label: '③ 半径 R = 5' },
+              ]
+                .map(
+                  (b) => `
+                <button type="button" onclick="state.prob2Step=${b.s}; renderLeftPanel();"
+                  class="px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                    p2s === b.s ? 'bg-orange-600 text-white' : 'bg-white text-slate-700 border border-slate-300 hover:bg-orange-50'
+                  }">
+                  ${b.label}
+                </button>`
+                )
+                .join('')}
+            </div>
+          `;
+        }
+        return;
+      }
+
+      // ------------------------------------------
+      // STEP 6: 入試形式の応用（問題3・問題4）
+      // ------------------------------------------
+      if (step === 6) {
+        if (state.advProbTab === 3) {
+          const center = { x: 300, y: 235 };
+          const radius = 150;
+          const rad70 = (70 * Math.PI) / 180;
+          const ptB = { x: center.x - radius * Math.sin(rad70), y: center.y - radius * Math.cos(rad70) };
+          const ptC = { x: center.x + radius * Math.sin(rad70), y: center.y - radius * Math.cos(rad70) };
+          const ptA = { x: center.x - 35, y: center.y - Math.sqrt(radius * radius - 35 * 35) };
+          const p3s = state.prob3Step;
+
+          container.innerHTML = `
+            <div class="bg-white rounded-2xl border-2 border-slate-200 shadow-inner overflow-hidden">
+              <svg viewBox="0 0 600 410" class="w-full h-auto select-none">
+                ${GRID_DEFS}
+                <rect width="600" height="410" fill="url(#mathGrid)" />
+                <circle cx="${center.x}" cy="${center.y}" r="${radius}" fill="none" stroke="#94a3b8" stroke-width="2" />
+                ${
+                  p3s >= 1
+                    ? `<path d="M ${ptB.x} ${ptB.y} A ${radius} ${radius} 0 1 0 ${ptC.x} ${ptC.y}" fill="none" stroke="#10b981" stroke-width="6" stroke-linecap="round" />`
+                    : ''
+                }
+                ${
+                  p3s >= 2
+                    ? `<path d="M ${center.x} ${center.y} L ${ptB.x} ${ptB.y} A ${radius} ${radius} 0 1 0 ${ptC.x} ${ptC.y} Z" fill="rgba(245, 158, 11, 0.14)" />`
+                    : ''
+                }
+                ${
+                  p3s >= 3
+                    ? `<path d="M ${center.x} ${center.y} L ${ptB.x} ${ptB.y} A ${radius} ${radius} 0 0 1 ${ptC.x} ${ptC.y} Z" fill="rgba(37, 99, 235, 0.16)" />`
+                    : ''
+                }
+                <polygon points="${ptA.x},${ptA.y} ${ptB.x},${ptB.y} ${ptC.x},${ptC.y}" fill="none" stroke="#1e293b" stroke-width="3" />
+                <line x1="${center.x}" y1="${center.y}" x2="${ptB.x}" y2="${ptB.y}" stroke="#ea580c" stroke-width="2.5" />
+                <line x1="${center.x}" y1="${center.y}" x2="${ptC.x}" y2="${ptC.y}" stroke="#ea580c" stroke-width="2.5" />
+                ${p3s >= 4 ? svgTickMark(center, ptB, 1, '#ea580c', 7) + svgTickMark(center, ptC, 1, '#ea580c', 7) : ''}
+
+                <text x="${ptA.x + 4}" y="${ptA.y + 24}" font-size="15" font-weight="bold" fill="#1e293b">110°</text>
+                ${
+                  p3s >= 2
+                    ? `<text x="${center.x}" y="${center.y + 52}" text-anchor="middle" font-size="16" font-weight="bold" fill="#d97706">反射角 = 110° × 2 = 220°</text>`
+                    : ''
+                }
+                ${
+                  p3s >= 3
+                    ? `<text x="${center.x}" y="${center.y - 24}" text-anchor="middle" font-size="16" font-weight="bold" fill="#1d4ed8">140°</text>`
+                    : ''
+                }
+                ${
+                  p3s >= 4
+                    ? `<text x="${ptB.x + 26}" y="${ptB.y + 12}" font-size="15" font-weight="bold" fill="#0f766e">20°</text>`
+                    : ''
+                }
+                <circle cx="${ptA.x}" cy="${ptA.y}" r="6" fill="#1e293b" />
+                <text x="${ptA.x - 10}" y="${ptA.y - 10}" font-size="17" font-weight="bold" fill="#1e293b">A</text>
+                <circle cx="${ptB.x}" cy="${ptB.y}" r="6" fill="#1e293b" />
+                <text x="${ptB.x - 22}" y="${ptB.y + 4}" font-size="17" font-weight="bold" fill="#1e293b">B</text>
+                <circle cx="${ptC.x}" cy="${ptC.y}" r="6" fill="#1e293b" />
+                <text x="${ptC.x + 12}" y="${ptC.y + 4}" font-size="17" font-weight="bold" fill="#1e293b">C</text>
+                <circle cx="${center.x}" cy="${center.y}" r="7" fill="#ea580c" />
+                <text x="${center.x - 24}" y="${center.y + 6}" font-size="17" font-weight="bold" fill="#c2410c">O</text>
+              </svg>
+            </div>
+            <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 flex flex-wrap gap-1.5">
+              ${[
+                { s: 0, label: '問題図' },
+                { s: 1, label: '① 長い弧BCを見る' },
+                { s: 2, label: '② 反射角 220°' },
+                { s: 3, label: '③ 小さい角 140°' },
+                { s: 4, label: '④ 底角 ∠OBC = 20°' },
+              ]
+                .map(
+                  (b) => `
+                <button type="button" onclick="state.prob3Step=${b.s}; renderLeftPanel();"
+                  class="px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                    p3s === b.s ? 'bg-blue-600 text-white' : 'bg-white text-slate-700 border border-slate-300 hover:bg-blue-50'
+                  }">
+                  ${b.label}
+                </button>`
+                )
+                .join('')}
+            </div>
+          `;
+        } else {
+          const scale = 38;
+          const origin = { x: 300, y: 185 };
+          const toSvg = (x, y) => ({ x: origin.x + x * scale, y: origin.y - y * scale });
+          const ptA = toSvg(0, 3);
+          const ptB = toSvg(-4, 0);
+          const ptC = toSvg(4, 0);
+          const ptM = toSvg(0, 0);
+          const ptO = toSvg(0, -7 / 6);
+          const radiusSvg = (25 / 6) * scale;
+          const h4 = state.prob4HintLevel;
+
+          container.innerHTML = `
+            <div class="bg-white rounded-2xl border-2 border-slate-200 shadow-inner overflow-hidden">
+              <svg viewBox="0 0 600 410" class="w-full h-auto select-none">
+                ${GRID_DEFS}
+                <rect width="600" height="410" fill="url(#mathGrid)" />
+                ${
+                  h4 >= 2
+                    ? `<circle cx="${ptO.x}" cy="${ptO.y}" r="${radiusSvg}" fill="rgba(13, 148, 136, 0.04)" stroke="#0d9488" stroke-width="2.2" />`
+                    : ''
+                }
+                ${
+                  h4 >= 3
+                    ? `<polygon points="${ptO.x},${ptO.y} ${ptM.x},${ptM.y} ${ptB.x},${ptB.y}" fill="rgba(59, 130, 246, 0.14)" />`
+                    : ''
+                }
+                <polygon points="${ptA.x},${ptA.y} ${ptB.x},${ptB.y} ${ptC.x},${ptC.y}" fill="none" stroke="#1e293b" stroke-width="3.5" />
+                ${
+                  h4 >= 1
+                    ? `<line x1="${ptA.x}" y1="${ptA.y}" x2="${ptM.x}" y2="${ptM.y}" stroke="#2563eb" stroke-width="2.5" />
+                       ${svgRightAngle(ptM, ptA, ptC, 12, '#2563eb')}
+                       <circle cx="${ptM.x}" cy="${ptM.y}" r="5" fill="#2563eb" />
+                       <text x="${ptM.x + 12}" y="${ptM.y - 6}" font-size="15" font-weight="bold" fill="#1d4ed8">M</text>
+                       <text x="${ptM.x + 10}" y="${(ptA.y + ptM.y) / 2}" font-size="15" font-weight="bold" fill="#1d4ed8">AM = 3</text>
+                       <text x="${(ptB.x + ptM.x) / 2}" y="${ptM.y + 18}" text-anchor="middle" font-size="14" font-weight="bold" fill="#1e293b">4</text>
+                       <text x="${(ptC.x + ptM.x) / 2}" y="${ptM.y + 18}" text-anchor="middle" font-size="14" font-weight="bold" fill="#1e293b">4</text>`
+                    : ''
+                }
+                ${
+                  h4 >= 2
+                    ? `<line x1="${ptM.x}" y1="${ptM.y}" x2="${ptO.x}" y2="${ptO.y}" stroke="#ea580c" stroke-width="2.5" />
+                       <circle cx="${ptO.x}" cy="${ptO.y}" r="7" fill="#ea580c" />
+                       <text x="${ptO.x + 12}" y="${ptO.y + 6}" font-size="17" font-weight="bold" fill="#c2410c">O</text>`
+                    : ''
+                }
+                ${
+                  h4 >= 3
+                    ? `<line x1="${ptO.x}" y1="${ptO.y}" x2="${ptB.x}" y2="${ptB.y}" stroke="#ea580c" stroke-width="2.5" />
+                       <line x1="${ptO.x}" y1="${ptO.y}" x2="${ptC.x}" y2="${ptC.y}" stroke="#ea580c" stroke-width="2" stroke-dasharray="5 4" />
+                       <text x="${ptO.x + 10}" y="${(ptM.y + ptO.y) / 2 + 4}" font-size="15" font-weight="bold" fill="#c2410c">OM = x</text>
+                       <text x="${(ptO.x + ptB.x) / 2 - 28}" y="${(ptO.y + ptB.y) / 2 + 16}" font-size="15" font-weight="bold" fill="#c2410c">OB = R</text>`
+                    : ''
+                }
+                <text x="${(ptA.x + ptB.x) / 2 - 18}" y="${(ptA.y + ptB.y) / 2 - 6}" font-size="16" font-weight="bold" fill="#1e293b">5</text>
+                <text x="${(ptA.x + ptC.x) / 2 + 12}" y="${(ptA.y + ptC.y) / 2 - 6}" font-size="16" font-weight="bold" fill="#1e293b">5</text>
+                <circle cx="${ptA.x}" cy="${ptA.y}" r="6" fill="#1e293b" />
+                <text x="${ptA.x - 6}" y="${ptA.y - 12}" font-size="17" font-weight="bold" fill="#1e293b">A</text>
+                <circle cx="${ptB.x}" cy="${ptB.y}" r="6" fill="#1e293b" />
+                <text x="${ptB.x - 22}" y="${ptB.y + 6}" font-size="17" font-weight="bold" fill="#1e293b">B</text>
+                <circle cx="${ptC.x}" cy="${ptC.y}" r="6" fill="#1e293b" />
+                <text x="${ptC.x + 12}" y="${ptC.y + 6}" font-size="17" font-weight="bold" fill="#1e293b">C</text>
+              </svg>
+            </div>
+            <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 flex flex-wrap gap-1.5">
+              ${[
+                { h: 0, label: '問題図' },
+                { h: 1, label: 'ヒント1: AMとBM' },
+                { h: 2, label: 'ヒント2: 外心Oの位置' },
+                { h: 3, label: 'ヒント3: 補助線OBとx' },
+                { h: 4, label: '解答を表示' },
+              ]
+                .map(
+                  (b) => `
+                <button type="button" onclick="state.prob4HintLevel=${b.h}; renderLeftPanel(); renderRightPanel();"
+                  class="px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                    h4 === b.h ? 'bg-teal-600 text-white' : 'bg-white text-slate-700 border border-slate-300 hover:bg-teal-50'
+                  }">
+                  ${b.label}
+                </button>`
+                )
+                .join('')}
+            </div>
+          `;
+        }
+        return;
+      }
+
+      // ------------------------------------------
+      // STEP 7: 外心の本質・3本柱ビジュアルまとめカード
+      // ------------------------------------------
+      container.innerHTML = `
+        <div class="bg-gradient-to-br from-teal-50 via-white to-orange-50 rounded-2xl border-2 border-teal-200 p-5 flex flex-col gap-4 shadow-sm">
+          <div class="flex items-center gap-2 text-teal-800 font-extrabold text-lg">
+            <span>🏆 外心の本質・3本柱まとめ</span>
+          </div>
+          <div class="grid grid-cols-1 gap-3">
+            <div class="bg-white p-3.5 rounded-xl border border-teal-100 shadow-sm">
+              <div class="text-xs font-bold text-teal-600 mb-1">柱① 定義（どうやって見つける？）</div>
+              <div class="text-sm sm:text-base font-bold text-slate-800">
+                三角形の <span class="text-blue-600 underline">3辺の垂直二等分線</span> の交点（2本引けば交点が1つに決まる！）
+              </div>
+            </div>
+            <div class="bg-white p-3.5 rounded-xl border border-orange-100 shadow-sm">
+              <div class="text-xs font-bold text-orange-600 mb-1">柱② 性質（何が等しい？）</div>
+              <div class="text-sm sm:text-base font-bold text-slate-800">
+                外心Oから <span class="text-orange-600 underline">3つの頂点</span> までの距離がすべて等しい（<span class="font-mono">OA = OB = OC = R</span>）
+              </div>
+            </div>
+            <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm">
+              <div class="text-xs font-bold text-slate-500 mb-1">柱③ 三角形の形と位置</div>
+              <div class="grid grid-cols-3 gap-2 text-center mt-1.5 text-xs sm:text-sm font-bold">
+                <div class="bg-emerald-50 text-emerald-800 py-2 px-1 rounded-lg border border-emerald-200">
+                  鋭角三角形<br /><span class="text-base">内部</span>
+                </div>
+                <div class="bg-blue-50 text-blue-800 py-2 px-1 rounded-lg border border-blue-200">
+                  直角三角形<br /><span class="text-base">斜辺の中点</span>
+                </div>
+                <div class="bg-rose-50 text-rose-800 py-2 px-1 rounded-lg border border-rose-200">
+                  鈍角三角形<br /><span class="text-base">外部</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // ==========================================
+    // 7. 右パネル（授業展開・板書・解説・演習）の描画
+    // ==========================================
+    function renderRightPanel() {
+      const container = document.getElementById('right-panel');
+      const stepData = LESSON_STEPS[state.currentStep];
+
+      const topPromptHtml =
+        state.viewMode === 'teacher'
+          ? `<div class="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-xl">
+              <div class="text-amber-800 font-bold text-xs uppercase tracking-wider mb-1">
+                教師の発問・問いかけ（${stepData.time}）
+              </div>
+              <p class="text-slate-800 font-bold text-sm sm:text-base leading-relaxed">
+                ${stepData.teacherPrompt}
+              </p>
+            </div>`
+          : `<div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r-xl">
+              <div class="text-blue-800 font-bold text-xs uppercase tracking-wider mb-1">
+                復習のポイント・操作ガイド
+              </div>
+              <p class="text-slate-700 text-sm sm:text-base leading-relaxed">
+                ${stepData.studentNote}
+              </p>
+            </div>`;
+
+      const boardHtml = `
+        <div class="bg-slate-800 text-white p-4 rounded-xl shadow-md">
+          <div class="text-xs font-bold text-teal-300 mb-2">
+            板書・ここだけは押さえよう！
+          </div>
+          <ul class="space-y-1.5 text-sm leading-relaxed">
+            ${stepData.boardSummary
+              .map(
+                (line) => `
+              <li class="flex items-start gap-2">
+                <span class="text-teal-400 font-bold mt-0.5">•</span>
+                <span>${line}</span>
+              </li>`
+              )
+              .join('')}
+          </ul>
+        </div>
+      `;
+
+      let extraPanelHtml = '';
+
+      // Step 2: 合同証明穴埋め
+      if (state.currentStep === 2) {
+        extraPanelHtml = `
+          <div class="bg-white border border-slate-200 rounded-xl p-4 flex flex-col gap-3">
+            <div class="font-bold text-slate-800 text-sm">
+              ✅ 証明の穴埋め確認（△PMA と △PMB の合同）
+            </div>
+            <div class="text-sm text-slate-700 bg-slate-50 p-3 rounded-lg space-y-1.5 leading-relaxed">
+              <p>△PMA と △PMB において、</p>
+              <p>① MはABの中点だから <span class="font-bold text-red-600 bg-red-50 px-1.5 py-0.5 rounded">AM = BM</span></p>
+              <p>② 共通な辺だから <span class="font-bold text-green-700 bg-green-50 px-1.5 py-0.5 rounded">PM = PM</span></p>
+              <p>③ 垂直だから <span class="font-bold text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded">∠PMA = ∠PMB = 90°</span></p>
+              <p class="pt-1 font-bold text-slate-900">
+                よって、2辺とその間の角がそれぞれ等しいので △PMA ≡ △PMB。合同な図形の対応する辺は等しいから <span class="text-orange-600 underline">PA = PB</span>！
+              </p>
+            </div>
+            <button type="button" onclick="state.showReverseProof = !state.showReverseProof; renderRightPanel();"
+              class="text-xs font-bold text-blue-600 hover:text-blue-800 self-start cursor-pointer">
+              ${state.showReverseProof ? '▲ 逆の証明を閉じる' : '▼ 発展：逆に PA = PB なら垂直二等分線上にある理由'}
+            </button>
+            ${
+              state.showReverseProof
+                ? `<div class="text-xs sm:text-sm text-slate-700 bg-blue-50/70 p-3 rounded-lg border border-blue-100 leading-relaxed">
+                    PA = PB のとき、ABの中点MとPを結ぶと、AM = BM、PM共通、PA = PB より <strong>3辺がそれぞれ等しい（3辺相等）</strong> ので △PMA ≡ △PMB。したがって ∠PMA = ∠PMB となり、直線AB上の平角180°を2等分するので各 <strong>90°</strong>。よってPはABの垂直二等分線上にあります！
+                  </div>`
+                : ''
+            }
+          </div>
+        `;
+      }
+
+      // Step 5: 基本問題1・2
+      if (state.currentStep === 5) {
+        const angA = state.prob1AngleA;
+        extraPanelHtml = `
+          <div class="bg-white border border-slate-200 rounded-xl p-4 flex flex-col gap-3">
+            <div class="flex gap-2 border-b border-slate-200 pb-2">
+              <button type="button" onclick="state.basicProbTab=1; renderLeftPanel(); renderRightPanel();"
+                class="px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                  state.basicProbTab === 1 ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-700'
+                }">
+                問題1（角度の基本）
+              </button>
+              <button type="button" onclick="state.basicProbTab=2; renderLeftPanel(); renderRightPanel();"
+                class="px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                  state.basicProbTab === 2 ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-700'
+                }">
+                問題2（長さの基本）
+              </button>
+            </div>
+            ${
+              state.basicProbTab === 1
+                ? `<div class="space-y-2.5 text-sm">
+                    <div class="font-bold text-slate-900 bg-orange-50 p-3 rounded-lg border border-orange-200">
+                      【問題1】鋭角三角形ABCの外心をOとする。∠BAC = ${angA}° のとき、小さい方の ∠BOC と ∠OBC を求めよ。
+                    </div>
+                    <div class="space-y-1.5 text-slate-700 leading-relaxed">
+                      <p><strong>考え方①：</strong> 円周角 ∠BAC = ${angA}° が見込んでいるのは「Aを含まない弧BC」。同じ弧に対する中心角は2倍なので、<span class="font-bold text-orange-600">∠BOC = ${angA}° × 2 = ${angA * 2}°</span></p>
+                      <p><strong>考え方②：</strong> OB と OC はどちらも外接円の半径だから <span class="font-bold text-teal-700">OB = OC</span>。よって △OBC は二等辺三角形なので、<br />
+                      <span class="font-bold text-teal-700">∠OBC = (180° − ${angA * 2}°) ÷ 2 = ${(180 - angA * 2) / 2}°</span></p>
+                    </div>
+                  </div>`
+                : `<div class="space-y-2.5 text-sm">
+                    <div class="font-bold text-slate-900 bg-orange-50 p-3 rounded-lg border border-orange-200">
+                      【問題2】∠A = 90°、AB = 6、AC = 8 の直角三角形ABCの外接円半径 R を求めよ。
+                    </div>
+                    <div class="space-y-1.5 text-slate-700 leading-relaxed">
+                      <p><strong>考え方①：</strong> ∠A = 90° の直角三角形なので、外心Oは <span class="font-bold text-blue-600">斜辺BCの中点</span> にあり、斜辺BCが外接円の直径になります。</p>
+                      <p><strong>考え方②：</strong> 三平方の定理より BC² = 6² + 8² = 36 + 64 = 100 → <span class="font-bold">BC = 10</span>。</p>
+                      <p><strong>考え方③：</strong> 半径 R は直径BCの半分なので、<span class="font-bold text-orange-600">R = 10 ÷ 2 = 5</span>（※10のまま答えないよう注意！）。</p>
+                    </div>
+                  </div>`
+            }
+          </div>
+        `;
+      }
+
+      // Step 6: 入試応用問題3・4
+      if (state.currentStep === 6) {
+        const h4 = state.prob4HintLevel;
+        extraPanelHtml = `
+          <div class="bg-white border border-slate-200 rounded-xl p-4 flex flex-col gap-3">
+            <div class="flex gap-2 border-b border-slate-200 pb-2">
+              <button type="button" onclick="state.advProbTab=3; renderLeftPanel(); renderRightPanel();"
+                class="px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                  state.advProbTab === 3 ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-700'
+                }">
+                問題3（鈍角三角形の角度）
+              </button>
+              <button type="button" onclick="state.advProbTab=4; renderLeftPanel(); renderRightPanel();"
+                class="px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                  state.advProbTab === 4 ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-700'
+                }">
+                問題4（補助線で半径R）
+              </button>
+            </div>
+            ${
+              state.advProbTab === 3
+                ? `<div class="space-y-2.5 text-sm">
+                    <div class="font-bold text-slate-900 bg-blue-50 p-3 rounded-lg border border-blue-200">
+                      【問題3】△ABC で ∠BAC = 110°、外心をOとする。小さい方の ∠BOC と ∠OBC を求め、なぜ中心角を単純に 220° と答えないのか説明せよ。
+                    </div>
+                    <div class="space-y-1.5 text-slate-700 leading-relaxed">
+                      <p><strong>なぜ220°ではない？：</strong> 円周角 110° が見込んでいるのは「Aを含まない長い弧BC（緑色）」。それを2倍した 220° は <span class="font-bold text-amber-700">180°を超える反射角（下側）</span> だからです！</p>
+                      <p><strong>小さい方の ∠BOC：</strong> 1周 360° から引いて <span class="font-bold text-blue-700">360° − 220° = 140°</span></p>
+                      <p><strong>∠OBC：</strong> OB = OC の二等辺三角形より <span class="font-bold text-teal-700">(180° − 140°) ÷ 2 = 20°</span></p>
+                    </div>
+                  </div>`
+                : `<div class="space-y-2.5 text-sm">
+                    <div class="font-bold text-slate-900 bg-teal-50 p-3 rounded-lg border border-teal-200">
+                      【問題4】AB = AC = 5、BC = 8 の二等辺三角形ABCの外心をO、BCの中点をMとする。AM、外心の位置、外接円半径 R を求めよ。
+                    </div>
+                    <div class="space-y-2">
+                      ${
+                        h4 >= 1
+                          ? `<div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200 text-xs sm:text-sm">
+                              <span class="font-bold text-blue-700">ヒント1：</span> 二等辺三角形の頂角から底辺の中点Mに引いた線は垂直（AM ⊥ BC）。BM = 4 なので三平方の定理より <strong>AM = √(5² − 4²) = 3</strong>。
+                            </div>`
+                          : ''
+                      }
+                      ${
+                        h4 >= 2
+                          ? `<div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200 text-xs sm:text-sm">
+                              <span class="font-bold text-blue-700">ヒント2：</span> 外心OはBCの垂直二等分線上にあるので直線AM上。また BC² = 64 &gt; AB² + AC² = 50 より ∠A は鈍角なので、Oは三角形の外部（<strong>Mの下側</strong>）にあります。
+                            </div>`
+                          : ''
+                      }
+                      ${
+                        h4 >= 3
+                          ? `<div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200 text-xs sm:text-sm">
+                              <span class="font-bold text-blue-700">ヒント3：</span> OM = x とおくと、外接円半径は <strong>OA = AM + OM = 3 + x</strong>。一方、直角三角形OMBで三平方の定理より <strong>OB² = x² + 4² = x² + 16</strong>。
+                            </div>`
+                          : ''
+                      }
+                      ${
+                        h4 >= 4
+                          ? `<div class="bg-orange-50 p-3 rounded-lg border border-orange-200 text-xs sm:text-sm space-y-1">
+                              <div class="font-bold text-orange-800">【解答】</div>
+                              <p>OA と OB はどちらも外接円の半径で等しい（OA = OB）から、OA² = OB² より：</p>
+                              <p class="font-mono font-bold text-slate-900 bg-white px-2 py-1 rounded">
+                                (3 + x)² = x² + 16 ⇔ 9 + 6x + x² = x² + 16 ⇔ 6x = 7 ⇔ x = 7/6
+                              </p>
+                              <p class="font-bold text-teal-800">
+                                よって、外接円半径 R = OA = 3 + 7/6 = <span class="text-base underline">25/6</span>
+                              </p>
+                            </div>`
+                          : ''
+                      }
+                      ${
+                        h4 < 4
+                          ? `<button type="button" onclick="state.prob4HintLevel = Math.min(4, state.prob4HintLevel + 1); renderLeftPanel(); renderRightPanel();"
+                              class="w-full py-2 bg-teal-600 text-white rounded-lg text-xs font-bold hover:bg-teal-700 cursor-pointer">
+                              💡 次のヒント／解答を開く（現在 ${h4}/4）
+                            </button>`
+                          : ''
+                      }
+                    </div>
+                  </div>`
+            }
+          </div>
+        `;
+      }
+
+      // Step 7: 出口課題＆復習用オリジナルドリル
+      if (state.currentStep === 7) {
+        const keywordsHtml = ['頂点', '垂直二等分線', '等しい']
+          .map((kw) => {
+            const hasKw = state.exitText.includes(kw);
+            return `<span class="px-2 py-0.5 rounded-full font-bold ${
+              hasKw ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-400'
+            }">${hasKw ? '✓ ' : ''}${kw}</span>`;
+          })
+          .join('');
+
+        const drillsHtml = DRILL_PROBLEMS.map((item) => {
+          const isOpen = !!state.openDrillAnswers[item.id];
+          return `
+            <div class="border border-slate-200 rounded-lg p-3 bg-slate-50/60">
+              <div class="flex items-start justify-between gap-2">
+                <div class="text-xs sm:text-sm font-medium text-slate-800">
+                  <span class="inline-block bg-teal-700 text-white text-xs font-bold px-2 py-0.5 rounded mr-1.5">
+                    練習${item.id}（${item.level}）
+                  </span>
+                  ${item.q}
+                </div>
+                <button type="button" onclick="state.openDrillAnswers['${item.id}'] = !state.openDrillAnswers['${item.id}']; renderRightPanel();"
+                  class="shrink-0 px-2.5 py-1 bg-white border border-slate-300 rounded text-xs font-bold text-slate-700 hover:bg-slate-100 cursor-pointer">
+                  ${isOpen ? '閉じる' : '解答'}
+                </button>
+              </div>
+              ${
+                isOpen
+                  ? `<div class="mt-2 pt-2 border-t border-slate-200 text-xs sm:text-sm font-bold text-teal-900 bg-teal-50/80 p-2.5 rounded">
+                      ${item.a}
+                    </div>`
+                  : ''
+              }
+            </div>
+          `;
+        }).join('');
+
+        extraPanelHtml = `
+          <div class="bg-white border-2 border-indigo-200 rounded-xl p-4 space-y-3">
+            <div class="font-extrabold text-indigo-900 text-sm sm:text-base">
+              ✨ 【46〜50分】出口課題：自分の言葉で説明しよう
+            </div>
+            <div class="space-y-2">
+              <p class="text-xs sm:text-sm font-bold text-slate-800">
+                課題①：「3地点から同じ距離の場所を探す人」に、外心をどのように探すか、なぜそれでよいかを3文程度で説明しなさい。（キーワード：「頂点」「垂直二等分線」「等しい」）
+              </p>
+              <textarea rows="3"
+                oninput="state.exitText = this.value; document.getElementById('kw-badges').innerHTML = ['頂点', '垂直二等分線', '等しい'].map(kw => { const ok = state.exitText.includes(kw); return '<span class=\\'px-2 py-0.5 rounded-full font-bold ' + (ok ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-400') + '\\'>' + (ok ? '✓ ' : '') + kw + '</span>'; }).join('');"
+                placeholder="例：外心は3つの頂点からの距離が等しい点です。まず..."
+                class="w-full p-2.5 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">${state.exitText}</textarea>
+              <div class="flex flex-wrap items-center gap-2 text-xs">
+                <span class="text-slate-500 font-semibold">キーワードチェック：</span>
+                <div id="kw-badges" class="flex flex-wrap gap-1.5">${keywordsHtml}</div>
+                <button type="button" onclick="state.showExitAnswer = !state.showExitAnswer; renderRightPanel();"
+                  class="ml-auto text-indigo-600 font-bold underline cursor-pointer">
+                  ${state.showExitAnswer ? '模範解答を隠す' : '模範解答を見る'}
+                </button>
+              </div>
+              ${
+                state.showExitAnswer
+                  ? `<div class="bg-indigo-50 p-3 rounded-lg text-xs sm:text-sm text-indigo-950 border border-indigo-200 leading-relaxed">
+                      <strong>模範解答例：</strong>
+                      外心は3つの<strong>頂点</strong>からの距離が<strong>等しい</strong>点です。ABとACの<strong>垂直二等分線</strong>の交点Oを取ります。それぞれ OA = OB、OA = OC になるので、OA = OB = OC となり、Oを中心に3頂点を通る円が描けます。
+                    </div>`
+                  : ''
+              }
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-2 border-t border-slate-100">
+              <div class="bg-slate-50 p-3 rounded-lg">
+                <p class="text-xs font-bold text-slate-800 mb-2">課題②：直角三角形の斜辺が12のとき、外心の位置と半径は？</p>
+                <div class="flex gap-1.5">
+                  ${['斜辺の中点・半径6', '内部・半径12']
+                    .map(
+                      (opt) => `
+                    <button type="button" onclick="state.exitQuiz2='${opt}'; renderRightPanel();"
+                      class="flex-1 py-1.5 px-2 rounded text-xs font-bold border cursor-pointer ${
+                        state.exitQuiz2 === opt
+                          ? opt === '斜辺の中点・半径6'
+                            ? 'bg-emerald-600 text-white border-emerald-600'
+                            : 'bg-rose-600 text-white border-rose-600'
+                          : 'bg-white text-slate-700 border-slate-300'
+                      }">
+                      ${opt}
+                    </button>`
+                    )
+                    .join('')}
+                </div>
+                ${
+                  state.exitQuiz2
+                    ? `<p class="text-xs mt-1.5 font-bold ${state.exitQuiz2 === '斜辺の中点・半径6' ? 'text-emerald-700' : 'text-rose-700'}">
+                        ${
+                          state.exitQuiz2 === '斜辺の中点・半径6'
+                            ? '正解！斜辺が直径12なので、その中点が外心で半径は半分6です。'
+                            : '惜しい！斜辺12は「直径」なので、半径はその半分の6になります。'
+                        }
+                      </p>`
+                    : ''
+                }
+              </div>
+
+              <div class="bg-slate-50 p-3 rounded-lg">
+                <p class="text-xs font-bold text-slate-800 mb-2">課題③：鈍角三角形の3頂点から等距離で、内部にある点は存在する？</p>
+                <div class="flex gap-1.5">
+                  ${['存在する', '存在しない']
+                    .map(
+                      (opt) => `
+                    <button type="button" onclick="state.exitQuiz3='${opt}'; renderRightPanel();"
+                      class="flex-1 py-1.5 px-2 rounded text-xs font-bold border cursor-pointer ${
+                        state.exitQuiz3 === opt
+                          ? opt === '存在しない'
+                            ? 'bg-emerald-600 text-white border-emerald-600'
+                            : 'bg-rose-600 text-white border-rose-600'
+                          : 'bg-white text-slate-700 border-slate-300'
+                      }">
+                      ${opt}
+                    </button>`
+                    )
+                    .join('')}
+                </div>
+                ${
+                  state.exitQuiz3
+                    ? `<p class="text-xs mt-1.5 font-bold ${state.exitQuiz3 === '存在しない' ? 'text-emerald-700' : 'text-rose-700'}">
+                        ${
+                          state.exitQuiz3 === '存在しない'
+                            ? '正解！3頂点から等距離の点はただ1つの外心だけで、鈍角三角形の外心は外部にあるからです。'
+                            : '注意！3頂点から等距離の点は外心ただ1つで、鈍角三角形では必ず外部に出ます。'
+                        }
+                      </p>`
+                    : ''
+                }
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white border border-slate-200 rounded-xl p-4 space-y-2.5">
+            <div class="font-bold text-slate-800 text-sm">
+              📝 復習用・段階別練習ドリル（練習A〜E）
+            </div>
+            ${drillsHtml}
+          </div>
+        `;
+      }
+
+      container.innerHTML = topPromptHtml + boardHtml + extraPanelHtml;
+    }
+
+    // ==========================================
+    // 8. ナビゲーション＆全体の再描画
+    // ==========================================
+    function renderTimelineAndHeader() {
+      const nav = document.getElementById('timeline-nav');
+      nav.innerHTML = LESSON_STEPS.map((step, idx) => {
+        const isActive = idx === state.currentStep;
+        return `
+          <button type="button" onclick="setStep(${idx})"
+            class="px-3 py-1.5 rounded-xl text-left transition border flex flex-col cursor-pointer ${
+              isActive
+                ? 'bg-teal-600 text-white border-teal-600 shadow-sm'
+                : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+            }">
+            <span class="text-[10px] font-bold ${isActive ? 'text-teal-100' : 'text-slate-400'}">${step.time}</span>
+            <span class="text-xs font-extrabold whitespace-nowrap">${step.shortTitle}</span>
+          </button>
+        `;
+      }).join('');
+
+      const activeStepObj = LESSON_STEPS[state.currentStep];
+      document.getElementById('step-time-badge').textContent = `目安時間：${activeStepObj.time}`;
+      document.getElementById('step-goal-text').textContent = `到達目標：${activeStepObj.goal}`;
+      document.getElementById('step-title-text').textContent = activeStepObj.title;
+
+      const btnPrev = document.getElementById('btn-prev-step');
+      const btnNext = document.getElementById('btn-next-step');
+      btnPrev.disabled = state.currentStep === 0;
+      btnNext.disabled = state.currentStep === LESSON_STEPS.length - 1;
+
+      // モードボタンの見た目更新
+      const btnTeacher = document.getElementById('btn-mode-teacher');
+      const btnStudent = document.getElementById('btn-mode-student');
+      if (state.viewMode === 'teacher') {
+        btnTeacher.className = 'px-2.5 py-1.5 rounded-lg flex items-center gap-1 transition cursor-pointer bg-amber-500 text-slate-950 shadow';
+        btnStudent.className = 'px-2.5 py-1.5 rounded-lg flex items-center gap-1 transition cursor-pointer text-slate-300 hover:text-white';
+      } else {
+        btnTeacher.className = 'px-2.5 py-1.5 rounded-lg flex items-center gap-1 transition cursor-pointer text-slate-300 hover:text-white';
+        btnStudent.className = 'px-2.5 py-1.5 rounded-lg flex items-center gap-1 transition cursor-pointer bg-blue-500 text-white shadow';
+      }
+    }
+
+    function renderAll() {
+      renderTimelineAndHeader();
+      renderLeftPanel();
+      renderRightPanel();
+    }
+
+    // ==========================================
+    // 9. 初期イベント登録＆初回レンダリング
+    // ==========================================
+    document.getElementById('btn-mode-teacher').addEventListener('click', () => {
+      state.viewMode = 'teacher';
+      renderTimelineAndHeader();
+      renderRightPanel();
+    });
+
+    document.getElementById('btn-mode-student').addEventListener('click', () => {
+      state.viewMode = 'student';
+      renderTimelineAndHeader();
+      renderRightPanel();
+    });
+
+    document.getElementById('btn-prev-step').addEventListener('click', () => {
+      if (state.currentStep > 0) setStep(state.currentStep - 1);
+    });
+
+    document.getElementById('btn-next-step').addEventListener('click', () => {
+      if (state.currentStep < LESSON_STEPS.length - 1) setStep(state.currentStep + 1);
+    });
+
+    // 内心 vs 外心 比較モーダル制御
+    const compareModal = document.getElementById('compare-modal');
+    document.getElementById('btn-open-compare').addEventListener('click', () => {
+      compareModal.classList.remove('hidden');
+      compareModal.classList.add('flex');
+    });
+    document.getElementById('btn-close-compare').addEventListener('click', () => {
+      compareModal.classList.add('hidden');
+      compareModal.classList.remove('flex');
+    });
+    compareModal.addEventListener('click', (e) => {
+      if (e.target === compareModal) {
+        compareModal.classList.add('hidden');
+        compareModal.classList.remove('flex');
+      }
+    });
+
+    window.addEventListener('DOMContentLoaded', () => {
+      renderAll();
+    });
+  </script>
+</body>
+</html>

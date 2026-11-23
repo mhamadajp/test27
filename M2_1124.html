@@ -1,0 +1,2035 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>高校数学Ⅱ「加法定理」インタラクティブ授業＆復習アプリ</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- KaTeX CDN（分数・平方根などの数式オブジェクト描画用） -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+  <!-- Google Fonts: Inter & Noto Sans JP -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      font-family: 'Inter', 'Noto Sans JP', sans-serif;
+    }
+    .katex {
+      font-size: 1.08em;
+    }
+    /* フォールバック用縦分数スタイル */
+    .math-frac {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      vertical-align: middle;
+      margin: 0 0.15em;
+      line-height: 1.1;
+    }
+    .math-frac > span:first-child {
+      border-bottom: 1.5px solid currentColor;
+      padding: 0 0.2em 1px;
+    }
+    .math-frac > span:last-child {
+      padding: 1px 0.2em 0;
+    }
+    ::-webkit-scrollbar {
+      height: 6px;
+      width: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-slate-100 text-slate-900 flex flex-col">
+
+  <!-- ヘッダーバー -->
+  <header class="bg-slate-900 text-white px-4 py-3 shadow-md sticky top-0 z-30">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-2.5">
+        <div class="bg-indigo-500 p-2 rounded-xl text-white flex items-center justify-center">
+          <!-- 単位円・角度アイコン SVG -->
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="9" />
+            <line x1="12" y1="12" x2="19.5" y2="7.5" />
+            <line x1="12" y1="12" x2="21" y2="12" />
+            <path d="M 16 12 A 4 4 0 0 0 15.3 9.8" />
+          </svg>
+        </div>
+        <div>
+          <div class="text-xs text-indigo-300 font-bold tracking-wide">高校数学Ⅱ｜三角関数（40分授業モデル）</div>
+          <h1 class="text-base sm:text-lg font-extrabold leading-tight">
+            加法定理 — 正弦を使いこなし、余弦へつなぐ
+          </h1>
+        </div>
+      </div>
+
+      <!-- 右側コントロール：支援カード・比較表・モード切替 -->
+      <div class="flex flex-wrap items-center gap-2">
+        <button
+          id="btn-open-values"
+          type="button"
+          class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-300 border border-slate-700 text-xs sm:text-sm font-bold flex items-center gap-1.5 transition cursor-pointer"
+        >
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="4" width="18" height="16" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="9" y1="4" x2="9" y2="20"/>
+          </svg>
+          <span>基本角の値カード</span>
+        </button>
+
+        <button
+          id="btn-open-compare"
+          type="button"
+          class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-teal-300 border border-slate-700 text-xs sm:text-sm font-bold flex items-center gap-1.5 transition cursor-pointer"
+        >
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>
+          </svg>
+          <span>正弦 vs 余弦 比較</span>
+        </button>
+
+        <div class="bg-slate-800 p-1 rounded-xl border border-slate-700 flex text-xs font-bold">
+          <button
+            id="btn-mode-teacher"
+            type="button"
+            class="px-2.5 py-1.5 rounded-lg flex items-center gap-1 transition cursor-pointer bg-amber-500 text-slate-950 shadow"
+          >
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <path d="M2 3h20"/><path d="M21 3v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V3"/><path d="m7 21 5-5 5 5"/>
+            </svg>
+            <span>授業提示</span>
+          </button>
+          <button
+            id="btn-mode-student"
+            type="button"
+            class="px-2.5 py-1.5 rounded-lg flex items-center gap-1 transition cursor-pointer text-slate-300 hover:text-white"
+          >
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+            </svg>
+            <span>生徒復習</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- 40分授業タイムライン・ステップナビゲーション -->
+  <nav class="bg-white border-b border-slate-200 px-3 py-2.5 shadow-sm overflow-x-auto">
+    <div id="timeline-nav" class="max-w-7xl mx-auto flex items-center gap-1.5 min-w-max">
+      <!-- JSで7ステップのボタンを動的生成 -->
+    </div>
+  </nav>
+
+  <!-- 現在のモード案内バナー（授業提示 vs 生徒復習の違いを明示） -->
+  <div id="mode-banner" class="max-w-7xl w-full mx-auto px-3 sm:px-5 pt-3">
+    <!-- JSでモードに応じたバナーを描画 -->
+  </div>
+
+  <!-- メインコンテンツエリア -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-3 sm:p-5 flex flex-col gap-4">
+    <!-- ステップタイトル＆到達目標ヘッダー -->
+    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div>
+        <div class="flex flex-wrap items-center gap-2 mb-1">
+          <span id="step-time-badge" class="bg-indigo-100 text-indigo-800 text-xs font-extrabold px-2.5 py-0.5 rounded-full">
+            目安時間：0〜5分
+          </span>
+          <span id="step-goal-text" class="text-xs text-slate-500 font-semibold">
+            到達目標：...
+          </span>
+        </div>
+        <h2 id="step-title-text" class="text-lg sm:text-xl font-extrabold text-slate-900">
+          ステップタイトル
+        </h2>
+      </div>
+
+      <!-- 前へ・次へナビボタン -->
+      <div class="flex items-center gap-2 self-end sm:self-center shrink-0">
+        <button
+          id="btn-prev-step"
+          type="button"
+          class="px-3 py-2 rounded-xl border border-slate-300 bg-white text-slate-700 text-xs font-bold flex items-center gap-1 disabled:opacity-40 hover:bg-slate-50 cursor-pointer"
+        >
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="15 18 9 12 15 6"/></svg>
+          前へ
+        </button>
+        <button
+          id="btn-next-step"
+          type="button"
+          class="px-3.5 py-2 rounded-xl bg-slate-900 text-white text-xs font-bold flex items-center gap-1 disabled:opacity-40 hover:bg-slate-800 cursor-pointer"
+        >
+          次の活動へ
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- 左右2カラムレイアウト -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+      <!-- 左側：インタラクティブ図形・構造キャンバス（7カラム） -->
+      <div id="left-panel" class="lg:col-span-7 flex flex-col gap-3">
+        <!-- JSでステップに応じたビジュアル・操作UIを描画 -->
+      </div>
+
+      <!-- 右側：授業展開・板書・丁寧解説・演習（5カラム） -->
+      <div id="right-panel" class="lg:col-span-5 flex flex-col gap-4">
+        <!-- JSでステップに応じた解説・問題・演習を描画 -->
+      </div>
+    </div>
+  </main>
+
+  <!-- 基本角の値カード モーダル（理解に不安のある生徒への常設支援） -->
+  <div
+    id="values-modal"
+    class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden items-center justify-center p-4"
+  >
+    <div
+      class="bg-white rounded-2xl max-w-2xl w-full p-5 sm:p-6 shadow-2xl border border-slate-200 max-h-[90vh] overflow-y-auto"
+    >
+      <div class="flex items-center justify-between border-b border-slate-200 pb-3 mb-4">
+        <h3 class="text-base sm:text-lg font-extrabold text-slate-900 flex items-center gap-2">
+          <span class="bg-amber-100 text-amber-800 px-2 py-0.5 rounded-lg text-sm">支援ツール</span>
+          基本角（30°・45°・60°）の三角比 値カード
+        </h3>
+        <button
+          id="btn-close-values"
+          type="button"
+          class="px-3 py-1 bg-slate-100 hover:bg-slate-200 rounded-lg text-xs font-bold text-slate-700 cursor-pointer"
+        >
+          閉じる
+        </button>
+      </div>
+
+      <!-- 2種類の直角三角形ビジュアル -->
+      <div class="grid grid-cols-2 gap-3 mb-4">
+        <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 flex flex-col items-center">
+          <div class="text-xs font-bold text-slate-700 mb-1">30°・60°・90° の三角定規（1 : 2 : √3）</div>
+          <svg viewBox="0 0 220 130" class="w-full max-w-[200px] h-auto">
+            <polygon points="30,105 180,105 180,20" fill="rgba(59,130,246,0.08)" stroke="#1e293b" stroke-width="2" />
+            <polyline points="168,105 168,93 180,93" fill="none" stroke="#1e293b" stroke-width="1.5" />
+            <text x="52" y="98" font-size="11" font-weight="bold" fill="#1e293b">30°</text>
+            <text x="155" y="48" font-size="11" font-weight="bold" fill="#1e293b">60°</text>
+            <text x="95" y="55" font-size="13" font-weight="bold" fill="#0f766e">2</text>
+            <text x="186" y="68" font-size="13" font-weight="bold" fill="#2563eb">1</text>
+            <!-- √3（屋根付き数式表現） -->
+            <text x="96" y="122" font-size="13" font-weight="bold" fill="#ea580c">√3</text>
+            <line x1="104" y1="110" x2="113" y2="110" stroke="#ea580c" stroke-width="1.4" />
+          </svg>
+        </div>
+
+        <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 flex flex-col items-center">
+          <div class="text-xs font-bold text-slate-700 mb-1">45°・45°・90° の三角定規（1 : 1 : √2）</div>
+          <svg viewBox="0 0 220 130" class="w-full max-w-[200px] h-auto">
+            <polygon points="55,105 155,105 155,25" fill="rgba(234,88,12,0.08)" stroke="#1e293b" stroke-width="2" />
+            <polyline points="143,105 143,93 155,93" fill="none" stroke="#1e293b" stroke-width="1.5" />
+            <text x="72" y="98" font-size="11" font-weight="bold" fill="#1e293b">45°</text>
+            <text x="132" y="52" font-size="11" font-weight="bold" fill="#1e293b">45°</text>
+            <!-- √2（屋根付き数式表現） -->
+            <text x="86" y="58" font-size="13" font-weight="bold" fill="#0f766e">√2</text>
+            <line x1="94" y1="46" x2="103" y2="46" stroke="#0f766e" stroke-width="1.4" />
+            <text x="162" y="68" font-size="13" font-weight="bold" fill="#2563eb">1</text>
+            <text x="100" y="121" font-size="13" font-weight="bold" fill="#ea580c">1</text>
+          </svg>
+        </div>
+      </div>
+
+      <!-- 値一覧表（sin=青, cos=橙, 数式オブジェクト表示） -->
+      <div class="overflow-x-auto">
+        <table class="w-full text-center border-collapse text-sm">
+          <thead>
+            <tr class="bg-slate-800 text-white">
+              <th class="p-2.5 border border-slate-700">角 $\theta$</th>
+              <th class="p-2.5 border border-slate-700">$0^\circ$</th>
+              <th class="p-2.5 border border-slate-700 bg-indigo-900">$30^\circ$</th>
+              <th class="p-2.5 border border-slate-700 bg-indigo-900">$45^\circ$</th>
+              <th class="p-2.5 border border-slate-700 bg-indigo-900">$60^\circ$</th>
+              <th class="p-2.5 border border-slate-700">$90^\circ$</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="bg-blue-50/60">
+              <td class="p-3 border border-slate-200 font-extrabold text-blue-700">$\sin \theta$（縦・高さ）</td>
+              <td class="p-3 border border-slate-200 font-bold text-slate-600">$0$</td>
+              <td class="p-3 border border-slate-200 font-extrabold text-blue-700 text-base">$\dfrac{1}{2}$</td>
+              <td class="p-3 border border-slate-200 font-extrabold text-blue-700 text-base">$\dfrac{\sqrt{2}}{2}$</td>
+              <td class="p-3 border border-slate-200 font-extrabold text-blue-700 text-base">$\dfrac{\sqrt{3}}{2}$</td>
+              <td class="p-3 border border-slate-200 font-bold text-slate-600">$1$</td>
+            </tr>
+            <tr class="bg-orange-50/60">
+              <td class="p-3 border border-slate-200 font-extrabold text-orange-700">$\cos \theta$（横・幅）</td>
+              <td class="p-3 border border-slate-200 font-bold text-slate-600">$1$</td>
+              <td class="p-3 border border-slate-200 font-extrabold text-orange-700 text-base">$\dfrac{\sqrt{3}}{2}$</td>
+              <td class="p-3 border border-slate-200 font-extrabold text-orange-700 text-base">$\dfrac{\sqrt{2}}{2}$</td>
+              <td class="p-3 border border-slate-200 font-extrabold text-orange-700 text-base">$\dfrac{1}{2}$</td>
+              <td class="p-3 border border-slate-200 font-bold text-slate-600">$0$</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="mt-3 text-xs text-slate-600 bg-slate-100 p-2.5 rounded-xl leading-relaxed">
+        <strong>💡 思い出し方のコツ：</strong> 分子に注目すると、<strong>$\sin$</strong> は $30^\circ \to 45^\circ \to 60^\circ$ の順に <span class="text-blue-700 font-bold">$\sqrt{1},\ \sqrt{2},\ \sqrt{3}$</span>（分母はすべて $2$）と増えていき、<strong>$\cos$</strong> は逆に <span class="text-orange-700 font-bold">$\sqrt{3},\ \sqrt{2},\ \sqrt{1}$</span> と減っていきます！（※$45^\circ$ は $\frac{1}{\sqrt{2}}$ を有理化した $\frac{\sqrt{2}}{2}$ で統一すると分母がそろって計算しやすくなります）
+      </div>
+    </div>
+  </div>
+
+  <!-- 正弦 vs 余弦 比較モーダル -->
+  <div
+    id="compare-modal"
+    class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden items-center justify-center p-4"
+  >
+    <div
+      class="bg-white rounded-2xl max-w-2xl w-full p-5 sm:p-6 shadow-2xl border border-slate-200 max-h-[90vh] overflow-y-auto"
+    >
+      <div class="flex items-center justify-between border-b border-slate-200 pb-3 mb-4">
+        <h3 class="text-base sm:text-lg font-extrabold text-slate-900">
+          正弦（sin）と 余弦（cos）の加法定理 徹底比較
+        </h3>
+        <button
+          id="btn-close-compare"
+          type="button"
+          class="px-3 py-1 bg-slate-100 hover:bg-slate-200 rounded-lg text-xs font-bold text-slate-700 cursor-pointer"
+        >
+          閉じる
+        </button>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-xs sm:text-sm border-collapse">
+          <thead>
+            <tr class="bg-slate-100 text-slate-800">
+              <th class="p-2.5 border border-slate-200 text-left">比べるポイント</th>
+              <th class="p-2.5 border border-slate-200 text-left text-blue-700 bg-blue-50/70">正弦の加法定理 sin(α + β)</th>
+              <th class="p-2.5 border border-slate-200 text-left text-orange-700 bg-orange-50/70">余弦の加法定理 cos(α + β)</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-200">
+            <tr>
+              <td class="p-2.5 border border-slate-200 font-bold bg-slate-50">公式</td>
+              <td class="p-2.5 border border-slate-200 font-extrabold text-sm">
+                <span class="text-blue-600">sinα</span><span class="text-orange-600">cosβ</span>
+                <span class="text-red-600"> ＋ </span>
+                <span class="text-orange-600">cosα</span><span class="text-blue-600">sinβ</span>
+              </td>
+              <td class="p-2.5 border border-slate-200 font-extrabold text-sm">
+                <span class="text-orange-600">cosα</span><span class="text-orange-600">cosβ</span>
+                <span class="text-red-600"> − </span>
+                <span class="text-blue-600">sinα</span><span class="text-blue-600">sinβ</span>
+              </td>
+            </tr>
+            <tr>
+              <td class="p-2.5 border border-slate-200 font-bold bg-slate-50">かけ算の組合せ</td>
+              <td class="p-2.5 border border-slate-200"><strong>交差する積</strong>（sin と cos が交互）</td>
+              <td class="p-2.5 border border-slate-200"><strong>同じ種類の積</strong>（cos同士・sin同士）</td>
+            </tr>
+            <tr>
+              <td class="p-2.5 border border-slate-200 font-bold bg-slate-50">中央の符号</td>
+              <td class="p-2.5 border border-slate-200 font-bold text-red-600">＋（たし算）</td>
+              <td class="p-2.5 border border-slate-200 font-bold text-red-600">−（ひき算）※要注意！</td>
+            </tr>
+            <tr>
+              <td class="p-2.5 border border-slate-200 font-bold bg-slate-50">単位円での意味</td>
+              <td class="p-2.5 border border-slate-200">回転後の <strong>縦座標（$y$座標）</strong></td>
+              <td class="p-2.5 border border-slate-200">回転後の <strong>横座標（$x$座標）</strong></td>
+            </tr>
+            <tr>
+              <td class="p-2.5 border border-slate-200 font-bold bg-slate-50">$75^\circ$ での計算結果</td>
+              <td class="p-2.5 border border-slate-200 font-bold text-blue-700">$\sin 75^\circ = \dfrac{\sqrt{6} + \sqrt{2}}{4} \fallingdotseq 0.966$</td>
+              <td class="p-2.5 border border-slate-200 font-bold text-orange-700">$\cos 75^\circ = \dfrac{\sqrt{6} - \sqrt{2}}{4} \fallingdotseq 0.259$</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="mt-4 bg-amber-50 border border-amber-200 p-3 rounded-xl text-xs sm:text-sm text-slate-800 leading-relaxed">
+        <strong>先生のまとめ：</strong>
+        「公式を丸暗記して符号に迷ったら、<strong>$\alpha = 45^\circ,\ \beta = 45^\circ$</strong> を頭の中で入れてみましょう！<br />
+        <strong>$\cos(45^\circ+45^\circ) = \cos 90^\circ = 0$</strong> になるので、同じ数（$\frac{1}{2}$ と $\frac{1}{2}$）を引いて $0$ にする<strong>『$-$』</strong>が正しいと一瞬で検算できます！」
+      </div>
+    </div>
+  </div>
+
+  <!-- JavaScript ロジック -->
+  <script>
+    // ==========================================
+    // 0. 数式オブジェクト（KaTeX）描画ヘルパー
+    // ==========================================
+    function renderMathInContainer(el) {
+      if (!el) return;
+      if (typeof renderMathInElement === 'function') {
+        renderMathInElement(el, {
+          delimiters: [
+            { left: '$$', right: '$$', display: true },
+            { left: '$', right: '$', display: false },
+          ],
+          throwOnError: false,
+        });
+      }
+    }
+
+    // ==========================================
+    // 1. 40分授業指導案データ（全7ステップ）
+    // ==========================================
+    const LESSON_STEPS = [
+      {
+        id: 0,
+        time: '0〜5分',
+        shortTitle: '1. 違和感をつくる',
+        title: '導入：sin(30° + 45°) と sin 30° + sin 45° は同じ？',
+        goal: 'sin(α + β) が sin α + sin β ではないことを、図と数値の違和感から説明できる。',
+        teacherPrompt:
+          '「$\\sin 75^\\circ$ を電卓を使わずに正確に求められるだろうか？ $75^\\circ = 30^\\circ + 45^\\circ$ と分けられるね。では、$\\sin(30^\\circ + 45^\\circ)$ は $\\sin 30^\\circ + \\sin 45^\\circ$ と同じになるかな？」',
+        teacherTips:
+          '生徒の誤答は否定せず、「$\\sin$ は角度を入力する関数であり、入力（角度）の和が出力（高さ）の和になるとは限らない」と整理します。$30^\\circ+45^\\circ$ で右辺が $1.207$（$>1$）になる矛盾を強調しましょう。',
+        boardSummary: [
+          '問題：$\\sin 75^\\circ$ の正確な値を求めたい $\\to 75^\\circ = 30^\\circ + 45^\\circ$ と分解できる！',
+          'よくある予想：$\\sin(30^\\circ + 45^\\circ) = \\sin 30^\\circ + \\sin 45^\\circ$ ？',
+          '確かめ：$\\sin 30^\\circ + \\sin 45^\\circ = \\frac{1}{2} + \\frac{\\sqrt{2}}{2} \\fallingdotseq 1.207 > 1$（半径 $1$ の円を突き抜ける！）',
+          '本質：$\\sin$ は「角度」を入力する関数。入力を足しても、出力の単純な和にはならない！',
+        ],
+        studentNote:
+          '多くの人が最初は $\\sin(30^\\circ+45^\\circ) = \\sin 30^\\circ + \\sin 45^\\circ$ と予想してしまいます。しかし $\\sin$ は「角度」から「縦の高さ」を決めるルールなので、角度を足しても高さの単純な足し算にはなりません。単位円の半径は $1$ なので、どんな角でも $\\sin$ が $1$ を超えることは絶対にないのです！',
+        studentMission:
+          '左のボタンで $\\alpha = 60^\\circ,\\ \\beta = 60^\\circ$ を選んでみましょう。本物の $\\sin 120^\\circ$ と、単純な和 $\\sin 60^\\circ + \\sin 60^\\circ$ でどれくらい差が出るか確かめよう！',
+        selfCheck: {
+          q: '$\\sin 30^\\circ + \\sin 45^\\circ$ を計算すると約 $1.207$ になります。これだけで $\\sin(30^\\circ+45^\\circ)$ と等しくないと断言できる理由は？',
+          options: [
+            '$\\sin$ の値は必ず $1$ 以下になるから',
+            '$75^\\circ$ は $90^\\circ$ より大きい角だから',
+          ],
+          correctIdx: 0,
+          explain: '単位円（半径 $1$）の縦座標である $\\sin$ は、どんな角度でも $-1$ から $1$ の間におさまります。$1.207$ のように $1$ を超えることはありえません！',
+        },
+      },
+      {
+        id: 1,
+        time: '5〜12分',
+        shortTitle: '2. 正弦の式を読む',
+        title: '正弦の加法定理を「読める」ようにする',
+        goal: 'sin(α + β) の右辺が「交差する2つの積の和」であることを色分けと構造で理解する。',
+        teacherPrompt:
+          '「単純に足せないなら、何を組み合わせればよいだろう？ 右辺の『$\\sin\\alpha\\cos\\beta + \\cos\\alpha\\sin\\beta$』を色分けして見てみよう。$\\alpha = 30^\\circ, \\beta = 45^\\circ$ のとき、最初の積は何になる？」',
+        teacherTips:
+          '口頭で「サイン・コサイン、コサイン・サイン、足す」と唱えるだけで終えず、各項が「どの角の $\\sin$ か・$\\cos$ か」を指さして確認させましょう。',
+        boardSummary: [
+          '正弦の加法定理：$\\sin(\\alpha + \\beta) = \\sin\\alpha\\cos\\beta + \\cos\\alpha\\sin\\beta$',
+          '構造：$\\sin$ だけを足すのではなく、「$\\sin$ と $\\cos$ が交差して掛け合わされた2つの積」を足す！',
+          '合言葉：「サイン・コサイン、コサイン・サイン、足す」',
+          '$\\alpha = 30^\\circ, \\beta = 45^\\circ$ なら：第1項は $\\sin 30^\\circ \\cos 45^\\circ$、第2項は $\\cos 30^\\circ \\sin 45^\\circ$',
+        ],
+        studentNote:
+          '正弦（$\\sin$）の加法定理の最大のポイントは、$\\sin$（青）と $\\cos$（橙）が**「交差して（テレコになって）」**掛け合わされることです。$\\alpha$ と $\\beta$ の役割が対等になるように、「$\\alpha$ の $\\sin$ × $\\beta$ の $\\cos$」と「$\\alpha$ の $\\cos$ × $\\beta$ の $\\sin$」の2つを足し合わせます。',
+        studentMission:
+          '左のプルダウンで $\\alpha = 45^\\circ,\\ \\beta = 60^\\circ$ に切り替えて、下の式のどこに $45^\\circ$ と $60^\\circ$ が入るか声に出して読んでみよう！',
+        selfCheck: {
+          q: '$\\sin(45^\\circ + 60^\\circ)$ を正弦の加法定理に当てはめた式として正しいものはどれ？',
+          options: [
+            '$\\sin 45^\\circ \\cos 60^\\circ + \\cos 45^\\circ \\sin 60^\\circ$',
+            '$\\sin 45^\\circ \\sin 60^\\circ + \\cos 45^\\circ \\cos 60^\\circ$',
+          ],
+          correctIdx: 0,
+          explain: '正弦（$\\sin$）の加法定理は「サイン・コサイン、コサイン・サイン、足す」のように $\\sin$ と $\\cos$ を交差させて掛けます。',
+        },
+      },
+      {
+        id: 2,
+        time: '12〜20分',
+        shortTitle: '3. 正弦を使う',
+        title: '正弦の加法定理を実際に使う（sin 75° の計算）',
+        goal: '75° を既知の角 30° + 45° に分け、手順通りに sin 75° を求めて値の妥当性を確認できる。',
+        teacherPrompt:
+          '「いよいよ $\\sin 75^\\circ$ を求めてみよう！手順は ①角を分ける → ②公式を書く → ③角を代入 → ④値カードから4つの値を選ぶ → ⑤計算して $1$ 以下か検算する、の5ステップだよ。」',
+        teacherTips:
+          '計算が止まる生徒には右上の「基本角の値カード」を開かせ、「角を分ける→公式を選ぶ→代入→検算」の順序を固定します。結果が $1$ を超えたら値域で検算させましょう。',
+        boardSummary: [
+          '$\\sin 75^\\circ = \\sin(30^\\circ + 45^\\circ)$',
+          '$\\phantom{\\sin 75^\\circ} = \\sin 30^\\circ \\cos 45^\\circ + \\cos 30^\\circ \\sin 45^\\circ$',
+          '$\\phantom{\\sin 75^\\circ} = \\dfrac{1}{2} \\cdot \\dfrac{\\sqrt{2}}{2} + \\dfrac{\\sqrt{3}}{2} \\cdot \\dfrac{\\sqrt{2}}{2}$',
+          '$\\phantom{\\sin 75^\\circ} = \\dfrac{\\sqrt{2} + \\sqrt{6}}{4}$ （$\\fallingdotseq 0.966 < 1$ なので妥当！）',
+        ],
+        studentNote:
+          '知らない角 $75^\\circ$ を、三角定規でおなじみの $30^\\circ + 45^\\circ$ に分解するのがコツです。計算のコツとして、$45^\\circ$ の値は $\\frac{1}{\\sqrt{2}}$ ではなく有理化した $\\frac{\\sqrt{2}}{2}$ を使うと、2つの分数の分母がどちらも $2 \\times 2 = 4$ にそろって一気に足し算できます！',
+        studentMission:
+          '左の手順カード（1〜5）を1つずつクリックして、どのタイミングで「基本角の値カード」を使っているか確認しよう！',
+        selfCheck: {
+          q: '$\\sin 75^\\circ = \\dfrac{\\sqrt{2} + \\sqrt{6}}{4}$ の分母が $4$ になる理由として正しいのはどれ？',
+          options: [
+            '分母 $2$ と分母 $2$ の掛け算（$2 \\times 2 = 4$）だから',
+            '分母 $2$ と分母 $2$ の足し算（$2 + 2 = 4$）だから',
+          ],
+          correctIdx: 0,
+          explain: '$\\frac{1}{2} \\times \\frac{\\sqrt{2}}{2} = \\frac{\\sqrt{2}}{4}$ のように分数同士の掛け算をするため、分母は $2 \\times 2 = 4$ になります。',
+        },
+      },
+      {
+        id: 3,
+        time: '20〜26分',
+        shortTitle: '4. 余弦へ接続',
+        title: '同じ角で余弦（cos）を考える：中央の符号は ＋ か − か？',
+        goal: 'α = β = 45°（cos 90° = 0）の検算を通して、cos(α + β) の中央が「−」であることを納得できる。',
+        teacherPrompt:
+          '「$\\sin 75^\\circ$ は求められた。では $\\cos 75^\\circ$ も $30^\\circ$ と $45^\\circ$ だけで求められないだろうか？ $\\sin$ の式の $\\sin$ と $\\cos$ を交換したとき、真ん中は『$+$』のままでよいかな？ $\\alpha = 45^\\circ, \\beta = 45^\\circ$ で実験してみよう！」',
+        teacherTips:
+          '留意点：$\\alpha=\\beta=45^\\circ$ の代入は「符号を納得する検算」であり、公式全体の厳密な証明とは区別して扱います（図による意味づけは次のステップで行います）。',
+        boardSummary: [
+          '予想：$\\cos(\\alpha + \\beta) = \\cos\\alpha\\cos\\beta$ [ $+$ か $-$ か？ ] $\\sin\\alpha\\sin\\beta$',
+          '検算の仕掛け：$\\alpha = 45^\\circ, \\beta = 45^\\circ$ を入れると、左辺 $= \\cos(45^\\circ+45^\\circ) = \\cos 90^\\circ = 0$',
+          'もし中央が「$+$」なら：$\\left(\\frac{\\sqrt{2}}{2}\\right)^2 + \\left(\\frac{\\sqrt{2}}{2}\\right)^2 = \\frac{1}{2} + \\frac{1}{2} = 1 \\neq 0$（矛盾！）',
+          '中央が「$-$」なら：$\\frac{1}{2} - \\frac{1}{2} = 0$（一致！） $\\to$ 2項の間は「$-$」である必要がある！',
+        ],
+        studentNote:
+          '「テスト中に $\\cos(\\alpha+\\beta)$ の真ん中が $+$ か $-$ かド忘れした！」というときに一生使える最強の検算テクニックです。特殊な角 $\\alpha = 45^\\circ, \\beta = 45^\\circ$ を頭の中で入れて $\\cos 90^\\circ = 0$ と比べるだけで、確実に「$-$」だと見抜けます！',
+        studentMission:
+          '左の「真ん中を＋にする」と「真ん中を−にする」の両方を押して、なぜ「＋」だと矛盾するのか自分の言葉で説明してみよう！',
+        selfCheck: {
+          q: '$\\cos(\\alpha+\\beta)$ の符号チェックで $\\alpha=45^\\circ, \\beta=45^\\circ$ を代入したとき、左辺 $\\cos(45^\\circ+45^\\circ)$ の値はいくつ？',
+          options: [
+            '$0$（$\\cos 90^\\circ$ だから）',
+            '$1$（$\\sin 90^\\circ$ だから）',
+          ],
+          correctIdx: 0,
+          explain: '$90^\\circ$ の点は単位円上で $(0, 1)$ なので、横座標である $\\cos 90^\\circ$ は $0$ です。',
+        },
+      },
+      {
+        id: 4,
+        time: '26〜33分',
+        shortTitle: '5. 余弦の図解',
+        title: '余弦の加法定理を図で理解する：なぜマイナスが生まれるのか？',
+        goal: '単位円上の回転（横成分と縦成分の分解）から、cos(α + β) = cos α cos β − sin α sin β の意味を理解する。',
+        teacherPrompt:
+          '「単位円上で角 $\\alpha$ の点 $(\\cos\\alpha, \\sin\\alpha)$ をさらに $\\beta$ だけ回転させよう。元の『縦成分 $\\sin\\alpha$』を $\\beta$ 回すと、横方向（$x$軸）ではどちら向きにズレるかな？」',
+        teacherTips:
+          '回転の際、元の縦方向の成分 $\\sin\\alpha$ が左向きの横成分を生むためマイナスになることを矢印で示します。単位円のベクトル分解が難しい生徒には Step 3 の検算を主な足場にしましょう。',
+        boardSummary: [
+          '余弦の加法定理：$\\cos(\\alpha + \\beta) = \\cos\\alpha\\cos\\beta - \\sin\\alpha\\sin\\beta$',
+          '正弦との対比：正弦は「交差する積を足す」、余弦は「同じ種類の積を引く」',
+          '図の意味：角 $\\alpha$ の縦成分（$\\sin\\alpha$）をさらに $\\beta$ 回転すると、左向き（マイナス方向）の横成分 $-\\sin\\alpha\\sin\\beta$ を生む！',
+        ],
+        studentNote:
+          '単位円上で角 $\\alpha$ の位置 $(\\cos\\alpha, \\sin\\alpha)$ からさらに $\\beta$ だけ反時計回りに回転させると、もともと上向きだった「縦成分（$\\sin\\alpha$）」が左斜め上に倒れます。この「左へ倒れた分」だけ横座標（$x$座標）が引き算されるため、$-\\sin\\alpha\\sin\\beta$ というマイナスが現れます！',
+        studentMission:
+          '左のボタン「① → ② → ③ → ④」を順番に押して、青い矢印（元の縦成分）が左向き（赤い線）の横成分を生み出す様子を観察しよう！',
+        selfCheck: {
+          q: '第1象限の角 $\\alpha$ からさらに $\\beta$ 回転させると、元の縦成分 $\\sin\\alpha$ は横方向（$x$軸）のどちら向きに成分を生みますか？',
+          options: [
+            '左向き（マイナス方向）',
+            '右向き（プラス方向）',
+          ],
+          correctIdx: 0,
+          explain: '反時計回りに回転すると真上の矢印は左へ傾くため、横座標（$\\cos$）を減らす「マイナス方向」の成分が生まれます。',
+        },
+      },
+      {
+        id: 5,
+        time: '33〜38分',
+        shortTitle: '6. 余弦を使う',
+        title: '余弦の加法定理を使う（cos 75°）＆ ミニ演習',
+        goal: 'cos 75° を公式で正確に求め、sin 75° と大きさを比較して符号と値の妥当性を説明できる。',
+        teacherPrompt:
+          '「$\\cos 75^\\circ$ を公式で求めてみよう！ $75^\\circ$ は $90^\\circ$ に近い角だから、$\\cos 75^\\circ$ はどんな大きさになるはず？ 先ほど求めた $\\sin 75^\\circ$ と比べてみよう。」',
+        teacherTips:
+          '時間調整の目安：時間が押している場合はミニ演習②を省き、余弦の公式確認と $\\cos 75^\circ$ の適用例を優先して出口チェックの時間を確保してください。',
+        boardSummary: [
+          '$\\cos 75^\\circ = \\cos(30^\\circ + 45^\\circ)$',
+          '$\\phantom{\\cos 75^\\circ} = \\cos 30^\\circ \\cos 45^\\circ - \\sin 30^\\circ \\sin 45^\\circ$',
+          '$\\phantom{\\cos 75^\\circ} = \\dfrac{\\sqrt{3}}{2} \\cdot \\dfrac{\\sqrt{2}}{2} - \\dfrac{1}{2} \\cdot \\dfrac{\\sqrt{2}}{2} = \\dfrac{\\sqrt{6} - \\sqrt{2}}{4}$ （$\\fallingdotseq 0.259$）',
+          '比較：$75^\\circ$ は $90^\\circ$ に近いので、縦($\\sin 75^\\circ \\fallingdotseq 0.966$)は大きく、横($\\cos 75^\\circ \\fallingdotseq 0.259$)は小さい！',
+        ],
+        studentNote:
+          '$\\cos 75^\\circ$ の計算では、「$\\cos$ 同士の積（$\\frac{\\sqrt{6}}{4}$）」から「$\\sin$ 同士の積（$\\frac{\\sqrt{2}}{4}$）」を引きます。$75^\\circ$ は $90^\\circ$ に近い角なので、縦の高さ $\\sin 75^\\circ$ は大きく（約 $0.966$）、横の幅 $\\cos 75^\\circ$ は小さく（約 $0.259$）なることが単位円の図からも一目で納得できます！',
+        studentMission:
+          '左下の単位円の図で、青い縦線（$\\sin 75^\\circ$）と橙色の横線（$\\cos 75^\\circ$）の長さを比べたあと、下のミニ演習①〜③に挑戦しよう！',
+        selfCheck: {
+          q: '$\\cos 75^\\circ$ を計算した結果、分子の引き算の順番として正しいのはどれ？',
+          options: [
+            '$\\sqrt{6} - \\sqrt{2}$（正の値になる）',
+            '$\\sqrt{2} - \\sqrt{6}$（負の値になる）',
+          ],
+          correctIdx: 0,
+          explain: '$75^\\circ$ は第1象限（$0^\\circ$〜$90^\\circ$）の角なので $\\cos 75^\\circ$ は必ず正の値になります。$\\sqrt{6} > \\sqrt{2}$ なので $\\frac{\\sqrt{6}-\\sqrt{2}}{4}$ が正解です！',
+        },
+      },
+      {
+        id: 6,
+        time: '38〜40分',
+        shortTitle: '7. 出口＆復習',
+        title: '出口チェック ＆ 復習用オリジナルドリル',
+        goal: '正弦・余弦の加法定理を正しく区別して完成させ、105°や差の公式（15°）へ応用できる。',
+        teacherPrompt:
+          '「最後に3分間の出口チェック！公式を見ずに $\\sin(\\alpha+\\beta)$ と $\\cos(\\alpha+\\beta)$ の右辺を完成させ、今日わかったこと・まだ迷うところを1つ書こう。」',
+        teacherTips:
+          '見取りのポイント：式の項の組合せを誤る生徒には「色分け表」、符号を誤る生徒には「$\\cos 90^\\circ = 0$ の検算」、計算が苦手な生徒には「基本角の値カード」を次時も提供しましょう。',
+        boardSummary: [
+          '完成形①：$\\sin(\\alpha + \\beta) = \\sin\\alpha\\cos\\beta + \\cos\\alpha\\sin\\beta$',
+          '完成形②：$\\cos(\\alpha + \\beta) = \\cos\\alpha\\cos\\beta - \\sin\\alpha\\sin\\beta$',
+          '次時への接続：$\\beta$ を $-\\beta$ に変えると、差の公式 $\\sin(\\alpha - \\beta),\\ \\cos(\\alpha - \\beta)$ が作れて $15^\\circ$ も求められる！',
+        ],
+        studentNote:
+          '加法定理は丸暗記ではなく、「①既知の角に分ける → ②構造（$\\sin$ は交差して足す、$\\cos$ は同種を引く）に当てはめる → ③$45^\\circ+45^\\circ$ で符号を検算する」の3ステップが本質です。下の出口カードと復習ドリルA〜Eで仕上げましょう！',
+        studentMission:
+          'まずは「出口カード（3問）」を全問正解にし、余裕があれば「復習ドリル（練習A〜E）」で $105^\\circ$ や $15^\\circ$ にも挑戦しよう！',
+        selfCheck: {
+          q: '$105^\\circ$ は第2象限（$90^\\circ$ より左）の角です。$\\cos 105^\\circ$ の値の符号はどうなりますか？',
+          options: [
+            '負の値（マイナス）になる',
+            '正の値（プラス）になる',
+          ],
+          correctIdx: 0,
+          explain: '第2象限では単位円上の点の横座標（$x$座標）がマイナスになるため、$\\cos 105^\\circ = \\frac{\\sqrt{2}-\\sqrt{6}}{4} < 0$ と負の値になります！',
+        },
+      },
+    ];
+
+    // ==========================================
+    // 2. 復習用オリジナル演習データ（練習A〜E）
+    // ==========================================
+    const DRILL_PROBLEMS = [
+      {
+        id: 'A',
+        level: '基礎',
+        q: '$\\sin(60^\\circ + 45^\\circ)$ を正弦の加法定理に当てはめたとき、最初の代入式を書け。（まだ値を入れなくてよい）',
+        a: '$\\sin 60^\\circ \\cos 45^\\circ + \\cos 60^\\circ \\sin 45^\\circ$ （※「サイン・コサイン、コサイン・サイン、足す」の順！）',
+      },
+      {
+        id: 'B',
+        level: '基礎',
+        q: '練習Aの続きを計算して、$\\sin 105^\\circ$ の値を求めよ。',
+        a: '$\\sin 105^\\circ = \\dfrac{\\sqrt{3}}{2} \\cdot \\dfrac{\\sqrt{2}}{2} + \\dfrac{1}{2} \\cdot \\dfrac{\\sqrt{2}}{2} = \\dfrac{\\sqrt{6} + \\sqrt{2}}{4}$',
+      },
+      {
+        id: 'C',
+        level: '標準',
+        q: '$\\cos 105^\\circ = \\cos(60^\\circ + 45^\\circ)$ の値を求め、なぜ答えがマイナスになるのか単位円の位置から説明せよ。',
+        a: '$\\cos 105^\\circ = \\cos 60^\\circ \\cos 45^\\circ - \\sin 60^\\circ \\sin 45^\\circ = \\dfrac{1}{2} \\cdot \\dfrac{\\sqrt{2}}{2} - \\dfrac{\\sqrt{3}}{2} \\cdot \\dfrac{\\sqrt{2}}{2} = \\dfrac{\\sqrt{2} - \\sqrt{6}}{4}$。理由：$105^\\circ$ は第2象限（$90^\\circ$ より左）にあるため、横座標（$x$座標）である $\\cos$ は負の値になるから。',
+      },
+      {
+        id: 'D',
+        level: '標準',
+        q: '誤答チェック：ある生徒が $\\cos(30^\\circ + 60^\\circ)$ を「$\\cos 30^\\circ \\cos 60^\\circ + \\sin 30^\\circ \\sin 60^\\circ = \\frac{\\sqrt{3}}{2}$」と計算した。どこが誤りか指摘し、正しい値を求めよ。',
+        a: '誤り：余弦の加法定理の中央の符号を「$-$」ではなく「$+$」にしてしまっている。正しくは $\\cos 30^\\circ \\cos 60^\\circ - \\sin 30^\\circ \\sin 60^\\circ = \\dfrac{\\sqrt{3}}{2} \\cdot \\dfrac{1}{2} - \\dfrac{1}{2} \\cdot \\dfrac{\\sqrt{3}}{2} = 0$（$= \\cos 90^\\circ$）。',
+      },
+      {
+        id: 'E',
+        level: '発展（次時予習）',
+        q: '差の公式 $\\sin(\\alpha - \\beta) = \\sin\\alpha\\cos\\beta - \\cos\\alpha\\sin\\beta$ を使って、$\\sin 15^\\circ$（$= \\sin(45^\\circ - 30^\\circ)$）の値を求めよ。',
+        a: '$\\sin 15^\\circ = \\sin 45^\\circ \\cos 30^\\circ - \\cos 45^\\circ \\sin 30^\\circ = \\dfrac{\\sqrt{2}}{2} \\cdot \\dfrac{\\sqrt{3}}{2} - \\dfrac{\\sqrt{2}}{2} \\cdot \\dfrac{1}{2} = \\dfrac{\\sqrt{6} - \\sqrt{2}}{4}$。（※実は $\\cos 75^\\circ$ とまったく同じ値になります！）',
+      },
+    ];
+
+    // ==========================================
+    // 3. 基本角の正確な表示データ
+    // ==========================================
+    const KNOWN_ANGLES = {
+      30: { sinStr: '1/2', cosStr: '√3/2', sinVal: 0.5, cosVal: Math.sqrt(3) / 2 },
+      45: { sinStr: '√2/2', cosStr: '√2/2', sinVal: Math.SQRT2 / 2, cosVal: Math.SQRT2 / 2 },
+      60: { sinStr: '√3/2', cosStr: '1/2', sinVal: Math.sqrt(3) / 2, cosVal: 0.5 },
+    };
+
+    // ==========================================
+    // 4. アプリケーション状態 (State)
+    // ==========================================
+    const state = {
+      viewMode: 'teacher', // 'teacher' | 'student'
+      currentStep: 0,
+
+      // Step 0: 違和感実験
+      step0Alpha: 30,
+      step0Beta: 45,
+
+      // Step 1: 正弦の式を読む
+      step1Alpha: 30,
+      step1Beta: 45,
+      step1Highlight: 0, // 0:全体, 1:第1項, 2:中央+, 3:第2項
+
+      // Step 2: sin75° の5ステップ
+      step2Stage: 1, // 1〜5
+      showStep2ErrorCheck: false,
+      showStep2Advance15: false,
+
+      // Step 3: 余弦符号の検算実験
+      step3SignChoice: 'none', // 'none' | 'plus' | 'minus'
+
+      // Step 4: 余弦の図解（回転ベクトル分解）
+      step4Alpha: 35,
+      step4Beta: 40,
+      step4Stage: 4, // 1:αのみ, 2:α+β, 3:横成分の回転, 4:縦成分の回転(マイナス発生)
+
+      // Step 5: cos75° 計算＆ミニ演習
+      step5Stage: 1, // 1〜4
+      miniEx2Choice: null,
+      showMiniExAnswers: false,
+
+      // Step 6: 出口チェック＆復習ドリル
+      exitSinSign: '', // '+' | '-'
+      exitSinTerm2: '', // 'cosα sinβ' | 'sinα cosβ'
+      exitCosSign: '', // '+' | '-'
+      exitCosTerm2: '', // 'sinα sinβ' | 'cosα cosβ'
+      exitReflection: '',
+      exitCheckResult: false,
+      openDrillAnswers: {},
+
+      // モード別インタラクティブ状態
+      teacherBoardRevealed: 1, // 授業提示モード：板書の開示行数（1〜4）
+      selfCheckAnswers: {}, // 生徒復習モード：各ステップのセルフチェック回答状況
+    };
+
+    // ==========================================
+    // 5. ヘルパー関数
+    // ==========================================
+    function colorizeFormula(str) {
+      return str
+        .replace(/(sin\s*[αβ0-9°]+)/g, '<span class="text-blue-600 font-extrabold">$1</span>')
+        .replace(/(cos\s*[αβ0-9°]+)/g, '<span class="text-orange-600 font-extrabold">$1</span>');
+    }
+
+    function setStep(idx) {
+      state.currentStep = idx;
+      state.teacherBoardRevealed = 1; // 新しいステップに進んだら板書は1行目から提示
+      renderAll();
+    }
+
+    // ==========================================
+    // 6. 左パネル（インタラクティブ図形・構造ビジュアル）の描画
+    // ==========================================
+    function renderLeftPanel() {
+      const container = document.getElementById('left-panel');
+      const step = state.currentStep;
+
+      // ------------------------------------------
+      // STEP 0: 違和感をつくる（単位円 vs 単純な足し算バー）
+      // ------------------------------------------
+      if (step === 0) {
+        const a = state.step0Alpha;
+        const b = state.step0Beta;
+        const sumDeg = a + b;
+        const radA = (a * Math.PI) / 180;
+        const radB = (b * Math.PI) / 180;
+        const radSum = (sumDeg * Math.PI) / 180;
+
+        const sinA = Math.sin(radA);
+        const sinB = Math.sin(radB);
+        const sinSum = Math.sin(radSum);
+        const naiveSum = sinA + sinB;
+
+        // 単位円全体（上端155〜下端385）が完全に収まる配置
+        const cx = 175;
+        const cy = 270;
+        const R = 115;
+
+        const ptA = { x: cx + R * Math.cos(radA), y: cy - R * Math.sin(radA) };
+        const ptSum = { x: cx + R * Math.cos(radSum), y: cy - R * Math.sin(radSum) };
+
+        const labelR = R + 16;
+        const sumLabelX = cx + labelR * Math.cos(radSum);
+        const sumLabelY = cy - labelR * Math.sin(radSum);
+        const sumLabelAnchor = Math.cos(radSum) >= 0 ? 'start' : 'end';
+
+        const bar1X = 405;
+        const bar2X = 505;
+        const hA = sinA * R;
+        const hB = sinB * R;
+        const hTrue = sinSum * R;
+        const hNaive = naiveSum * R;
+
+        container.innerHTML = `
+          <div class="bg-white rounded-2xl border-2 border-slate-200 shadow-inner overflow-hidden">
+            <svg viewBox="0 0 600 415" class="w-full h-auto select-none">
+              <defs>
+                <pattern id="grid0" width="28" height="28" patternUnits="userSpaceOnUse">
+                  <path d="M 28 0 L 0 0 0 28" fill="none" stroke="#f1f5f9" stroke-width="1" />
+                </pattern>
+              </defs>
+              <rect width="600" height="415" fill="url(#grid0)" />
+
+              <!-- 最上部の見出し -->
+              <rect x="24" y="12" width="552" height="28" rx="8" fill="#fef2f2" stroke="#fecaca" stroke-width="1.2" />
+              <line x1="38" y1="26" x2="66" y2="26" stroke="#dc2626" stroke-width="2" stroke-dasharray="5 3" />
+              <text x="74" y="30" font-size="12" font-weight="bold" fill="#dc2626">
+                赤い破線 ＝ 上限ライン（半径 1.0） ※ sin は絶対に 1 を超えない！
+              </text>
+
+              <!-- 上限ライン (y = 1.0) -->
+              <line x1="30" y1="${cy - R}" x2="575" y2="${cy - R}" stroke="#dc2626" stroke-width="1.8" stroke-dasharray="6 4" />
+              <text x="34" y="${cy - R - 5}" font-size="11" font-weight="bold" fill="#dc2626">1.0</text>
+
+              <!-- 基準ライン (y = 0) -->
+              <line x1="30" y1="${cy}" x2="575" y2="${cy}" stroke="#64748b" stroke-width="1.5" />
+              <line x1="${cx}" y1="52" x2="${cx}" y2="402" stroke="#64748b" stroke-width="1.5" />
+
+              <!-- 単位円（完全表示） -->
+              <circle cx="${cx}" cy="${cy}" r="${R}" fill="rgba(99, 102, 241, 0.04)" stroke="#475569" stroke-width="2.2" />
+              <text x="${cx + R + 6}" y="${cy + 15}" font-size="12" font-weight="bold" fill="#475569">1</text>
+
+              <!-- 角 α の動径 -->
+              <line x1="${cx}" y1="${cy}" x2="${ptA.x}" y2="${ptA.y}" stroke="#94a3b8" stroke-width="2" stroke-dasharray="4 3" />
+              <text x="${cx + 42 * Math.cos(radA / 2)}" y="${cy - 42 * Math.sin(radA / 2)}" font-size="12" font-weight="bold" fill="#64748b">${a}°</text>
+
+              <!-- 角 α+β の動径 -->
+              <line x1="${cx}" y1="${cy}" x2="${ptSum.x}" y2="${ptSum.y}" stroke="#2563eb" stroke-width="3" />
+              <circle cx="${ptSum.x}" cy="${ptSum.y}" r="6" fill="#2563eb" />
+              <text x="${sumLabelX}" y="${sumLabelY}" text-anchor="${sumLabelAnchor}" font-size="13" font-weight="bold" fill="#1d4ed8">
+                ${sumDeg}° の点
+              </text>
+
+              <!-- 単位円上の真の高さ sin(α+β) -->
+              <line x1="${ptSum.x}" y1="${cy}" x2="${ptSum.x}" y2="${ptSum.y}" stroke="#2563eb" stroke-width="4" />
+
+              <!-- 右側比較バー①：本物の sin(α+β) -->
+              <rect x="${bar1X - 24}" y="${cy - hTrue}" width="48" height="${hTrue}" rx="6" fill="rgba(37, 99, 235, 0.2)" stroke="#2563eb" stroke-width="2.5" />
+              <rect x="${bar1X - 26}" y="${cy - hTrue - 24}" width="52" height="19" rx="5" fill="white" stroke="#93c5fd" stroke-width="1.2" />
+              <text x="${bar1X}" y="${cy - hTrue - 10}" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#1d4ed8">
+                ${sinSum.toFixed(3)}
+              </text>
+              <text x="${bar1X}" y="${cy + 18}" text-anchor="middle" font-size="12" font-weight="bold" fill="#1e293b">
+                本物
+              </text>
+              <text x="${bar1X}" y="${cy + 34}" text-anchor="middle" font-size="11" font-weight="bold" fill="#2563eb">
+                sin(${a}°+${b}°)
+              </text>
+
+              <!-- 右側比較バー②：単純に足した sinα + sinβ -->
+              <rect x="${bar2X - 24}" y="${cy - hA}" width="48" height="${hA}" fill="rgba(59, 130, 246, 0.25)" stroke="#3b82f6" stroke-width="2" />
+              <text x="${bar2X}" y="${cy - hA / 2 + 4}" text-anchor="middle" font-size="11" font-weight="bold" fill="#1e3a8a">
+                sin${a}°
+              </text>
+              <rect x="${bar2X - 24}" y="${cy - hNaive}" width="48" height="${hB}" fill="rgba(239, 68, 68, 0.22)" stroke="#dc2626" stroke-width="2" stroke-dasharray="4 2" />
+              <text x="${bar2X}" y="${cy - hA - hB / 2 + 4}" text-anchor="middle" font-size="11" font-weight="bold" fill="#991b1b">
+                + sin${b}°
+              </text>
+              <rect x="${bar2X - 32}" y="${cy - hNaive - 24}" width="64" height="19" rx="5" fill="white" stroke="#fca5a5" stroke-width="1.2" />
+              <text x="${bar2X}" y="${cy - hNaive - 10}" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#dc2626">
+                ${naiveSum.toFixed(3)} ${naiveSum > 1 ? '⚠️' : ''}
+              </text>
+              <text x="${bar2X}" y="${cy + 18}" text-anchor="middle" font-size="12" font-weight="bold" fill="#dc2626">
+                単純な和
+              </text>
+              <text x="${bar2X}" y="${cy + 34}" text-anchor="middle" font-size="11" font-weight="bold" fill="#dc2626">
+                sin${a}°+sin${b}°
+              </text>
+            </svg>
+          </div>
+
+          <!-- 角度選択＆比較サマリー -->
+          <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 flex flex-col gap-3">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <div class="bg-white p-2.5 rounded-lg border border-slate-200 flex items-center justify-between">
+                <span class="text-xs font-bold text-slate-700">角 $\\alpha$ を選ぶ：</span>
+                <div class="flex gap-1.5">
+                  ${[30, 45, 60]
+                    .map(
+                      (deg) => `
+                    <button type="button" onclick="state.step0Alpha=${deg}; renderLeftPanel();"
+                      class="px-2.5 py-1 rounded text-xs font-bold cursor-pointer ${
+                        state.step0Alpha === deg ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                      }">${deg}°</button>`
+                    )
+                    .join('')}
+                </div>
+              </div>
+
+              <div class="bg-white p-2.5 rounded-lg border border-slate-200 flex items-center justify-between">
+                <span class="text-xs font-bold text-slate-700">角 $\\beta$ を選ぶ：</span>
+                <div class="flex gap-1.5">
+                  ${[30, 45, 60]
+                    .map(
+                      (deg) => `
+                    <button type="button" onclick="state.step0Beta=${deg}; renderLeftPanel();"
+                      class="px-2.5 py-1 rounded text-xs font-bold cursor-pointer ${
+                        state.step0Beta === deg ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                      }">${deg}°</button>`
+                    )
+                    .join('')}
+                </div>
+              </div>
+            </div>
+
+            <div class="bg-rose-50 border border-rose-200 p-3 rounded-xl text-xs sm:text-sm text-rose-950 flex items-center justify-between gap-2">
+              <div>
+                <strong>実験結果（$\\alpha=${a}^\\circ,\\ \\beta=${b}^\\circ$）：</strong>
+                $\\sin(${a}^\\circ+${b}^\\circ) =$ <strong>${sinSum.toFixed(3)}</strong> なのに、
+                $\\sin ${a}^\\circ + \\sin ${b}^\\circ =$ <strong class="text-red-600 underline">${naiveSum.toFixed(3)}</strong> で一致しない！
+              </div>
+              <button type="button" onclick="state.step0Alpha=30; state.step0Beta=45; renderLeftPanel();"
+                class="shrink-0 px-2.5 py-1 bg-white border border-rose-300 rounded-lg text-xs font-bold text-rose-700 hover:bg-rose-100 cursor-pointer">
+                30°+45°に戻す
+              </button>
+            </div>
+          </div>
+        `;
+        renderMathInContainer(container);
+        return;
+      }
+
+      // ------------------------------------------
+      // STEP 1: 正弦の加法定理を「読める」ようにする（色分け構造パネル）
+      // ------------------------------------------
+      if (step === 1) {
+        const a = state.step1Alpha;
+        const b = state.step1Beta;
+        const hl = state.step1Highlight;
+
+        container.innerHTML = `
+          <div class="bg-white rounded-2xl border-2 border-slate-200 p-4 sm:p-6 shadow-sm flex flex-col gap-5">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+              <span class="text-xs font-extrabold text-indigo-700 bg-indigo-50 px-2.5 py-1 rounded-full">
+                色分けルール：$\\sin$ ＝ 青（縦） ／ $\\cos$ ＝ 橙（横） ／ 符号 ＝ 赤
+              </span>
+            </div>
+
+            <!-- 大きく見やすい公式ボード -->
+            <div class="bg-slate-50 border-2 border-slate-200 rounded-2xl p-4 sm:p-5 text-center space-y-4">
+              <div class="text-xs font-bold text-slate-500">正弦（サイン）の加法定理</div>
+              <div class="text-lg sm:text-2xl md:text-3xl font-black tracking-tight flex flex-wrap items-center justify-center gap-1.5 sm:gap-2">
+                <span class="bg-white px-2.5 py-1.5 rounded-xl border border-slate-300 shadow-2xs">
+                  <span class="text-blue-600">sin</span>(<span class="text-purple-700">α</span> + <span class="text-teal-700">β</span>)
+                </span>
+                <span class="text-slate-600">＝</span>
+                <span class="px-2.5 py-1.5 rounded-xl transition ${
+                  hl === 1 ? 'bg-amber-100 ring-2 ring-amber-500 scale-105' : 'bg-white border border-slate-200'
+                }">
+                  <span class="text-blue-600">sin<span class="text-purple-700">α</span></span>
+                  <span class="text-orange-600">cos<span class="text-teal-700">β</span></span>
+                </span>
+                <span class="px-2 py-1 rounded-xl font-black text-red-600 transition ${
+                  hl === 2 ? 'bg-red-100 ring-2 ring-red-500 scale-110' : ''
+                }">
+                  ＋
+                </span>
+                <span class="px-2.5 py-1.5 rounded-xl transition ${
+                  hl === 3 ? 'bg-amber-100 ring-2 ring-amber-500 scale-105' : 'bg-white border border-slate-200'
+                }">
+                  <span class="text-orange-600">cos<span class="text-purple-700">α</span></span>
+                  <span class="text-blue-600">sin<span class="text-teal-700">β</span></span>
+                </span>
+              </div>
+
+              <!-- 構造の矢印解説 -->
+              <div class="grid grid-cols-3 gap-2 text-xs font-bold pt-2">
+                <div class="p-2 rounded-lg ${hl === 1 ? 'bg-amber-100 text-amber-900' : 'bg-white text-slate-600 border border-slate-200'}">
+                  ① 最初の積<br /><span class="text-blue-600">$\\alpha$ の $\\sin$</span> × <span class="text-orange-600">$\\beta$ の $\\cos$</span>
+                </div>
+                <div class="p-2 rounded-lg ${hl === 2 ? 'bg-red-100 text-red-900' : 'bg-white text-slate-600 border border-slate-200'}">
+                  ② 真ん中の記号<br /><span class="text-red-600 text-sm">＋（たし算）</span>
+                </div>
+                <div class="p-2 rounded-lg ${hl === 3 ? 'bg-amber-100 text-amber-900' : 'bg-white text-slate-600 border border-slate-200'}">
+                  ③ 2つ目の積<br /><span class="text-orange-600">$\\alpha$ の $\\cos$</span> × <span class="text-blue-600">$\\beta$ の $\\sin$</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 実際の角度を当てはめるシミュレーター -->
+            <div class="bg-indigo-50/70 border border-indigo-200 rounded-2xl p-4 space-y-3">
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <span class="text-xs sm:text-sm font-extrabold text-indigo-950">
+                  👇 具体的な角を入れて「読める」か確かめよう！
+                </span>
+                <div class="flex items-center gap-2 text-xs font-bold">
+                  <label class="flex items-center gap-1 bg-white px-2 py-1 rounded-lg border border-indigo-200">
+                    <span class="text-purple-700">$\\alpha =$</span>
+                    <select onchange="state.step1Alpha=Number(this.value); renderLeftPanel();" class="font-extrabold text-purple-700 outline-none cursor-pointer">
+                      ${[30, 45, 60].map((d) => `<option value="${d}" ${a === d ? 'selected' : ''}>${d}°</option>`).join('')}
+                    </select>
+                  </label>
+                  <label class="flex items-center gap-1 bg-white px-2 py-1 rounded-lg border border-indigo-200">
+                    <span class="text-teal-700">$\\beta =$</span>
+                    <select onchange="state.step1Beta=Number(this.value); renderLeftPanel();" class="font-extrabold text-teal-700 outline-none cursor-pointer">
+                      ${[30, 45, 60].map((d) => `<option value="${d}" ${b === d ? 'selected' : ''}>${d}°</option>`).join('')}
+                    </select>
+                  </label>
+                </div>
+              </div>
+
+              <div class="bg-white p-3.5 rounded-xl border border-indigo-200 text-center text-base sm:text-xl font-extrabold">
+                <span class="text-blue-600">sin</span>(<span class="text-purple-700">${a}°</span> + <span class="text-teal-700">${b}°</span>)
+                ＝
+                <span class="text-blue-600">sin<span class="text-purple-700">${a}°</span></span>
+                <span class="text-orange-600">cos<span class="text-teal-700">${b}°</span></span>
+                <span class="text-red-600"> ＋ </span>
+                <span class="text-orange-600">cos<span class="text-purple-700">${a}°</span></span>
+                <span class="text-blue-600">sin<span class="text-teal-700">${b}°</span></span>
+              </div>
+            </div>
+
+            <!-- パーツ別ハイライトボタン -->
+            <div class="flex flex-wrap gap-1.5">
+              ${[
+                { id: 0, label: '全体を見る' },
+                { id: 1, label: '① 最初の積を強調' },
+                { id: 2, label: '② 中央の＋を強調' },
+                { id: 3, label: '③ 2つ目の積を強調' },
+              ]
+                .map(
+                  (btn) => `
+                <button type="button" onclick="state.step1Highlight=${btn.id}; renderLeftPanel();"
+                  class="px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                    hl === btn.id ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                  }">
+                  ${btn.label}
+                </button>`
+                )
+                .join('')}
+            </div>
+          </div>
+        `;
+        renderMathInContainer(container);
+        return;
+      }
+
+      // ------------------------------------------
+      // STEP 2: 正弦の加法定理を実際に使う（sin 75° の5ステップ）
+      // ------------------------------------------
+      if (step === 2) {
+        const st = state.step2Stage;
+        const stepsList = [
+          {
+            s: 1,
+            tag: '支援A：角を分ける',
+            math: '$\\sin 75^\\circ = \\sin(30^\\circ + 45^\\circ)$',
+            desc: '$30^\\circ, 45^\\circ, 60^\\circ$ の中から、足して $75^\\circ$ になるペアを探します。',
+          },
+          {
+            s: 2,
+            tag: '公式を書く',
+            math: '$\\sin(\\alpha + \\beta) = \\textcolor{#2563eb}{\\sin\\alpha}\\textcolor{#ea580c}{\\cos\\beta} \\textcolor{#dc2626}{+} \\textcolor{#ea580c}{\\cos\\alpha}\\textcolor{#2563eb}{\\sin\\beta}$',
+            desc: '「サイン・コサイン、コサイン・サイン、足す」の形で書きます。',
+          },
+          {
+            s: 3,
+            tag: '支援B：角を代入',
+            math: '$= \\textcolor{#2563eb}{\\sin 30^\\circ}\\textcolor{#ea580c}{\\cos 45^\\circ} \\textcolor{#dc2626}{+} \\textcolor{#ea580c}{\\cos 30^\\circ}\\textcolor{#2563eb}{\\sin 45^\\circ}$',
+            desc: '角度の位置を間違えないよう、順番に当てはめます。',
+          },
+          {
+            s: 4,
+            tag: '支援C：値カードから選ぶ',
+            math: '$= \\textcolor{#2563eb}{\\dfrac{1}{2}} \\times \\textcolor{#ea580c}{\\dfrac{\\sqrt{2}}{2}} \\textcolor{#dc2626}{+} \\textcolor{#ea580c}{\\dfrac{\\sqrt{3}}{2}} \\times \\textcolor{#2563eb}{\\dfrac{\\sqrt{2}}{2}}$',
+            desc: '$45^\\circ$ の値は $\\frac{1}{\\sqrt{2}}$ ではなく $\\frac{\\sqrt{2}}{2}$ を使うと、あとで分母が $4$ にそろって楽です！',
+          },
+          {
+            s: 5,
+            tag: '支援D：計算＆値域検算',
+            math: '$= \\dfrac{\\sqrt{2}}{4} + \\dfrac{\\sqrt{6}}{4} = \\textcolor{#0f766e}{\\dfrac{\\sqrt{2} + \\sqrt{6}}{4}}$',
+            desc: '検算：$\\sqrt{2} \\fallingdotseq 1.41$、$\\sqrt{6} \\fallingdotseq 2.45$ なので $\\frac{1.41 + 2.45}{4} \\fallingdotseq 0.965$。$1$ 以下で $90^\\circ$（値 $1$）に近いので大正解！',
+          },
+        ];
+
+        container.innerHTML = `
+          <div class="bg-white rounded-2xl border-2 border-slate-200 p-4 sm:p-5 shadow-sm flex flex-col gap-3">
+            <div class="flex items-center justify-between">
+              <span class="text-sm font-extrabold text-slate-900">例題：$\\sin 75^\\circ$ の値を求めよう</span>
+              <div class="flex gap-1">
+                ${[1, 2, 3, 4, 5]
+                  .map(
+                    (num) => `
+                  <button type="button" onclick="state.step2Stage=${num}; renderLeftPanel();"
+                    class="w-7 h-7 rounded-lg text-xs font-extrabold transition cursor-pointer ${
+                      st === num
+                        ? 'bg-blue-600 text-white shadow'
+                        : st > num
+                        ? 'bg-blue-100 text-blue-800'
+                        : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
+                    }">
+                    ${num}
+                  </button>`
+                  )
+                  .join('')}
+              </div>
+            </div>
+
+            <div class="space-y-2.5">
+              ${stepsList
+                .map((item) => {
+                  const isVisible = st >= item.s;
+                  const isCurrent = st === item.s;
+                  if (!isVisible) {
+                    return `
+                      <div onclick="state.step2Stage=${item.s}; renderLeftPanel();"
+                        class="p-3 rounded-xl border border-dashed border-slate-300 bg-slate-50/60 text-xs text-slate-400 font-bold flex items-center justify-between cursor-pointer hover:bg-slate-100">
+                        <span>ステップ ${item.s}（${item.tag}）は隠れています</span>
+                        <span class="text-blue-600 underline">クリックで開く</span>
+                      </div>
+                    `;
+                  }
+                  return `
+                    <div class="p-3 rounded-xl border transition ${
+                      isCurrent ? 'bg-blue-50/70 border-blue-400 shadow-xs' : 'bg-slate-50 border-slate-200'
+                    }">
+                      <div class="flex items-center gap-2 mb-1">
+                        <span class="bg-blue-600 text-white text-[11px] font-extrabold px-2 py-0.5 rounded-full">
+                          手順 ${item.s}
+                        </span>
+                        <span class="text-xs font-bold text-blue-800">${item.tag}</span>
+                      </div>
+                      <div class="text-base sm:text-lg font-extrabold text-slate-900 my-1.5">
+                        ${item.math}
+                      </div>
+                      <div class="text-xs text-slate-600">${item.desc}</div>
+                    </div>
+                  `;
+                })
+                .join('')}
+            </div>
+
+            <div class="flex items-center justify-between pt-1">
+              <button type="button" onclick="state.step2Stage = Math.max(1, state.step2Stage - 1); renderLeftPanel();"
+                ${st <= 1 ? 'disabled' : ''}
+                class="px-3 py-1.5 rounded-lg border border-slate-300 text-xs font-bold text-slate-700 disabled:opacity-40 cursor-pointer">
+                ← 1つ戻す
+              </button>
+              <button type="button" onclick="state.step2Stage = Math.min(5, state.step2Stage + 1); renderLeftPanel();"
+                ${st >= 5 ? 'disabled' : ''}
+                class="px-4 py-1.5 rounded-lg bg-blue-600 text-white text-xs font-bold hover:bg-blue-700 disabled:opacity-40 cursor-pointer">
+                次の手順へ →
+              </button>
+            </div>
+          </div>
+        `;
+        renderMathInContainer(container);
+        return;
+      }
+
+      // ------------------------------------------
+      // STEP 3: 余弦へ接続（cos 90° = 0 による符号検算実験）
+      // ------------------------------------------
+      if (step === 3) {
+        const choice = state.step3SignChoice;
+        // 単位円が上下左右とも完全に収まる座標設定（上端37〜下端207）
+        const cx = 140;
+        const cy = 122;
+        const R = 85;
+
+        container.innerHTML = `
+          <div class="bg-white rounded-2xl border-2 border-slate-200 p-4 sm:p-5 shadow-sm flex flex-col gap-4">
+            <div class="bg-amber-50 border border-amber-200 p-3.5 rounded-xl">
+              <div class="text-xs font-extrabold text-amber-800 mb-1">思考実験：$\\cos(\\alpha + \\beta)$ の真ん中の符号を当てよう！</div>
+              <div class="text-base sm:text-lg font-extrabold text-slate-900 text-center py-2 bg-white rounded-lg border border-amber-200">
+                $\\cos(\\alpha + \\beta) =$ <span class="text-orange-600">$\\cos\\alpha\\cos\\beta$</span>
+                <span class="inline-block px-2.5 py-0.5 mx-1 rounded bg-red-100 text-red-700 border border-red-300">
+                  ${choice === 'plus' ? '$+$' : choice === 'minus' ? '$-$' : '？'}
+                </span>
+                <span class="text-blue-600">$\\sin\\alpha\\sin\\beta$</span>
+              </div>
+            </div>
+
+            <!-- 検算の舞台：α = 45°, β = 45° を代入 -->
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-center bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+              <div class="md:col-span-5 flex flex-col items-center">
+                <svg viewBox="0 0 280 265" class="w-full max-w-[245px] h-auto">
+                  <!-- 座標軸 -->
+                  <line x1="25" y1="${cy}" x2="255" y2="${cy}" stroke="#64748b" stroke-width="1.5" />
+                  <line x1="${cx}" y1="18" x2="${cx}" y2="222" stroke="#64748b" stroke-width="1.5" />
+                  <!-- 単位円（全体が完全に表示される） -->
+                  <circle cx="${cx}" cy="${cy}" r="${R}" fill="rgba(13, 148, 136, 0.04)" stroke="#475569" stroke-width="2.2" />
+                  <text x="${cx + R + 6}" y="${cy + 14}" font-size="11" font-weight="bold" fill="#64748b">1</text>
+                  <text x="${cx - R - 16}" y="${cy + 14}" font-size="11" font-weight="bold" fill="#64748b">-1</text>
+                  <!-- 90° の点 -->
+                  <line x1="${cx}" y1="${cy}" x2="${cx}" y2="${cy - R}" stroke="#0d9488" stroke-width="3.5" />
+                  <circle cx="${cx}" cy="${cy - R}" r="6.5" fill="#0d9488" />
+                  <text x="${cx + 10}" y="${cy - R + 5}" font-size="12.5" font-weight="bold" fill="#0f766e">90° (0, 1)</text>
+                  <!-- 円の下に重ならないよう配置した説明バッジ -->
+                  <rect x="40" y="232" width="200" height="24" rx="6" fill="white" stroke="#99f6e4" stroke-width="1.2" />
+                  <text x="${cx}" y="248" text-anchor="middle" font-size="12" font-weight="bold" fill="#0f766e">
+                    横座標 cos 90° ＝ 0
+                  </text>
+                </svg>
+              </div>
+
+              <div class="md:col-span-7 space-y-2.5 text-xs sm:text-sm">
+                <div class="font-extrabold text-slate-800">
+                  【実験】$\\alpha = 45^\\circ$、$\\beta = 45^\\circ$ を入れて確かめよう！
+                </div>
+                <div class="bg-white p-2.5 rounded-lg border border-slate-200 font-bold text-teal-800">
+                  左辺 $= \\cos(45^\\circ + 45^\\circ) = \\cos 90^\\circ =$ <span class="text-lg underline">$0$</span>
+                </div>
+
+                <div class="flex gap-2">
+                  <button type="button" onclick="state.step3SignChoice='plus'; renderLeftPanel();"
+                    class="flex-1 py-2 px-3 rounded-xl font-extrabold text-xs sm:text-sm border-2 transition cursor-pointer ${
+                      choice === 'plus' ? 'bg-rose-600 text-white border-rose-600' : 'bg-white text-slate-700 border-slate-300 hover:bg-rose-50'
+                    }">
+                    真ん中を「$+$」にする
+                  </button>
+                  <button type="button" onclick="state.step3SignChoice='minus'; renderLeftPanel();"
+                    class="flex-1 py-2 px-3 rounded-xl font-extrabold text-xs sm:text-sm border-2 transition cursor-pointer ${
+                      choice === 'minus' ? 'bg-teal-600 text-white border-teal-600' : 'bg-white text-slate-700 border-slate-300 hover:bg-teal-50'
+                    }">
+                    真ん中を「$-$」にする
+                  </button>
+                </div>
+
+                ${
+                  choice === 'plus'
+                    ? `<div class="bg-rose-100 border border-rose-300 p-3 rounded-xl text-rose-950 space-y-1.5">
+                        <div class="font-extrabold text-rose-700">❌ 矛盾が発生！</div>
+                        <p>右辺 $= \\dfrac{\\sqrt{2}}{2} \\cdot \\dfrac{\\sqrt{2}}{2}$ <strong>$+$</strong> $\\dfrac{\\sqrt{2}}{2} \\cdot \\dfrac{\\sqrt{2}}{2} = \\dfrac{1}{2} + \\dfrac{1}{2} =$ <strong>$1$</strong></p>
+                        <p>左辺は <strong>$0$</strong> なのに右辺が <strong>$1$</strong> になってしまい合いません！</p>
+                      </div>`
+                    : choice === 'minus'
+                    ? `<div class="bg-teal-100 border border-teal-300 p-3 rounded-xl text-teal-950 space-y-1.5">
+                        <div class="font-extrabold text-teal-800">⭕ ピッタリ一致！</div>
+                        <p>右辺 $= \\dfrac{\\sqrt{2}}{2} \\cdot \\dfrac{\\sqrt{2}}{2}$ <strong>$-$</strong> $\\dfrac{\\sqrt{2}}{2} \\cdot \\dfrac{\\sqrt{2}}{2} = \\dfrac{1}{2} - \\dfrac{1}{2} =$ <strong>$0$</strong></p>
+                        <p>左辺の $\\cos 90^\\circ = 0$ と見事に一致！よって余弦の真ん中は <strong>「$-$」</strong> です。</p>
+                      </div>`
+                    : `<div class="text-xs text-slate-500 bg-white p-2.5 rounded-lg border border-dashed border-slate-300">
+                        ↑ 上の「$+$」または「$-$」ボタンを押して、右辺が $0$ になるか実験してみよう！
+                      </div>`
+                }
+              </div>
+            </div>
+          </div>
+        `;
+        renderMathInContainer(container);
+        return;
+      }
+
+      // ------------------------------------------
+      // STEP 4: 余弦の加法定理を図で理解する（単位円の回転ベクトル分解）
+      // ------------------------------------------
+      if (step === 4) {
+        const a = state.step4Alpha;
+        const b = state.step4Beta;
+        const st = state.step4Stage;
+
+        const radA = (a * Math.PI) / 180;
+        const radB = (b * Math.PI) / 180;
+        const radSum = ((a + b) * Math.PI) / 180;
+
+        // 単位円全体が収まる配置（上端45〜下端345）
+        const cx = 255;
+        const cy = 195;
+        const R = 150;
+
+        const px = cx + R * Math.cos(radA);
+        const py = cy - R * Math.sin(radA);
+
+        const hx = cx + R * Math.cos(radA);
+        const hy = cy;
+
+        const hPrimeX = cx + R * Math.cos(radA) * Math.cos(radB);
+        const hPrimeY = cy - R * Math.cos(radA) * Math.sin(radB);
+
+        const qx = cx + R * Math.cos(radSum);
+        const qy = cy - R * Math.sin(radSum);
+
+        container.innerHTML = `
+          <div class="bg-white rounded-2xl border-2 border-slate-200 shadow-inner overflow-hidden">
+            <svg viewBox="0 0 560 390" class="w-full h-auto select-none">
+              <defs>
+                <pattern id="grid4" width="28" height="28" patternUnits="userSpaceOnUse">
+                  <path d="M 28 0 L 0 0 0 28" fill="none" stroke="#f1f5f9" stroke-width="1" />
+                </pattern>
+                <marker id="arrowOrange" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                  <path d="M 0 1 L 10 5 L 0 9 z" fill="#ea580c" />
+                </marker>
+                <marker id="arrowBlue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                  <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb" />
+                </marker>
+              </defs>
+              <rect width="560" height="390" fill="url(#grid4)" />
+
+              <!-- 座標軸 -->
+              <line x1="35" y1="${cy}" x2="525" y2="${cy}" stroke="#64748b" stroke-width="1.5" />
+              <line x1="${cx}" y1="20" x2="${cx}" y2="375" stroke="#64748b" stroke-width="1.5" />
+              <text x="515" y="${cy + 16}" font-size="12" font-weight="bold" fill="#64748b">x (cos)</text>
+              <text x="${cx + 8}" y="32" font-size="12" font-weight="bold" fill="#64748b">y (sin)</text>
+
+              <!-- 単位円（完全表示） -->
+              <circle cx="${cx}" cy="${cy}" r="${R}" fill="rgba(99, 102, 241, 0.03)" stroke="#cbd5e1" stroke-width="2" />
+
+              <!-- ① 角 α の矢印と横・縦成分 -->
+              <line x1="${cx}" y1="${cy}" x2="${px}" y2="${py}" stroke="#94a3b8" stroke-width="2" stroke-dasharray="5 3" />
+              <circle cx="${px}" cy="${py}" r="4.5" fill="#64748b" />
+              <text x="${px + 8}" y="${py}" font-size="12" font-weight="bold" fill="#475569">角α (${a}°)</text>
+
+              ${
+                st === 1
+                  ? `<line x1="${cx}" y1="${cy}" x2="${hx}" y2="${hy}" stroke="#ea580c" stroke-width="4" marker-end="url(#arrowOrange)" />
+                     <text x="${(cx + hx) / 2}" y="${cy + 18}" text-anchor="middle" font-size="12" font-weight="bold" fill="#c2410c">元の横成分 cosα</text>
+                     <line x1="${hx}" y1="${hy}" x2="${px}" y2="${py}" stroke="#2563eb" stroke-width="4" marker-end="url(#arrowBlue)" />
+                     <text x="${hx + 8}" y="${(hy + py) / 2}" font-size="12" font-weight="bold" fill="#1d4ed8">元の縦成分 sinα</text>`
+                  : ''
+              }
+
+              <!-- ② 角 α+β の最終ベクトル -->
+              ${
+                st >= 2
+                  ? `<line x1="${cx}" y1="${cy}" x2="${qx}" y2="${qy}" stroke="#0d9488" stroke-width="3" />
+                     <circle cx="${qx}" cy="${qy}" r="6" fill="#0d9488" />
+                     <text x="${qx - 10}" y="${qy - 12}" text-anchor="end" font-size="13" font-weight="bold" fill="#0f766e">
+                       角 α+β (${a + b}°)
+                     </text>`
+                  : ''
+              }
+
+              <!-- ③ 元の横成分 cosα を β 回転した矢印 → 横への寄与 +cosα cosβ -->
+              ${
+                st >= 3
+                  ? `<line x1="${cx}" y1="${cy}" x2="${hPrimeX}" y2="${hPrimeY}" stroke="#ea580c" stroke-width="3.5" marker-end="url(#arrowOrange)" />
+                     <line x1="${hPrimeX}" y1="${hPrimeY}" x2="${hPrimeX}" y2="${cy}" stroke="#ea580c" stroke-width="1.5" stroke-dasharray="3 3" />
+                     <line x1="${cx}" y1="${cy + 12}" x2="${hPrimeX}" y2="${cy + 12}" stroke="#ea580c" stroke-width="4" />
+                     <text x="${(cx + hPrimeX) / 2}" y="${cy + 28}" text-anchor="middle" font-size="12" font-weight="bold" fill="#c2410c">
+                       右へ ＋cosα cosβ
+                     </text>`
+                  : ''
+              }
+
+              <!-- ④ 元の縦成分 sinα を β 回転した矢印 → 左向き（マイナス！）の横への寄与 −sinα sinβ -->
+              ${
+                st >= 4
+                  ? `<line x1="${hPrimeX}" y1="${hPrimeY}" x2="${qx}" y2="${qy}" stroke="#2563eb" stroke-width="3.5" marker-end="url(#arrowBlue)" />
+                     <line x1="${qx}" y1="${qy}" x2="${qx}" y2="${cy}" stroke="#2563eb" stroke-width="1.5" stroke-dasharray="3 3" />
+                     <line x1="${hPrimeX}" y1="${cy + 40}" x2="${qx}" y2="${cy + 40}" stroke="#dc2626" stroke-width="4" />
+                     <text x="${(hPrimeX + qx) / 2}" y="${cy + 56}" text-anchor="middle" font-size="12" font-weight="bold" fill="#dc2626">
+                       ← 左へ戻る（− sinα sinβ）
+                     </text>
+                     <line x1="${cx}" y1="${cy + 66}" x2="${qx}" y2="${cy + 66}" stroke="#0d9488" stroke-width="4" />
+                     <text x="${(cx + qx) / 2}" y="${cy + 80}" text-anchor="middle" font-size="12" font-weight="bold" fill="#0f766e">
+                       結果：cos(α+β)
+                     </text>`
+                  : ''
+              }
+            </svg>
+          </div>
+
+          <!-- 回転ステップ＆角度スライダー -->
+          <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 flex flex-col gap-2.5">
+            <div class="flex flex-wrap gap-1.5">
+              ${[
+                { s: 1, label: '① 角αの横と縦' },
+                { s: 2, label: '② さらにβ回転' },
+                { s: 3, label: '③ 横成分の回転(+)' },
+                { s: 4, label: '④ 縦成分の回転(−)' },
+              ]
+                .map(
+                  (b) => `
+                <button type="button" onclick="state.step4Stage=${b.s}; renderLeftPanel();"
+                  class="px-2.5 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                    st === b.s ? 'bg-indigo-600 text-white' : 'bg-white text-slate-700 border border-slate-300 hover:bg-indigo-50'
+                  }">
+                  ${b.label}
+                </button>`
+                )
+                .join('')}
+            </div>
+
+            <div class="grid grid-cols-2 gap-2.5 bg-white p-2.5 rounded-lg border border-slate-200 text-xs">
+              <div>
+                <div class="flex justify-between font-bold mb-1">
+                  <span>角 $\\alpha$</span><span>${a}°</span>
+                </div>
+                <input type="range" min="20" max="55" step="5" value="${a}"
+                  oninput="state.step4Alpha=Number(this.value); renderLeftPanel();"
+                  class="w-full accent-indigo-600" />
+              </div>
+              <div>
+                <div class="flex justify-between font-bold mb-1">
+                  <span>回転角 $\\beta$</span><span>${b}°</span>
+                </div>
+                <input type="range" min="20" max="55" step="5" value="${b}"
+                  oninput="state.step4Beta=Number(this.value); renderLeftPanel();"
+                  class="w-full accent-teal-600" />
+              </div>
+            </div>
+          </div>
+        `;
+        renderMathInContainer(container);
+        return;
+      }
+
+      // ------------------------------------------
+      // STEP 5: 余弦を使う（cos 75° の導出＆単位円での大きさ比較）
+      // ------------------------------------------
+      if (step === 5) {
+        const st = state.step5Stage;
+        // 単位円全体が収まる配置（上端38〜下端248）
+        const cx = 145;
+        const cy = 143;
+        const R = 105;
+        const rad75 = (75 * Math.PI) / 180;
+        const qx = cx + R * Math.cos(rad75);
+        const qy = cy - R * Math.sin(rad75);
+
+        const cosSteps = [
+          {
+            s: 1,
+            label: '① 角を分けて余弦の公式を書く',
+            math: '$\\cos 75^\\circ = \\cos(30^\\circ + 45^\\circ) = \\textcolor{#ea580c}{\\cos 30^\\circ \\cos 45^\\circ} \\textcolor{#dc2626}{-} \\textcolor{#2563eb}{\\sin 30^\\circ \\sin 45^\\circ}$',
+          },
+          {
+            s: 2,
+            label: '② 基本角の値を代入する',
+            math: '$= \\textcolor{#ea580c}{\\dfrac{\\sqrt{3}}{2} \\times \\dfrac{\\sqrt{2}}{2}} \\textcolor{#dc2626}{-} \\textcolor{#2563eb}{\\dfrac{1}{2} \\times \\dfrac{\\sqrt{2}}{2}}$',
+          },
+          {
+            s: 3,
+            label: '③ 分母を $4$ にそろえて計算する',
+            math: '$= \\dfrac{\\sqrt{6}}{4} - \\dfrac{\\sqrt{2}}{4} = \\textcolor{#c2410c}{\\dfrac{\\sqrt{6} - \\sqrt{2}}{4}}$',
+          },
+          {
+            s: 4,
+            label: '④ 妥当性チェック（$90^\\circ$ に近いので $0$ に近い正の値）',
+            math: '$\\fallingdotseq \\dfrac{2.45 - 1.41}{4} \\fallingdotseq \\textcolor{#0f766e}{0.259}$ （$\\sin 75^\\circ \\fallingdotseq 0.966$ よりずっと小さい！）',
+          },
+        ];
+
+        container.innerHTML = `
+          <div class="bg-white rounded-2xl border-2 border-slate-200 p-4 sm:p-5 shadow-sm flex flex-col gap-4">
+            <!-- 計算ステップ -->
+            <div class="space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="text-sm font-extrabold text-slate-900">例題：$\\cos 75^\\circ$ の値を求めよう</span>
+                <div class="flex gap-1">
+                  ${[1, 2, 3, 4]
+                    .map(
+                      (n) => `
+                    <button type="button" onclick="state.step5Stage=${n}; renderLeftPanel();"
+                      class="w-7 h-7 rounded-lg text-xs font-extrabold cursor-pointer ${
+                        st === n ? 'bg-orange-600 text-white' : st > n ? 'bg-orange-100 text-orange-800' : 'bg-slate-100 text-slate-500'
+                      }">${n}</button>`
+                    )
+                    .join('')}
+                </div>
+              </div>
+
+              ${cosSteps
+                .map((item) => {
+                  if (st < item.s) {
+                    return `<div onclick="state.step5Stage=${item.s}; renderLeftPanel();"
+                      class="p-2.5 rounded-xl border border-dashed border-slate-300 bg-slate-50 text-xs text-slate-400 font-bold flex justify-between cursor-pointer hover:bg-slate-100">
+                      <span>${item.label}</span><span class="text-orange-600 underline">開く</span>
+                    </div>`;
+                  }
+                  return `<div class="p-2.5 rounded-xl border ${
+                    st === item.s ? 'bg-orange-50/70 border-orange-400' : 'bg-slate-50 border-slate-200'
+                  }">
+                    <div class="text-xs font-bold text-orange-800 mb-0.5">${item.label}</div>
+                    <div class="text-sm sm:text-base font-extrabold text-slate-900 my-1">${item.math}</div>
+                  </div>`;
+                })
+                .join('')}
+            </div>
+
+            <!-- 単位円上の 75°：縦(sin75°) vs 横(cos75°) の視覚比較 -->
+            <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 grid grid-cols-1 sm:grid-cols-12 gap-2 items-center">
+              <div class="sm:col-span-6 flex justify-center">
+                <svg viewBox="0 0 320 280" class="w-full max-w-[260px] h-auto">
+                  <line x1="25" y1="${cy}" x2="295" y2="${cy}" stroke="#64748b" stroke-width="1.5" />
+                  <line x1="${cx}" y1="20" x2="${cx}" y2="265" stroke="#64748b" stroke-width="1.5" />
+                  <!-- 単位円全体 -->
+                  <circle cx="${cx}" cy="${cy}" r="${R}" fill="rgba(99, 102, 241, 0.03)" stroke="#94a3b8" stroke-width="1.8" />
+                  <line x1="${cx}" y1="${cy}" x2="${qx}" y2="${qy}" stroke="#1e293b" stroke-width="2.5" />
+                  <!-- 縦：sin 75° -->
+                  <line x1="${qx}" y1="${cy}" x2="${qx}" y2="${qy}" stroke="#2563eb" stroke-width="4" />
+                  <text x="${qx + 8}" y="${(cy + qy) / 2}" font-size="12" font-weight="bold" fill="#1d4ed8">sin 75° (長い!)</text>
+                  <!-- 横：cos 75° -->
+                  <line x1="${cx}" y1="${cy}" x2="${qx}" y2="${cy}" stroke="#ea580c" stroke-width="4.5" />
+                  <text x="${(cx + qx) / 2 + 12}" y="${cy + 16}" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#c2410c">cos 75° (短い)</text>
+                  <circle cx="${qx}" cy="${qy}" r="5.5" fill="#1e293b" />
+                  <text x="${qx - 8}" y="${qy - 10}" font-size="13" font-weight="bold" fill="#1e293b">75°</text>
+                </svg>
+              </div>
+              <div class="sm:col-span-6 space-y-2 text-xs">
+                <div class="font-extrabold text-slate-800">$75^\\circ$ の位置から大きさを実感しよう！</div>
+                <p class="text-slate-600 leading-relaxed">
+                  $75^\\circ$ は真上の <strong>$90^\\circ$</strong> にかなり近い角です。そのため：
+                </p>
+                <div class="bg-blue-50 border border-blue-200 p-2 rounded-lg font-bold text-blue-900">
+                  縦の高さ $\\sin 75^\\circ = \\dfrac{\\sqrt{6} + \\sqrt{2}}{4} \\fallingdotseq 0.966$（$1$ に近い！）
+                </div>
+                <div class="bg-orange-50 border border-orange-200 p-2 rounded-lg font-bold text-orange-900">
+                  横の幅 $\\cos 75^\\circ = \\dfrac{\\sqrt{6} - \\sqrt{2}}{4} \\fallingdotseq 0.259$（$0$ に近い！）
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+        renderMathInContainer(container);
+        return;
+      }
+
+      // ------------------------------------------
+      // STEP 6: まとめビジュアルボード（加法定理の黄金ルール）
+      // ------------------------------------------
+      container.innerHTML = `
+        <div class="bg-gradient-to-br from-indigo-50 via-white to-orange-50 rounded-2xl border-2 border-indigo-200 p-5 flex flex-col gap-4 shadow-sm">
+          <div class="text-indigo-900 font-extrabold text-lg flex items-center gap-2">
+            <span>🏆 加法定理・本質まとめボード</span>
+          </div>
+
+          <div class="grid grid-cols-1 gap-3">
+            <div class="bg-white p-4 rounded-xl border border-blue-200 shadow-2xs">
+              <div class="text-xs font-extrabold text-blue-600 mb-1">① 正弦（$\\sin$）の加法定理：交差する積を「足す」</div>
+              <div class="text-base sm:text-xl font-black text-slate-900">
+                $\\textcolor{#2563eb}{\\sin}(\\alpha + \\beta) = \\textcolor{#2563eb}{\\sin\\alpha}\\textcolor{#ea580c}{\\cos\\beta} \\textcolor{#dc2626}{+} \\textcolor{#ea580c}{\\cos\\alpha}\\textcolor{#2563eb}{\\sin\\beta}$
+              </div>
+            </div>
+
+            <div class="bg-white p-4 rounded-xl border border-orange-200 shadow-2xs">
+              <div class="text-xs font-extrabold text-orange-600 mb-1">② 余弦（$\\cos$）の加法定理：同じ種類の積を「引く」</div>
+              <div class="text-base sm:text-xl font-black text-slate-900">
+                $\\textcolor{#ea580c}{\\cos}(\\alpha + \\beta) = \\textcolor{#ea580c}{\\cos\\alpha}\\textcolor{#ea580c}{\\cos\\beta} \\textcolor{#dc2626}{-} \\textcolor{#2563eb}{\\sin\\alpha}\\textcolor{#2563eb}{\\sin\\beta}$
+              </div>
+            </div>
+
+            <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-2xs text-xs sm:text-sm space-y-1.5">
+              <div class="font-extrabold text-slate-800">③ 困ったときの「3つの検算ルール」</div>
+              <ul class="space-y-1 text-slate-700">
+                <li>• <strong>符号に迷ったら：</strong> $\\alpha = 45^\\circ, \\beta = 45^\\circ$ を入れて、$\\sin 90^\\circ = 1$、$\\cos 90^\\circ = 0$ になるか確認！</li>
+                <li>• <strong>値の大きさに迷ったら：</strong> $\\sin$ も $\\cos$ も絶対に <strong>$-1$ 以上 $1$ 以下</strong> におさまる！</li>
+                <li>• <strong>角の分解：</strong> $75^\\circ = 30^\\circ + 45^\\circ$、$105^\\circ = 60^\\circ + 45^\\circ$ のように基本角に分ける！</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      `;
+      renderMathInContainer(container);
+    }
+
+    // ==========================================
+    // 7. 右パネル（授業展開・板書・丁寧解説・演習）の描画
+    // ==========================================
+    function renderRightPanel() {
+      const container = document.getElementById('right-panel');
+      const stepData = LESSON_STEPS[state.currentStep];
+
+      // モード別の上部メインカード（授業提示：教師の発問 ／ 生徒復習：丁寧なかみくだき解説）
+      const topPromptHtml =
+        state.viewMode === 'teacher'
+          ? `<div class="bg-amber-50 border-2 border-amber-300 p-4 rounded-2xl shadow-2xs">
+              <div class="flex items-center justify-between mb-1.5">
+                <span class="bg-amber-500 text-slate-950 font-extrabold text-xs px-2.5 py-0.5 rounded-full">
+                  🗣️ 教師の発問・問いかけ（${stepData.time}）
+                </span>
+              </div>
+              <p class="text-slate-900 font-extrabold text-sm sm:text-base leading-relaxed">
+                ${stepData.teacherPrompt}
+              </p>
+            </div>`
+          : `<div class="bg-indigo-50 border-2 border-indigo-200 p-4 rounded-2xl shadow-2xs space-y-2.5">
+              <div class="flex items-center gap-2">
+                <span class="bg-indigo-600 text-white font-extrabold text-xs px-2.5 py-0.5 rounded-full">
+                  📖 かみくだき解説（本質の理解）
+                </span>
+              </div>
+              <p class="text-slate-800 text-sm sm:text-base leading-relaxed">
+                ${stepData.studentNote}
+              </p>
+              <div class="bg-white/90 border border-indigo-200 p-3 rounded-xl text-xs sm:text-sm text-indigo-950">
+                <span class="font-extrabold text-indigo-700">🎯 やってみよう（復習ミッション）：</span>
+                ${stepData.studentMission}
+              </div>
+            </div>`;
+
+      // 板書ボックス（授業提示モードでは1行ずつ段階開示可能、生徒復習モードでは完成版を全表示）
+      const totalLines = stepData.boardSummary.length;
+      const visibleCount = state.viewMode === 'teacher' ? state.teacherBoardRevealed : totalLines;
+      const visibleLines = stepData.boardSummary.slice(0, visibleCount);
+
+      const boardHtml = `
+        <div class="bg-slate-800 text-white p-4 rounded-2xl shadow-md space-y-2.5">
+          <div class="flex items-center justify-between gap-2">
+            <div class="text-xs font-extrabold text-amber-300">
+              ${state.viewMode === 'teacher' ? `📋 板書計画（${visibleCount} / ${totalLines} 行を表示中）` : '📝 重要ポイント・まとめノート'}
+            </div>
+            ${
+              state.viewMode === 'teacher'
+                ? `<div class="flex items-center gap-1.5">
+                    ${
+                      visibleCount < totalLines
+                        ? `<button type="button" onclick="state.teacherBoardRevealed++; renderRightPanel();"
+                            class="px-2.5 py-1 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-extrabold cursor-pointer">
+                            ＋ 次の1行を出す
+                          </button>`
+                        : ''
+                    }
+                    <button type="button" onclick="state.teacherBoardRevealed = ${visibleCount < totalLines ? totalLines : 1}; renderRightPanel();"
+                      class="px-2 py-1 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs font-bold cursor-pointer">
+                      ${visibleCount < totalLines ? 'すべて表示' : '1行目に戻す'}
+                    </button>
+                  </div>`
+                : ''
+            }
+          </div>
+          <ul class="space-y-2 text-sm leading-relaxed">
+            ${visibleLines
+              .map(
+                (line) => `
+              <li class="flex items-start gap-2">
+                <span class="text-amber-400 font-bold mt-0.5">•</span>
+                <span>${line}</span>
+              </li>`
+              )
+              .join('')}
+          </ul>
+          ${
+            state.viewMode === 'teacher' && visibleCount < totalLines
+              ? `<div class="text-xs text-slate-400 italic pt-1 border-t border-slate-700">
+                  ※ 残り ${totalLines - visibleCount} 行は生徒の反応を見てから「＋ 次の1行を出す」で提示できます
+                </div>`
+              : ''
+          }
+        </div>
+      `;
+
+      // モード別の第3ブロック（授業提示：指導の留意点と誤答対応 ／ 生徒復習：理解度セルフチェック1問クイズ）
+      let modeSpecificCardHtml = '';
+      if (state.viewMode === 'teacher') {
+        modeSpecificCardHtml = `
+          <div class="bg-emerald-50/80 border border-emerald-200 p-3.5 rounded-xl text-xs sm:text-sm text-slate-800 leading-relaxed">
+            <div class="font-extrabold text-emerald-800 mb-1">💡 指導の留意点・想定誤答への対応</div>
+            <p>${stepData.teacherTips}</p>
+          </div>
+        `;
+      } else if (stepData.selfCheck) {
+        const sc = stepData.selfCheck;
+        const selectedIdx = state.selfCheckAnswers[state.currentStep];
+        const hasAnswered = selectedIdx !== undefined;
+        const isCorrect = selectedIdx === sc.correctIdx;
+
+        modeSpecificCardHtml = `
+          <div class="bg-white border-2 border-indigo-200 p-4 rounded-2xl shadow-2xs space-y-2.5">
+            <div class="text-xs font-extrabold text-indigo-700 flex items-center gap-1.5">
+              <span>✅ 理解度セルフチェック（復習確認クイズ）</span>
+            </div>
+            <p class="text-xs sm:text-sm font-bold text-slate-900 leading-relaxed">${sc.q}</p>
+            <div class="grid grid-cols-1 gap-2">
+              ${sc.options
+                .map((opt, idx) => {
+                  let btnClass = 'bg-slate-50 text-slate-800 border-slate-300 hover:bg-indigo-50';
+                  if (hasAnswered) {
+                    if (idx === sc.correctIdx) {
+                      btnClass = 'bg-emerald-600 text-white border-emerald-600 shadow-xs';
+                    } else if (idx === selectedIdx) {
+                      btnClass = 'bg-rose-600 text-white border-rose-600';
+                    } else {
+                      btnClass = 'bg-slate-50 text-slate-400 border-slate-200';
+                    }
+                  }
+                  return `
+                    <button type="button" onclick="state.selfCheckAnswers[${state.currentStep}] = ${idx}; renderRightPanel();"
+                      class="w-full text-left px-3 py-2 rounded-xl border text-xs sm:text-sm font-bold transition cursor-pointer ${btnClass}">
+                      ${idx === 0 ? 'A. ' : 'B. '}${opt}
+                    </button>
+                  `;
+                })
+                .join('')}
+            </div>
+            ${
+              hasAnswered
+                ? `<div class="p-3 rounded-xl text-xs sm:text-sm leading-relaxed border ${
+                    isCorrect ? 'bg-emerald-50 border-emerald-200 text-emerald-950' : 'bg-rose-50 border-rose-200 text-rose-950'
+                  }">
+                    <span class="font-extrabold">${isCorrect ? '⭕ 大正解！' : '❌ もう一歩！'}</span>
+                    ${sc.explain}
+                  </div>`
+                : ''
+            }
+          </div>
+        `;
+      }
+
+      let extraPanelHtml = '';
+
+      // Step 2: よくある誤答チェック＆発展 sin15°
+      if (state.currentStep === 2) {
+        extraPanelHtml = `
+          <div class="bg-white border border-slate-200 rounded-xl p-4 flex flex-col gap-3">
+            <div class="font-bold text-slate-800 text-sm">
+              🔍 よくある間違いチェック ＆ 発展の予想
+            </div>
+
+            <button type="button" onclick="state.showStep2ErrorCheck = !state.showStep2ErrorCheck; renderRightPanel();"
+              class="text-left p-3 rounded-lg bg-rose-50 border border-rose-200 text-xs sm:text-sm font-bold text-rose-900 hover:bg-rose-100 transition cursor-pointer">
+              ${
+                state.showStep2ErrorCheck
+                  ? '▲ 閉じる：もし $\\sin 30^\\circ\\sin 45^\\circ + \\cos 30^\\circ\\cos 45^\\circ$ と書いてしまったら？'
+                  : '▼ よくある誤答：もし「$\\sin$同士 $+$ $\\cos$同士」で計算したらどうなる？'
+              }
+            </button>
+            ${
+              state.showStep2ErrorCheck
+                ? `<div class="text-xs sm:text-sm text-slate-700 bg-rose-50/50 p-3 rounded-lg border border-rose-100 space-y-1.5 leading-relaxed">
+                    <p>⚠️ <strong>注意：</strong> $\\sin 30^\\circ \\sin 45^\\circ + \\cos 30^\\circ \\cos 45^\\circ$ と書くと、これは「正弦」ではなく<strong>余弦（$\\cos$）の組み合わせ</strong>です！</p>
+                    <p>たとえば <strong>$\\sin(30^\\circ + 60^\\circ) = \\sin 90^\\circ = 1$</strong> で試すと、誤った式では <strong>$\\dfrac{\\sqrt{3}}{2} \\fallingdotseq 0.866$</strong> になってしまい正しく求まりません。必ず「交差する積（$\\sin\\cdot\\cos + \\cos\\cdot\\sin$）」を使いましょう。</p>
+                  </div>`
+                : ''
+            }
+
+            <button type="button" onclick="state.showStep2Advance15 = !state.showStep2Advance15; renderRightPanel();"
+              class="text-left p-3 rounded-lg bg-teal-50 border border-teal-200 text-xs sm:text-sm font-bold text-teal-900 hover:bg-teal-100 transition cursor-pointer">
+              ${
+                state.showStep2Advance15
+                  ? '▲ 閉じる：早く終わった人への発展（$\\sin 15^\\circ$ の予想）'
+                  : '▼ 発展チャレンジ：$\\sin 15^\\circ$ を求めるにはどう分ける？'
+              }
+            </button>
+            ${
+              state.showStep2Advance15
+                ? `<div class="text-xs sm:text-sm text-slate-700 bg-teal-50/50 p-3 rounded-lg border border-teal-100 space-y-1.5 leading-relaxed">
+                    <p><strong>ヒント：</strong> $15^\\circ =$ <strong>$45^\\circ - 30^\\circ$</strong>（または $60^\\circ - 45^\\circ$）と引き算で表せます！</p>
+                    <p>差の公式 <strong>$\\sin(\\alpha - \\beta) = \\sin\\alpha\\cos\\beta - \\cos\\alpha\\sin\\beta$</strong> を使うと、$\\sin 15^\\circ = \\dfrac{\\sqrt{6} - \\sqrt{2}}{4}$ と求められます（次の授業で詳しく扱います）。</p>
+                  </div>`
+                : ''
+            }
+          </div>
+        `;
+      }
+
+      // Step 5: 指導案のミニ演習①〜③
+      if (state.currentStep === 5) {
+        extraPanelHtml = `
+          <div class="bg-white border border-slate-200 rounded-xl p-4 flex flex-col gap-3">
+            <div class="font-extrabold text-slate-900 text-sm">
+              ✏️ ミニ演習（33〜38分）：理解を定着させよう
+            </div>
+
+            <div class="space-y-2.5 text-xs sm:text-sm">
+              <div class="bg-slate-50 p-3 rounded-lg border border-slate-200">
+                <p class="font-bold text-slate-800 mb-1.5">
+                  演習①：$\\cos(45^\\circ + 45^\\circ)$ を余弦の加法定理の公式を使って求めよ。
+                </p>
+                <p class="font-bold text-slate-800 mb-2">
+                  演習②：$\\sin 75^\\circ$ と $\\cos 75^\\circ$ ではどちらが大きい？
+                </p>
+                <div class="flex gap-2">
+                  ${[
+                    { val: 'sin75', label: '$\\sin 75^\\circ$ の方が大きい' },
+                    { val: 'cos75', label: '$\\cos 75^\\circ$ の方が大きい' },
+                  ]
+                    .map(
+                      (opt) => `
+                    <button type="button" onclick="state.miniEx2Choice='${opt.val}'; renderRightPanel();"
+                      class="flex-1 py-1.5 px-2 rounded-lg text-xs font-bold border cursor-pointer ${
+                        state.miniEx2Choice === opt.val
+                          ? opt.val === 'sin75'
+                            ? 'bg-emerald-600 text-white border-emerald-600'
+                            : 'bg-rose-600 text-white border-rose-600'
+                          : 'bg-white text-slate-700 border-slate-300'
+                      }">
+                      ${opt.label}
+                    </button>`
+                    )
+                    .join('')}
+                </div>
+                ${
+                  state.miniEx2Choice
+                    ? `<p class="text-xs mt-1.5 font-bold ${
+                        state.miniEx2Choice === 'sin75' ? 'text-emerald-700' : 'text-rose-700'
+                      }">
+                        ${
+                          state.miniEx2Choice === 'sin75'
+                            ? '正解！$75^\\circ$ は $90^\\circ$ に近いため、縦座標の $\\sin 75^\\circ$ の方が大きくなります。'
+                            : '惜しい！分子を比べると $\\sqrt{6}+\\sqrt{2} > \\sqrt{6}-\\sqrt{2}$ なので $\\sin 75^\\circ$ の方が大きいです。'
+                        }
+                      </p>`
+                    : ''
+                }
+              </div>
+
+              <div class="bg-slate-50 p-3 rounded-lg border border-slate-200">
+                <p class="font-bold text-slate-800">
+                  演習③：公式を見ずに「余弦の式の中央はなぜ $-$ か」を $45^\\circ + 45^\\circ$ の例で説明してみよう。
+                </p>
+              </div>
+
+              <button type="button" onclick="state.showMiniExAnswers = !state.showMiniExAnswers; renderRightPanel();"
+                class="w-full py-2 bg-orange-600 text-white rounded-lg text-xs font-bold hover:bg-orange-700 cursor-pointer">
+                ${state.showMiniExAnswers ? '演習①〜③の解答例を隠す' : '演習①〜③の解答例を表示する'}
+              </button>
+
+              ${
+                state.showMiniExAnswers
+                  ? `<div class="bg-orange-50 border border-orange-200 p-3 rounded-lg text-xs sm:text-sm space-y-2 text-slate-800">
+                      <p><strong>① 解答：</strong> $\\cos(45^\\circ+45^\\circ) = \\cos 45^\\circ\\cos 45^\\circ - \\sin 45^\\circ\\sin 45^\\circ = \\left(\\dfrac{\\sqrt{2}}{2}\\right)^2 - \\left(\\dfrac{\\sqrt{2}}{2}\\right)^2 = \\dfrac{1}{2} - \\dfrac{1}{2} =$ <strong>$0$</strong></p>
+                      <p><strong>② 解答例：</strong> <strong>$\\sin 75^\\circ$</strong> の方が大きい。$75^\\circ$ は $90^\\circ$ に近い角なので、縦座標である $\\sin 75^\\circ$ は $1$ に近く、横座標である $\\cos 75^\\circ$ は $0$ に近いから。</p>
+                      <p><strong>③ 解答例：</strong> $\\alpha = \\beta = 45^\\circ$ のとき $\\cos(45^\\circ+45^\\circ) = \\cos 90^\\circ = 0$ になる必要がある。同じ値 $\\frac{1}{2}$ 同士を引いて $0$ にするために、中央の符号は「$-$」になる。</p>
+                    </div>`
+                  : ''
+              }
+            </div>
+          </div>
+        `;
+      }
+
+      // Step 6: 出口チェック（3問）＆ 復習用ドリル（練習A〜E）
+      if (state.currentStep === 6) {
+        const isSinOk = state.exitSinSign === '+' && state.exitSinTerm2 === 'cosα sinβ';
+        const isCosOk = state.exitCosSign === '-' && state.exitCosTerm2 === 'sinα sinβ';
+
+        const drillsHtml = DRILL_PROBLEMS.map((item) => {
+          const isOpen = !!state.openDrillAnswers[item.id];
+          return `
+            <div class="border border-slate-200 rounded-lg p-3 bg-slate-50/60">
+              <div class="flex items-start justify-between gap-2">
+                <div class="text-xs sm:text-sm font-medium text-slate-800">
+                  <span class="inline-block bg-indigo-700 text-white text-xs font-bold px-2 py-0.5 rounded mr-1.5">
+                    練習${item.id}（${item.level}）
+                  </span>
+                  ${item.q}
+                </div>
+                <button type="button" onclick="state.openDrillAnswers['${item.id}'] = !state.openDrillAnswers['${item.id}']; renderRightPanel();"
+                  class="shrink-0 px-2.5 py-1 bg-white border border-slate-300 rounded text-xs font-bold text-slate-700 hover:bg-slate-100 cursor-pointer">
+                  ${isOpen ? '閉じる' : '解答'}
+                </button>
+              </div>
+              ${
+                isOpen
+                  ? `<div class="mt-2 pt-2 border-t border-slate-200 text-xs sm:text-sm font-bold text-indigo-950 bg-indigo-50/80 p-2.5 rounded leading-relaxed">
+                      ${item.a}
+                    </div>`
+                  : ''
+              }
+            </div>
+          `;
+        }).join('');
+
+        extraPanelHtml = `
+          <div class="bg-white border-2 border-indigo-200 rounded-xl p-4 space-y-3">
+            <div class="font-extrabold text-indigo-900 text-sm sm:text-base">
+              ✨ 【38〜40分】出口カード（3問チェック）
+            </div>
+
+            <!-- 問1: sin(α+β) の完成 -->
+            <div class="bg-blue-50/60 p-3 rounded-xl border border-blue-200 space-y-2">
+              <div class="text-xs font-extrabold text-blue-900">① 正弦の加法定理の右辺を完成させよう</div>
+              <div class="flex flex-wrap items-center gap-1.5 text-sm font-extrabold">
+                <span>$\\sin(\\alpha + \\beta) =$ <span class="text-blue-600">$\\sin\\alpha$</span> <span class="text-orange-600">$\\cos\\beta$</span></span>
+                <select onchange="state.exitSinSign=this.value; state.exitCheckResult=false; renderRightPanel();"
+                  class="px-2 py-1 rounded border border-blue-300 bg-white text-red-600 font-black cursor-pointer">
+                  <option value="" ${state.exitSinSign === '' ? 'selected' : ''}>[符号]</option>
+                  <option value="+" ${state.exitSinSign === '+' ? 'selected' : ''}>＋</option>
+                  <option value="-" ${state.exitSinSign === '-' ? 'selected' : ''}>−</option>
+                </select>
+                <select onchange="state.exitSinTerm2=this.value; state.exitCheckResult=false; renderRightPanel();"
+                  class="px-2 py-1 rounded border border-blue-300 bg-white text-slate-800 font-extrabold cursor-pointer">
+                  <option value="" ${state.exitSinTerm2 === '' ? 'selected' : ''}>[2つ目の積を選択]</option>
+                  <option value="cosα sinβ" ${state.exitSinTerm2 === 'cosα sinβ' ? 'selected' : ''}>cosα sinβ</option>
+                  <option value="sinα cosβ" ${state.exitSinTerm2 === 'sinα cosβ' ? 'selected' : ''}>sinα cosβ</option>
+                  <option value="sinα sinβ" ${state.exitSinTerm2 === 'sinα sinβ' ? 'selected' : ''}>sinα sinβ</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- 問2: cos(α+β) の完成 -->
+            <div class="bg-orange-50/60 p-3 rounded-xl border border-orange-200 space-y-2">
+              <div class="text-xs font-extrabold text-orange-900">② 余弦の加法定理の右辺を完成させよう</div>
+              <div class="flex flex-wrap items-center gap-1.5 text-sm font-extrabold">
+                <span>$\\cos(\\alpha + \\beta) =$ <span class="text-orange-600">$\\cos\\alpha$</span> <span class="text-orange-600">$\\cos\\beta$</span></span>
+                <select onchange="state.exitCosSign=this.value; state.exitCheckResult=false; renderRightPanel();"
+                  class="px-2 py-1 rounded border border-orange-300 bg-white text-red-600 font-black cursor-pointer">
+                  <option value="" ${state.exitCosSign === '' ? 'selected' : ''}>[符号]</option>
+                  <option value="+" ${state.exitCosSign === '+' ? 'selected' : ''}>＋</option>
+                  <option value="-" ${state.exitCosSign === '-' ? 'selected' : ''}>−</option>
+                </select>
+                <select onchange="state.exitCosTerm2=this.value; state.exitCheckResult=false; renderRightPanel();"
+                  class="px-2 py-1 rounded border border-orange-300 bg-white text-slate-800 font-extrabold cursor-pointer">
+                  <option value="" ${state.exitCosTerm2 === '' ? 'selected' : ''}>[2つ目の積を選択]</option>
+                  <option value="sinα sinβ" ${state.exitCosTerm2 === 'sinα sinβ' ? 'selected' : ''}>sinα sinβ</option>
+                  <option value="cosα cosβ" ${state.exitCosTerm2 === 'cosα cosβ' ? 'selected' : ''}>cosα cosβ</option>
+                  <option value="cosα sinβ" ${state.exitCosTerm2 === 'cosα sinβ' ? 'selected' : ''}>cosα sinβ</option>
+                </select>
+              </div>
+            </div>
+
+            <button type="button" onclick="state.exitCheckResult=true; renderRightPanel();"
+              class="w-full py-2 bg-indigo-600 text-white rounded-lg text-xs sm:text-sm font-bold hover:bg-indigo-700 cursor-pointer">
+              ①・②の答え合わせをする
+            </button>
+
+            ${
+              state.exitCheckResult
+                ? `<div class="p-3 rounded-xl text-xs sm:text-sm space-y-1 border ${
+                    isSinOk && isCosOk
+                      ? 'bg-emerald-50 border-emerald-300 text-emerald-950'
+                      : 'bg-amber-50 border-amber-300 text-amber-950'
+                  }">
+                    <p class="font-bold">
+                      ${
+                        isSinOk && isCosOk
+                          ? '🎉 完璧です！2つの加法定理を正確に区別できています！'
+                          : '💡 もう一度確認してみよう！'
+                      }
+                    </p>
+                    <p>① $\\sin(\\alpha+\\beta)$：${isSinOk ? '⭕ 正解！（交差する積を「＋」で足します）' : '❌ 正しくは「$\\sin\\alpha\\cos\\beta + \\cos\\alpha\\sin\\beta$」です。'}</p>
+                    <p>② $\\cos(\\alpha+\\beta)$：${isCosOk ? '⭕ 正解！（同じ種類の積を「−」で引きます）' : '❌ 正しくは「$\\cos\\alpha\\cos\\beta - \\sin\\alpha\\sin\\beta$」です。'}</p>
+                  </div>`
+                : ''
+            }
+
+            <!-- 問3: 振り返りメモ -->
+            <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-1.5">
+              <div class="text-xs font-extrabold text-slate-800">③ 今日わかったこと・まだ迷うところを1つ書こう</div>
+              <textarea
+                rows="2"
+                oninput="state.exitReflection = this.value;"
+                placeholder="例：cosの真ん中がマイナスになる理由が45°+45°の検算で納得できた！"
+                class="w-full p-2 text-xs sm:text-sm border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-indigo-500 outline-none"
+              >${state.exitReflection}</textarea>
+            </div>
+          </div>
+
+          <!-- 復習用オリジナル演習ドリル A〜E -->
+          <div class="bg-white border border-slate-200 rounded-xl p-4 space-y-2.5">
+            <div class="font-extrabold text-slate-900 text-sm">
+              📝 復習用・段階別練習ドリル（練習A〜E）
+            </div>
+            ${drillsHtml}
+          </div>
+        `;
+      }
+
+      container.innerHTML = topPromptHtml + boardHtml + modeSpecificCardHtml + extraPanelHtml;
+      renderMathInContainer(container);
+    }
+
+    // ==========================================
+    // 8. ナビゲーション＆全体の再描画
+    // ==========================================
+    function renderTimelineAndHeader() {
+      const isTeacher = state.viewMode === 'teacher';
+      const nav = document.getElementById('timeline-nav');
+      nav.innerHTML = LESSON_STEPS.map((step, idx) => {
+        const isActive = idx === state.currentStep;
+        const activeBg = isTeacher ? 'bg-amber-500 text-slate-950 border-amber-500' : 'bg-indigo-600 text-white border-indigo-600';
+        const subText = isTeacher ? step.time : `STEP ${idx + 1}`;
+        return `
+          <button type="button" onclick="setStep(${idx})"
+            class="px-3 py-1.5 rounded-xl text-left transition border flex flex-col cursor-pointer ${
+              isActive
+                ? `${activeBg} shadow-sm`
+                : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+            }">
+            <span class="text-[10px] font-bold ${isActive ? (isTeacher ? 'text-slate-900' : 'text-indigo-200') : 'text-slate-400'}">${subText}</span>
+            <span class="text-xs font-extrabold whitespace-nowrap">${step.shortTitle}</span>
+          </button>
+        `;
+      }).join('');
+
+      // モード案内バナーの更新
+      const modeBanner = document.getElementById('mode-banner');
+      if (isTeacher) {
+        modeBanner.innerHTML = `
+          <div class="bg-amber-100/90 border border-amber-300 text-amber-950 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold flex flex-wrap items-center justify-between gap-2">
+            <span>📽️ <strong>授業提示モード（教師・黒板提示用）</strong>：発問・1行ずつ開示できる板書・指導上の留意点を表示しています。</span>
+            <button type="button" onclick="state.viewMode='student'; renderAll();" class="underline text-amber-900 hover:text-black cursor-pointer">
+              生徒復習モードに切り替える →
+            </button>
+          </div>
+        `;
+      } else {
+        modeBanner.innerHTML = `
+          <div class="bg-indigo-100/90 border border-indigo-300 text-indigo-950 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold flex flex-wrap items-center justify-between gap-2">
+            <span>📘 <strong>生徒復習モード（自宅学習・自習用）</strong>：かみくだき解説・操作ミッション・理解度セルフチェッククイズを表示しています。</span>
+            <button type="button" onclick="state.viewMode='teacher'; renderAll();" class="underline text-indigo-900 hover:text-black cursor-pointer">
+              授業提示モードに切り替える →
+            </button>
+          </div>
+        `;
+      }
+
+      const activeStepObj = LESSON_STEPS[state.currentStep];
+      document.getElementById('step-time-badge').textContent = isTeacher
+        ? `目安時間：${activeStepObj.time}`
+        : `復習ステップ ${state.currentStep + 1} / ${LESSON_STEPS.length}`;
+      document.getElementById('step-goal-text').textContent = `到達目標：${activeStepObj.goal}`;
+      document.getElementById('step-title-text').textContent = activeStepObj.title;
+
+      const btnPrev = document.getElementById('btn-prev-step');
+      const btnNext = document.getElementById('btn-next-step');
+      btnPrev.disabled = state.currentStep === 0;
+      btnNext.disabled = state.currentStep === LESSON_STEPS.length - 1;
+
+      const btnTeacher = document.getElementById('btn-mode-teacher');
+      const btnStudent = document.getElementById('btn-mode-student');
+      if (isTeacher) {
+        btnTeacher.className = 'px-2.5 py-1.5 rounded-lg flex items-center gap-1 transition cursor-pointer bg-amber-500 text-slate-950 shadow';
+        btnStudent.className = 'px-2.5 py-1.5 rounded-lg flex items-center gap-1 transition cursor-pointer text-slate-300 hover:text-white';
+      } else {
+        btnTeacher.className = 'px-2.5 py-1.5 rounded-lg flex items-center gap-1 transition cursor-pointer text-slate-300 hover:text-white';
+        btnStudent.className = 'px-2.5 py-1.5 rounded-lg flex items-center gap-1 transition cursor-pointer bg-indigo-500 text-white shadow';
+      }
+    }
+
+    function renderAll() {
+      renderTimelineAndHeader();
+      renderLeftPanel();
+      renderRightPanel();
+    }
+
+    // ==========================================
+    // 9. イベント登録＆初回レンダリング
+    // ==========================================
+    document.getElementById('btn-mode-teacher').addEventListener('click', () => {
+      state.viewMode = 'teacher';
+      renderAll();
+    });
+
+    document.getElementById('btn-mode-student').addEventListener('click', () => {
+      state.viewMode = 'student';
+      renderAll();
+    });
+
+    document.getElementById('btn-prev-step').addEventListener('click', () => {
+      if (state.currentStep > 0) setStep(state.currentStep - 1);
+    });
+
+    document.getElementById('btn-next-step').addEventListener('click', () => {
+      if (state.currentStep < LESSON_STEPS.length - 1) setStep(state.currentStep + 1);
+    });
+
+    // 基本角の値カードモーダル制御
+    const valuesModal = document.getElementById('values-modal');
+    document.getElementById('btn-open-values').addEventListener('click', () => {
+      valuesModal.classList.remove('hidden');
+      valuesModal.classList.add('flex');
+    });
+    document.getElementById('btn-close-values').addEventListener('click', () => {
+      valuesModal.classList.add('hidden');
+      valuesModal.classList.remove('flex');
+    });
+    valuesModal.addEventListener('click', (e) => {
+      if (e.target === valuesModal) {
+        valuesModal.classList.add('hidden');
+        valuesModal.classList.remove('flex');
+      }
+    });
+
+    // 正弦 vs 余弦 比較モーダル制御
+    const compareModal = document.getElementById('compare-modal');
+    document.getElementById('btn-open-compare').addEventListener('click', () => {
+      compareModal.classList.remove('hidden');
+      compareModal.classList.add('flex');
+    });
+    document.getElementById('btn-close-compare').addEventListener('click', () => {
+      compareModal.classList.add('hidden');
+      compareModal.classList.remove('flex');
+    });
+    compareModal.addEventListener('click', (e) => {
+      if (e.target === compareModal) {
+        compareModal.classList.add('hidden');
+        compareModal.classList.remove('flex');
+      }
+    });
+
+    window.addEventListener('DOMContentLoaded', () => {
+      renderAll();
+      renderMathInContainer(document.getElementById('values-modal'));
+      renderMathInContainer(document.getElementById('compare-modal'));
+    });
+  </script>
+</body>
+</html>

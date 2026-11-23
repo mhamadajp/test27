@@ -1,0 +1,1854 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>高校数学A「整数問題の見方」インタラクティブ授業＆復習アプリ</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- KaTeX CDN（平方根・縦分数などの数式オブジェクト描画用） -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+  <!-- Google Fonts: Inter & Noto Sans JP -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      font-family: 'Inter', 'Noto Sans JP', sans-serif;
+    }
+    .katex {
+      font-size: 1.06em;
+    }
+    ::-webkit-scrollbar {
+      height: 6px;
+      width: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-slate-100 text-slate-900 flex flex-col">
+
+  <!-- ヘッダーバー -->
+  <header class="bg-slate-900 text-white px-4 py-3 shadow-md sticky top-0 z-30">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-2.5">
+        <div class="bg-emerald-500 p-2 rounded-xl text-slate-950 flex items-center justify-center">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="7" height="7" rx="1.5" />
+            <rect x="14" y="3" width="7" height="7" rx="1.5" />
+            <rect x="3" y="14" width="7" height="7" rx="1.5" />
+            <rect x="14" y="14" width="7" height="7" rx="1.5" />
+          </svg>
+        </div>
+        <div>
+          <div class="text-xs text-emerald-300 font-bold tracking-wide">高校数学A｜整数の性質（80分授業モデル）</div>
+          <h1 class="text-base sm:text-lg font-extrabold leading-tight">
+            整数問題の「見方」を育てる — 有限に絞り、漏れなく調べる
+          </h1>
+        </div>
+      </div>
+
+      <!-- 右側コントロール：支援カード・つまずき表・モード切替 -->
+      <div class="flex flex-wrap items-center gap-2">
+        <button
+          id="btn-open-steps"
+          type="button"
+          class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-300 border border-slate-700 text-xs sm:text-sm font-bold flex items-center gap-1.5 transition cursor-pointer"
+        >
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
+          </svg>
+          <span>5ステップ手順カード</span>
+        </button>
+
+        <button
+          id="btn-open-pitfalls"
+          type="button"
+          class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-emerald-300 border border-slate-700 text-xs sm:text-sm font-bold flex items-center gap-1.5 transition cursor-pointer"
+        >
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+          <span>つまずき＆対処表</span>
+        </button>
+
+        <div class="bg-slate-800 p-1 rounded-xl border border-slate-700 flex text-xs font-bold">
+          <button
+            id="btn-mode-teacher"
+            type="button"
+            class="px-2.5 py-1.5 rounded-lg flex items-center gap-1 transition cursor-pointer bg-amber-500 text-slate-950 shadow"
+          >
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <path d="M2 3h20"/><path d="M21 3v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V3"/><path d="m7 21 5-5 5 5"/>
+            </svg>
+            <span>授業提示</span>
+          </button>
+          <button
+            id="btn-mode-student"
+            type="button"
+            class="px-2.5 py-1.5 rounded-lg flex items-center gap-1 transition cursor-pointer text-slate-300 hover:text-white"
+          >
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+            </svg>
+            <span>生徒復習</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- 80分授業タイムライン・ステップナビゲーション -->
+  <nav class="bg-white border-b border-slate-200 px-3 py-2.5 shadow-sm overflow-x-auto">
+    <div id="timeline-nav" class="max-w-7xl mx-auto flex items-center gap-1.5 min-w-max">
+      <!-- JSで7ステップのボタンを動的生成 -->
+    </div>
+  </nav>
+
+  <!-- 現在のモード案内バナー -->
+  <div id="mode-banner" class="max-w-7xl w-full mx-auto px-3 sm:px-5 pt-3">
+    <!-- JSでモードに応じたバナーを描画 -->
+  </div>
+
+  <!-- メインコンテンツエリア -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-3 sm:p-5 flex flex-col gap-4">
+    <!-- ステップタイトル＆到達目標ヘッダー -->
+    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div>
+        <div class="flex flex-wrap items-center gap-2 mb-1">
+          <span id="step-time-badge" class="bg-emerald-100 text-emerald-800 text-xs font-extrabold px-2.5 py-0.5 rounded-full">
+            目安時間：0〜8分
+          </span>
+          <span id="step-goal-text" class="text-xs text-slate-500 font-semibold">
+            到達目標：...
+          </span>
+        </div>
+        <h2 id="step-title-text" class="text-lg sm:text-xl font-extrabold text-slate-900">
+          ステップタイトル
+        </h2>
+      </div>
+
+      <!-- 前へ・次へナビボタン -->
+      <div class="flex items-center gap-2 self-end sm:self-center shrink-0">
+        <button
+          id="btn-prev-step"
+          type="button"
+          class="px-3 py-2 rounded-xl border border-slate-300 bg-white text-slate-700 text-xs font-bold flex items-center gap-1 disabled:opacity-40 hover:bg-slate-50 cursor-pointer"
+        >
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="15 18 9 12 15 6"/></svg>
+          前へ
+        </button>
+        <button
+          id="btn-next-step"
+          type="button"
+          class="px-3.5 py-2 rounded-xl bg-slate-900 text-white text-xs font-bold flex items-center gap-1 disabled:opacity-40 hover:bg-slate-800 cursor-pointer"
+        >
+          次の段階へ
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- 左右2カラムレイアウト -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+      <!-- 左側：インタラクティブ構造・実験キャンバス（7カラム） -->
+      <div id="left-panel" class="lg:col-span-7 flex flex-col gap-3">
+        <!-- JSでステップに応じたビジュアル・操作UIを描画 -->
+      </div>
+
+      <!-- 右側：授業展開・板書・丁寧解説・演習（5カラム） -->
+      <div id="right-panel" class="lg:col-span-5 flex flex-col gap-4">
+        <!-- JSでステップに応じた解説・問題・演習を描画 -->
+      </div>
+    </div>
+  </main>
+
+  <!-- 5ステップ手順カード モーダル -->
+  <div
+    id="steps-modal"
+    class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden items-center justify-center p-4"
+  >
+    <div
+      class="bg-white rounded-2xl max-w-2xl w-full p-5 sm:p-6 shadow-2xl border border-slate-200 max-h-[90vh] overflow-y-auto"
+    >
+      <div class="flex items-center justify-between border-b border-slate-200 pb-3 mb-4">
+        <h3 class="text-base sm:text-lg font-extrabold text-slate-900 flex items-center gap-2">
+          <span class="bg-amber-100 text-amber-800 px-2 py-0.5 rounded-lg text-sm">合言葉カード</span>
+          整数問題を解く共通の5ステップ
+        </h3>
+        <button
+          id="btn-close-steps"
+          type="button"
+          class="px-3 py-1 bg-slate-100 hover:bg-slate-200 rounded-lg text-xs font-bold text-slate-700 cursor-pointer"
+        >
+          閉じる
+        </button>
+      </div>
+
+      <div class="space-y-3 text-xs sm:text-sm">
+        <div class="bg-emerald-50 border border-emerald-200 p-3 rounded-xl flex items-start gap-3">
+          <span class="bg-emerald-600 text-white font-extrabold px-2.5 py-1 rounded-lg shrink-0">① 置く</span>
+          <div>
+            <div class="font-extrabold text-emerald-950">未知の整数に名前をつける</div>
+            <p class="text-slate-700 mt-0.5">「$\sqrt{n^2+24}$ が自然数」なら、その自然数を $m$ と置いて $\sqrt{n^2+24} = m$ のように等式にする。</p>
+          </div>
+        </div>
+
+        <div class="bg-blue-50 border border-blue-200 p-3 rounded-xl flex items-start gap-3">
+          <span class="bg-blue-600 text-white font-extrabold px-2.5 py-1 rounded-lg shrink-0">② 変形</span>
+          <div>
+            <div class="font-extrabold text-blue-950">整数の「積」や「不等式」に直す</div>
+            <p class="text-slate-700 mt-0.5">平方差 $(m-n)(m+n)=24$ や、分母を払って $(x-2)(y-2)=6$ のように「$($整数$)\times($整数$)=$ 定数」の形を作る。</p>
+          </div>
+        </div>
+
+        <div class="bg-purple-50 border border-purple-200 p-3 rounded-xl flex items-start gap-3">
+          <span class="bg-purple-600 text-white font-extrabold px-2.5 py-1 rounded-lg shrink-0">③ 絞る</span>
+          <div>
+            <div class="font-extrabold text-purple-950">約数・大小・偶奇・余りで候補を減らす</div>
+            <p class="text-slate-700 mt-0.5">「小さい因数から順に $\sqrt{N}$ まで調べる」「$x \ge y$ から $\dfrac{1}{x} \le \dfrac{1}{y}$ を使う」「偶奇一致・倍数条件を使う」。</p>
+          </div>
+        </div>
+
+        <div class="bg-orange-50 border border-orange-200 p-3 rounded-xl flex items-start gap-3">
+          <span class="bg-orange-600 text-white font-extrabold px-2.5 py-1 rounded-lg shrink-0">④ 調べる</span>
+          <div>
+            <div class="font-extrabold text-orange-950">すべての候補を検査し、元の条件を確認する</div>
+            <p class="text-slate-700 mt-0.5">約数のペアが見つかったら安心せず、$n$ や $x, y$ が本当に「自然数（整数）」になるか最後まで代入して確かめる。</p>
+          </div>
+        </div>
+
+        <div class="bg-slate-100 border border-slate-300 p-3 rounded-xl flex items-start gap-3">
+          <span class="bg-slate-800 text-white font-extrabold px-2.5 py-1 rounded-lg shrink-0">⑤ 示す</span>
+          <div>
+            <div class="font-extrabold text-slate-900">「これで全部である理由」を言葉で添える</div>
+            <p class="text-slate-700 mt-0.5">正の約数の組や範囲の不等式で候補を尽くしたことを明記し、漏れがないことを宣言する。</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- つまずき＆対処表 モーダル -->
+  <div
+    id="pitfalls-modal"
+    class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden items-center justify-center p-4"
+  >
+    <div
+      class="bg-white rounded-2xl max-w-2xl w-full p-5 sm:p-6 shadow-2xl border border-slate-200 max-h-[90vh] overflow-y-auto"
+    >
+      <div class="flex items-center justify-between border-b border-slate-200 pb-3 mb-4">
+        <h3 class="text-base sm:text-lg font-extrabold text-slate-900">
+          よくあるつまずき ＆ 乗り越え方ガイド
+        </h3>
+        <button
+          id="btn-close-pitfalls"
+          type="button"
+          class="px-3 py-1 bg-slate-100 hover:bg-slate-200 rounded-lg text-xs font-bold text-slate-700 cursor-pointer"
+        >
+          閉じる
+        </button>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-xs sm:text-sm border-collapse">
+          <thead>
+            <tr class="bg-slate-100 text-slate-800">
+              <th class="p-2.5 border border-slate-200 text-left w-2/5">よくあるつまずき</th>
+              <th class="p-2.5 border border-slate-200 text-left">解決のヒント・確認ポイント</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-200">
+            <tr>
+              <td class="p-2.5 border border-slate-200 font-bold text-rose-700 bg-rose-50/40">
+                平方根 $\sqrt{n^2+24}$ をそのまま扱おうとする
+              </td>
+              <td class="p-2.5 border border-slate-200">
+                「整数になった値に名前 $m$ をつける」のが鉄則。$\sqrt{n^2+24} = m$ と置けば2乗してルートが消えます。
+              </td>
+            </tr>
+            <tr>
+              <td class="p-2.5 border border-slate-200 font-bold text-rose-700 bg-rose-50/40">
+                因数の組に漏れや重複が出る
+              </td>
+              <td class="p-2.5 border border-slate-200">
+                小さい因数から順に $1, 2, 3, \dots$ と表にし、$\sqrt{N}$ を超えたら打ち切るルールを徹底します。
+              </td>
+            </tr>
+            <tr>
+              <td class="p-2.5 border border-slate-200 font-bold text-rose-700 bg-rose-50/40">
+                $x \ge y$ で逆数の大小を逆にしてしまう
+              </td>
+              <td class="p-2.5 border border-slate-200">
+                具体的な数 $2$ と $5$ を入れてみると、$5 \ge 2$ なのに $\dfrac{1}{5} \le \dfrac{1}{2}$ と不等号が逆転することがすぐ確かめられます。
+              </td>
+            </tr>
+            <tr>
+              <td class="p-2.5 border border-slate-200 font-bold text-rose-700 bg-rose-50/40">
+                分母を払う・因数分解で定数を足すミス
+              </td>
+              <td class="p-2.5 border border-slate-200">
+                両辺に共通の分母を掛けて $1$ 行ずつ展開します。$(x-a)(y-a)$ を展開したときの定数項 $a^2$ を両辺に補います。
+              </td>
+            </tr>
+            <tr>
+              <td class="p-2.5 border border-slate-200 font-bold text-rose-700 bg-rose-50/40">
+                約数の組を出しただけで答えにしてしまう
+              </td>
+              <td class="p-2.5 border border-slate-200">
+                「候補 $\to$ 元の変数 $n, x, y$ が自然数か代入確認 $\to$ 全解を宣言」のチェックを必ず最後に行います。
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- JavaScript ロジック -->
+  <script>
+    // ==========================================
+    // 0. 数式オブジェクト（KaTeX）描画ヘルパー
+    // ==========================================
+    function renderMathInContainer(el) {
+      if (!el) return;
+      if (typeof renderMathInElement === 'function') {
+        renderMathInElement(el, {
+          delimiters: [
+            { left: '$$', right: '$$', display: true },
+            { left: '$', right: '$', display: false },
+          ],
+          throwOnError: false,
+        });
+      }
+    }
+
+    // ==========================================
+    // 1. 80分授業指導案データ（全7ステップ）
+    // ==========================================
+    const LESSON_STEPS = [
+      {
+        id: 0,
+        time: '0〜8分',
+        shortTitle: '導入：有限にする',
+        title: '導入：何を「利用」すれば整数問題は解ける？',
+        goal: '整数条件（約数・大小）を使うと、無限の候補を有限個の表に変えられることを理解する。',
+        teacherPrompt:
+          '「自然数 $a, b$（$a \\le b$）について、$ab = 36$ を満たす組は何組あるだろう？ では $a + b = 36$ なら何組？ どちらが調べやすく、$a \\le b$ を使うと調べる量はどう変わるかな？」',
+        teacherIntervention:
+          '「約数」「大小」「余り」の3つの視点に注目しよう！整数問題はひらめきではなく、無限の候補を有限の表に変える作業です。',
+        boardSummary: [
+          '自然数 $a, b$（$a \\le b$）で $ab = 36$ $\\to a$ は $36$ の正の約数！',
+          '候補は $(1,36), (2,18), (3,12), (4,9), (6,6)$ の $5$ 組（$\\sqrt{36} = 6$ まで調べれば完了！）',
+          '和 $a + b = 36$（$18$ 組）に比べ、「積の形」は候補を一気に絞り込める！',
+          '今日の合言葉：〈 ①置く $\\to$ ②変形 $\\to$ ③絞る $\\to$ ④調べる $\\to$ ⑤漏れを示す 〉',
+        ],
+        studentNote:
+          '整数問題の最大の武器は「候補を有限個に絞れること」です。たとえば $ab = 36$ という掛け算の形なら、$a$ は $36$ の約数にしかなれません。さらに大小関係 $a \\le b$ があれば、$a^2 \\le ab = 36$ つまり $a \\le 6$ まで調べるだけで「これで全部！」と言い切れます。',
+        studentMission:
+          '左のボタンで「積 $ab = 36$」と「和 $a + b = 36$」を切り替え、候補の数がどれだけ違うか見比べてみよう！',
+        selfCheck: {
+          q: '自然数 $a, b$（$a \\le b$）が $ab = 36$ を満たすとき、$a$ として調べるべき最大の数（打ち止め）はいくつですか？',
+          options: [
+            '$a = 6$ まで（$6 \\times 6 = 36$ だから）',
+            '$a = 18$ まで（$36$ の半分だから）',
+          ],
+          correctIdx: 0,
+          explain: '$a \\le b$ より $a^2 \\le ab = 36$ となるため、$a \\le \\sqrt{36} = 6$ まで調べれば残りは大小が逆転するだけです。',
+        },
+      },
+      {
+        id: 1,
+        time: '8〜20分',
+        shortTitle: 'STEP 1：平方差',
+        title: 'STEP 1：平方根が整数なら「平方数」と置く（練習A）',
+        goal: '平方根を文字 m で置いて2乗し、平方差の因数分解 (m − n)(m + n) = 24 に持ち込める。',
+        teacherPrompt:
+          '「自然数 $n$ について $\\sqrt{n^2+24}$ が自然数となる $n$ をすべて求めよう。ルートがついたままだと扱いにくいね。最初の一手として何を文字で置けばよいだろう？」',
+        teacherIntervention:
+          '「積が $24$ だから全部OK」ではありません！$m = \\dfrac{a+b}{2}$、$n = \\dfrac{b-a}{2}$ が本当に整数・自然数になるか（偶奇が一致するか）を必ず確かめよう。',
+        boardSummary: [
+          '練習A：$\\sqrt{n^2+24} = m$（$m$ は自然数）と置く $\\to m^2 - n^2 = 24$',
+          '因数分解：$(m - n)(m + n) = 24$（$m - n < m + n$、どちらも正の整数）',
+          '積が $24$ の組：$(1,24), (2,12), (3,8), (4,6)$ のうち、偶奇が一致するのは $(2,12)$ と $(4,6)$ のみ！',
+          '答え：$(2,12) \\to m=7, n=5$ ／ $(4,6) \\to m=5, n=1$ よって $n = 1, 5$',
+        ],
+        studentNote:
+          'ルートの中に文字があるときは、まず「ルート全体 $= m$（自然数）」と置いて両辺を2乗します。すると $m^2 - n^2 = 24$ となり、$(m-n)(m+n) = 24$ と「整数の積」に変形できます。ここで大事なのは、$m-n$ と $m+n$ の偶奇（偶数同士か奇数同士か）が必ず一致することです！',
+        studentMission:
+          '左の表で「② 偶奇が一致するものだけ残す」ボタンを押し、$(1, 24)$ や $(3, 8)$ がなぜ消えるのか確認しよう！',
+        selfCheck: {
+          q: '$(m - n)(m + n) = 24$ で、$(m - n, m + n) = (3, 8)$ が不適となる理由はどれですか？',
+          options: [
+            '連立すると $m = \\dfrac{11}{2}$ となり整数にならないから（偶奇が異なる）',
+            '$3$ と $8$ がどちらも素数ではないから',
+          ],
+          correctIdx: 0,
+          explain: '$(m-n) + (m+n) = 2m$（偶数）なので、$2$ つの因数は「偶数と偶数」または「奇数と奇数」でなければなりません。',
+        },
+      },
+      {
+        id: 2,
+        time: '20〜32分',
+        shortTitle: 'STEP 2：約数の組',
+        title: 'STEP 2：積の組 ＋ 合同・倍数条件で絞る（練習B）',
+        goal: '(m − 2n)(m + 2n) = 45 の形に変形し、2つの因数の差が 4 の倍数になる条件で解を特定できる。',
+        teacherPrompt:
+          '「次は練習B：$\\sqrt{4n^2+45}$ が自然数となる自然数 $n$ をすべて求めよう。なぜ単に $45$ の約数の組を列挙するだけでは不十分なのか、$a = m - 2n,\\ b = m + 2n$ の差を作って確かめよう！」',
+        teacherIntervention:
+          '「差が $4$ の倍数」になるかどうかの確認を忘れないようにしよう！もし定数が $45$ ではなく $15$ だったら、$(1, 15)$ は差 $14$ で $n$ が整数にならないことも比べてみよう。',
+        boardSummary: [
+          '練習B：$\\sqrt{4n^2+45} = m$（自然数）と置く $\\to m^2 - (2n)^2 = 45$',
+          '因数分解：$(m - 2n)(m + 2n) = 45$（$a = m - 2n,\\ b = m + 2n$ とおくと $b - a = 4n$）',
+          '正の約数の組（$a < b$）：$(1, 45),\\ (3, 15),\\ (5, 9)$',
+          '差 $b - a$ は $44,\\ 12,\\ 4$ でどれも $4$ の倍数 $\\to n = 11, 3, 1$（計 $3$ 個、最大 $11$）',
+        ],
+        studentNote:
+          '$4n^2 = (2n)^2$ と見るのがポイントです。$a = m - 2n,\\ b = m + 2n$ と置くと、引き算をしたときに $m$ が消えて $b - a = 4n$ になります。つまり「$2$ つの約数の差が $4$ の倍数であること」が、元の $n$ が自然数になるための条件です！',
+        studentMission:
+          '左の切替ボタンで「比較例：$\\sqrt{4n^2+15}$ の場合」を見て、差が $4$ の倍数にならないペアが弾かれる様子を確かめよう！',
+        selfCheck: {
+          q: '$a = m - 2n,\\ b = m + 2n$ とおいたとき、$b - a$ を $n$ で表すとどうなりますか？',
+          options: [
+            '$b - a = 4n$（$4$ の倍数）',
+            '$b - a = 2n$（$2$ の倍数）',
+          ],
+          correctIdx: 0,
+          explain: '$(m + 2n) - (m - 2n) = 4n$ となるため、2つの因数の差は必ず $4$ の倍数になります。',
+        },
+      },
+      {
+        id: 3,
+        time: '32〜46分',
+        shortTitle: 'STEP 3：逆数と範囲',
+        title: 'STEP 3：大小条件で「先に一方を固定」（練習C・D）',
+        goal: 'x ≥ y ≥ 2 から 1/x ≤ 1/y を導き、まず小さい方の変数 y の候補を有限個に絞り込める。',
+        teacherPrompt:
+          '「練習C：整数 $x \\ge y \\ge 2$ が $\\dfrac{1}{x} + \\dfrac{1}{y} = \\dfrac{5}{6}$ を満たすとき、どうやって候補を絞る？ $x \\ge y$ なら、逆数 $\\dfrac{1}{x}$ と $\\dfrac{1}{y}$ の大小はどうなるかな？」',
+        teacherIntervention:
+          'いきなり当てずっぽうで探さず、まず小さい方の変数 $y$ を不等式で絞ろう！練習Dでも同じように、先に $y = 2, 3$ に絞ってから $k$ が整数になる場合を調べます。',
+        boardSummary: [
+          '大小の逆転：$x \\ge y > 0 \\implies \\dfrac{1}{x} \\le \\dfrac{1}{y}$',
+          '練習C：$\\dfrac{5}{6} = \\dfrac{1}{x} + \\dfrac{1}{y} \\le \\dfrac{1}{y} + \\dfrac{1}{y} = \\dfrac{2}{y} \\implies y \\le \\dfrac{12}{5} = 2.4$',
+          '$y \\ge 2$ と合わせて $y = 2$ に確定！ 代入して $\\dfrac{1}{x} = \\dfrac{5}{6} - \\dfrac{1}{2} = \\dfrac{1}{3} \\implies (x, y) = (3, 2)$',
+          '練習D：$\\dfrac{1}{2} < \\dfrac{1}{2} + \\dfrac{k}{12} = \\dfrac{1}{x} + \\dfrac{1}{y} \\le \\dfrac{2}{y} \\implies y < 4 \\implies y = 2, 3$',
+        ],
+        studentNote:
+          '未知数が $2$ つある分数の方程式では、大小条件 $x \\ge y$ を使って「大きい方の逆数 $\\dfrac{1}{y}$ で置き換える（上から押さえる）」のが定石です。すると文字が $y$ だけの不等式になり、$y$ の候補がわずか $1〜2$ 個に絞られます！',
+        studentMission:
+          '左の $y$ スライダーを動かして、$y = 3$ や $y = 4$ になると $\\dfrac{2}{y}$ が $\\dfrac{5}{6}$ に届かなくなることを確かめよう！',
+        selfCheck: {
+          q: '練習Dで $x \\ge y \\ge 2$ かつ $\\dfrac{1}{x} + \\dfrac{1}{y} > \\dfrac{1}{2}$ のとき、$y$ の候補として正しいものはどれ？',
+          options: [
+            '$y = 2, 3$ の $2$ 通り',
+            '$y = 2, 3, 4$ の $3$ 通り',
+          ],
+          correctIdx: 0,
+          explain: '$\\dfrac{1}{2} < \\dfrac{2}{y}$ より $y < 4$ となるため、$y = 4$ は含まれず $y = 2, 3$ の $2$ 通りです。',
+        },
+      },
+      {
+        id: 4,
+        time: '46〜60分',
+        shortTitle: 'STEP 4：分数式の整数化',
+        title: 'STEP 4：分数式を「整数の積」に変える（練習E・補助問題）',
+        goal: '分母を払って展開し、定数を補って (x − a)(y − a) = N の積の形に変形できる。',
+        teacherPrompt:
+          '「練習E：自然数 $1 < x < y$ について $\\left(1 + \\dfrac{1}{x}\\right)\\left(1 + \\dfrac{1}{y}\\right) = \\dfrac{3}{2}$ を満たす組を求めよう。展開した $xy - 2x - 2y = 2$ の両辺に何を足せば $(x - 2)(y - 2)$ の形が作れるかな？」',
+        teacherIntervention:
+          '式変形を丸暗記するのではなく、「整数の積を作るために $2 \\times 2 = 4$ を両辺に補う工夫」として理解しよう！また、$x = 2$ のときは左辺が $0$ になってしまうので除外します。',
+        boardSummary: [
+          '練習E：両辺に $2xy$ を掛けて分母を払う $\\to 2(x+1)(y+1) = 3xy$',
+          '展開して整理：$xy - 2x - 2y = 2$',
+          '定数 $4$ を両辺に足す：$(x - 2)(y - 2) = 2 + 4 = 6$',
+          '$1 < x < y$ かつ $x \\neq 2$ より $1 \\le x - 2 < y - 2$ $\\to (1,6), (2,3) \\implies (x,y) = (3,8), (4,5)$',
+        ],
+        studentNote:
+          '$xy - 2x - 2y = 2$ のように「$xy$ と $x$ と $y$ の $1$ 次式」が出てきたら、無理やり因数分解 $(x - 2)(y - 2)$ を作ります。展開すると $(x-2)(y-2) = xy - 2x - 2y + 4$ なので、右辺にも同じ $+4$ を足すのが「整数化の工夫」です！',
+        studentMission:
+          '左の「長方形の面積パズル」のステップボタンを押し、なぜ $+4$ を補うと長方形が完成するのか視覚的に確認しよう！',
+        selfCheck: {
+          q: '$2xy - 3x - 3y = 3$ を $(2x - 3)(2y - 3) = \\text{定数}$ の形にするには、まず両辺を何倍しますか？',
+          options: [
+            '$2$ 倍して $4xy - 6x - 6y = 6$ にする',
+            'そのまま両辺に $9$ を足す',
+          ],
+          correctIdx: 0,
+          explain: '$(2x - 3)(2y - 3) = 4xy - 6x - 6y + 9$ なので、まず全体を $2$ 倍して $4xy$ を作ってから $+9$ を補います。',
+        },
+      },
+      {
+        id: 5,
+        time: '60〜73分',
+        shortTitle: 'STEP 5：統合問題',
+        title: 'STEP 5：入試接続・新作統合問題（問題F・問題G）',
+        goal: 'ここまで学んだ3つの見方を組み合わせて、入試レベルの応用問題を自力で解き切れる。',
+        teacherPrompt:
+          '「ここまで学んだ見方を使って入試レベルの統合問題に挑戦しよう！約数の組を調べただけで終わっていないか、元の変数が自然数になることをどこで確かめたかを意識しよう。」',
+        teacherIntervention:
+          'まずは必修の問題Fを確実に解ききろう！問題Gは挑戦問題です。余り（合同式）で絞る方法だけでなく、表に数字を順に入れて調べる方法でも解けます。',
+        boardSummary: [
+          '問題F：$(m - 3n)(m + 3n) = 91 = 1 \\times 91 = 7 \\times 13$（差は $6n$）',
+          '差 $90 \\to n = 15$、差 $6 \\to n = 1$ $\\implies n = 1, 15$（$2$ 個、最大 $15$）',
+          '問題G：$4(x+1)(y+1) = 7xy \\to 3xy - 4x - 4y = 4 \\to (3x - 4)(3y - 4) = 28$',
+          '$3x - 4$ は $3$ で割って $2$ 余る正の約数 $\\to (2, 14)$ のみ $\\implies (x, y) = (2, 6)$',
+        ],
+        studentNote:
+          'いよいよ入試レベルの統合問題です！問題Fは「平方差＋差が $6$ の倍数」、問題Gは「分母を払って定数補完＋$3$ で割った余り（または表代入）で絞り込み」を使います。自力で詰まったらヒントボタンを1つずつ開いて考えましょう。',
+        studentMission:
+          '左パネルで問題Fと問題Gを切り替え、ヒントを最小限に抑えながら最後まで答えを導き出そう！',
+        selfCheck: {
+          q: '問題Gで $(3x - 4)(3y - 4) = 28$（$x$ は自然数）を解くとき、$28$ の約数の中で $3x - 4$ の値としてあり得るものはどれ？',
+          options: [
+            '$2$ と $14$（どちらも $4$ を足すと $3$ の倍数になる）',
+            '$4$ と $7$（$28 = 4 \\times 7$ だから）',
+          ],
+          correctIdx: 0,
+          explain: '$3x - 4 = d$ とおくと $3x = d + 4$ なので、$d + 4$ が $3$ の倍数になる約数 $d$ だけを選びます（$2+4=6,\\ 14+4=18$）。',
+        },
+      },
+      {
+        id: 6,
+        time: '73〜80分',
+        shortTitle: '出口評価＆復習',
+        title: '出口チケット ＆ 復習用オリジナルドリル',
+        goal: '最初の一手と「これで全部」と言える理由を自分の言葉で説明し、基礎〜入試演習で定着させる。',
+        teacherPrompt:
+          '「最後の出口チケット！① $\\sqrt{n^2+15}$ の最初の一手、② $x \\ge y \\ge 2$ で $\\dfrac{1}{x}+\\dfrac{1}{y} > \\dfrac{1}{2}$ なら $y$ の候補、③『すべて求めた』と言うための根拠を1文で書こう！」',
+        teacherIntervention:
+          '到達チェック：「①文字で置く → ②積や不等式に変形 → ③候補を絞る → ④元の条件を検査 → ⑤漏れがない理由を説明」の5つがそろっているか振り返ろう！（迷ったら上部の「5ステップ手順カード」を確認！）',
+        boardSummary: [
+          '① $\\sqrt{n^2+15} = m$ と置き、$(m - n)(m + n) = 15$ を作る',
+          '② $x \\ge y \\ge 2$ かつ $\\dfrac{1}{x}+\\dfrac{1}{y} > \\dfrac{1}{2} \\implies y = 2, 3$',
+          '③ すべて求めた根拠：「正の約数の組や不等式の範囲によって候補をすべて尽くし、元の自然数条件を確認したから」',
+        ],
+        studentNote:
+          '整数問題は「なぜこれで漏れがないと言えるのか」を説明できて初めて満点になります。出口チケットの3問に答えたあと、復習用オリジナルドリル（練習A〜E）で定期テスト・模試レベルの実力を完成させましょう！',
+        studentMission:
+          '出口チケット①〜③にすべて回答し、下の「復習用オリジナルドリル（練習A〜E）」をノートに解いて答え合わせしよう！',
+        selfCheck: {
+          q: '整数問題で「これで全解である」と宣言するために最も重要な姿勢はどれですか？',
+          options: [
+            '約数や範囲で候補をすべて洗い出し、元の条件を満たすか全候補を検査すること',
+            '最初の $2$〜$3$ 個の解を見つけて規則性を予想すること',
+          ],
+          correctIdx: 0,
+          explain: '有限個の候補に絞り込んだ上で、そのすべてを検査して「これ以外に候補が存在しない」ことを示すのが整数問題の本質です。',
+        },
+      },
+    ];
+
+    // ==========================================
+    // 2. 復習用オリジナル演習データ（練習A〜E）
+    // ==========================================
+    const DRILL_PROBLEMS = [
+      {
+        id: 'A',
+        level: '基礎（STEP 1）',
+        q: '自然数 $n$ について $\\sqrt{n^2+15}$ が自然数となる $n$ をすべて求めよ。',
+        a: '$\\sqrt{n^2+15} = m$（自然数）と置くと $(m-n)(m+n) = 15$。正の約数の組（$m-n < m+n$）は $(1, 15)$ と $(3, 5)$。どちらも奇数同士で偶奇が一致し、$(1, 15) \\to m=8, n=7$、$(3, 5) \\to m=4, n=1$。よって $n = 1, 7$。',
+      },
+      {
+        id: 'B',
+        level: '標準（STEP 2）',
+        q: '自然数 $n$ について $\\sqrt{4n^2+21}$ が自然数となる $n$ をすべて求めよ。',
+        a: '$(m-2n)(m+2n) = 21$ と置く。正の約数の組は $(1, 21)$ と $(3, 7)$。差はそれぞれ $20, 4$ でどちらも $4$ の倍数なので、$4n = 20 \\to n = 5$、$4n = 4 \\to n = 1$。よって $n = 1, 5$。',
+      },
+      {
+        id: 'C',
+        level: '標準（STEP 3）',
+        q: '整数 $x \\ge y \\ge 2$ が $\\dfrac{1}{x} + \\dfrac{1}{y} = \\dfrac{3}{4}$ を満たすとき、すべての組 $(x, y)$ を求めよ。',
+        a: '$x \\ge y$ より $\\dfrac{3}{4} = \\dfrac{1}{x} + \\dfrac{1}{y} \\le \\dfrac{2}{y} \\implies y \\le \\dfrac{8}{3}$。$y \\ge 2$ より $y = 2$。代入すると $\\dfrac{1}{x} = \\dfrac{3}{4} - \\dfrac{1}{2} = \\dfrac{1}{4} \\implies x = 4$。よって $(x, y) = (4, 2)$。',
+      },
+      {
+        id: 'D',
+        level: '標準（STEP 4）',
+        q: '自然数 $1 < x < y$ が $\\left(1 + \\dfrac{1}{x}\\right)\\left(1 + \\dfrac{1}{y}\\right) = 2$ を満たすとき、すべての組 $(x, y)$ を求めよ。',
+        a: '両辺に $xy$ を掛けて展開すると $(x+1)(y+1) = 2xy \\to xy - x - y = 1 \\to (x - 1)(y - 1) = 2$。$1 < x < y$ より $1 \\le x - 1 < y - 1$ なので $(x-1, y-1) = (1, 2)$ のみ。よって $(x, y) = (2, 3)$。',
+      },
+      {
+        id: 'E',
+        level: '入試応用（STEP 5）',
+        q: '自然数 $n$ について $\\sqrt{9n^2+52}$ が自然数となる $n$ をすべて求めよ。',
+        a: '$(m-3n)(m+3n) = 52$ と置くと、2つの因数の差は $6n$（$6$ の倍数）。$52$ の約数の組 $(1, 52), (2, 26), (4, 13)$ のうち差が $6$ の倍数になるのは $(2, 26)$（差 $24 = 6 \\times 4$）のみ。よって $n = 4$（$1$ 個のみ）。',
+      },
+    ];
+
+    // ==========================================
+    // 3. アプリケーション状態 (State)
+    // ==========================================
+    const state = {
+      viewMode: 'teacher', // 'teacher' | 'student'
+      currentStep: 0,
+
+      // Step 0: 積 vs 和
+      step0Mode: 'product', // 'product' | 'sum'
+      step0MaxA: 6,
+
+      // Step 1: 練習A √(n^2+24)
+      step1Stage: 3, // 1:置く, 2:平方差, 3:積の表
+      step1Filter: 'all', // 'all' | 'order' | 'parity'
+
+      // Step 2: 練習B √(4n^2+45) vs 比較例 √(4n^2+15)
+      step2Const: 45, // 45 | 15
+
+      // Step 3: 練習C & D 大小絞り込み
+      step3Tab: 'C', // 'C' | 'D'
+      step3Y: 2,
+
+      // Step 4: 練習E & 補助問題 面積パズル
+      step4Tab: 'E', // 'E' | 'sub'
+      step4AreaStage: 3, // 1:全体xy, 2:帯を引く, 3:角を補う
+
+      // Step 5: 統合問題F & G
+      step5Tab: 'F', // 'F' | 'G'
+      step5HintF: 0, // 0〜3
+      step5HintG: 0, // 0〜3
+      step5GMethod: 'mod', // 'mod' | 'table'
+
+      // Step 6: 出口チケット＆ドリル
+      exitQ1: '',
+      exitQ2: '',
+      exitQ3: '',
+      showExitAnswers: false,
+      openDrillAnswers: {},
+
+      // モード別状態
+      teacherBoardRevealed: 1,
+      selfCheckAnswers: {},
+    };
+
+    // ==========================================
+    // 4. 操作用イベントハンドラ（インラインJSの安全化）
+    // ==========================================
+    function selectStep(idx) {
+      state.currentStep = idx;
+      state.teacherBoardRevealed = 1;
+      renderAll();
+    }
+
+    function setViewMode(mode) {
+      state.viewMode = mode;
+      renderAll();
+    }
+
+    function setStep0Mode(m) {
+      state.step0Mode = m;
+      renderLeftPanel();
+    }
+
+    function setStep0MaxA(val) {
+      state.step0MaxA = Number(val);
+      renderLeftPanel();
+    }
+
+    function setStep1Stage(s) {
+      state.step1Stage = s;
+      renderLeftPanel();
+    }
+
+    function setStep1Filter(f) {
+      state.step1Filter = f;
+      renderLeftPanel();
+    }
+
+    function setStep2Const(c) {
+      state.step2Const = c;
+      renderLeftPanel();
+    }
+
+    function setStep3Tab(t) {
+      state.step3Tab = t;
+      renderLeftPanel();
+    }
+
+    function setStep3Y(y) {
+      state.step3Y = Number(y);
+      renderLeftPanel();
+    }
+
+    function setStep4Tab(t) {
+      state.step4Tab = t;
+      renderLeftPanel();
+    }
+
+    function setStep4AreaStage(s) {
+      state.step4AreaStage = s;
+      renderLeftPanel();
+    }
+
+    function setStep5Tab(t) {
+      state.step5Tab = t;
+      renderLeftPanel();
+    }
+
+    function advanceHintF() {
+      state.step5HintF = Math.min(3, state.step5HintF + 1);
+      renderLeftPanel();
+    }
+
+    function resetHintF() {
+      state.step5HintF = 0;
+      renderLeftPanel();
+    }
+
+    function advanceHintG() {
+      state.step5HintG = Math.min(3, state.step5HintG + 1);
+      renderLeftPanel();
+    }
+
+    function resetHintG() {
+      state.step5HintG = 0;
+      renderLeftPanel();
+    }
+
+    function setStep5GMethod(m) {
+      state.step5GMethod = m;
+      renderLeftPanel();
+    }
+
+    function selectExitQ1(val) {
+      state.exitQ1 = val;
+      renderLeftPanel();
+    }
+
+    function selectExitQ2(val) {
+      state.exitQ2 = val;
+      renderLeftPanel();
+    }
+
+    function updateExitQ3(val) {
+      state.exitQ3 = val;
+      const badgeEl = document.getElementById('exit-kw-badges');
+      if (badgeEl) {
+        const kws = ['約数', '範囲', '条件'];
+        badgeEl.innerHTML = kws
+          .map((kw) => {
+            const ok = state.exitQ3.includes(kw);
+            return `<span class="px-2 py-0.5 rounded-full font-bold ${
+              ok ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-400'
+            }">${ok ? '✓ ' : ''}${kw}</span>`;
+          })
+          .join('');
+      }
+    }
+
+    function toggleExitAnswers() {
+      state.showExitAnswers = !state.showExitAnswers;
+      renderLeftPanel();
+    }
+
+    function toggleDrillAnswer(id) {
+      state.openDrillAnswers[id] = !state.openDrillAnswers[id];
+      renderRightPanel();
+    }
+
+    function revealNextBoardLine() {
+      state.teacherBoardRevealed++;
+      renderRightPanel();
+    }
+
+    function toggleAllBoardLines(total) {
+      state.teacherBoardRevealed = state.teacherBoardRevealed < total ? total : 1;
+      renderRightPanel();
+    }
+
+    function answerSelfCheck(stepIdx, optIdx) {
+      state.selfCheckAnswers[stepIdx] = optIdx;
+      renderRightPanel();
+    }
+
+    // ==========================================
+    // 5. 左パネル（インタラクティブ実験・構造パネル）の描画
+    // ==========================================
+    function renderLeftPanel() {
+      const container = document.getElementById('left-panel');
+      const step = state.currentStep;
+
+      // ------------------------------------------
+      // STEP 0: 導入（積 ab=36 vs 和 a+b=36）
+      // ------------------------------------------
+      if (step === 0) {
+        const isProd = state.step0Mode === 'product';
+        const maxA = state.step0MaxA;
+
+        // ab = 36 (a <= b) の候補生成
+        const prodPairs = [];
+        for (let a = 1; a <= maxA; a++) {
+          if (36 % a === 0) {
+            const b = 36 / a;
+            prodPairs.push({ a, b, ok: a <= b });
+          } else {
+            prodPairs.push({ a, b: null, ok: false });
+          }
+        }
+
+        // a + b = 36 (a <= b) の候補生成
+        const sumPairs = [];
+        for (let a = 1; a <= 18; a++) {
+          sumPairs.push({ a, b: 36 - a });
+        }
+
+        container.innerHTML = `
+          <div class="bg-white rounded-2xl border-2 border-slate-200 p-4 sm:p-5 shadow-sm flex flex-col gap-4">
+            <div class="flex flex-wrap gap-2 bg-slate-100 p-1.5 rounded-xl">
+              <button type="button" onclick="setStep0Mode('product')"
+                class="flex-1 py-2 px-3 rounded-lg text-xs sm:text-sm font-extrabold transition cursor-pointer ${
+                  isProd ? 'bg-emerald-600 text-white shadow-xs' : 'text-slate-700 hover:bg-white'
+                }">
+                ① 積が一定：$ab = 36$（$a \\le b$）
+              </button>
+              <button type="button" onclick="setStep0Mode('sum')"
+                class="flex-1 py-2 px-3 rounded-lg text-xs sm:text-sm font-extrabold transition cursor-pointer ${
+                  !isProd ? 'bg-amber-600 text-white shadow-xs' : 'text-slate-700 hover:bg-white'
+                }">
+                ② 和が一定：$a + b = 36$（$a \\le b$）
+              </button>
+            </div>
+
+            ${
+              isProd
+                ? `<div class="space-y-3">
+                    <div class="bg-emerald-50 border border-emerald-200 p-3 rounded-xl text-xs sm:text-sm text-emerald-950">
+                      <strong>実験：</strong> 小さい方の自然数 $a$ を $1$ から順に増やして、$36$ の約数になるペアを探そう！
+                    </div>
+
+                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 flex items-center gap-3">
+                      <span class="text-xs font-extrabold text-slate-700 shrink-0">調べる範囲：$a = 1$ 〜 ${maxA}</span>
+                      <input type="range" min="1" max="12" value="${maxA}" oninput="setStep0MaxA(this.value)" class="w-full accent-emerald-600" />
+                      <button type="button" onclick="setStep0MaxA(6)" class="px-2.5 py-1 bg-emerald-600 text-white rounded text-xs font-bold shrink-0 cursor-pointer">
+                        $\\sqrt{36}=6$ まで
+                      </button>
+                    </div>
+
+                    <div class="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                      ${prodPairs
+                        .map((item) => {
+                          if (item.b === null) {
+                            return `<div class="p-2 rounded-xl border border-slate-200 bg-slate-50 text-center opacity-50">
+                              <div class="text-xs font-bold text-slate-400">$a=${item.a}$</div>
+                              <div class="text-[11px] text-slate-400 mt-0.5">割り切れない</div>
+                            </div>`;
+                          }
+                          if (!item.ok) {
+                            return `<div class="p-2 rounded-xl border border-amber-200 bg-amber-50 text-center">
+                              <div class="text-xs font-bold text-amber-800">$(${item.a}, ${item.b})$</div>
+                              <div class="text-[11px] text-amber-700 mt-0.5">$a > b$ で重複</div>
+                            </div>`;
+                          }
+                          return `<div class="p-2.5 rounded-xl border-2 border-emerald-500 bg-emerald-50 text-center shadow-2xs">
+                            <div class="text-sm font-black text-emerald-900">$(${item.a}, ${item.b})$</div>
+                            <div class="text-[11px] font-bold text-emerald-700 mt-0.5">約数の組！</div>
+                          </div>`;
+                        })
+                        .join('')}
+                    </div>
+
+                    <div class="bg-slate-800 text-white p-3 rounded-xl text-xs sm:text-sm flex items-center justify-between">
+                      <span>見つかった組：<strong>${prodPairs.filter((p) => p.ok).length} 組</strong>（全 $5$ 組）</span>
+                      <span class="text-emerald-300 font-bold">$a \\le \\sqrt{36} = 6$ で調査終了！</span>
+                    </div>
+                  </div>`
+                : `<div class="space-y-3">
+                    <div class="bg-amber-50 border border-amber-200 p-3 rounded-xl text-xs sm:text-sm text-amber-950">
+                      <strong>比較：</strong> 和が $36$ の場合、$a = 1, 2, 3, \\dots, 18$ まで <strong>$18$ 組すべて</strong> が当てはまってしまいます。
+                    </div>
+                    <div class="grid grid-cols-3 sm:grid-cols-6 gap-1.5">
+                      ${sumPairs
+                        .map(
+                          (p) => `<div class="p-1.5 rounded-lg border border-amber-200 bg-amber-50/60 text-center text-xs font-bold text-slate-700">
+                          $(${p.a}, ${p.b})$
+                        </div>`
+                        )
+                        .join('')}
+                    </div>
+                    <div class="bg-slate-800 text-white p-3 rounded-xl text-xs sm:text-sm">
+                      <strong>結論：</strong> 「和」よりも<strong>「積（掛け算）の形」</strong>に変形する方が、約数によって候補を圧倒的に少なく絞れます！
+                    </div>
+                  </div>`
+            }
+          </div>
+        `;
+        renderMathInContainer(container);
+        return;
+      }
+
+      // ------------------------------------------
+      // STEP 1: 練習A √(n^2+24) 平方差と偶奇一致
+      // ------------------------------------------
+      if (step === 1) {
+        const st = state.step1Stage;
+        const flt = state.step1Filter;
+        const allPairs = [
+          { a: 1, b: 24, orderOk: true, parityOk: false, m: null, n: null },
+          { a: 2, b: 12, orderOk: true, parityOk: true, m: 7, n: 5 },
+          { a: 3, b: 8, orderOk: true, parityOk: false, m: null, n: null },
+          { a: 4, b: 6, orderOk: true, parityOk: true, m: 5, n: 1 },
+          { a: 6, b: 4, orderOk: false, parityOk: true, m: null, n: null },
+          { a: 8, b: 3, orderOk: false, parityOk: false, m: null, n: null },
+          { a: 12, b: 2, orderOk: false, parityOk: true, m: null, n: null },
+          { a: 24, b: 1, orderOk: false, parityOk: false, m: null, n: null },
+        ];
+
+        const filtered = allPairs.filter((p) => {
+          if (flt === 'order') return p.orderOk;
+          if (flt === 'parity') return p.orderOk && p.parityOk;
+          return true;
+        });
+
+        container.innerHTML = `
+          <div class="bg-white rounded-2xl border-2 border-slate-200 p-4 sm:p-5 shadow-sm flex flex-col gap-4">
+            <div class="bg-emerald-50 border border-emerald-200 p-3.5 rounded-xl">
+              <div class="text-xs font-extrabold text-emerald-800 mb-1">練習A（全員で取り組む基本問題）</div>
+              <div class="text-sm sm:text-base font-extrabold text-slate-900">
+                自然数 $n$ について $\\sqrt{n^2+24}$ が自然数となる $n$ をすべて求めよう。
+              </div>
+            </div>
+
+            <!-- 3段階変形ステップ -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              <button type="button" onclick="setStep1Stage(1)"
+                class="p-2.5 rounded-xl border-2 text-left transition cursor-pointer ${
+                  st >= 1 ? 'bg-blue-50 border-blue-500 text-blue-950' : 'bg-slate-50 border-slate-200'
+                }">
+                <div class="text-[11px] font-extrabold text-blue-700">① 文字で置く</div>
+                <div class="text-xs sm:text-sm font-bold mt-0.5">$\\sqrt{n^2+24} = m$</div>
+              </button>
+              <button type="button" onclick="setStep1Stage(2)"
+                class="p-2.5 rounded-xl border-2 text-left transition cursor-pointer ${
+                  st >= 2 ? 'bg-blue-50 border-blue-500 text-blue-950' : 'bg-slate-50 border-slate-200 text-slate-400'
+                }">
+                <div class="text-[11px] font-extrabold text-blue-700">② 2乗して移項</div>
+                <div class="text-xs sm:text-sm font-bold mt-0.5">$m^2 - n^2 = 24$</div>
+              </button>
+              <button type="button" onclick="setStep1Stage(3)"
+                class="p-2.5 rounded-xl border-2 text-left transition cursor-pointer ${
+                  st >= 3 ? 'bg-emerald-50 border-emerald-500 text-emerald-950' : 'bg-slate-50 border-slate-200 text-slate-400'
+                }">
+                <div class="text-[11px] font-extrabold text-emerald-700">③ 平方差の因数分解</div>
+                <div class="text-xs sm:text-sm font-bold mt-0.5">$(m-n)(m+n) = 24$</div>
+              </button>
+            </div>
+
+            <!-- 絞り込みフィルター -->
+            <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2.5">
+              <div class="flex flex-wrap items-center justify-between gap-1.5">
+                <span class="text-xs font-extrabold text-slate-700">候補の絞り込みフィルター：</span>
+                <div class="flex flex-wrap gap-1.5">
+                  <button type="button" onclick="setStep1Filter('all')"
+                    class="px-2.5 py-1 rounded-lg text-xs font-bold cursor-pointer ${
+                      flt === 'all' ? 'bg-slate-800 text-white' : 'bg-white border border-slate-300 text-slate-700'
+                    }">全8組</button>
+                  <button type="button" onclick="setStep1Filter('order')"
+                    class="px-2.5 py-1 rounded-lg text-xs font-bold cursor-pointer ${
+                      flt === 'order' ? 'bg-blue-600 text-white' : 'bg-white border border-slate-300 text-slate-700'
+                    }">① $m-n < m+n$ で絞る</button>
+                  <button type="button" onclick="setStep1Filter('parity')"
+                    class="px-2.5 py-1 rounded-lg text-xs font-bold cursor-pointer ${
+                      flt === 'parity' ? 'bg-emerald-600 text-white' : 'bg-white border border-slate-300 text-slate-700'
+                    }">② 偶奇が一致するものだけ残す</button>
+                </div>
+              </div>
+
+              <div class="overflow-x-auto">
+                <table class="w-full text-center text-xs sm:text-sm border-collapse bg-white rounded-lg overflow-hidden">
+                  <thead>
+                    <tr class="bg-slate-200 text-slate-800">
+                      <th class="p-2 border border-slate-300">$m - n$</th>
+                      <th class="p-2 border border-slate-300">$m + n$</th>
+                      <th class="p-2 border border-slate-300">偶奇の一致</th>
+                      <th class="p-2 border border-slate-300">解 $(m, n)$</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${filtered
+                      .map((p) => {
+                        const rowBg = !p.orderOk
+                          ? 'bg-slate-100 text-slate-400'
+                          : p.parityOk
+                          ? 'bg-emerald-50/80 text-emerald-950 font-bold'
+                          : 'bg-rose-50/60 text-rose-800';
+                        return `<tr class="${rowBg}">
+                          <td class="p-2 border border-slate-200">${p.a}</td>
+                          <td class="p-2 border border-slate-200">${p.b}</td>
+                          <td class="p-2 border border-slate-200">${p.parityOk ? '⭕ 一致（偶数同士）' : '❌ 不一致（奇数と偶数）'}</td>
+                          <td class="p-2 border border-slate-200">${
+                            p.orderOk && p.parityOk
+                              ? `$m=${p.m},\\ n=${p.n}$`
+                              : !p.orderOk
+                              ? '$m-n > m+n$ で不適'
+                              : '整数にならない'
+                          }</td>
+                        </tr>`;
+                      })
+                      .join('')}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        `;
+        renderMathInContainer(container);
+        return;
+      }
+
+      // ------------------------------------------
+      // STEP 2: 練習B √(4n^2+45) 倍数条件
+      // ------------------------------------------
+      if (step === 2) {
+        const cVal = state.step2Const;
+        const pairs45 = [
+          { a: 1, b: 45, diff: 44, ok: true, n: 11, m: 23 },
+          { a: 3, b: 15, diff: 12, ok: true, n: 3, m: 9 },
+          { a: 5, b: 9, diff: 4, ok: true, n: 1, m: 7 },
+        ];
+        const pairs15 = [
+          { a: 1, b: 15, diff: 14, ok: false, n: null, m: null },
+          { a: 3, b: 5, diff: 2, ok: false, n: null, m: null },
+        ];
+        const rows = cVal === 45 ? pairs45 : pairs15;
+
+        container.innerHTML = `
+          <div class="bg-white rounded-2xl border-2 border-slate-200 p-4 sm:p-5 shadow-sm flex flex-col gap-4">
+            <div class="flex flex-wrap items-center justify-between gap-2 bg-slate-100 p-2 rounded-xl">
+              <button type="button" onclick="setStep2Const(45)"
+                class="flex-1 py-2 px-3 rounded-lg text-xs sm:text-sm font-extrabold cursor-pointer ${
+                  cVal === 45 ? 'bg-blue-600 text-white shadow-xs' : 'text-slate-700 hover:bg-white'
+                }">
+                練習B：$\\sqrt{4n^2+45}$ を調べる
+              </button>
+              <button type="button" onclick="setStep2Const(15)"
+                class="flex-1 py-2 px-3 rounded-lg text-xs sm:text-sm font-extrabold cursor-pointer ${
+                  cVal === 15 ? 'bg-amber-600 text-white shadow-xs' : 'text-slate-700 hover:bg-white'
+                }">
+                比較実験：$\\sqrt{4n^2+15}$ なら？
+              </button>
+            </div>
+
+            <div class="bg-blue-50 border border-blue-200 p-3.5 rounded-xl space-y-1.5 text-xs sm:text-sm">
+              <div class="font-extrabold text-blue-950">
+                式変形：$\\sqrt{4n^2+${cVal}} = m \\implies m^2 - (2n)^2 = ${cVal} \\implies (m - 2n)(m + 2n) = ${cVal}$
+              </div>
+              <p class="text-slate-700">
+                $a = m - 2n,\\ b = m + 2n$ と置くと、引き算より <strong>$b - a = 4n$</strong> となるため、<strong>「差 $b - a$ が $4$ の倍数であること」</strong>が必要です！
+              </p>
+            </div>
+
+            <div class="overflow-x-auto">
+              <table class="w-full text-center text-xs sm:text-sm border-collapse bg-white">
+                <thead>
+                  <tr class="bg-slate-800 text-white">
+                    <th class="p-2.5 border border-slate-700">$a = m - 2n$</th>
+                    <th class="p-2.5 border border-slate-700">$b = m + 2n$</th>
+                    <th class="p-2.5 border border-slate-700">差 $b - a$（$= 4n$）</th>
+                    <th class="p-2.5 border border-slate-700">$4$ の倍数？</th>
+                    <th class="p-2.5 border border-slate-700">自然数 $n$</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${rows
+                    .map(
+                      (r) => `<tr class="${r.ok ? 'bg-emerald-50/70 font-bold text-emerald-950' : 'bg-rose-50/70 text-rose-900'}">
+                      <td class="p-2.5 border border-slate-200">${r.a}</td>
+                      <td class="p-2.5 border border-slate-200">${r.b}</td>
+                      <td class="p-2.5 border border-slate-200 font-extrabold">${r.diff}</td>
+                      <td class="p-2.5 border border-slate-200">${r.ok ? '⭕ $4$ の倍数' : '❌ $4$ の倍数でない'}</td>
+                      <td class="p-2.5 border border-slate-200">${r.ok ? `$n = ${r.n}$ ($m=${r.m}$)` : '解なし'}</td>
+                    </tr>`
+                    )
+                    .join('')}
+                </tbody>
+              </table>
+            </div>
+
+            <div class="bg-slate-100 p-3 rounded-xl border border-slate-200 text-xs sm:text-sm font-bold text-slate-800">
+              ${
+                cVal === 45
+                  ? '結論：すべてのペアで差が $4$ の倍数になり、$n = 11, 3, 1$（計 $3$ 個、最大値 $11$）が得られます！'
+                  : '発見：$15$ の約数の組 $(1, 15), (3, 5)$ は差が $14, 2$ でどちらも $4$ の倍数にならないため、自然数 $n$ は $1$ つも存在しません！'
+              }
+            </div>
+          </div>
+        `;
+        renderMathInContainer(container);
+        return;
+      }
+
+      // ------------------------------------------
+      // STEP 3: 大小条件で先に一方を固定（練習C・D）
+      // ------------------------------------------
+      if (step === 3) {
+        const tab = state.step3Tab;
+        const yVal = state.step3Y;
+        const maxSum = 2 / yVal; // 2/y の値
+        const targetC = 5 / 6;
+        const isPossibleC = maxSum >= targetC - 1e-9;
+
+        container.innerHTML = `
+          <div class="bg-white rounded-2xl border-2 border-slate-200 p-4 sm:p-5 shadow-sm flex flex-col gap-4">
+            <div class="flex gap-2 bg-slate-100 p-1.5 rounded-xl">
+              <button type="button" onclick="setStep3Tab('C')"
+                class="flex-1 py-2 px-3 rounded-lg text-xs sm:text-sm font-extrabold cursor-pointer ${
+                  tab === 'C' ? 'bg-purple-600 text-white shadow-xs' : 'text-slate-700 hover:bg-white'
+                }">
+                練習C（基本）：$\\dfrac{1}{x} + \\dfrac{1}{y} = \\dfrac{5}{6}$
+              </button>
+              <button type="button" onclick="setStep3Tab('D')"
+                class="flex-1 py-2 px-3 rounded-lg text-xs sm:text-sm font-extrabold cursor-pointer ${
+                  tab === 'D' ? 'bg-indigo-600 text-white shadow-xs' : 'text-slate-700 hover:bg-white'
+                }">
+                練習D（応用）：$\\dfrac{1}{x} + \\dfrac{1}{y} = \\dfrac{1}{2} + \\dfrac{k}{12}$
+              </button>
+            </div>
+
+            ${
+              tab === 'C'
+                ? `<div class="space-y-3">
+                    <div class="bg-purple-50 border border-purple-200 p-3 rounded-xl text-xs sm:text-sm space-y-1">
+                      <div class="font-extrabold text-purple-950">問題：整数 $x \\ge y \\ge 2$ が $\\dfrac{1}{x} + \\dfrac{1}{y} = \\dfrac{5}{6}$ を満たす組 $(x, y)$ を求めよ。</div>
+                      <p class="text-slate-700">$x \\ge y$ より $\\dfrac{1}{x} \\le \\dfrac{1}{y}$ なので、左辺の最大値は $\\dfrac{1}{y} + \\dfrac{1}{y} = \\dfrac{2}{y}$ です。</p>
+                    </div>
+
+                    <!-- y の値を動かして届くか実験 -->
+                    <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-3">
+                      <div class="flex items-center justify-between text-xs font-extrabold">
+                        <span>小さい方の変数 $y$ を選んで試す：</span>
+                        <div class="flex gap-1.5">
+                          ${[2, 3, 4, 5]
+                            .map(
+                              (val) => `
+                            <button type="button" onclick="setStep3Y(${val})"
+                              class="px-3 py-1 rounded-lg cursor-pointer ${
+                                yVal === val ? 'bg-purple-600 text-white' : 'bg-white border border-slate-300 text-slate-700'
+                              }">$y = ${val}$</button>`
+                            )
+                            .join('')}
+                        </div>
+                      </div>
+
+                      <div class="bg-white p-3 rounded-xl border border-slate-200 space-y-2 text-xs sm:text-sm">
+                        <div class="flex justify-between font-bold">
+                          <span>$y = ${yVal}$ のときの上限 $\\dfrac{2}{y} = \\dfrac{2}{${yVal}}$</span>
+                          <span class="${isPossibleC ? 'text-emerald-700' : 'text-rose-600'}">
+                            ${isPossibleC ? '⭕ $\\dfrac{5}{6}$ に届く！' : '❌ $\\dfrac{5}{6}$ に届かない！'}
+                          </span>
+                        </div>
+                        <div class="w-full bg-slate-100 h-4 rounded-full overflow-hidden relative">
+                          <div class="h-full transition-all ${isPossibleC ? 'bg-emerald-500' : 'bg-rose-400'}" style="width: ${Math.min(100, (maxSum / 1.0) * 100)}%"></div>
+                        </div>
+                        <div class="text-xs text-slate-600">
+                          ※ 目標ライン $\\dfrac{5}{6} \\fallingdotseq 0.833$ ／ 現在の上限 $\\dfrac{2}{${yVal}} \\fallingdotseq ${maxSum.toFixed(3)}$
+                        </div>
+                      </div>
+
+                      <div class="bg-emerald-50 border border-emerald-200 p-3 rounded-xl text-xs sm:text-sm text-emerald-950 font-bold">
+                        計算：$\\dfrac{5}{6} \\le \\dfrac{2}{y} \\implies 5y \\le 12 \\implies y \\le \\dfrac{12}{5} = 2.4$。$y \\ge 2$ より $y = 2$ のみ！<br />
+                        $y = 2$ を代入すると $\\dfrac{1}{x} = \\dfrac{5}{6} - \\dfrac{1}{2} = \\dfrac{1}{3} \\implies x = 3$。よって $(x, y) = (3, 2)$。
+                      </div>
+                    </div>
+                  </div>`
+                : `<div class="space-y-3 text-xs sm:text-sm">
+                    <div class="bg-indigo-50 border border-indigo-200 p-3 rounded-xl space-y-1">
+                      <div class="font-extrabold text-indigo-950">
+                        問題：整数 $x \\ge y \\ge 2$ と正の整数 $k$ が $\\dfrac{1}{x} + \\dfrac{1}{y} = \\dfrac{1}{2} + \\dfrac{k}{12}$ を満たすとき、まず $y$ の候補を絞り、すべての組を求めよ。
+                      </div>
+                    </div>
+                    <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-2 leading-relaxed">
+                      <p><strong>ステップ①（$y$ の絞り込み）：</strong> $k \\ge 1$ より右辺は $\\dfrac{1}{2}$ より大きい。一方、$x \\ge y$ より左辺 $\\le \\dfrac{2}{y}$。</p>
+                      <p class="font-bold text-indigo-900 bg-white p-2 rounded border border-indigo-200">
+                        $\\dfrac{1}{2} < \\dfrac{1}{x} + \\dfrac{1}{y} \\le \\dfrac{2}{y} \\implies y < 4$。$y \\ge 2$ と合わせて <strong>$y = 2, 3$</strong> に絞られる！
+                      </p>
+                      <p><strong>ステップ②（場合分けして $k$ が正の整数になるものを探す）：</strong></p>
+                      <ul class="space-y-1 pl-4 list-disc text-slate-700">
+                        <li><strong>$y = 2$ のとき：</strong> $\\dfrac{1}{x} + \\dfrac{1}{2} = \\dfrac{1}{2} + \\dfrac{k}{12} \\implies \\dfrac{1}{x} = \\dfrac{k}{12} \\implies kx = 12$（$x \\ge 2$）。<br />
+                        $(k, x) = (1, 12), (2, 6), (3, 4), (4, 3), (6, 2)$ の $5$ 組！</li>
+                        <li><strong>$y = 3$ のとき：</strong> $\\dfrac{1}{x} + \\dfrac{1}{3} = \\dfrac{1}{2} + \\dfrac{k}{12} \\implies \\dfrac{1}{x} = \\dfrac{k + 2}{12} \\implies (k + 2)x = 12$（$x \\ge 3,\\ k \\ge 1$）。<br />
+                        $k + 2 \\ge 3$ なので $(k+2, x) = (3, 4), (4, 3) \\implies (k, x) = (1, 4), (2, 3)$ の $2$ 組！</li>
+                      </ul>
+                    </div>
+                  </div>`
+            }
+          </div>
+        `;
+        renderMathInContainer(container);
+        return;
+      }
+
+      // ------------------------------------------
+      // STEP 4: 分数式を整数の積に変える（面積パズル）
+      // ------------------------------------------
+      if (step === 4) {
+        const tab = state.step4Tab;
+        const st = state.step4AreaStage;
+
+        container.innerHTML = `
+          <div class="bg-white rounded-2xl border-2 border-slate-200 p-4 sm:p-5 shadow-sm flex flex-col gap-4">
+            <div class="flex gap-2 bg-slate-100 p-1.5 rounded-xl">
+              <button type="button" onclick="setStep4Tab('E')"
+                class="flex-1 py-2 px-3 rounded-lg text-xs sm:text-sm font-extrabold cursor-pointer ${
+                  tab === 'E' ? 'bg-orange-600 text-white shadow-xs' : 'text-slate-700 hover:bg-white'
+                }">
+                練習E：$\\left(1 + \\dfrac{1}{x}\\right)\\left(1 + \\dfrac{1}{y}\\right) = \\dfrac{3}{2}$
+              </button>
+              <button type="button" onclick="setStep4Tab('sub')"
+                class="flex-1 py-2 px-3 rounded-lg text-xs sm:text-sm font-extrabold cursor-pointer ${
+                  tab === 'sub' ? 'bg-teal-600 text-white shadow-xs' : 'text-slate-700 hover:bg-white'
+                }">
+                補助問題：$\\left(1 + \\dfrac{1}{x}\\right)\\left(1 + \\dfrac{1}{y}\\right) = \\dfrac{5}{3}$
+              </button>
+            </div>
+
+            ${
+              tab === 'E'
+                ? `<div class="space-y-3">
+                    <div class="bg-orange-50 border border-orange-200 p-3 rounded-xl text-xs sm:text-sm">
+                      <strong>式変形：</strong> $2(x+1)(y+1) = 3xy \\implies xy - 2x - 2y = 2$。なぜ両辺に $4$ を足すと $(x-2)(y-2) = 6$ になるのか面積図で見よう！
+                    </div>
+
+                    <!-- 長方形の面積図シミュレーター -->
+                    <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center bg-slate-50 p-3 rounded-xl border border-slate-200">
+                      <div class="sm:col-span-6 flex justify-center">
+                        <svg viewBox="0 0 240 200" class="w-full max-w-[220px] h-auto">
+                          <!-- 全体の長方形 x × y -->
+                          <rect x="35" y="25" width="170" height="140" fill="rgba(59, 130, 246, 0.08)" stroke="#1e293b" stroke-width="2" />
+                          <text x="120" y="16" text-anchor="middle" font-size="13" font-weight="bold" fill="#1e293b">横 y</text>
+                          <text x="20" y="98" text-anchor="middle" font-size="13" font-weight="bold" fill="#1e293b">縦 x</text>
+
+                          <!-- ステップ2以上：右と下の帯を引く -->
+                          ${
+                            st >= 2
+                              ? `<rect x="155" y="25" width="50" height="140" fill="rgba(239, 68, 68, 0.16)" stroke="#dc2626" stroke-dasharray="3 2" />
+                                 <rect x="35" y="120" width="170" height="45" fill="rgba(239, 68, 68, 0.16)" stroke="#dc2626" stroke-dasharray="3 2" />
+                                 <text x="180" y="75" text-anchor="middle" font-size="11" font-weight="bold" fill="#b91c1c">-2x</text>
+                                 <text x="95" y="147" text-anchor="middle" font-size="11" font-weight="bold" fill="#b91c1c">-2y</text>`
+                              : ''
+                          }
+
+                          <!-- ステップ3：右下の重なり 2×2=4 を補う -->
+                          ${
+                            st >= 3
+                              ? `<rect x="155" y="120" width="50" height="45" fill="rgba(16, 185, 129, 0.35)" stroke="#059669" stroke-width="2" />
+                                 <text x="180" y="147" text-anchor="middle" font-size="11" font-weight="bold" fill="#065f46">+4 (2×2)</text>
+                                 <rect x="35" y="25" width="120" height="95" fill="rgba(234, 88, 12, 0.18)" stroke="#ea580c" stroke-width="2.5" />
+                                 <text x="95" y="76" text-anchor="middle" font-size="12" font-weight="bold" fill="#c2410c">(x-2)(y-2)</text>`
+                              : ''
+                          }
+                        </svg>
+                      </div>
+
+                      <div class="sm:col-span-6 space-y-2 text-xs">
+                        <div class="flex flex-col gap-1.5">
+                          <button type="button" onclick="setStep4AreaStage(1)"
+                            class="p-2 rounded-lg text-left font-bold border cursor-pointer ${
+                              st === 1 ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-slate-700 border-slate-300'
+                            }">① 全体の長方形の面積は $xy$</button>
+                          <button type="button" onclick="setStep4AreaStage(2)"
+                            class="p-2 rounded-lg text-left font-bold border cursor-pointer ${
+                              st === 2 ? 'bg-rose-600 text-white border-rose-600' : 'bg-white text-slate-700 border-slate-300'
+                            }">② 縦 $2$・横 $2$ の帯を引くと角が二重に引かれる</button>
+                          <button type="button" onclick="setStep4AreaStage(3)"
+                            class="p-2 rounded-lg text-left font-bold border cursor-pointer ${
+                              st === 3 ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-white text-slate-700 border-slate-300'
+                            }">③ 右下の角 $2 \\times 2 = 4$ を足し戻すと完成！</button>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="bg-emerald-50 border border-emerald-200 p-3 rounded-xl text-xs sm:text-sm text-emerald-950 font-bold">
+                      $(x - 2)(y - 2) = 6$。$1 < x < y$ かつ $x = 2$ は不適なので $1 \\le x - 2 < y - 2$。<br />
+                      $(x - 2, y - 2) = (1, 6), (2, 3) \\implies (x, y) = (3, 8), (4, 5)$。
+                    </div>
+                  </div>`
+                : `<div class="space-y-3 text-xs sm:text-sm">
+                    <div class="bg-teal-50 border border-teal-200 p-3 rounded-xl font-bold text-teal-950">
+                      補助問題（発展）：自然数 $1 < x < y$ で $\\left(1 + \\dfrac{1}{x}\\right)\\left(1 + \\dfrac{1}{y}\\right) = \\dfrac{5}{3}$ を満たす組を求めよ。
+                    </div>
+                    <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-2 leading-relaxed">
+                      <p>① 両辺に $3xy$ を掛けて分母を払う：$3(x+1)(y+1) = 5xy \\implies 2xy - 3x - 3y = 3$</p>
+                      <p>② $xy$ の係数が $2$ なので、両辺を $2$ 倍する：$4xy - 6x - 6y = 6$</p>
+                      <p>③ 両辺に $3 \\times 3 = 9$ を補う：<strong>$(2x - 3)(2y - 3) = 15$</strong></p>
+                      <p>④ $1 < x < y$ より $1 \\le 2x - 3 < 2y - 3$ なので $(2x-3, 2y-3) = (1, 15), (3, 5)$。<br />
+                      よって <strong>$(x, y) = (2, 9), (3, 4)$</strong>。</p>
+                    </div>
+                  </div>`
+            }
+          </div>
+        `;
+        renderMathInContainer(container);
+        return;
+      }
+
+      // ------------------------------------------
+      // STEP 5: 入試接続・新作統合問題（問題F・G）
+      // ------------------------------------------
+      if (step === 5) {
+        const tab = state.step5Tab;
+        const hF = state.step5HintF;
+        const hG = state.step5HintG;
+        const gMethod = state.step5GMethod;
+
+        container.innerHTML = `
+          <div class="bg-white rounded-2xl border-2 border-slate-200 p-4 sm:p-5 shadow-sm flex flex-col gap-4">
+            <div class="flex gap-2 bg-slate-100 p-1.5 rounded-xl">
+              <button type="button" onclick="setStep5Tab('F')"
+                class="flex-1 py-2 px-3 rounded-lg text-xs sm:text-sm font-extrabold cursor-pointer ${
+                  tab === 'F' ? 'bg-slate-900 text-white shadow-xs' : 'text-slate-700 hover:bg-white'
+                }">
+                問題F（必修）：$\\sqrt{9n^2+91}$
+              </button>
+              <button type="button" onclick="setStep5Tab('G')"
+                class="flex-1 py-2 px-3 rounded-lg text-xs sm:text-sm font-extrabold cursor-pointer ${
+                  tab === 'G' ? 'bg-indigo-700 text-white shadow-xs' : 'text-slate-700 hover:bg-white'
+                }">
+                問題G（挑戦）：$\\left(1 + \\dfrac{1}{x}\\right)\\left(1 + \\dfrac{1}{y}\\right) = \\dfrac{7}{4}$
+              </button>
+            </div>
+
+            ${
+              tab === 'F'
+                ? `<div class="space-y-3 text-xs sm:text-sm">
+                    <div class="bg-slate-100 border border-slate-300 p-3.5 rounded-xl font-extrabold text-slate-900">
+                      【問題F】自然数 $n$ について $\\sqrt{9n^2+91}$ が自然数となる $n$ をすべて求め、その個数と最大値を答えよ。
+                    </div>
+
+                    ${
+                      hF >= 1
+                        ? `<div class="bg-blue-50 border border-blue-200 p-3 rounded-xl">
+                            <strong>ヒント1（平方差）：</strong> $\\sqrt{9n^2+91} = m$（自然数）と置くと、$m^2 - (3n)^2 = 91 \\implies (m - 3n)(m + 3n) = 91$。
+                          </div>`
+                        : ''
+                    }
+                    ${
+                      hF >= 2
+                        ? `<div class="bg-blue-50 border border-blue-200 p-3 rounded-xl">
+                            <strong>ヒント2（約数と差）：</strong> $91 = 7 \\times 13$ に注意！正の約数の組（$m-3n < m+3n$）は $(1, 91)$ と $(7, 13)$。また $2$ つの因数の差は $(m+3n) - (m-3n) = 6n$（$6$ の倍数）。
+                          </div>`
+                        : ''
+                    }
+                    ${
+                      hF >= 3
+                        ? `<div class="bg-emerald-50 border border-emerald-300 p-3.5 rounded-xl space-y-1 font-bold text-emerald-950">
+                            <div class="text-emerald-800">【解答】</div>
+                            <p>• $(m-3n, m+3n) = (1, 91)$ のとき：$6n = 90 \\implies n = 15$（$m = 46$）</p>
+                            <p>• $(m-3n, m+3n) = (7, 13)$ のとき：$6n = 6 \\implies n = 1$（$m = 10$）</p>
+                            <p>よって、<strong>$n = 1, 15$（個数は $2$ 個、最大値は $15$）</strong>。</p>
+                          </div>`
+                        : ''
+                    }
+
+                    <div class="flex gap-2">
+                      ${
+                        hF < 3
+                          ? `<button type="button" onclick="advanceHintF()" class="flex-1 py-2 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 cursor-pointer">
+                              💡 次のヒント／解答を見る（${hF}/3）
+                            </button>`
+                          : ''
+                      }
+                      ${
+                        hF > 0
+                          ? `<button type="button" onclick="resetHintF()" class="px-3 py-2 bg-slate-200 text-slate-700 rounded-xl font-bold cursor-pointer">
+                              リセット
+                            </button>`
+                          : ''
+                      }
+                    </div>
+                  </div>`
+                : `<div class="space-y-3 text-xs sm:text-sm">
+                    <div class="bg-indigo-50 border border-indigo-200 p-3.5 rounded-xl font-extrabold text-indigo-950">
+                      【問題G】自然数 $1 < x < y$ で $\\left(1 + \\dfrac{1}{x}\\right)\\left(1 + \\dfrac{1}{y}\\right) = \\dfrac{7}{4}$ を満たす組 $(x, y)$ をすべて求めよ。
+                    </div>
+
+                    ${
+                      hG >= 1
+                        ? `<div class="bg-slate-50 border border-slate-200 p-3 rounded-xl">
+                            <strong>ヒント1（分母を払う）：</strong> 両辺に $4xy$ を掛けて整理すると、$4(x+1)(y+1) = 7xy \\implies 3xy - 4x - 4y = 4$。
+                          </div>`
+                        : ''
+                    }
+                    ${
+                      hG >= 2
+                        ? `<div class="bg-slate-50 border border-slate-200 p-3 rounded-xl">
+                            <strong>ヒント2（積の形を作る）：</strong> 両辺を $3$ 倍して $9xy - 12x - 12y = 12$ とし、両辺に $16$ を足すと <strong>$(3x - 4)(3y - 4) = 28$</strong>。
+                          </div>`
+                        : ''
+                    }
+                    ${
+                      hG >= 3
+                        ? `<div class="bg-emerald-50 border border-emerald-300 p-3.5 rounded-xl space-y-2">
+                            <div class="flex items-center justify-between">
+                              <span class="font-extrabold text-emerald-900">【解答】$28$ の約数から条件を満たす組を絞る</span>
+                              <div class="flex gap-1">
+                                <button type="button" onclick="setStep5GMethod('mod')"
+                                  class="px-2 py-0.5 rounded text-xs font-bold cursor-pointer ${
+                                    gMethod === 'mod' ? 'bg-emerald-700 text-white' : 'bg-white text-emerald-800 border border-emerald-300'
+                                  }">余りで絞る</button>
+                                <button type="button" onclick="setStep5GMethod('table')"
+                                  class="px-2 py-0.5 rounded text-xs font-bold cursor-pointer ${
+                                    gMethod === 'table' ? 'bg-emerald-700 text-white' : 'bg-white text-emerald-800 border border-emerald-300'
+                                  }">表で代入</button>
+                              </div>
+                            </div>
+                            ${
+                              gMethod === 'mod'
+                                ? `<p class="text-emerald-950 font-bold leading-relaxed">
+                                    $1 < x < y$ より $2 \\le 3x - 4 < 3y - 4$。また $3x - 4 \\equiv 2 \\pmod 3$（$3$ で割ると $2$ 余る数）なので、$28$ の約数の組 $(2, 14), (4, 7)$ のうち条件を満たすのは $(2, 14)$ のみ。<br />
+                                    $3x - 4 = 2,\\ 3y - 4 = 14 \\implies$ <strong>$(x, y) = (2, 6)$</strong>。
+                                  </p>`
+                                : `<p class="text-emerald-950 font-bold leading-relaxed">
+                                    ※合同式を使わない方法：$x = 2, 3, 4, \\dots$ を $3x - 4$ に順に入れると $2, 5, 8, 11, \\dots$ となる。このうち $28$ の約数になるのは $3x - 4 = 2$（つまり $x = 2$）のみ！このとき $3y - 4 = 14 \\implies y = 6$。よって <strong>$(x, y) = (2, 6)$</strong>。
+                                  </p>`
+                            }
+                          </div>`
+                        : ''
+                    }
+
+                    <div class="flex gap-2">
+                      ${
+                        hG < 3
+                          ? `<button type="button" onclick="advanceHintG()" class="flex-1 py-2 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 cursor-pointer">
+                              💡 次のヒント／解答を見る（${hG}/3）
+                            </button>`
+                          : ''
+                      }
+                      ${
+                        hG > 0
+                          ? `<button type="button" onclick="resetHintG()" class="px-3 py-2 bg-slate-200 text-slate-700 rounded-xl font-bold cursor-pointer">
+                              リセット
+                            </button>`
+                          : ''
+                      }
+                    </div>
+                  </div>`
+            }
+          </div>
+        `;
+        renderMathInContainer(container);
+        return;
+      }
+
+      // ------------------------------------------
+      // STEP 6: 出口チケット（73〜80分）
+      // ------------------------------------------
+      const kws = ['約数', '範囲', '条件'];
+      const kwHtml = kws
+        .map((kw) => {
+          const ok = state.exitQ3.includes(kw);
+          return `<span class="px-2 py-0.5 rounded-full font-bold ${
+            ok ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-400'
+          }">${ok ? '✓ ' : ''}${kw}</span>`;
+        })
+        .join('');
+
+      container.innerHTML = `
+        <div class="bg-white rounded-2xl border-2 border-emerald-200 p-4 sm:p-5 shadow-sm flex flex-col gap-4">
+          <div class="font-extrabold text-emerald-900 text-base">
+            ✨ 【73〜80分】出口チケット（3問チェック）
+          </div>
+
+          <!-- ① -->
+          <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2">
+            <div class="text-xs sm:text-sm font-extrabold text-slate-800">
+              ① $\\sqrt{n^2+15}$ が自然数となる自然数 $n$ を求めるとき、最初に作る積の式は？
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <button type="button" onclick="selectExitQ1('ok')"
+                class="py-2 px-3 rounded-lg text-xs sm:text-sm font-bold border cursor-pointer ${
+                  state.exitQ1 === 'ok' ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-white text-slate-800 border-slate-300'
+                }">$(m - n)(m + n) = 15$</button>
+              <button type="button" onclick="selectExitQ1('ng')"
+                class="py-2 px-3 rounded-lg text-xs sm:text-sm font-bold border cursor-pointer ${
+                  state.exitQ1 === 'ng' ? 'bg-rose-600 text-white border-rose-600' : 'bg-white text-slate-800 border-slate-300'
+                }">$n(n + 15) = m$</button>
+            </div>
+            ${
+              state.exitQ1
+                ? `<p class="text-xs font-bold ${state.exitQ1 === 'ok' ? 'text-emerald-700' : 'text-rose-700'}">
+                    ${state.exitQ1 === 'ok' ? '⭕ 正解！まず $= m$ と置いて2乗し、平方差を因数分解します。' : '❌ まず $\\sqrt{n^2+15} = m$ と置いて両辺を2乗しましょう！'}
+                  </p>`
+                : ''
+            }
+          </div>
+
+          <!-- ② -->
+          <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2">
+            <div class="text-xs sm:text-sm font-extrabold text-slate-800">
+              ② $x \\ge y \\ge 2$ で $\\dfrac{1}{x} + \\dfrac{1}{y} > \\dfrac{1}{2}$ なら、$y$ の候補は？
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <button type="button" onclick="selectExitQ2('ok')"
+                class="py-2 px-3 rounded-lg text-xs sm:text-sm font-bold border cursor-pointer ${
+                  state.exitQ2 === 'ok' ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-white text-slate-800 border-slate-300'
+                }">$y = 2, 3$</button>
+              <button type="button" onclick="selectExitQ2('ng')"
+                class="py-2 px-3 rounded-lg text-xs sm:text-sm font-bold border cursor-pointer ${
+                  state.exitQ2 === 'ng' ? 'bg-rose-600 text-white border-rose-600' : 'bg-white text-slate-800 border-slate-300'
+                }">$y = 2, 3, 4$</button>
+            </div>
+            ${
+              state.exitQ2
+                ? `<p class="text-xs font-bold ${state.exitQ2 === 'ok' ? 'text-emerald-700' : 'text-rose-700'}">
+                    ${state.exitQ2 === 'ok' ? '⭕ 正解！$\\dfrac{1}{2} < \\dfrac{2}{y} \\implies y < 4$ なので $y = 2, 3$ です。' : '❌ $y = 4$ のときは $\\dfrac{2}{4} = \\dfrac{1}{2}$ となり、$\\dfrac{1}{2}$ より大きくなりません。'}
+                  </p>`
+                : ''
+            }
+          </div>
+
+          <!-- ③ -->
+          <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2">
+            <div class="text-xs sm:text-sm font-extrabold text-slate-800">
+              ③ 「すべて求めた」と言うために必要な説明を1文で書いてみよう
+            </div>
+            <textarea rows="2" oninput="updateExitQ3(this.value)"
+              placeholder="例：約数の組や不等式の範囲によって候補を尽くし、元の条件を確認したから。"
+              class="w-full p-2 text-xs sm:text-sm border border-slate-300 rounded-lg bg-white outline-none focus:ring-2 focus:ring-emerald-500">${state.exitQ3}</textarea>
+            <div class="flex flex-wrap items-center gap-2 text-xs">
+              <span class="text-slate-500 font-bold">キーワード：</span>
+              <div id="exit-kw-badges" class="flex flex-wrap gap-1">${kwHtml}</div>
+              <button type="button" onclick="toggleExitAnswers()" class="ml-auto text-emerald-700 font-bold underline cursor-pointer">
+                ${state.showExitAnswers ? '模範解答を隠す' : '模範解答を見る'}
+              </button>
+            </div>
+            ${
+              state.showExitAnswers
+                ? `<div class="bg-emerald-50 border border-emerald-200 p-2.5 rounded-lg text-xs sm:text-sm text-emerald-950 font-bold">
+                    模範解答例：「正の約数の組や不等式の範囲によって候補をすべて尽くし、元の自然数（整数）の条件を満たすことを検査したから。」
+                  </div>`
+                : ''
+            }
+          </div>
+        </div>
+      `;
+      renderMathInContainer(container);
+    }
+
+    // ==========================================
+    // 6. 右パネル（授業展開・板書・丁寧解説・復習ドリル）の描画
+    // ==========================================
+    function renderRightPanel() {
+      const container = document.getElementById('right-panel');
+      const stepData = LESSON_STEPS[state.currentStep];
+
+      const topPromptHtml =
+        state.viewMode === 'teacher'
+          ? `<div class="bg-amber-50 border-2 border-amber-300 p-4 rounded-2xl shadow-2xs">
+              <div class="flex items-center justify-between mb-1.5">
+                <span class="bg-amber-500 text-slate-950 font-extrabold text-xs px-2.5 py-0.5 rounded-full">
+                  🗣️ 今日の問いかけ・みんなで考えよう（${stepData.time}）
+                </span>
+              </div>
+              <p class="text-slate-900 font-extrabold text-sm sm:text-base leading-relaxed">
+                ${stepData.teacherPrompt}
+              </p>
+            </div>`
+          : `<div class="bg-emerald-50 border-2 border-emerald-200 p-4 rounded-2xl shadow-2xs space-y-2.5">
+              <div class="flex items-center gap-2">
+                <span class="bg-emerald-600 text-white font-extrabold text-xs px-2.5 py-0.5 rounded-full">
+                  📖 かみくだき解説（本質の理解）
+                </span>
+              </div>
+              <p class="text-slate-800 text-sm sm:text-base leading-relaxed">
+                ${stepData.studentNote}
+              </p>
+              <div class="bg-white/90 border border-emerald-200 p-3 rounded-xl text-xs sm:text-sm text-emerald-950">
+                <span class="font-extrabold text-emerald-700">🎯 やってみよう（復習ミッション）：</span>
+                ${stepData.studentMission}
+              </div>
+            </div>`;
+
+      const totalLines = stepData.boardSummary.length;
+      const visibleCount = state.viewMode === 'teacher' ? state.teacherBoardRevealed : totalLines;
+      const visibleLines = stepData.boardSummary.slice(0, visibleCount);
+
+      const boardHtml = `
+        <div class="bg-slate-800 text-white p-4 rounded-2xl shadow-md space-y-2.5">
+          <div class="flex items-center justify-between gap-2">
+            <div class="text-xs font-extrabold text-amber-300">
+              ${state.viewMode === 'teacher' ? `📋 板書計画（${visibleCount} / ${totalLines} 行を表示中）` : '📝 重要ポイント・まとめノート'}
+            </div>
+            ${
+              state.viewMode === 'teacher'
+                ? `<div class="flex items-center gap-1.5">
+                    ${
+                      visibleCount < totalLines
+                        ? `<button type="button" onclick="revealNextBoardLine()"
+                            class="px-2.5 py-1 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-extrabold cursor-pointer">
+                            ＋ 次の1行を出す
+                          </button>`
+                        : ''
+                    }
+                    <button type="button" onclick="toggleAllBoardLines(${totalLines})"
+                      class="px-2 py-1 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs font-bold cursor-pointer">
+                      ${visibleCount < totalLines ? 'すべて表示' : '1行目に戻す'}
+                    </button>
+                  </div>`
+                : ''
+            }
+          </div>
+          <ul class="space-y-2 text-sm leading-relaxed">
+            ${visibleLines
+              .map(
+                (line) => `
+              <li class="flex items-start gap-2">
+                <span class="text-amber-400 font-bold mt-0.5">•</span>
+                <span>${line}</span>
+              </li>`
+              )
+              .join('')}
+          </ul>
+          ${
+            state.viewMode === 'teacher' && visibleCount < totalLines
+              ? `<div class="text-xs text-slate-400 italic pt-1 border-t border-slate-700">
+                  ※ 残り ${totalLines - visibleCount} 行は考えがまとまってから「＋ 次の1行を出す」で表示できます
+                </div>`
+              : ''
+          }
+        </div>
+      `;
+
+      let modeSpecificCardHtml = '';
+      if (state.viewMode === 'teacher') {
+        modeSpecificCardHtml = `
+          <div class="bg-blue-50/80 border border-blue-200 p-3.5 rounded-xl text-xs sm:text-sm text-slate-800 leading-relaxed">
+            <div class="font-extrabold text-blue-900 mb-1">💡 ここが落とし穴！つまずき注意ポイント</div>
+            <p>${stepData.teacherIntervention}</p>
+          </div>
+        `;
+      } else if (stepData.selfCheck) {
+        const sc = stepData.selfCheck;
+        const selectedIdx = state.selfCheckAnswers[state.currentStep];
+        const hasAnswered = selectedIdx !== undefined;
+        const isCorrect = selectedIdx === sc.correctIdx;
+
+        modeSpecificCardHtml = `
+          <div class="bg-white border-2 border-emerald-200 p-4 rounded-2xl shadow-2xs space-y-2.5">
+            <div class="text-xs font-extrabold text-emerald-700">
+              ✅ 理解度セルフチェック（復習確認クイズ）
+            </div>
+            <p class="text-xs sm:text-sm font-bold text-slate-900 leading-relaxed">${sc.q}</p>
+            <div class="grid grid-cols-1 gap-2">
+              ${sc.options
+                .map((opt, idx) => {
+                  let btnClass = 'bg-slate-50 text-slate-800 border-slate-300 hover:bg-emerald-50';
+                  if (hasAnswered) {
+                    if (idx === sc.correctIdx) {
+                      btnClass = 'bg-emerald-600 text-white border-emerald-600 shadow-xs';
+                    } else if (idx === selectedIdx) {
+                      btnClass = 'bg-rose-600 text-white border-rose-600';
+                    } else {
+                      btnClass = 'bg-slate-50 text-slate-400 border-slate-200';
+                    }
+                  }
+                  return `
+                    <button type="button" onclick="answerSelfCheck(${state.currentStep}, ${idx})"
+                      class="w-full text-left px-3 py-2 rounded-xl border text-xs sm:text-sm font-bold transition cursor-pointer ${btnClass}">
+                      ${idx === 0 ? 'A. ' : 'B. '}${opt}
+                    </button>
+                  `;
+                })
+                .join('')}
+            </div>
+            ${
+              hasAnswered
+                ? `<div class="p-3 rounded-xl text-xs sm:text-sm leading-relaxed border ${
+                    isCorrect ? 'bg-emerald-50 border-emerald-200 text-emerald-950' : 'bg-rose-50 border-rose-200 text-rose-950'
+                  }">
+                    <span class="font-extrabold">${isCorrect ? '⭕ 大正解！' : '❌ もう一歩！'}</span>
+                    ${sc.explain}
+                  </div>`
+                : ''
+            }
+          </div>
+        `;
+      }
+
+      // 最後のステップ（STEP 6）には復習用オリジナルドリルA〜Eも表示
+      let drillPanelHtml = '';
+      if (state.currentStep === 6) {
+        const drillsHtml = DRILL_PROBLEMS.map((item) => {
+          const isOpen = !!state.openDrillAnswers[item.id];
+          return `
+            <div class="border border-slate-200 rounded-lg p-3 bg-slate-50/60">
+              <div class="flex items-start justify-between gap-2">
+                <div class="text-xs sm:text-sm font-medium text-slate-800">
+                  <span class="inline-block bg-emerald-700 text-white text-xs font-bold px-2 py-0.5 rounded mr-1.5">
+                    練習${item.id}（${item.level}）
+                  </span>
+                  ${item.q}
+                </div>
+                <button type="button" onclick="toggleDrillAnswer('${item.id}')"
+                  class="shrink-0 px-2.5 py-1 bg-white border border-slate-300 rounded text-xs font-bold text-slate-700 hover:bg-slate-100 cursor-pointer">
+                  ${isOpen ? '閉じる' : '解答'}
+                </button>
+              </div>
+              ${
+                isOpen
+                  ? `<div class="mt-2 pt-2 border-t border-slate-200 text-xs sm:text-sm font-bold text-emerald-950 bg-emerald-50/80 p-2.5 rounded leading-relaxed">
+                      ${item.a}
+                    </div>`
+                  : ''
+              }
+            </div>
+          `;
+        }).join('');
+
+        drillPanelHtml = `
+          <div class="bg-white border border-slate-200 rounded-xl p-4 space-y-2.5">
+            <div class="font-extrabold text-slate-900 text-sm">
+              📝 復習用・段階別オリジナルドリル（練習A〜E）
+            </div>
+            ${drillsHtml}
+          </div>
+        `;
+      }
+
+      container.innerHTML = topPromptHtml + boardHtml + modeSpecificCardHtml + drillPanelHtml;
+      renderMathInContainer(container);
+    }
+
+    // ==========================================
+    // 7. ナビゲーション＆全体の再描画
+    // ==========================================
+    function renderTimelineAndHeader() {
+      const isTeacher = state.viewMode === 'teacher';
+      const nav = document.getElementById('timeline-nav');
+      nav.innerHTML = LESSON_STEPS.map((step, idx) => {
+        const isActive = idx === state.currentStep;
+        const activeBg = isTeacher
+          ? 'bg-amber-500 text-slate-950 border-amber-500'
+          : 'bg-emerald-600 text-white border-emerald-600';
+        const subText = isTeacher ? step.time : `STEP ${idx + 1}`;
+        return `
+          <button type="button" onclick="selectStep(${idx})"
+            class="px-3 py-1.5 rounded-xl text-left transition border flex flex-col cursor-pointer ${
+              isActive
+                ? `${activeBg} shadow-sm`
+                : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+            }">
+            <span class="text-[10px] font-bold ${isActive ? (isTeacher ? 'text-slate-900' : 'text-emerald-100') : 'text-slate-400'}">${subText}</span>
+            <span class="text-xs font-extrabold whitespace-nowrap">${step.shortTitle}</span>
+          </button>
+        `;
+      }).join('');
+
+      const modeBanner = document.getElementById('mode-banner');
+      if (isTeacher) {
+        modeBanner.innerHTML = `
+          <div class="bg-amber-100/90 border border-amber-300 text-amber-950 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold flex flex-wrap items-center justify-between gap-2">
+            <span>📽️ <strong>授業提示モード（黒板・スクリーン提示用）</strong>：問いかけ・1行ずつ開示できる板書・つまずき注意ポイントを表示しています。</span>
+            <button type="button" onclick="setViewMode('student')" class="underline text-amber-900 hover:text-black cursor-pointer">
+              生徒復習モードに切り替える →
+            </button>
+          </div>
+        `;
+      } else {
+        modeBanner.innerHTML = `
+          <div class="bg-emerald-100/90 border border-emerald-300 text-emerald-950 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold flex flex-wrap items-center justify-between gap-2">
+            <span>📘 <strong>生徒復習モード（自宅学習・自習用）</strong>：かみくだき解説・操作ミッション・理解度セルフチェッククイズを表示しています。</span>
+            <button type="button" onclick="setViewMode('teacher')" class="underline text-emerald-900 hover:text-black cursor-pointer">
+              授業提示モードに切り替える →
+            </button>
+          </div>
+        `;
+      }
+
+      const activeStepObj = LESSON_STEPS[state.currentStep];
+      document.getElementById('step-time-badge').textContent = isTeacher
+        ? `目安時間：${activeStepObj.time}`
+        : `復習ステップ ${state.currentStep + 1} / ${LESSON_STEPS.length}`;
+      document.getElementById('step-goal-text').textContent = `到達目標：${activeStepObj.goal}`;
+      document.getElementById('step-title-text').textContent = activeStepObj.title;
+
+      const btnPrev = document.getElementById('btn-prev-step');
+      const btnNext = document.getElementById('btn-next-step');
+      btnPrev.disabled = state.currentStep === 0;
+      btnNext.disabled = state.currentStep === LESSON_STEPS.length - 1;
+
+      const btnTeacher = document.getElementById('btn-mode-teacher');
+      const btnStudent = document.getElementById('btn-mode-student');
+      if (isTeacher) {
+        btnTeacher.className = 'px-2.5 py-1.5 rounded-lg flex items-center gap-1 transition cursor-pointer bg-amber-500 text-slate-950 shadow';
+        btnStudent.className = 'px-2.5 py-1.5 rounded-lg flex items-center gap-1 transition cursor-pointer text-slate-300 hover:text-white';
+      } else {
+        btnTeacher.className = 'px-2.5 py-1.5 rounded-lg flex items-center gap-1 transition cursor-pointer text-slate-300 hover:text-white';
+        btnStudent.className = 'px-2.5 py-1.5 rounded-lg flex items-center gap-1 transition cursor-pointer bg-emerald-500 text-slate-950 shadow';
+      }
+    }
+
+    function renderAll() {
+      renderTimelineAndHeader();
+      renderLeftPanel();
+      renderRightPanel();
+    }
+
+    // ==========================================
+    // 8. 初期イベント登録＆初回レンダリング
+    // ==========================================
+    document.getElementById('btn-mode-teacher').addEventListener('click', () => {
+      setViewMode('teacher');
+    });
+
+    document.getElementById('btn-mode-student').addEventListener('click', () => {
+      setViewMode('student');
+    });
+
+    document.getElementById('btn-prev-step').addEventListener('click', () => {
+      if (state.currentStep > 0) selectStep(state.currentStep - 1);
+    });
+
+    document.getElementById('btn-next-step').addEventListener('click', () => {
+      if (state.currentStep < LESSON_STEPS.length - 1) selectStep(state.currentStep + 1);
+    });
+
+    // 5ステップ手順カードモーダル制御
+    const stepsModal = document.getElementById('steps-modal');
+    document.getElementById('btn-open-steps').addEventListener('click', () => {
+      stepsModal.classList.remove('hidden');
+      stepsModal.classList.add('flex');
+    });
+    document.getElementById('btn-close-steps').addEventListener('click', () => {
+      stepsModal.classList.add('hidden');
+      stepsModal.classList.remove('flex');
+    });
+    stepsModal.addEventListener('click', (e) => {
+      if (e.target === stepsModal) {
+        stepsModal.classList.add('hidden');
+        stepsModal.classList.remove('flex');
+      }
+    });
+
+    // つまずき＆対処表モーダル制御
+    const pitfallsModal = document.getElementById('pitfalls-modal');
+    document.getElementById('btn-open-pitfalls').addEventListener('click', () => {
+      pitfallsModal.classList.remove('hidden');
+      pitfallsModal.classList.add('flex');
+    });
+    document.getElementById('btn-close-pitfalls').addEventListener('click', () => {
+      pitfallsModal.classList.add('hidden');
+      pitfallsModal.classList.remove('flex');
+    });
+    pitfallsModal.addEventListener('click', (e) => {
+      if (e.target === pitfallsModal) {
+        pitfallsModal.classList.add('hidden');
+        pitfallsModal.classList.remove('flex');
+      }
+    });
+
+    window.addEventListener('DOMContentLoaded', () => {
+      renderAll();
+      renderMathInContainer(document.getElementById('steps-modal'));
+      renderMathInContainer(document.getElementById('pitfalls-modal'));
+    });
+  </script>
+</body>
+</html>

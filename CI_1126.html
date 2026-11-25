@@ -23,19 +23,22 @@
     };
   </script>
 </head>
-<body class="bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100 font-sans antialiased pb-28 transition-colors duration-200 selection:bg-blue-200 dark:selection:bg-blue-800">
+<body class="bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100 font-sans antialiased pb-32 transition-colors duration-200 selection:bg-blue-200 dark:selection:bg-blue-800">
 
-  <!-- 上部固定ヘッダー：タイトル・タイマー・機能ボタン -->
+  <!-- 上部固定ヘッダー：タイトル・探偵ランク・タイマー・機能ボタン -->
   <header class="sticky top-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur border-b border-slate-200 dark:border-slate-800 shadow-sm">
     <div class="max-w-6xl mx-auto px-3 sm:px-6 py-2.5 flex flex-wrap items-center justify-between gap-2">
-      <!-- 授業タイトル -->
-      <div class="flex items-center gap-2">
+      <!-- 授業タイトル＆探偵ランク -->
+      <div class="flex items-center gap-2 flex-wrap">
         <span class="bg-amber-400 text-slate-950 text-xs sm:text-sm font-black px-3 py-1 rounded-full shadow-sm">
           🕵️ 第5回
         </span>
         <h1 class="text-base sm:text-xl font-black tracking-tight">
           AI探偵になろう！
         </h1>
+        <span id="rankBadge" class="bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 border border-indigo-300 dark:border-indigo-700 text-xs font-extrabold px-2.5 py-0.5 rounded-full">
+          🔰 見習い探偵
+        </span>
       </div>
 
       <!-- カウントダウンタイマー -->
@@ -55,13 +58,16 @@
         </button>
       </div>
 
-      <!-- 音声・テーマ・先生メモボタン -->
-      <div class="flex items-center gap-1.5">
-        <button id="soundBtn" onclick="toggleSound()" class="bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm font-bold px-3 py-1.5 rounded-full transition">
+      <!-- 操作ヘルプ・音声・テーマ・先生メモボタン -->
+      <div class="flex items-center gap-1.5 flex-wrap">
+        <button onclick="openModal('helpModal')" class="bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 border border-emerald-400 text-emerald-800 dark:text-emerald-300 text-xs sm:text-sm font-extrabold px-3 py-1.5 rounded-full transition">
+          ❓ 操作ガイド
+        </button>
+        <button id="soundBtn" onclick="toggleSound()" class="bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm font-bold px-2.5 py-1.5 rounded-full transition">
           🔔 音ON
         </button>
-        <button id="themeBtn" onclick="toggleTheme()" class="bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm font-bold px-3 py-1.5 rounded-full transition">
-          🌓 テーマ
+        <button id="themeBtn" onclick="toggleTheme()" class="bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm font-bold px-2.5 py-1.5 rounded-full transition">
+          🌓
         </button>
         <button onclick="openModal('teacherModal')" class="bg-amber-50 dark:bg-amber-950/50 hover:bg-amber-100 dark:hover:bg-amber-900/60 border border-amber-400 text-amber-800 dark:text-amber-300 text-xs sm:text-sm font-extrabold px-3 py-1.5 rounded-full transition">
           📋 先生メモ
@@ -69,7 +75,7 @@
       </div>
     </div>
 
-    <!-- 50分授業タイムライン（横スクロール対応） -->
+    <!-- 50分授業タイムライン＋EXステージ（横スクロール対応） -->
     <div class="max-w-6xl mx-auto px-3 sm:px-6 pb-2.5 overflow-x-auto">
       <div id="timelineBar" class="flex gap-2 min-w-max"></div>
     </div>
@@ -78,33 +84,107 @@
   <!-- メインステージ表示エリア -->
   <main id="stageContainer" class="max-w-5xl mx-auto px-3 sm:px-6 mt-5"></main>
 
-  <!-- 下部固定ナビゲーション＆常設コピーBOXボタン -->
-  <footer class="fixed bottom-0 inset-x-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur border-t border-slate-200 dark:border-slate-800 px-3 sm:px-6 py-3 shadow-lg">
-    <div class="max-w-5xl mx-auto flex items-center justify-between gap-2">
+  <!-- 下部固定ナビゲーション＆常設ツールボタン -->
+  <footer class="fixed bottom-0 inset-x-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur border-t border-slate-200 dark:border-slate-800 px-3 sm:px-6 py-2.5 shadow-lg">
+    <div class="max-w-5xl mx-auto flex flex-wrap items-center justify-between gap-2">
       <div class="flex items-center gap-2">
-        <button id="prevBtn" onclick="changeStep(-1)" class="bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 disabled:opacity-40 border border-slate-300 dark:border-slate-700 font-extrabold text-sm sm:text-base px-4 py-2.5 rounded-xl transition">
+        <button id="prevBtn" onclick="changeStep(-1)" class="bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 disabled:opacity-40 border border-slate-300 dark:border-slate-700 font-extrabold text-sm sm:text-base px-3.5 sm:px-4 py-2.5 rounded-xl transition">
           ← 前へ
         </button>
-        <button id="nextBtn" onclick="changeStep(1)" class="bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white font-extrabold text-sm sm:text-base px-5 py-2.5 rounded-xl shadow-sm transition">
+        <button id="nextBtn" onclick="changeStep(1)" class="bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white font-extrabold text-sm sm:text-base px-4 sm:px-5 py-2.5 rounded-xl shadow-sm transition">
           次へ →
         </button>
       </div>
 
-      <!-- いつでも開ける質問カード＆コピーBOX -->
-      <button onclick="openModal('copyModal')" class="bg-amber-400 hover:bg-amber-500 active:scale-95 text-slate-950 font-black text-sm sm:text-base px-4 sm:px-6 py-2.5 rounded-full shadow-md flex items-center gap-2 transition">
-        <span>📋 質問カード＆コピーBOX</span>
-      </button>
+      <!-- いつでも開けるお助けツール群 -->
+      <div class="flex items-center gap-2">
+        <button onclick="openModal('noteModal')" class="bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-black text-xs sm:text-sm px-3.5 sm:px-4 py-2.5 rounded-full shadow-md flex items-center gap-1.5 transition">
+          <span>📝 探偵ノート</span>
+          <span id="noteCountBadge" class="bg-white/25 px-1.5 py-0.5 rounded-full text-xs">1件</span>
+        </button>
+        <button onclick="openModal('copyModal')" class="bg-amber-400 hover:bg-amber-500 active:scale-95 text-slate-950 font-black text-xs sm:text-sm px-3.5 sm:px-5 py-2.5 rounded-full shadow-md flex items-center gap-1.5 transition">
+          <span>📋 質問コピーBOX</span>
+        </button>
+      </div>
     </div>
   </footer>
 
-  <!-- コピー完了トースト通知 -->
-  <div id="toast" class="fixed top-24 left-1/2 -translate-x-1/2 -translate-y-4 opacity-0 pointer-events-none z-50 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-extrabold text-sm sm:text-base px-5 py-3 rounded-full shadow-xl transition-all duration-200">
+  <!-- コピー・保存完了トースト通知 -->
+  <div id="toast" class="fixed top-24 left-1/2 -translate-x-1/2 -translate-y-4 opacity-0 pointer-events-none z-50 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-extrabold text-sm sm:text-base px-5 py-3 rounded-full shadow-xl transition-all duration-200 max-w-[92vw] text-center">
     ✅ コピーしました！
+  </div>
+
+  <!-- モーダル0：生徒向け「画面操作ガイド（困ったとき）」 -->
+  <div id="helpModal" onclick="closeModalOnBg(event, 'helpModal')" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/60 backdrop-blur-xs p-3 sm:p-6">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-3xl w-full max-h-[88vh] overflow-y-auto p-5 sm:p-7 shadow-2xl">
+      <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3 mb-4">
+        <h2 class="text-lg sm:text-xl font-black">❓ かんたん操作ガイド（迷ったらここを見よう！）</h2>
+        <button onclick="closeModal('helpModal')" class="bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 font-bold text-sm px-3.5 py-1.5 rounded-full">
+          ✕ 閉じる
+        </button>
+      </div>
+
+      <div class="space-y-4">
+        <div class="bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 rounded-2xl p-4">
+          <h3 class="font-black text-base text-blue-800 dark:text-blue-300 mb-2">📱 今日使う3つの画面</h3>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-sm font-bold">
+            <div class="bg-white dark:bg-slate-900 p-3 rounded-xl border border-blue-200 dark:border-slate-700">
+              <div class="text-blue-600 dark:text-blue-400 font-black mb-1">① このボード</div>
+              手順を見る・質問をコピーする・探偵ノートに記録する
+            </div>
+            <div class="bg-white dark:bg-slate-900 p-3 rounded-xl border border-purple-200 dark:border-slate-700">
+              <div class="text-purple-600 dark:text-purple-400 font-black mb-1">② Gemini（AI）</div>
+              コピーした質問を貼り付けて、AIの答えと確認先を聞く
+            </div>
+            <div class="bg-white dark:bg-slate-900 p-3 rounded-xl border border-emerald-200 dark:border-slate-700">
+              <div class="text-emerald-600 dark:text-emerald-400 font-black mb-1">③ ブラウザ検索</div>
+              Googleなどで検索し、公式サイトや博物館のページを開く
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 rounded-2xl p-4">
+          <h3 class="font-black text-base mb-2.5">📋 コピー＆貼り付け（ペースト）のやり方</h3>
+          <ol class="space-y-2 text-sm font-bold">
+            <li class="flex items-start gap-2">
+              <span class="bg-blue-600 text-white w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-xs font-black">1</span>
+              <span>このボードの <strong>「📋 コピー」ボタン</strong> を1回タップ（クリック）する</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="bg-purple-600 text-white w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-xs font-black">2</span>
+              <span><strong>Geminiのタブ（またはアプリ）</strong> に切り替えて、文字を入力する枠をタップ</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="bg-emerald-600 text-white w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-xs font-black">3</span>
+              <span>
+                <strong>貼り付け（ペースト）</strong> して送信！<br/>
+                <span class="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                  ・iPad / タブレット：入力欄をもう一度タップ →「ペースト」<br/>
+                  ・Chromebook / PC：キーボードの <kbd class="px-1.5 py-0.5 bg-slate-200 dark:bg-slate-700 rounded">Ctrl</kbd> + <kbd class="px-1.5 py-0.5 bg-slate-200 dark:bg-slate-700 rounded">V</kbd>（Macは <kbd class="px-1.5 py-0.5 bg-slate-200 dark:bg-slate-700 rounded">⌘</kbd> + <kbd class="px-1.5 py-0.5 bg-slate-200 dark:bg-slate-700 rounded">V</kbd>）
+                </span>
+              </span>
+            </li>
+          </ol>
+        </div>
+
+        <div class="bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800 rounded-2xl p-4">
+          <h3 class="font-black text-base text-amber-900 dark:text-amber-300 mb-2">🔍 公式ページを見つける検索のコツ</h3>
+          <p class="text-sm font-bold mb-2">知りたい言葉のうしろに、次の言葉を1つ足して検索してみよう！</p>
+          <div class="flex flex-wrap gap-2 text-xs sm:text-sm font-extrabold">
+            <span class="bg-white dark:bg-slate-900 px-3 py-1.5 rounded-lg border border-amber-300">「〇〇 <strong>公式</strong>」</span>
+            <span class="bg-white dark:bg-slate-900 px-3 py-1.5 rounded-lg border border-amber-300">「〇〇 <strong>動物園</strong>」</span>
+            <span class="bg-white dark:bg-slate-900 px-3 py-1.5 rounded-lg border border-amber-300">「〇〇 <strong>博物館</strong>」</span>
+            <span class="bg-white dark:bg-slate-900 px-3 py-1.5 rounded-lg border border-amber-300">「〇〇 <strong>大学</strong>」</span>
+            <span class="bg-white dark:bg-slate-900 px-3 py-1.5 rounded-lg border border-amber-300">「〇〇 <strong>科学館</strong>」</span>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- モーダル1：常設「質問カード＆コピーBOX」 -->
   <div id="copyModal" onclick="closeModalOnBg(event, 'copyModal')" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/60 backdrop-blur-xs p-3 sm:p-6">
-    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-4xl w-full max-h-[88vh] overflow-y-auto p-5 sm:p-7 shadow-2xl">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-4xl w-full max-h-[88vh] overflow-y-auto p-5 sm:p-7 shadow-2xl">
       <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3 mb-4">
         <h2 class="text-lg sm:text-xl font-black">📋 質問カード＆お助けコピーBOX</h2>
         <button onclick="closeModal('copyModal')" class="bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 font-bold text-sm px-3.5 py-1.5 rounded-full">
@@ -113,7 +193,7 @@
       </div>
 
       <p class="text-sm sm:text-base text-slate-600 dark:text-slate-300 font-medium mb-4">
-        ボタンを押すと質問文がコピーされます。そのまま <strong>Gemini の入力欄にペースト（貼り付け）</strong> して使おう！
+        ボタンを押すと質問文がコピーされます。そのまま <strong>Gemini の入力欄に貼り付け（ペースト）</strong> して使おう！
       </p>
 
       <h3 class="text-base font-extrabold mb-2.5 text-blue-600 dark:text-blue-400">① 最初の質問カード（好きなものを1つ選ぼう）</h3>
@@ -133,11 +213,14 @@
         <button onclick="copyText('確認先は？', this)" class="bg-blue-50 dark:bg-blue-950/60 hover:bg-blue-100 dark:hover:bg-blue-900/70 border-2 border-blue-500 text-blue-700 dark:text-blue-300 font-extrabold text-sm sm:text-base px-4 py-2.5 rounded-xl transition">
           🏛️ 確認先は？
         </button>
-        <button onclick="copyText('どこが不確か？', this)" class="bg-purple-50 dark:bg-purple-950/60 hover:bg-purple-100 dark:hover:bg-purple-900/70 border-2 border-purple-500 text-purple-700 dark:text-purple-300 font-extrabold text-sm sm:text-base px-4 py-2.5 rounded-xl transition">
+        <button onclick="copyText('どこが不確か？例外や条件が違うことはある？', this)" class="bg-purple-50 dark:bg-purple-950/60 hover:bg-purple-100 dark:hover:bg-purple-900/70 border-2 border-purple-500 text-purple-700 dark:text-purple-300 font-extrabold text-sm sm:text-base px-4 py-2.5 rounded-xl transition">
           🛠️ どこが不確か？
         </button>
-        <button onclick="copyText('反対の例は？', this)" class="bg-purple-50 dark:bg-purple-950/60 hover:bg-purple-100 dark:hover:bg-purple-900/70 border-2 border-purple-500 text-purple-700 dark:text-purple-300 font-extrabold text-sm sm:text-base px-4 py-2.5 rounded-xl transition">
+        <button onclick="copyText('反対の例や、違う説はある？', this)" class="bg-purple-50 dark:bg-purple-950/60 hover:bg-purple-100 dark:hover:bg-purple-900/70 border-2 border-purple-500 text-purple-700 dark:text-purple-300 font-extrabold text-sm sm:text-base px-4 py-2.5 rounded-xl transition">
           🔄 反対の例は？
+        </button>
+        <button onclick="copyText('さっきの説明で、間違っている可能性がある箇所を一つ挙げて', this)" class="bg-amber-50 dark:bg-amber-950/60 hover:bg-amber-100 dark:hover:bg-amber-900/70 border-2 border-amber-500 text-amber-800 dark:text-amber-300 font-extrabold text-sm sm:text-base px-4 py-2.5 rounded-xl transition">
+          🔓 間違っている可能性がある箇所は？
         </button>
       </div>
 
@@ -147,7 +230,20 @@
     </div>
   </div>
 
-  <!-- モーダル2：デジタル判定カード拡大表示 -->
+  <!-- モーダル2：常設「マイ探偵ノート（どこからでも閲覧・記入）」 -->
+  <div id="noteModal" onclick="closeModalOnBg(event, 'noteModal')" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/60 backdrop-blur-xs p-3 sm:p-6">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-3xl w-full max-h-[88vh] overflow-y-auto p-5 sm:p-7 shadow-2xl">
+      <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3 mb-4">
+        <h2 class="text-lg sm:text-xl font-black">📝 マイ探偵ノート（自動保存）</h2>
+        <button onclick="closeModal('noteModal')" class="bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 font-bold text-sm px-3.5 py-1.5 rounded-full">
+          ✕ 閉じる
+        </button>
+      </div>
+      <div id="noteModalBody"></div>
+    </div>
+  </div>
+
+  <!-- モーダル3：デジタル判定カード拡大表示 -->
   <div id="verdictModal" onclick="closeModalOnBg(event, 'verdictModal')" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/70 backdrop-blur-xs p-4">
     <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl text-center">
       <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3 mb-4">
@@ -160,11 +256,11 @@
     </div>
   </div>
 
-  <!-- モーダル3：先生用メモ（初期非表示・教師確認用） -->
+  <!-- モーダル4：先生用メモ（初期非表示・教師確認用） -->
   <div id="teacherModal" onclick="closeModalOnBg(event, 'teacherModal')" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/60 backdrop-blur-xs p-3 sm:p-6">
-    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-3xl w-full max-h-[88vh] overflow-y-auto p-5 sm:p-7 shadow-2xl">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-3xl w-full max-h-[88vh] overflow-y-auto p-5 sm:p-7 shadow-2xl">
       <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3 mb-4">
-        <h2 class="text-lg sm:text-xl font-black">📋 教師用ガイド（巡回の視点・進行分岐）</h2>
+        <h2 class="text-lg sm:text-xl font-black">📋 教師用ガイド（巡回の視点・時間調整）</h2>
         <button onclick="closeModal('teacherModal')" class="bg-slate-100 dark:bg-slate-800 font-bold text-sm px-3.5 py-1.5 rounded-full">
           ✕ 閉じる
         </button>
@@ -172,6 +268,14 @@
 
       <div class="bg-blue-50 dark:bg-blue-950/50 border border-blue-200 dark:border-blue-800 rounded-xl p-3.5 mb-5 text-sm">
         <strong>到達目標：</strong>①AIが示した具体的な主張を一つ選ぶ ②AIとは独立した資料で確かめる ③「○／△／？」を根拠とともに自分で判断する（AI自身の再回答だけを検証としない）
+      </div>
+
+      <div class="bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 rounded-xl p-3.5 mb-5 text-sm space-y-1.5">
+        <div class="font-black text-emerald-800 dark:text-emerald-300">⏱️ 時間が余りそうなときの活用ルート（このボード内）</div>
+        <ul class="list-disc pl-5 space-y-1">
+          <li><strong>個人で早く終わった生徒：</strong>「マイ探偵ノート」の <strong>「＋ 新しい事件ファイル」</strong> で2件目・3件目に挑戦させたり、STEP 5の <strong>Lv.1〜4チャレンジ</strong>（2資料クロスチェック・AIの自己点検検証）を促す（探偵ランクが上がります）。</li>
+          <li><strong>クラス全体で5〜10分余ったとき：</strong>タイムライン右端の <strong>「8. EXクイズ（AI探偵見抜きバトル・全5問）」</strong> をプロジェクターで出し、全員挙手や班相談で盛り上げながらファクトチェックの原則を定着させる。</li>
+        </ul>
       </div>
 
       <h3 class="font-extrabold text-base mb-2">巡回：最初の30秒で見るポイントと声かけ</h3>
@@ -186,34 +290,30 @@
           <tbody>
             <tr>
               <td class="border border-slate-300 dark:border-slate-700 p-2.5 font-bold">画面を見て止まっている</td>
-              <td class="border border-slate-300 dark:border-slate-700 p-2.5">「この3つなら、どれが気になる？指で示して」→その一文を調べる</td>
+              <td class="border border-slate-300 dark:border-slate-700 p-2.5">上部の「このページの操作手順①→②→③」を指差し、「まずは①のボタンを押してみよう」と伴走。</td>
             </tr>
             <tr>
               <td class="border border-slate-300 dark:border-slate-700 p-2.5 font-bold">AIに質問を重ねるだけ</td>
-              <td class="border border-slate-300 dark:border-slate-700 p-2.5">「AI以外の場所でも見つかるかな？公式ページを一緒に探そう」</td>
+              <td class="border border-slate-300 dark:border-slate-700 p-2.5">「AI以外の場所でも見つかるかな？『公式』『博物館』をつけて一緒に検索しよう」</td>
             </tr>
             <tr>
               <td class="border border-slate-300 dark:border-slate-700 p-2.5 font-bold">検索結果が多すぎる</td>
-              <td class="border border-slate-300 dark:border-slate-700 p-2.5">「公式・博物館・大学のどれから見たい？」→検索語を短くする</td>
-            </tr>
-            <tr>
-              <td class="border border-slate-300 dark:border-slate-700 p-2.5 font-bold">文章入力に時間がかかる</td>
-              <td class="border border-slate-300 dark:border-slate-700 p-2.5">追加質問カード「本当？」「根拠は？」「確認先は？」を指差し選択・教師代行入力</td>
+              <td class="border border-slate-300 dark:border-slate-700 p-2.5">ボード内の「検索アシスト」機能を使い、キーワード＋「公式／博物館／大学」で絞り込む。</td>
             </tr>
             <tr>
               <td class="border border-slate-300 dark:border-slate-700 p-2.5 font-bold">「分からない」と言う</td>
-              <td class="border border-slate-300 dark:border-slate-700 p-2.5">「○／△／？ならどれ？」→「まだ不明も立派な結果」と承認</td>
+              <td class="border border-slate-300 dark:border-slate-700 p-2.5">「○／△／？ならどれ？」→「まだ不明も立派な結果！」とノートに「？」を選ばせて承認。</td>
             </tr>
             <tr>
               <td class="border border-slate-300 dark:border-slate-700 p-2.5 font-bold">すぐ終わる</td>
-              <td class="border border-slate-300 dark:border-slate-700 p-2.5">「そのページは何を根拠に言っている？」「別の資料でも同じ？」</td>
+              <td class="border border-slate-300 dark:border-slate-700 p-2.5">「信頼度チェック3つは全部ついた？」「別の資料でも確認して事件ファイル2を作ろう！」</td>
             </tr>
           </tbody>
         </table>
       </div>
 
       <h3 class="font-extrabold text-base mb-2">シナリオ通りに進まない場合の対応</h3>
-      <div class="overflow-x-auto">
+      <div class="overflow-x-auto mb-4">
         <table class="w-full text-sm border-collapse border border-slate-300 dark:border-slate-700">
           <thead>
             <tr class="bg-slate-100 dark:bg-slate-800">
@@ -224,65 +324,263 @@
           <tbody>
             <tr>
               <td class="border border-slate-300 dark:border-slate-700 p-2.5 font-bold">全員が操作に苦戦</td>
-              <td class="border border-slate-300 dark:border-slate-700 p-2.5">個人操作を一旦止め、教師画面を見ながら「どの主張を調べる？」を各自選ぶ。</td>
+              <td class="border border-slate-300 dark:border-slate-700 p-2.5">個人操作を一旦止め、教師画面で「コピー→Gemini→検索→ノート入力」を1回実演する。</td>
             </tr>
             <tr>
               <td class="border border-slate-300 dark:border-slate-700 p-2.5 font-bold">AIがほぼ正確</td>
-              <td class="border border-slate-300 dark:border-slate-700 p-2.5">成功。「AIが正しかったことを確かめた」として扱う。間違いを無理に探させない。</td>
-            </tr>
-            <tr>
-              <td class="border border-slate-300 dark:border-slate-700 p-2.5 font-bold">AIが架空の出典を示す</td>
-              <td class="border border-slate-300 dark:border-slate-700 p-2.5">リンクの実在と内容を確認。見つからなければ「？ まだ不明」にする。</td>
+              <td class="border border-slate-300 dark:border-slate-700 p-2.5">成功。「AIが正しかったことを独立資料で証明できた」として扱う。間違い探しにしない。</td>
             </tr>
             <tr>
               <td class="border border-slate-300 dark:border-slate-700 p-2.5 font-bold">広告・まとめ記事しか出ない</td>
-              <td class="border border-slate-300 dark:border-slate-700 p-2.5">「誰が書いた情報？」と問い、公式情報に近い資料へ誘導。</td>
+              <td class="border border-slate-300 dark:border-slate-700 p-2.5">「誰が書いたサイト？」と問い、信頼度チェックリストを見ながら公式サイトへ誘導。</td>
             </tr>
             <tr>
               <td class="border border-slate-300 dark:border-slate-700 p-2.5 font-bold">時間が足りない</td>
-              <td class="border border-slate-300 dark:border-slate-700 p-2.5">探究②を短縮し、最後の判定（○／△／？）と根拠だけは必ず残す。</td>
+              <td class="border border-slate-300 dark:border-slate-700 p-2.5">探究②を短縮し、STEP 6の「マイ探偵ノート報告画面」とSTEP 7だけは必ず実施する。</td>
             </tr>
           </tbody>
         </table>
+      </div>
+
+      <!-- 教師向けデータリセット（次のクラス用） -->
+      <div class="border-t border-slate-200 dark:border-slate-800 pt-4 flex flex-wrap items-center justify-between gap-2">
+        <span class="text-xs text-slate-500 dark:text-slate-400">次のクラスで使う場合、この端末の入力記録を初期化できます。</span>
+        <div id="resetConfirmArea">
+          <button onclick="showResetConfirm()" class="bg-red-50 dark:bg-red-950/50 hover:bg-red-100 border border-red-300 dark:border-red-800 text-red-700 dark:text-red-300 text-xs font-extrabold px-3 py-1.5 rounded-lg">
+            🗑️ 記録をすべて初期化
+          </button>
+        </div>
       </div>
     </div>
   </div>
 
   <script>
-    // 50分授業の7ステップ定義
+    // ==========================================
+    // 1. 授業ステップ定義（全7ステップ＋EXクイズ）
+    // ==========================================
     const STEPS = [
-      { id: 0, time: "0–5分", duration: 300, short: "導入", title: "導入「探偵の挑戦状」" },
-      { id: 1, time: "5–9分", duration: 240, short: "ミッション選択", title: "ミッション選択・入力準備" },
-      { id: 2, time: "9–24分", duration: 900, short: "個人探究①", title: "個人探究①：AIに聞く → 確かめる" },
-      { id: 3, time: "24–28分", duration: 240, short: "ショーケース", title: "中間共有：発見のショーケース" },
-      { id: 4, time: "28–42分", duration: 840, short: "個人探究②", title: "個人探究②：自分で次の一手を選ぶ" },
-      { id: 5, time: "42–48分", duration: 360, short: "探偵報告", title: "探偵報告：発見を見せる" },
-      { id: 6, time: "48–50分", duration: 120, short: "出口の一問", title: "出口の一問：今日のまとめ" }
+      {
+        id: 0, time: "0–5分", duration: 300, short: "導入",
+        title: "導入「探偵の挑戦状」",
+        tools: ["board"],
+        goal: "AIの答えを「どうやって確かめるのが正解か」を、2つの例題でつかもう！",
+        howTo: [
+          "画面の例題（Q1・Q2）を読む",
+          "「これだ！」と思う選択肢をタップする",
+          "解説を読んで「AI探偵のルール」を確認する"
+        ]
+      },
+      {
+        id: 1, time: "5–9分", duration: 240, short: "ミッション選択",
+        title: "ミッション選択・入力準備",
+        tools: ["board", "gemini"],
+        goal: "調べたいテーマを1つ選び、質問文をコピーしてGeminiに送ろう！",
+        howTo: [
+          "下のカードA・B・C（または自由テーマ）から1つ選ぶ",
+          "「📋 質問文をコピー」ボタンを押す",
+          "Geminiの画面を開いて貼り付け（ペースト）→ 送信する"
+        ]
+      },
+      {
+        id: 2, time: "9–24分", duration: 900, short: "個人探究①",
+        title: "個人探究①：AIに聞く → 確かめる → 記録する",
+        tools: ["board", "gemini", "search"],
+        goal: "AIの答えから「気になる1文」を選び、AI以外の公式資料で確かめて探偵ノートに記録しよう！",
+        howTo: [
+          "Geminiの答えから気になる1文を決め、下の「探偵ノート」にメモする",
+          "「🔍 どこで確かめられる？」をコピーしてGeminiに聞く",
+          "ブラウザ検索で公式資料を開き、「○／△／？」を判定して記録する"
+        ]
+      },
+      {
+        id: 3, time: "24–28分", duration: 240, short: "ショーケース",
+        title: "中間共有：発見のショーケース",
+        tools: ["board"],
+        goal: "途中の発見やモヤモヤを30秒でシェアし、仲間の調べ方からヒントをもらおう！",
+        howTo: [
+          "話したい人は「30秒タイマー」を使って発見を1つだけ紹介（画面を見せるだけでもOK）",
+          "聴いている人はリアクションボタンをタップして応援しよう",
+          "後半で真似してみたい「調べ方のワザ」を見つけよう"
+        ]
+      },
+      {
+        id: 4, time: "28–42分", duration: 840, short: "個人探究②",
+        title: "個人探究②：レベルアップ探偵チャレンジ",
+        tools: ["board", "gemini", "search"],
+        goal: "自分のペースに合わせてコースを選び、さらに深い検証や「事件ファイル2」に挑戦しよう！",
+        howTo: [
+          "下の「Lv.1〜Lv.4 チャレンジ」からやりたいミッションを1つ選ぶ",
+          "2つ目の資料で比べたり、新しい質問をGeminiに試したりする",
+          "わかったことを「探偵ノート」に追加・更新して探偵ランクを上げよう！"
+        ]
+      },
+      {
+        id: 5, time: "42–48分", duration: 360, short: "探偵報告",
+        title: "探偵報告：マイ探偵カードを見せよう",
+        tools: ["board"],
+        goal: "「①調べたこと ②見た資料 ③今の判定」の3点を、自動で作られた報告カードで発表しよう！",
+        howTo: [
+          "下に自動で作られた「自分の探偵報告カード」を確認する（修正もOK）",
+          "報告スタイル（A話す／B画面を見せる／C代読）を選ぶ",
+          "45秒タイマーに合わせて順番に発表しよう！"
+        ]
+      },
+      {
+        id: 6, time: "48–50分", duration: 120, short: "出口の一問",
+        title: "出口の一問：今日のまとめ",
+        tools: ["board"],
+        goal: "今日のまとめクイズに答えて、「AI探偵」の認定証をゲットしよう！",
+        howTo: [
+          "ラストミッションの質問を読んで、答えを1つタップする",
+          "「理由」のボタンも1つ選んでタップする",
+          "時間が余ったら、次の「🎮 EXクイズ」にも挑戦しよう！"
+        ]
+      },
+      {
+        id: 7, time: "EX（余り時間）", duration: 300, short: "🎮 EXクイズ",
+        title: "おまけ：AI探偵ウソ・ホント見抜きバトル（全5問）",
+        tools: ["board"],
+        goal: "時間が余った人・クラス全員で挑戦！AIを使うときの「落とし穴」を見破れるかテストしよう！",
+        howTo: [
+          "全5問の「AIあるあるケース」を読む",
+          "「確かめたことになる？ならない？」を予想してタップする",
+          "全問クリアして「伝説のAI探偵」を目指そう！"
+        ]
+      }
     ];
 
-    // アプリの状態変数
-    let currentStep = 0;
+    // 導入の例題データ（2問構成にして理解を深める）
+    const INTRO_CASES = [
+      {
+        id: 0,
+        badge: "例題 1（きほん）",
+        question: "Q. 「日本で2番目に高い山は？」",
+        aiAnswer: "日本で2番目に高い山は <strong class='text-blue-600 dark:text-blue-400'>北岳（きただけ）</strong> です。",
+        prompt: "これで確定かな？ どうやって確かめる？",
+        options: [
+          { id: 1, text: "① AIにもう一度「本当に北岳？」と聞く", isCorrect: false, feedback: "🤖 AIは調べる仲間ですが、<strong>AI自身の再回答だけ</strong>では「確かめた」ことになりません。AI以外の独立した資料を探そう！" },
+          { id: 2, text: "② 公的な山岳資料（国土地理院など）を見る", isCorrect: true, feedback: "✨ 大正解！AIとは <strong>独立した公的資料</strong> で確かめるのが「AI探偵」のワザです！" },
+          { id: 3, text: "③ 友達に「北岳だよね？」と聞く", isCorrect: false, feedback: "🗣️ 友達の予想も参考になりますが、最後は <strong>公式な資料</strong> で裏付けをとると確実です！" }
+        ]
+      },
+      {
+        id: 1,
+        badge: "例題 2（ちょっと応用）",
+        question: "Q. 「カラスは人間の顔を覚えられる？」",
+        aiAnswer: "はい、カラスは人間の顔を覚えられます。ワシントン大学の研究で、<strong>5年以上覚えていた</strong>という報告もあります。",
+        prompt: "研究の名前まで出てきた！じゃあもう調べなくていい？",
+        options: [
+          { id: 1, text: "① 大学名まで書いてあるから、そのまま信じてOK", isCorrect: false, feedback: "⚠️ 要注意！AIは <strong>もっともらしい大学名や数字を間違えたり、作ってしまう</strong> こともあります。名前が出たときこそ検索して確認しよう！" },
+          { id: 2, text: "② 「ワシントン大学 カラス 顔」で検索し、大学や科学ニュースの記事を見る", isCorrect: true, feedback: "✨ ナイス探偵！AIが出したキーワード（大学名など）を手がかりに <strong>外部の信頼できる記事・研究紹介</strong> を開くのがプロの手順です！" },
+          { id: 3, text: "③ AIに「ウソじゃないよね？」と念押しする", isCorrect: false, feedback: "🤖 AIに念押ししても、AIが自信満々に同じ間違いを繰り返すことがあります。外の世界の資料を見に行こう！" }
+        ]
+      }
+    ];
+
+    // EXクイズデータ（時間余り対策：全5問）
+    const EX_QUIZZES = [
+      {
+        q: "AIに「根拠のURLを教えて」と聞いたら、ちゃんとした見た目のURLを出してくれた。リンクを開かずに「○ 確かめられた」にしていい？",
+        choices: ["A. URLがあるなら○にしてOK", "B. だめ！実際に開いて中身を確認する"],
+        correct: 1,
+        explain: "AIは<strong>存在しない架空のURL</strong>や、<strong>まったく関係ないページのURL</strong>を作ってしまうことがあります。必ず自分で開いて中身を確かめよう！"
+      },
+      {
+        q: "Geminiに聞いたあと、念のため別のAI（ChatGPTなど）にも同じ質問をしたら、同じ答えが返ってきた。これで「独立した資料で確かめた」ことになる？",
+        choices: ["A. 2つのAIが同じなら確実！○にする", "B. まだ不十分！AI以外の公式資料や本を見る"],
+        correct: 1,
+        explain: "違うAIどうしでも、同じネットの誤情報を学習して<strong>そろって同じ間違い</strong>をすることがあります。必ずAI以外の公式サイト・公的機関・図鑑などで確かめよう！"
+      },
+      {
+        q: "ゲームの豆知識を調べたら、誰が書いたかわからない個人ブログに「たしかそうだった気がする」と書いてあった。判定はどれが適切？",
+        choices: ["A. ○ 確かめられた", "B. △ 一部だけ または ？ まだ不明"],
+        correct: 1,
+        explain: "誰が書いたか不明・推測だけの記事は強い根拠になりません。公式ヘルプや開発元の発表が見つかるまでは<strong>「△」や「？ まだ不明」</strong>にするのが誠実な探偵です！"
+      },
+      {
+        q: "調べた結果、AIの答えは100%正しくて、公式サイトにもまったく同じことが書いてあった。これって「探偵失敗」？",
+        choices: ["A. 失敗。AIの間違いを探し直すべき", "B. 大成功！「正しいと証明できた」立派な結果"],
+        correct: 1,
+        explain: "今日の目的はアラ探しではなく<strong>「自分で確かめる力」</strong>をつけること！AIが正しかったことを公式資料で証明できたら100点満点の大成功です！"
+      },
+      {
+        q: "AIに「今年の最新ニュース」や「先週発売されたゲームの裏ワザ」を聞いたとき、特に気をつけるべきことは？",
+        choices: ["A. 情報が古かったり、不確かだったりしやすいので公式の最新情報を確認する", "B. 最新のことほどAIが一番詳しいのでそのまま信じる"],
+        correct: 0,
+        explain: "AIは最新の出来事やアップデートで変わったルールに弱いことがあります。公式サイトの<strong>「更新日・日付」</strong>まで確認できると完璧です！"
+      }
+    ];
+
+    // ==========================================
+    // 2. アプリ状態管理（localStorage自動保存対応）
+    // ==========================================
+    const STORAGE_KEY = "ai_detective_lesson5_v2";
+
+    function createEmptyCase(index) {
+      return {
+        id: Date.now() + Math.random(),
+        title: `事件ファイル #${index}`,
+        cardType: "A",
+        claim: "",
+        sourceType: "",
+        sourceName: "",
+        checks: { author: false, official: false, doubleCheck: false },
+        verdict: "", // 'ok' | 'part' | 'unk'
+        memo: ""
+      };
+    }
+
+    let state = {
+      currentStep: 0,
+      selectedCard: "A",
+      customGameName: "",
+      customFreeTopic: "",
+      introTab: 0,
+      introChoices: [null, null],
+      fiveStepsDone: [false, false, false, false, false],
+      showcaseVotes: { yes: 0, later: 0 },
+      completedChallenges: [], // ['lv1', 'lv2', 'lv3', 'lv4']
+      secretUnlocked: false,
+      reportStyle: "A",
+      exitChoice: null,
+      exitReason: null,
+      exAnswers: [null, null, null, null, null],
+      activeCaseIndex: 0,
+      cases: [createEmptyCase(1)]
+    };
+
+    // ローカルストレージから復元
+    function loadState() {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          state = { ...state, ...parsed };
+          if (!Array.isArray(state.cases) || state.cases.length === 0) {
+            state.cases = [createEmptyCase(1)];
+            state.activeCaseIndex = 0;
+          }
+        }
+      } catch (e) {}
+    }
+
+    function saveState() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      } catch (e) {}
+      updateRankBadge();
+    }
+
+    // タイマー状態（画面リロードでリセット）
     let remainingSeconds = STEPS[0].duration;
     let timerInterval = null;
     let isRunning = false;
     let soundEnabled = true;
-
-    let selectedCard = "A";
-    let customGameName = "";
-    let introChoice = null;
-    let exitChoice = null;
-    let exitReason = null;
-    let showcaseVotes = { yes: 0, later: 0 };
-    let secretUnlocked = false;
-    let selectedAdvanced = null;
-    let reportStyle = "A";
-    let fiveStepsDone = [false, false, false, false, false];
-
-    // ミニタイマー（ショーケース30秒・報告45秒）
     let subTimerSeconds = 30;
     let subTimerInterval = null;
+    let searchHelperWord = "";
 
-    // 初期システムテーマの検出
+    // 初期システムテーマ検出
     if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
       document.documentElement.classList.add('dark');
     }
@@ -291,7 +589,9 @@
       document.documentElement.classList.toggle('dark');
     }
 
-    // 効果音生成（Web Audio API）
+    // ==========================================
+    // 3. 効果音・トースト・クリップボードコピー
+    // ==========================================
     function playTone(freq = 587.33, duration = 0.12) {
       if (!soundEnabled) return;
       try {
@@ -312,9 +612,9 @@
 
     function playChime() {
       if (!soundEnabled) return;
-      playTone(523.25, 0.25);
-      setTimeout(() => playTone(659.25, 0.25), 180);
-      setTimeout(() => playTone(783.99, 0.45), 360);
+      playTone(523.25, 0.22);
+      setTimeout(() => playTone(659.25, 0.22), 160);
+      setTimeout(() => playTone(783.99, 0.4), 320);
     }
 
     function toggleSound() {
@@ -322,7 +622,18 @@
       document.getElementById("soundBtn").textContent = soundEnabled ? "🔔 音ON" : "🔕 音OFF";
     }
 
-    // クリップボードコピー（iFrame制限・iPad Safari両対応）
+    function showToast(msg) {
+      const toast = document.getElementById("toast");
+      toast.textContent = msg;
+      toast.classList.remove("opacity-0", "-translate-y-4");
+      toast.classList.add("opacity-100", "translate-y-0");
+      clearTimeout(window.toastTimeout);
+      window.toastTimeout = setTimeout(() => {
+        toast.classList.add("opacity-0", "-translate-y-4");
+        toast.classList.remove("opacity-100", "translate-y-0");
+      }, 2500);
+    }
+
     function copyText(text, btnEl = null) {
       const ta = document.createElement("textarea");
       ta.value = text;
@@ -346,35 +657,77 @@
       if (!copied && navigator.clipboard && window.isSecureContext) {
         navigator.clipboard.writeText(text).catch(() => {});
       }
-      onCopySuccess(text, btnEl);
-    }
 
-    function onCopySuccess(text, btnEl) {
       playTone(784, 0.1);
-      const toast = document.getElementById("toast");
-      toast.textContent = `✅ コピー完了：「${text}」`;
-      toast.classList.remove("opacity-0", "-translate-y-4");
-      toast.classList.add("opacity-100", "translate-y-0");
-
-      clearTimeout(window.toastTimeout);
-      window.toastTimeout = setTimeout(() => {
-        toast.classList.add("opacity-0", "-translate-y-4");
-        toast.classList.remove("opacity-100", "translate-y-0");
-      }, 2400);
+      showToast(`✅ コピー完了！Geminiに貼り付けよう：「${text}」`);
 
       if (btnEl) {
         const origHtml = btnEl.innerHTML;
-        const origBg = btnEl.className;
-        btnEl.innerHTML = "✅ コピーしました！";
+        btnEl.innerHTML = "✅ コピー完了！";
         btnEl.classList.add("!bg-emerald-600", "!border-emerald-600", "!text-white");
         setTimeout(() => {
           btnEl.innerHTML = origHtml;
-          btnEl.className = origBg;
-        }, 1500);
+          btnEl.classList.remove("!bg-emerald-600", "!border-emerald-600", "!text-white");
+        }, 1400);
       }
     }
 
-    // メインタイマー制御
+    // 検索アシスト：新しいタブでGoogle検索を開く
+    function launchSearch(suffix) {
+      const q = (searchHelperWord || "").trim();
+      if (!q) {
+        showToast("⚠️ 先に上の枠に調べたい言葉（動物名・ゲーム名など）を入れてね！");
+        const inp = document.getElementById("searchHelperInput");
+        if (inp) inp.focus();
+        return;
+      }
+      const query = suffix ? `${q} ${suffix}` : q;
+      const url = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+      window.open(url, "_blank", "noopener,noreferrer");
+      playTone(659.25, 0.1);
+    }
+
+    // ==========================================
+    // 4. 探偵ランク計算（モチベーション＆進捗可視化）
+    // ==========================================
+    function calculateRank() {
+      let score = 0;
+      // 完了した事件ファイル数
+      state.cases.forEach(c => {
+        if (c.claim.trim()) score += 1;
+        if (c.sourceType || c.sourceName.trim()) score += 1;
+        if (c.verdict) score += 2;
+        if (c.checks.author) score += 0.5;
+        if (c.checks.official) score += 0.5;
+        if (c.checks.doubleCheck) score += 1;
+      });
+      // 追加チャレンジ＆EXクイズ
+      score += state.completedChallenges.length * 2;
+      const exCorrect = state.exAnswers.filter((a, i) => a === EX_QUIZZES[i].correct).length;
+      score += exCorrect;
+
+      if (score >= 12) return { label: "👑 伝説のAI探偵", color: "bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 border-amber-400" };
+      if (score >= 7) return { label: "🏆 名探偵", color: "bg-purple-100 dark:bg-purple-950 text-purple-800 dark:text-purple-300 border-purple-400" };
+      if (score >= 3.5) return { label: "🔎 一人前探偵", color: "bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border-emerald-400" };
+      return { label: "🔰 見習い探偵", color: "bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 border-indigo-300" };
+    }
+
+    function updateRankBadge() {
+      const rank = calculateRank();
+      const el = document.getElementById("rankBadge");
+      if (el) {
+        el.textContent = rank.label;
+        el.className = `border text-xs font-extrabold px-2.5 py-0.5 rounded-full transition ${rank.color}`;
+      }
+      const badge = document.getElementById("noteCountBadge");
+      if (badge) {
+        badge.textContent = `${state.cases.length}件`;
+      }
+    }
+
+    // ==========================================
+    // 5. メインタイマー＆ステップ遷移
+    // ==========================================
     function formatTime(sec) {
       const m = Math.floor(sec / 60);
       const s = sec % 60;
@@ -409,6 +762,7 @@
               isRunning = false;
               updateTimerUI();
               playChime();
+              showToast("🔔 時間になりました！次のステップへ進もう！");
             }
           }
         }, 1000);
@@ -419,7 +773,7 @@
     function resetTimer() {
       clearInterval(timerInterval);
       isRunning = false;
-      remainingSeconds = STEPS[currentStep].duration;
+      remainingSeconds = STEPS[state.currentStep].duration;
       updateTimerUI();
     }
 
@@ -428,14 +782,14 @@
       updateTimerUI();
     }
 
-    // ステップ移動
     function goToStep(index) {
       if (index < 0 || index >= STEPS.length) return;
       clearInterval(timerInterval);
       clearInterval(subTimerInterval);
       isRunning = false;
-      currentStep = index;
-      remainingSeconds = STEPS[currentStep].duration;
+      state.currentStep = index;
+      remainingSeconds = STEPS[state.currentStep].duration;
+      saveState();
       updateTimerUI();
       renderTimeline();
       renderStage();
@@ -443,77 +797,134 @@
     }
 
     function changeStep(delta) {
-      goToStep(currentStep + delta);
+      goToStep(state.currentStep + delta);
     }
 
     function renderTimeline() {
       const bar = document.getElementById("timelineBar");
       bar.innerHTML = STEPS.map((s, idx) => {
-        const active = idx === currentStep;
+        const active = idx === state.currentStep;
+        const isEx = idx === 7;
         return `
           <button onclick="goToStep(${idx})" class="px-3.5 py-1.5 rounded-xl border text-left transition flex flex-col ${
             active
-              ? "bg-blue-600 border-blue-600 text-white shadow-sm"
-              : "bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-blue-400"
+              ? (isEx ? "bg-amber-500 border-amber-500 text-slate-950 shadow-sm" : "bg-blue-600 border-blue-600 text-white shadow-sm")
+              : (isEx ? "bg-amber-50 dark:bg-amber-950/50 border-amber-300 dark:border-amber-700 text-amber-900 dark:text-amber-300 hover:border-amber-500"
+                      : "bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-blue-400")
           }">
             <span class="text-[11px] font-bold opacity-85">${s.time}</span>
-            <span class="text-xs sm:text-sm font-extrabold">${idx + 1}. ${s.short}</span>
+            <span class="text-xs sm:text-sm font-extrabold">${isEx ? s.short : `${idx + 1}. ${s.short}`}</span>
           </button>
         `;
       }).join("");
 
-      document.getElementById("prevBtn").disabled = currentStep === 0;
-      document.getElementById("nextBtn").disabled = currentStep === STEPS.length - 1;
+      document.getElementById("prevBtn").disabled = state.currentStep === 0;
+      document.getElementById("nextBtn").disabled = state.currentStep === STEPS.length - 1;
     }
 
-    // 質問カードA/B/CのHTML生成
-    function getGamePrompt() {
-      const name = customGameName.trim();
-      return name ? `${name}の豆知識を3つ教えて` : `［ゲーム名］の豆知識を3つ教えて`;
-    }
-
+    // ==========================================
+    // 6. 共通UI部品（操作手順ガイド・質問カード・探偵ノート）
+    // ==========================================
     function escapeHtml(str) {
-      return str.replace(/[&<>"']/g, m => ({
+      return String(str || "").replace(/[&<>"']/g, m => ({
         '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
       }[m]));
     }
 
-    function renderMissionCardsHTML() {
-      const gamePrompt = getGamePrompt();
+    // 各ページの冒頭に表示する「🎯 このページでやること＆操作ガイド」
+    function renderActionGuideHTML(step) {
+      const toolBadges = {
+        board: `<span class="inline-flex items-center gap-1 bg-blue-100 dark:bg-blue-900/70 text-blue-800 dark:text-blue-200 text-xs font-black px-2.5 py-1 rounded-full">📘 このボード</span>`,
+        gemini: `<span class="inline-flex items-center gap-1 bg-purple-100 dark:bg-purple-900/70 text-purple-800 dark:text-purple-200 text-xs font-black px-2.5 py-1 rounded-full">🤖 Gemini</span>`,
+        search: `<span class="inline-flex items-center gap-1 bg-emerald-100 dark:bg-emerald-900/70 text-emerald-800 dark:text-emerald-200 text-xs font-black px-2.5 py-1 rounded-full">🌐 ブラウザ検索</span>`
+      };
+
       return `
+        <div class="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-slate-800 dark:to-slate-800/80 border-2 border-blue-200 dark:border-blue-800/80 rounded-2xl p-4 sm:p-5 mb-6">
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-2.5">
+            <div class="text-sm sm:text-base font-black text-blue-900 dark:text-blue-200 flex items-center gap-1.5">
+              <span>🎯 このページでやること</span>
+            </div>
+            <div class="flex flex-wrap items-center gap-1.5">
+              <span class="text-xs font-bold text-slate-500 dark:text-slate-400">使う画面：</span>
+              ${step.tools.map(t => toolBadges[t]).join("")}
+            </div>
+          </div>
+
+          <p class="text-sm sm:text-base font-extrabold text-slate-800 dark:text-slate-100 mb-3.5">
+            ${step.goal}
+          </p>
+
+          <!-- 操作の3ステップ（視覚的ガイド） -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-2.5">
+            ${step.howTo.map((text, idx) => `
+              <div class="bg-white/90 dark:bg-slate-900/90 rounded-xl p-3 border border-blue-200/80 dark:border-slate-700 flex items-start gap-2.5 shadow-xs">
+                <span class="bg-blue-600 text-white w-6 h-6 rounded-full flex items-center justify-center font-black text-xs shrink-0 mt-0.5">
+                  ${idx + 1}
+                </span>
+                <span class="text-xs sm:text-sm font-bold leading-snug">${text}</span>
+              </div>
+            `).join("")}
+          </div>
+        </div>
+      `;
+    }
+
+    // 質問カードA/B/C＋自由テーマ
+    function getGamePrompt() {
+      const name = state.customGameName.trim();
+      return name ? `${name}の豆知識を3つ教えて` : `［ゲーム名］の豆知識を3つ教えて`;
+    }
+
+    function getFreePrompt() {
+      const topic = state.customFreeTopic.trim();
+      return topic ? `${topic}についての意外な豆知識を3つ教えて` : `［好きなテーマ］についての意外な豆知識を3つ教えて`;
+    }
+
+    function renderMissionCardsHTML(includeFree = false) {
+      const gamePrompt = getGamePrompt();
+      const freePrompt = getFreePrompt();
+
+      let html = `
         <!-- カードA：動物 -->
         <div onclick="selectCard('A')" class="cursor-pointer rounded-2xl p-4 sm:p-5 border-2 transition flex flex-col justify-between ${
-          selectedCard === 'A'
+          state.selectedCard === 'A'
             ? 'bg-white dark:bg-slate-800 border-blue-500 ring-4 ring-blue-500/15'
             : 'bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 hover:border-blue-400'
         }">
           <div>
-            <div class="text-lg font-black mb-1.5">🦁 カードA：動物</div>
+            <div class="flex items-center justify-between mb-1">
+              <div class="text-lg font-black">🦁 カードA：動物</div>
+              ${state.selectedCard === 'A' ? '<span class="text-xs bg-blue-600 text-white font-black px-2 py-0.5 rounded-full">選択中</span>' : ''}
+            </div>
             <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 mb-3">
-              <strong>検証先：</strong>動物園・博物館・公的研究機関などで実在と特徴を調べる
+              <strong>検証先：</strong>動物園・博物館・公的研究機関など
             </p>
             <div class="bg-white dark:bg-slate-900 border-2 border-dashed border-blue-400 rounded-xl p-3 font-extrabold text-sm sm:text-base mb-4">
               「珍しい動物を3つ、特徴とともに教えて」
             </div>
           </div>
-          <button onclick="event.stopPropagation(); copyText('珍しい動物を3つ、特徴とともに教えて', this)" class="w-full bg-blue-600 hover:bg-blue-700 active:scale-98 text-white font-extrabold py-3 px-4 rounded-xl shadow-sm transition">
-            📋 質問文をコピー
+          <button onclick="event.stopPropagation(); selectCard('A'); copyText('珍しい動物を3つ、特徴とともに教えて', this)" class="w-full bg-blue-600 hover:bg-blue-700 active:scale-98 text-white font-extrabold py-3 px-4 rounded-xl shadow-sm transition">
+            📋 ①この質問をコピー
           </button>
         </div>
 
         <!-- カードB：ゲーム -->
         <div onclick="selectCard('B')" class="cursor-pointer rounded-2xl p-4 sm:p-5 border-2 transition flex flex-col justify-between ${
-          selectedCard === 'B'
+          state.selectedCard === 'B'
             ? 'bg-white dark:bg-slate-800 border-blue-500 ring-4 ring-blue-500/15'
             : 'bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 hover:border-blue-400'
         }">
           <div>
-            <div class="text-lg font-black mb-1.5">🎮 カードB：ゲーム</div>
+            <div class="flex items-center justify-between mb-1">
+              <div class="text-lg font-black">🎮 カードB：ゲーム</div>
+              ${state.selectedCard === 'B' ? '<span class="text-xs bg-blue-600 text-white font-black px-2 py-0.5 rounded-full">選択中</span>' : ''}
+            </div>
             <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 mb-2">
-              <strong>検証先：</strong>ゲームの公式情報・公式ヘルプで一つを調べる
+              <strong>検証先：</strong>ゲームの公式ページ・公式ヘルプ
             </p>
-            <input type="text" placeholder="ゲーム名を入力（例：マイクラ）"
-              value="${escapeHtml(customGameName)}"
+            <input type="text" placeholder="ここにゲーム名を入力（例：マイクラ）"
+              value="${escapeHtml(state.customGameName)}"
               onclick="event.stopPropagation()"
               oninput="updateGameName(this.value)"
               class="game-input w-full px-3 py-2 rounded-xl border-2 border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 font-bold text-sm mb-2 focus:border-blue-500 focus:outline-none" />
@@ -521,269 +932,480 @@
               「${escapeHtml(gamePrompt)}」
             </div>
           </div>
-          <button onclick="event.stopPropagation(); copyText(getGamePrompt(), this)" class="w-full bg-blue-600 hover:bg-blue-700 active:scale-98 text-white font-extrabold py-3 px-4 rounded-xl shadow-sm transition">
-            📋 質問文をコピー
+          <button onclick="event.stopPropagation(); selectCard('B'); copyText(getGamePrompt(), this)" class="w-full bg-blue-600 hover:bg-blue-700 active:scale-98 text-white font-extrabold py-3 px-4 rounded-xl shadow-sm transition">
+            📋 ①この質問をコピー
           </button>
         </div>
 
         <!-- カードC：身近な科学 -->
         <div onclick="selectCard('C')" class="cursor-pointer rounded-2xl p-4 sm:p-5 border-2 transition flex flex-col justify-between ${
-          selectedCard === 'C'
+          state.selectedCard === 'C'
             ? 'bg-white dark:bg-slate-800 border-blue-500 ring-4 ring-blue-500/15'
             : 'bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 hover:border-blue-400'
         }">
           <div>
-            <div class="text-lg font-black mb-1.5">🔬 カードC：身近な科学</div>
+            <div class="flex items-center justify-between mb-1">
+              <div class="text-lg font-black">🔬 カードC：身近な科学</div>
+              ${state.selectedCard === 'C' ? '<span class="text-xs bg-blue-600 text-white font-black px-2 py-0.5 rounded-full">選択中</span>' : ''}
+            </div>
             <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 mb-3">
-              <strong>検証先：</strong>大学・公的研究機関・科学館などで一つを調べる
+              <strong>検証先：</strong>大学・公的研究機関・科学館など
             </p>
             <div class="bg-white dark:bg-slate-900 border-2 border-dashed border-blue-400 rounded-xl p-3 font-extrabold text-sm sm:text-base mb-4">
               「身近な科学の意外な事実を3つ教えて」
             </div>
           </div>
-          <button onclick="event.stopPropagation(); copyText('身近な科学の意外な事実を3つ教えて', this)" class="w-full bg-blue-600 hover:bg-blue-700 active:scale-98 text-white font-extrabold py-3 px-4 rounded-xl shadow-sm transition">
-            📋 質問文をコピー
+          <button onclick="event.stopPropagation(); selectCard('C'); copyText('身近な科学の意外な事実を3つ教えて', this)" class="w-full bg-blue-600 hover:bg-blue-700 active:scale-98 text-white font-extrabold py-3 px-4 rounded-xl shadow-sm transition">
+            📋 ①この質問をコピー
           </button>
+        </div>
+      `;
+
+      if (includeFree) {
+        html += `
+          <!-- カードD：オリジナル自由テーマ（2件目・得意な人向け） -->
+          <div onclick="selectCard('D')" class="md:col-span-3 cursor-pointer rounded-2xl p-4 sm:p-5 border-2 border-dashed transition ${
+            state.selectedCard === 'D'
+              ? 'bg-amber-50/70 dark:bg-amber-950/30 border-amber-500 ring-4 ring-amber-500/15'
+              : 'bg-slate-50 dark:bg-slate-800/50 border-slate-300 dark:border-slate-700 hover:border-amber-400'
+          }">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+              <div class="text-base sm:text-lg font-black">✨ カードD：オリジナル自由テーマ（スポーツ・歴史・宇宙・料理など）</div>
+              <span class="text-xs font-bold text-amber-700 dark:text-amber-300">2件目やこだわりのテーマに！</span>
+            </div>
+            <div class="flex flex-col sm:flex-row gap-2.5 items-stretch sm:items-center">
+              <input type="text" placeholder="好きなテーマを入力（例：サッカー、戦国時代、宇宙）"
+                value="${escapeHtml(state.customFreeTopic)}"
+                onclick="event.stopPropagation()"
+                oninput="updateFreeTopic(this.value)"
+                class="free-input flex-1 px-3.5 py-2.5 rounded-xl border-2 border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 font-bold text-sm focus:border-amber-500 focus:outline-none" />
+              <button onclick="event.stopPropagation(); selectCard('D'); copyText(getFreePrompt(), this)" class="bg-amber-400 hover:bg-amber-500 text-slate-950 font-black py-2.5 px-5 rounded-xl shadow-sm transition shrink-0">
+                📋 オリジナル質問をコピー
+              </button>
+            </div>
+            <div class="freePromptPreview text-xs sm:text-sm font-bold text-slate-600 dark:text-slate-300 mt-2">
+              コピーされる文章：「${escapeHtml(freePrompt)}」
+            </div>
+          </div>
+        `;
+      }
+      return html;
+    }
+
+    // ------------------------------------------
+    // マイ探偵ノート（インライン＆モーダル共通HTML）
+    // ------------------------------------------
+    function renderDetectiveNoteHTML(contextId = "inline") {
+      const c = state.cases[state.activeCaseIndex] || state.cases[0];
+      const sourceTypes = ["🏛️ 公式サイト", "🦁 動物園・博物館", "🔬 大学・研究機関", "📰 ニュース・新聞", "📚 図鑑・本", "❓ まだ見つからない"];
+
+      return `
+        <div class="bg-indigo-50/70 dark:bg-slate-800/80 border-2 border-indigo-200 dark:border-indigo-800/80 rounded-2xl p-4 sm:p-5">
+          <!-- 事件ファイル切り替えタブ -->
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-4 pb-3 border-b border-indigo-200/80 dark:border-slate-700">
+            <div class="flex flex-wrap items-center gap-1.5">
+              ${state.cases.map((item, idx) => `
+                <button onclick="switchCase(${idx})" class="px-3 py-1.5 rounded-xl text-xs sm:text-sm font-black transition border ${
+                  idx === state.activeCaseIndex
+                    ? 'bg-indigo-600 border-indigo-600 text-white shadow-xs'
+                    : 'bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-indigo-400'
+                }">
+                  📁 事件#${idx + 1} ${item.verdict === 'ok' ? '○' : item.verdict === 'part' ? '△' : item.verdict === 'unk' ? '？' : ''}
+                </button>
+              `).join("")}
+              ${state.cases.length < 5 ? `
+                <button onclick="addNewCase()" class="px-3 py-1.5 rounded-xl text-xs sm:text-sm font-black bg-amber-400 hover:bg-amber-500 text-slate-950 transition shadow-xs">
+                  ＋ 次の事件を調べる
+                </button>
+              ` : ""}
+            </div>
+            <span class="text-xs font-bold text-indigo-700 dark:text-indigo-300">💾 入力すると自動保存されます</span>
+          </div>
+
+          <div class="space-y-4">
+            <!-- ① 調べた主張 -->
+            <div>
+              <label class="block text-xs sm:text-sm font-black mb-1 text-slate-700 dark:text-slate-200">
+                ① AIの答えから選んだ「気になる1文」（コピペでも短くメモでもOK）
+              </label>
+              <textarea rows="2" placeholder="例：〇〇という動物は、心臓が3つあるらしい"
+                oninput="updateActiveCase('claim', this.value)"
+                class="w-full px-3.5 py-2.5 rounded-xl border-2 border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 font-bold text-sm focus:border-indigo-500 focus:outline-none">${escapeHtml(c.claim)}</textarea>
+            </div>
+
+            <!-- ② 確認したAI以外の資料 -->
+            <div>
+              <label class="block text-xs sm:text-sm font-black mb-1.5 text-slate-700 dark:text-slate-200">
+                ② AI以外のどこで確かめた？（種類をタップ＋サイトや本の名前）
+              </label>
+              <div class="flex flex-wrap gap-1.5 mb-2">
+                ${sourceTypes.map(st => `
+                  <button onclick="updateActiveCase('sourceType', '${st}', true)" class="px-2.5 py-1.5 rounded-lg text-xs font-extrabold border transition ${
+                    c.sourceType === st
+                      ? 'bg-indigo-600 border-indigo-600 text-white'
+                      : 'bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-600 hover:border-indigo-400'
+                  }">${st}</button>
+                `).join("")}
+              </div>
+              <input type="text" placeholder="見たサイト名・組織名（例：上野動物園の公式サイト、任天堂公式ヘルプ）"
+                value="${escapeHtml(c.sourceName)}"
+                oninput="updateActiveCase('sourceName', this.value)"
+                class="w-full px-3.5 py-2 rounded-xl border-2 border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 font-bold text-sm focus:border-indigo-500 focus:outline-none" />
+            </div>
+
+            <!-- ③ 資料の信頼度チェック -->
+            <div class="bg-white dark:bg-slate-900/90 rounded-xl p-3 border border-indigo-200/80 dark:border-slate-700">
+              <div class="text-xs font-black text-indigo-700 dark:text-indigo-300 mb-2">🔍 資料の信頼度チェック（当てはまるものをタップ）</div>
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                <button onclick="toggleCaseCheck('author')" class="text-left px-3 py-2 rounded-lg border text-xs font-bold transition flex items-center gap-1.5 ${
+                  c.checks.author ? 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-500 text-emerald-800 dark:text-emerald-200' : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700'
+                }">
+                  <span>${c.checks.author ? '☑️' : '⬜'}</span>
+                  <span>誰が書いたかわかる</span>
+                </button>
+                <button onclick="toggleCaseCheck('official')" class="text-left px-3 py-2 rounded-lg border text-xs font-bold transition flex items-center gap-1.5 ${
+                  c.checks.official ? 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-500 text-emerald-800 dark:text-emerald-200' : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700'
+                }">
+                  <span>${c.checks.official ? '☑️' : '⬜'}</span>
+                  <span>公式・公的な機関</span>
+                </button>
+                <button onclick="toggleCaseCheck('doubleCheck')" class="text-left px-3 py-2 rounded-lg border text-xs font-bold transition flex items-center gap-1.5 ${
+                  c.checks.doubleCheck ? 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-500 text-emerald-800 dark:text-emerald-200' : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700'
+                }">
+                  <span>${c.checks.doubleCheck ? '☑️' : '⬜'}</span>
+                  <span>2つ以上の資料で一致</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- ④ 今の判定と一言メモ -->
+            <div>
+              <label class="block text-xs sm:text-sm font-black mb-1.5 text-slate-700 dark:text-slate-200">
+                ③ 今の判定を選ぼう！（選んだらそのまま報告カードにも反映されます）
+              </label>
+              <div class="grid grid-cols-3 gap-2.5 mb-2.5">
+                <button onclick="setCaseVerdict('ok')" class="p-3 rounded-xl border-2 text-center transition ${
+                  c.verdict === 'ok'
+                    ? 'border-emerald-600 bg-emerald-600 text-white shadow-md scale-[1.02]'
+                    : 'border-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300'
+                }">
+                  <span class="block text-2xl sm:text-3xl font-black leading-none">○</span>
+                  <span class="block text-xs font-extrabold mt-1">確かめられた</span>
+                </button>
+                <button onclick="setCaseVerdict('part')" class="p-3 rounded-xl border-2 text-center transition ${
+                  c.verdict === 'part'
+                    ? 'border-orange-500 bg-orange-500 text-white shadow-md scale-[1.02]'
+                    : 'border-orange-400 bg-orange-50 dark:bg-orange-950/40 text-orange-700 dark:text-orange-300'
+                }">
+                  <span class="block text-2xl sm:text-3xl font-black leading-none">△</span>
+                  <span class="block text-xs font-extrabold mt-1">一部だけ</span>
+                </button>
+                <button onclick="setCaseVerdict('unk')" class="p-3 rounded-xl border-2 text-center transition ${
+                  c.verdict === 'unk'
+                    ? 'border-purple-600 bg-purple-600 text-white shadow-md scale-[1.02]'
+                    : 'border-purple-400 bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300'
+                }">
+                  <span class="block text-2xl sm:text-3xl font-black leading-none">？</span>
+                  <span class="block text-xs font-extrabold mt-1">まだ不明</span>
+                </button>
+              </div>
+              <input type="text" placeholder="わかったこと・理由の一言メモ（例：公式サイトに同じ数字が書いてあった！）"
+                value="${escapeHtml(c.memo)}"
+                oninput="updateActiveCase('memo', this.value)"
+                class="w-full px-3.5 py-2 rounded-xl border-2 border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 font-bold text-sm focus:border-indigo-500 focus:outline-none" />
+            </div>
+          </div>
         </div>
       `;
     }
 
-    function selectCard(cardKey) {
-      selectedCard = cardKey;
+    // 探偵ノートの操作関数
+    function switchCase(idx) {
+      state.activeCaseIndex = idx;
       playTone(659.25, 0.08);
-      if (currentStep === 1) renderStage();
-      renderModalCards();
+      saveState();
+      refreshNoteViews();
     }
 
-    function updateGameName(val) {
-      customGameName = val;
-      document.querySelectorAll(".gamePromptPreview").forEach(el => {
-        el.textContent = `「${getGamePrompt()}」`;
-      });
-      document.querySelectorAll(".game-input").forEach(el => {
-        if (el.value !== val) el.value = val;
-      });
+    function addNewCase() {
+      const nextNum = state.cases.length + 1;
+      state.cases.push(createEmptyCase(nextNum));
+      state.activeCaseIndex = state.cases.length - 1;
+      playChime();
+      saveState();
+      showToast(`📁 事件ファイル #${nextNum} を作成しました！`);
+      refreshNoteViews();
     }
 
-    function renderModalCards() {
-      const area = document.getElementById("modalCardsArea");
-      if (area) area.innerHTML = renderMissionCardsHTML();
+    function updateActiveCase(field, value, needRerender = false) {
+      const c = state.cases[state.activeCaseIndex];
+      if (!c) return;
+      c[field] = value;
+      saveState();
+      if (needRerender) {
+        playTone(587.33, 0.07);
+        refreshNoteViews();
+      }
     }
 
-    // デジタル判定カード（○/△/？）の拡大表示
-    function showVerdictCard(type) {
+    function toggleCaseCheck(key) {
+      const c = state.cases[state.activeCaseIndex];
+      if (!c) return;
+      c.checks[key] = !c.checks[key];
+      playTone(c.checks[key] ? 784 : 440, 0.08);
+      saveState();
+      refreshNoteViews();
+    }
+
+    function setCaseVerdict(v) {
+      const c = state.cases[state.activeCaseIndex];
+      if (!c) return;
+      c.verdict = v;
       playTone(784, 0.12);
-      const map = {
-        ok: {
-          sym: "○",
-          title: "確かめられた！",
-          colorClass: "text-emerald-600 dark:text-emerald-400",
-          desc: "AIとは別の公式資料・信頼できる情報源で同じ内容が確認できた！"
-        },
-        part: {
-          sym: "△",
-          title: "一部だけ確かめられた",
-          colorClass: "text-orange-500 dark:text-orange-400",
-          desc: "合っている部分もあるけれど、条件が違う・一部だけ確認できた状態。"
-        },
-        unk: {
-          sym: "？",
-          title: "まだ不明（未確認）",
-          colorClass: "text-purple-600 dark:text-purple-400",
-          desc: "まだ確かな資料が見つからない状態。「まだ不明」も立派な探偵の発見！"
-        }
-      };
-      const item = map[type];
-      document.getElementById("bigVerdictContent").innerHTML = `
-        <div class="text-8xl font-black leading-none ${item.colorClass}">${item.sym}</div>
-        <div class="text-2xl sm:text-3xl font-black mt-4 mb-2 ${item.colorClass}">${item.title}</div>
-        <p class="text-sm sm:text-base text-slate-600 dark:text-slate-300 font-medium">${item.desc}</p>
-      `;
-      openModal("verdictModal");
+      saveState();
+      refreshNoteViews();
     }
 
-    // モーダル開閉
-    function openModal(id) {
-      if (id === "copyModal") renderModalCards();
-      const el = document.getElementById(id);
-      el.classList.remove("hidden");
-      el.classList.add("flex");
+    function refreshNoteViews() {
+      const modalBody = document.getElementById("noteModalBody");
+      const noteModal = document.getElementById("noteModal");
+      if (modalBody && !noteModal.classList.contains("hidden")) {
+        modalBody.innerHTML = renderDetectiveNoteHTML("modal");
+      }
+      if (state.currentStep === 2 || state.currentStep === 4 || state.currentStep === 5) {
+        renderStage();
+      }
     }
 
-    function closeModal(id) {
-      const el = document.getElementById(id);
-      el.classList.add("hidden");
-      el.classList.remove("flex");
-    }
-
-    function closeModalOnBg(e, id) {
-      if (e.target.id === id) closeModal(id);
-    }
-
-    // メインステージ描画
+    // ==========================================
+    // 7. メインステージ描画（全8画面）
+    // ==========================================
     function renderStage() {
       const container = document.getElementById("stageContainer");
-      const step = STEPS[currentStep];
+      const step = STEPS[state.currentStep];
       let bodyHtml = "";
 
-      // STEP 1: 導入
-      if (currentStep === 0) {
+      // ----------------------------------------
+      // STEP 1: 導入「探偵の挑戦状」（2問構成）
+      // ----------------------------------------
+      if (state.currentStep === 0) {
+        const currentIntro = INTRO_CASES[state.introTab];
+        const chosen = state.introChoices[state.introTab];
+        const chosenOpt = currentIntro.options.find(o => o.id === chosen);
+
         bodyHtml = `
-          <div class="bg-amber-50 dark:bg-amber-950/50 border-l-4 border-amber-400 p-4 rounded-xl font-bold text-base sm:text-lg mb-6">
-            🏆 今日の勝ちはAIの間違いを見つけることじゃない。<strong>「どこで確かめたか」</strong>を発見できたら勝ち！
+          <div class="bg-amber-50 dark:bg-amber-950/50 border-l-4 border-amber-400 p-4 rounded-xl font-bold text-sm sm:text-base mb-5">
+            🏆 今日の勝ちはAIの間違いを見つけることじゃない。<strong>「AI以外のどこで確かめたか」</strong>を発見できたら勝ち！
+          </div>
+
+          <!-- 例題切り替えタブ -->
+          <div class="flex gap-2 mb-4">
+            ${INTRO_CASES.map((ic, idx) => `
+              <button onclick="switchIntroTab(${idx})" class="px-4 py-2 rounded-xl font-black text-sm border-2 transition ${
+                state.introTab === idx
+                  ? 'bg-blue-600 border-blue-600 text-white shadow-sm'
+                  : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-blue-400'
+              }">
+                ${ic.badge} ${state.introChoices[idx] ? '✅' : ''}
+              </button>
+            `).join("")}
           </div>
 
           <div class="bg-slate-50 dark:bg-slate-800/70 p-5 sm:p-6 rounded-2xl border border-slate-200 dark:border-slate-700">
-            <span class="text-xs font-black text-blue-600 dark:text-blue-400 uppercase tracking-wider">🕵️ 探偵への挑戦状（例題）</span>
-            <h3 class="text-xl sm:text-2xl font-black mt-1 mb-3">Q. 「日本で2番目に高い山は？」</h3>
+            <span class="text-xs font-black text-blue-600 dark:text-blue-400 uppercase tracking-wider">🕵️ 探偵への挑戦状</span>
+            <h3 class="text-xl sm:text-2xl font-black mt-1 mb-3">${currentIntro.question}</h3>
 
             <div class="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-700 font-bold text-base mb-5 shadow-xs">
-              🤖 Geminiの答え：「日本で2番目に高い山は <strong class="text-blue-600 dark:text-blue-400">北岳（きただけ）</strong> です。」
+              🤖 Geminiの答え：「${currentIntro.aiAnswer}」
             </div>
 
-            <p class="font-extrabold mb-3">これで確定かな？ どうやって確かめる？</p>
+            <p class="font-extrabold mb-3">${currentIntro.prompt}</p>
 
             <div class="space-y-2.5">
-              <button onclick="selectIntro(1)" class="w-full text-left p-4 rounded-xl border-2 font-bold transition ${
-                introChoice === 1 ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/60' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:border-blue-400'
-              }">
-                ① AIにもう一度「本当に北岳？」と聞く
-              </button>
-              <button onclick="selectIntro(2)" class="w-full text-left p-4 rounded-xl border-2 font-bold transition ${
-                introChoice === 2 ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/60' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:border-blue-400'
-              }">
-                ② 公的な山岳資料（国土地理院など）を見る
-              </button>
-              <button onclick="selectIntro(3)" class="w-full text-left p-4 rounded-xl border-2 font-bold transition ${
-                introChoice === 3 ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/60' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:border-blue-400'
-              }">
-                ③ 友達に聞く
-              </button>
+              ${currentIntro.options.map(opt => `
+                <button onclick="selectIntro(${opt.id})" class="w-full text-left p-4 rounded-xl border-2 font-bold text-sm sm:text-base transition ${
+                  chosen === opt.id
+                    ? (opt.isCorrect ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/50' : 'border-blue-500 bg-blue-50 dark:bg-blue-950/60')
+                    : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:border-blue-400'
+                }">
+                  ${opt.text}
+                </button>
+              `).join("")}
             </div>
 
-            ${introChoice === 1 ? `
-              <div class="mt-4 p-4 rounded-xl bg-slate-100 dark:bg-slate-800 border-l-4 border-blue-500 font-bold text-sm sm:text-base">
-                🤖 AIは調べる仲間ですが、<strong>AI自身の再回答だけ</strong>では「確かめた」ことになりません。AI以外の独立した資料を探そう！
-              </div>` : ""}
-            ${introChoice === 2 ? `
-              <div class="mt-4 p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border-l-4 border-emerald-500 text-emerald-900 dark:text-emerald-200 font-bold text-sm sm:text-base">
-                ✨ 大正解！AIとは <strong>独立した公的資料</strong> で確かめるのが「AI探偵」のワザです！
-              </div>` : ""}
-            ${introChoice === 3 ? `
-              <div class="mt-4 p-4 rounded-xl bg-slate-100 dark:bg-slate-800 border-l-4 border-blue-500 font-bold text-sm sm:text-base">
-                🗣️ 友達の予想も参考になりますが、最後は <strong>公式な資料</strong> で裏付けをとると確実です！
-              </div>` : ""}
+            ${chosenOpt ? `
+              <div class="mt-4 p-4 rounded-xl border-l-4 font-bold text-sm sm:text-base ${
+                chosenOpt.isCorrect
+                  ? 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-500 text-emerald-900 dark:text-emerald-200'
+                  : 'bg-slate-100 dark:bg-slate-800 border-blue-500'
+              }">
+                ${chosenOpt.feedback}
+              </div>
+              ${state.introTab === 0 ? `
+                <div class="mt-4 text-right">
+                  <button onclick="switchIntroTab(1)" class="bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-sm px-4 py-2 rounded-xl">
+                    例題2（応用）も見てみよう →
+                  </button>
+                </div>
+              ` : ""}
+            ` : ""}
           </div>
         `;
       }
 
-      // STEP 2: ミッション選択
-      if (currentStep === 1) {
+      // ----------------------------------------
+      // STEP 2: ミッション選択・入力準備
+      // ----------------------------------------
+      if (state.currentStep === 1) {
         bodyHtml = `
-          <p class="text-base sm:text-lg font-extrabold mb-4">
-            ① 好きなカードを1つ選ぶ → ② 質問文をコピーしてGeminiに聞く → ③ 気になる一文を1つ選ぶ（全部調べなくてOK！）
-          </p>
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            ${renderMissionCardsHTML()}
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-5">
+            ${renderMissionCardsHTML(true)}
           </div>
-          <div class="mt-5 p-3.5 rounded-xl bg-orange-50 dark:bg-orange-950/50 border border-orange-300 dark:border-orange-800 text-orange-800 dark:text-orange-200 font-bold text-sm">
+
+          <!-- 次の画面へのスムーズな誘導ボックス -->
+          <div class="bg-emerald-50 dark:bg-emerald-950/40 border-2 border-emerald-300 dark:border-emerald-800 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-3 mb-4">
+            <div class="text-sm font-bold text-emerald-900 dark:text-emerald-200">
+              ✅ Geminiに貼り付けて送信し、<strong>AIの答えが画面に出たら</strong>次のステップへ進もう！
+            </div>
+            <button onclick="goToStep(2)" class="bg-emerald-600 hover:bg-emerald-700 text-white font-black text-sm px-5 py-2.5 rounded-xl shadow-sm shrink-0">
+              AIの答えが出た！次へ進む →
+            </button>
+          </div>
+
+          <div class="p-3.5 rounded-xl bg-orange-50 dark:bg-orange-950/50 border border-orange-300 dark:border-orange-800 text-orange-800 dark:text-orange-200 font-bold text-sm">
             ⚠️ ルール：本名・住所・学校名・アカウント情報は絶対に入力しないでね！
           </div>
         `;
       }
 
-      // STEP 3: 個人探究①
-      if (currentStep === 2) {
+      // ----------------------------------------
+      // STEP 3: 個人探究①（操作手順＋検索アシスト＋探偵ノート統合）
+      // ----------------------------------------
+      if (state.currentStep === 2) {
         const procedures = [
-          "AIに質問する（カードA・B・Cのどれか）",
-          "AIの答えから「気になる主張」を1つだけ選ぶ",
-          "AIに「どこで確かめられる？」と聞く",
-          "ブラウザでAI以外の資料（公式・博物館・大学など）を開く",
-          "根拠をもとに「○／△／？」を自分で判定する"
+          { app: "Gemini", txt: "AIの答えから「気になる主張」を1つだけ選ぶ（全部調べなくてOK！）" },
+          { app: "コピー", txt: "下の「🔍 どこで確かめられる？」をコピーしてGeminiに聞く" },
+          { app: "検索", txt: "下の「検索アシスト」またはブラウザで、AI以外の公式資料を開く" },
+          { app: "ノート", txt: "右（下）の「マイ探偵ノート」に見た資料と判定（○／△／？）を記録する" }
         ];
 
         bodyHtml = `
-          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div>
-              <h3 class="text-lg font-black mb-3">👣 探偵の5手順（タップでチェック！）</h3>
-              <div class="space-y-2.5">
-                ${procedures.map((txt, i) => `
-                  <div onclick="toggleFiveStep(${i})" class="cursor-pointer flex items-center gap-3 p-3.5 rounded-xl border-2 font-bold text-sm sm:text-base transition ${
-                    fiveStepsDone[i]
-                      ? 'bg-emerald-50 dark:bg-emerald-950/50 border-emerald-500 text-emerald-900 dark:text-emerald-200'
-                      : 'bg-slate-50 dark:bg-slate-800/70 border-slate-200 dark:border-slate-700 hover:border-blue-400'
-                  }">
-                    <span class="w-7 h-7 rounded-full flex items-center justify-center font-black text-white shrink-0 ${
-                      fiveStepsDone[i] ? 'bg-emerald-600' : 'bg-blue-600'
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <!-- 左カラム：操作のチェックリスト＆ワンタップお助け -->
+            <div class="lg:col-span-5 space-y-5">
+              <div>
+                <h3 class="text-base sm:text-lg font-black mb-2.5">👣 いまやる4ステップ（終わったらタップ！）</h3>
+                <div class="space-y-2">
+                  ${procedures.map((p, i) => `
+                    <div onclick="toggleFiveStep(${i})" class="cursor-pointer flex items-start gap-2.5 p-3 rounded-xl border-2 font-bold text-xs sm:text-sm transition ${
+                      state.fiveStepsDone[i]
+                        ? 'bg-emerald-50 dark:bg-emerald-950/50 border-emerald-500 text-emerald-900 dark:text-emerald-200 line-through opacity-80'
+                        : 'bg-slate-50 dark:bg-slate-800/70 border-slate-200 dark:border-slate-700 hover:border-blue-400'
                     }">
-                      ${fiveStepsDone[i] ? '✓' : i + 1}
-                    </span>
-                    <span>${txt}</span>
-                  </div>
-                `).join("")}
+                      <span class="w-6 h-6 rounded-full flex items-center justify-center font-black text-white shrink-0 text-xs mt-0.5 ${
+                        state.fiveStepsDone[i] ? 'bg-emerald-600' : 'bg-blue-600'
+                      }">
+                        ${state.fiveStepsDone[i] ? '✓' : i + 1}
+                      </span>
+                      <div>
+                        <span class="inline-block text-[10px] font-black px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-700 mr-1">${p.app}</span>
+                        <span>${p.txt}</span>
+                      </div>
+                    </div>
+                  `).join("")}
+                </div>
+              </div>
+
+              <!-- ワンタップ追加質問 -->
+              <div class="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-2xl p-4">
+                <h3 class="text-sm sm:text-base font-black mb-1">💬 STEP2用：Geminiへの追加質問コピー</h3>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mb-2.5">タップしてGeminiに貼り付けよう！</p>
+                <div class="flex flex-wrap gap-2">
+                  <button onclick="copyText('どこで確かめられる？公式な確認先や根拠を教えて', this)" class="bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs sm:text-sm px-3.5 py-2 rounded-xl shadow-xs transition">
+                    🔍 どこで確かめられる？
+                  </button>
+                  <button onclick="copyText('根拠は？', this)" class="bg-blue-50 dark:bg-blue-950/60 hover:bg-blue-100 border border-blue-400 text-blue-700 dark:text-blue-300 font-extrabold text-xs sm:text-sm px-3 py-2 rounded-xl transition">
+                    📄 根拠は？
+                  </button>
+                  <button onclick="copyText('確認先は？', this)" class="bg-blue-50 dark:bg-blue-950/60 hover:bg-blue-100 border border-blue-400 text-blue-700 dark:text-blue-300 font-extrabold text-xs sm:text-sm px-3 py-2 rounded-xl transition">
+                    🏛️ 確認先は？
+                  </button>
+                  <button onclick="copyText('本当？', this)" class="bg-blue-50 dark:bg-blue-950/60 hover:bg-blue-100 border border-blue-400 text-blue-700 dark:text-blue-300 font-extrabold text-xs sm:text-sm px-3 py-2 rounded-xl transition">
+                    ❓ 本当？
+                  </button>
+                </div>
+              </div>
+
+              <!-- STEP3用：公式ページ検索アシスト -->
+              <div class="bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-300 dark:border-emerald-800 rounded-2xl p-4">
+                <h3 class="text-sm sm:text-base font-black text-emerald-900 dark:text-emerald-200 mb-1">🌐 STEP3用：公式資料 検索アシスト</h3>
+                <p class="text-xs text-slate-600 dark:text-slate-300 mb-2">調べたい言葉を入れてボタンを押すと、信頼できるサイトを探しやすくなります！</p>
+                <input id="searchHelperInput" type="text" placeholder="調べたい言葉（例：ハシビロコウ、マイクラ クリーパー）"
+                  value="${escapeHtml(searchHelperWord)}"
+                  oninput="searchHelperWord = this.value"
+                  class="w-full px-3 py-2 rounded-xl border-2 border-emerald-300 dark:border-emerald-700 bg-white dark:bg-slate-900 font-bold text-sm mb-2 focus:border-emerald-500 focus:outline-none" />
+                <div class="flex flex-wrap gap-1.5">
+                  <button onclick="launchSearch('公式')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs px-3 py-1.5 rounded-lg transition">🔎 ＋公式</button>
+                  <button onclick="launchSearch('動物園 OR 博物館')" class="bg-white dark:bg-slate-900 hover:bg-emerald-100 border border-emerald-400 text-emerald-800 dark:text-emerald-300 font-extrabold text-xs px-2.5 py-1.5 rounded-lg transition">🦁 ＋動物園/博物館</button>
+                  <button onclick="launchSearch('大学 OR 科学館')" class="bg-white dark:bg-slate-900 hover:bg-emerald-100 border border-emerald-400 text-emerald-800 dark:text-emerald-300 font-extrabold text-xs px-2.5 py-1.5 rounded-lg transition">🔬 ＋大学/科学館</button>
+                  <button onclick="launchSearch('')" class="bg-white dark:bg-slate-900 hover:bg-emerald-100 border border-slate-300 dark:border-slate-600 font-bold text-xs px-2.5 py-1.5 rounded-lg transition">そのまま検索</button>
+                </div>
               </div>
             </div>
 
-            <div>
-              <h3 class="text-lg font-black mb-1">💬 ワンタップ追加質問コピー</h3>
-              <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mb-3">長い入力は不要！タップしてGeminiに貼り付けよう。</p>
-              <div class="flex flex-wrap gap-2 mb-6">
-                <button onclick="copyText('どこで確かめられる？公式な確認先や根拠を教えて', this)" class="bg-blue-50 dark:bg-blue-950/60 hover:bg-blue-100 border-2 border-blue-500 text-blue-700 dark:text-blue-300 font-extrabold text-sm px-3.5 py-2.5 rounded-xl transition">
-                  🔍 どこで確かめられる？
-                </button>
-                <button onclick="copyText('本当？', this)" class="bg-blue-50 dark:bg-blue-950/60 hover:bg-blue-100 border-2 border-blue-500 text-blue-700 dark:text-blue-300 font-extrabold text-sm px-3.5 py-2.5 rounded-xl transition">
-                  ❓ 本当？
-                </button>
-                <button onclick="copyText('根拠は？', this)" class="bg-blue-50 dark:bg-blue-950/60 hover:bg-blue-100 border-2 border-blue-500 text-blue-700 dark:text-blue-300 font-extrabold text-sm px-3.5 py-2.5 rounded-xl transition">
-                  📄 根拠は？
-                </button>
-                <button onclick="copyText('確認先は？', this)" class="bg-blue-50 dark:bg-blue-950/60 hover:bg-blue-100 border-2 border-blue-500 text-blue-700 dark:text-blue-300 font-extrabold text-sm px-3.5 py-2.5 rounded-xl transition">
-                  🏛️ 確認先は？
+            <!-- 右カラム：マイ探偵ノート（直接記入できる！） -->
+            <div class="lg:col-span-7">
+              <div class="flex items-center justify-between mb-2.5">
+                <h3 class="text-base sm:text-lg font-black">📝 STEP4用：マイ探偵ノートに記録しよう</h3>
+                <button onclick="showVerdictCard(state.cases[state.activeCaseIndex].verdict || 'unk')" class="text-xs font-extrabold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 px-3 py-1 rounded-full border border-slate-300 dark:border-slate-600">
+                  🪪 判定を大きく表示
                 </button>
               </div>
-
-              <h3 class="text-lg font-black mb-1">🪪 デジタル判定カード（タップで拡大表示）</h3>
-              <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mb-3">今の判定をタップして画面に大きく出せます。「？ まだ不明」も立派な結果！</p>
-              <div class="grid grid-cols-3 gap-3">
-                <button onclick="showVerdictCard('ok')" class="p-4 rounded-2xl border-2 border-emerald-500 bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 text-center active:scale-95 transition">
-                  <span class="block text-4xl font-black">○</span>
-                  <span class="block text-xs sm:text-sm font-extrabold mt-1">確かめられた</span>
-                </button>
-                <button onclick="showVerdictCard('part')" class="p-4 rounded-2xl border-2 border-orange-500 bg-orange-50 dark:bg-orange-950/50 text-orange-700 dark:text-orange-300 text-center active:scale-95 transition">
-                  <span class="block text-4xl font-black">△</span>
-                  <span class="block text-xs sm:text-sm font-extrabold mt-1">一部だけ</span>
-                </button>
-                <button onclick="showVerdictCard('unk')" class="p-4 rounded-2xl border-2 border-purple-500 bg-purple-50 dark:bg-purple-950/50 text-purple-700 dark:text-purple-300 text-center active:scale-95 transition">
-                  <span class="block text-4xl font-black">？</span>
-                  <span class="block text-xs sm:text-sm font-extrabold mt-1">まだ不明</span>
-                </button>
+              ${renderDetectiveNoteHTML("step2")}
+              <div class="mt-3 bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800 rounded-xl p-3 text-xs font-bold text-amber-900 dark:text-amber-200">
+                💡 早く終わった人は、ノート上部の <strong>「＋ 次の事件を調べる」</strong> を押して2件目の調査にも挑戦しよう！
               </div>
             </div>
           </div>
         `;
       }
 
-      // STEP 4: ショーケース
-      if (currentStep === 3) {
+      // ----------------------------------------
+      // STEP 4: 中間共有・発見のショーケース
+      // ----------------------------------------
+      if (state.currentStep === 3) {
+        const activeCase = state.cases[state.activeCaseIndex] || state.cases[0];
         bodyHtml = `
-          <div class="bg-amber-50 dark:bg-amber-950/50 border-l-4 border-amber-400 p-4 rounded-xl font-bold text-base mb-5">
-            🎤 全員発表じゃなくてOK！<strong>話したい人から30秒</strong>、または <strong>画面を見せるだけ</strong> で参加しよう！
+          <div class="bg-amber-50 dark:bg-amber-950/50 border-l-4 border-amber-400 p-4 rounded-xl font-bold text-sm sm:text-base mb-5">
+            🎤 全員発表じゃなくてOK！<strong>話したい人から30秒</strong>、または <strong>探偵ノートを見せるだけ</strong> で参加しよう！
           </div>
 
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-5">
             <div class="bg-slate-50 dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700">
               <div class="text-2xl mb-1">😲</div>
-              <div class="font-extrabold">AIの答えと違うものを見つけた！</div>
+              <div class="font-extrabold text-sm sm:text-base">AIの答えと違うものを見つけた！</div>
             </div>
             <div class="bg-slate-50 dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700">
               <div class="text-2xl mb-1">✨</div>
-              <div class="font-extrabold">予想外の情報・面白い公式資料が出た！</div>
+              <div class="font-extrabold text-sm sm:text-base">面白い公式資料・図鑑を見つけた！</div>
             </div>
             <div class="bg-slate-50 dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700">
               <div class="text-2xl mb-1">🤔</div>
-              <div class="font-extrabold">まだ確かめられずモヤモヤしている！</div>
+              <div class="font-extrabold text-sm sm:text-base">まだ確かめられずモヤモヤしている！</div>
             </div>
           </div>
+
+          <!-- 自分の今のメモプレビュー（そのまま見せられる） -->
+          ${activeCase.claim ? `
+            <div class="bg-indigo-50/70 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-800 rounded-2xl p-4 mb-5">
+              <div class="text-xs font-black text-indigo-600 dark:text-indigo-300 mb-1">📝 いま自分が調べていること（このまま画面を見せてもOK！）</div>
+              <div class="font-extrabold text-sm sm:text-base">「${escapeHtml(activeCase.claim)}」</div>
+              <div class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 mt-1">
+                見た資料：<strong>${escapeHtml(activeCase.sourceType || "調査中")} ${escapeHtml(activeCase.sourceName)}</strong> ／ 
+                判定：<strong>${activeCase.verdict === 'ok' ? '○ 確かめられた' : activeCase.verdict === 'part' ? '△ 一部だけ' : activeCase.verdict === 'unk' ? '？ まだ不明' : 'まだ選択前'}</strong>
+              </div>
+            </div>
+          ` : ""}
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div class="bg-slate-50 dark:bg-slate-800 p-5 rounded-2xl text-center border border-slate-200 dark:border-slate-700">
@@ -796,13 +1418,13 @@
             </div>
 
             <div class="bg-slate-50 dark:bg-slate-800 p-5 rounded-2xl text-center border border-slate-200 dark:border-slate-700 flex flex-col justify-center">
-              <div class="font-extrabold text-sm mb-3">👏 聴いている人のリアクション：「その話、もっと調べたい？」</div>
+              <div class="font-extrabold text-sm mb-3">👏 聴いている人のリアクション：「その話、もっと調べたい！」</div>
               <div class="flex justify-center gap-3">
                 <button onclick="voteShowcase('yes')" class="bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-extrabold px-5 py-2.5 rounded-xl transition">
-                  A はい！（${showcaseVotes.yes}）
+                  👍 もっと知りたい！（${state.showcaseVotes.yes}）
                 </button>
-                <button onclick="voteShowcase('later')" class="bg-white dark:bg-slate-700 hover:bg-slate-100 active:scale-95 border border-slate-300 dark:border-slate-600 font-extrabold px-5 py-2.5 rounded-xl transition">
-                  B まだいいかな（${showcaseVotes.later}）
+                <button onclick="voteShowcase('later')" class="bg-white dark:bg-slate-700 hover:bg-slate-100 active:scale-95 border border-slate-300 dark:border-slate-600 font-extrabold px-4 py-2.5 rounded-xl transition">
+                  👀 なるほど！（${state.showcaseVotes.later}）
                 </button>
               </div>
             </div>
@@ -810,128 +1432,178 @@
         `;
       }
 
-      // STEP 5: 個人探究②
-      if (currentStep === 4) {
+      // ----------------------------------------
+      // STEP 5: 個人探究②（Lv.1〜Lv.4 チャレンジ＋ノート拡張）
+      // ----------------------------------------
+      if (state.currentStep === 4) {
+        const challenges = [
+          {
+            id: "lv1", badge: "Lv.1 深掘り探偵", icon: "🔍",
+            title: "2つ目の独立資料でクロスチェック！",
+            desc: "さっき調べた主張を、<strong>別の公式サイト・博物館・図鑑</strong>でも調べてみよう。2つとも同じことが書いてあったらノートの「2つ以上の資料で一致」にチェック！",
+            actionBtn: `<button onclick="event.stopPropagation(); openModal('noteModal')" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-xs sm:text-sm py-2 px-3 rounded-xl transition">📝 探偵ノートを開いてチェック</button>`
+          },
+          {
+            id: "lv2", badge: "Lv.2 質問改造探偵", icon: "🛠️",
+            title: "AIに「不確かな点・反対の例」を聞き出す！",
+            desc: "下の質問をコピーしてGeminiに送り、AIが教えてくれた「例外や条件」をさらに検索して確かめよう。",
+            actionBtn: `
+              <div class="flex gap-1.5">
+                <button onclick="event.stopPropagation(); copyText('どこが不確か？例外や条件が違うことはある？', this)" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs py-2 px-2 rounded-xl transition">📋 どこが不確か？</button>
+                <button onclick="event.stopPropagation(); copyText('反対の例や、違う説はある？', this)" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs py-2 px-2 rounded-xl transition">📋 反対の例は？</button>
+              </div>
+            `
+          },
+          {
+            id: "lv3", badge: "Lv.3 おかわり探偵", icon: "🍚",
+            title: "新しい事件ファイル（2件目・3件目）に挑戦！",
+            desc: "別のカードや「オリジナル自由テーマ（カードD）」で新しくAIに聞き、自分の力で検証してみよう！",
+            actionBtn: `
+              <div class="flex gap-1.5">
+                <button onclick="event.stopPropagation(); addNewCase(); openModal('copyModal')" class="flex-1 bg-amber-400 hover:bg-amber-500 text-slate-950 font-black text-xs py-2 px-2 rounded-xl transition">＋ 新ファイル＆質問BOX</button>
+              </div>
+            `
+          },
+          {
+            id: "lv4", badge: "Lv.4 秘密ミッション", icon: "🔓",
+            title: "AIの「自己点検」が正しいか検証せよ！",
+            desc: "AIに「自分の説明で怪しいところ」を挙げさせ、その指摘が本当に合っているか独立資料で調べよう！（AIは自分の間違い探しでもウソをつくことがあるよ）",
+            actionBtn: `<button onclick="event.stopPropagation(); copyText('さっきの説明で、間違っている可能性がある箇所を一つ挙げて', this)" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs sm:text-sm py-2 px-3 rounded-xl transition">📋 秘密の質問文をコピー</button>`
+          }
+        ];
+
         bodyHtml = `
-          <p class="text-base font-extrabold mb-4">
-            後半戦！次の3つから <strong>自分の好きなコース</strong> を選んで進めよう（前半の続きをじっくり調べてもOK）。
-          </p>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            ${challenges.map(ch => {
+              const done = state.completedChallenges.includes(ch.id);
+              return `
+                <div class="rounded-2xl p-4 sm:p-5 border-2 flex flex-col justify-between transition ${
+                  done
+                    ? 'bg-emerald-50/70 dark:bg-emerald-950/30 border-emerald-500'
+                    : 'bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700'
+                }">
+                  <div>
+                    <div class="flex items-center justify-between gap-2 mb-1.5">
+                      <span class="inline-block bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 text-xs font-black px-2.5 py-0.5 rounded-full">
+                        ${ch.icon} ${ch.badge}
+                      </span>
+                      <button onclick="toggleChallenge('${ch.id}')" class="text-xs font-black px-2.5 py-1 rounded-full border transition ${
+                        done
+                          ? 'bg-emerald-600 border-emerald-600 text-white'
+                          : 'bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-600 hover:border-emerald-500'
+                      }">
+                        ${done ? '✅ クリア！' : '⬜ できたらタップ'}
+                      </button>
+                    </div>
+                    <h3 class="font-black text-base mb-1.5">${ch.title}</h3>
+                    <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 mb-3.5">${ch.desc}</p>
+                  </div>
+                  <div>${ch.actionBtn}</div>
+                </div>
+              `;
+            }).join("")}
+          </div>
 
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <div onclick="selectAdv('deep')" class="cursor-pointer rounded-2xl p-5 border-2 transition ${
-              selectedAdvanced === 'deep'
-                ? 'bg-white dark:bg-slate-800 border-blue-500 ring-4 ring-blue-500/15'
-                : 'bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 hover:border-blue-400'
-            }">
-              <div class="text-lg font-black mb-1">🔍 深掘り探偵</div>
-              <p class="text-sm text-slate-600 dark:text-slate-300 mb-3">同じ主張を <strong>別の独立資料</strong> でも確かめる！</p>
-              <div class="bg-white dark:bg-slate-900 border border-dashed border-blue-400 rounded-xl p-3 text-xs sm:text-sm font-bold">
-                💭 問い：二つの資料は同じことを言っている？
-              </div>
+          <!-- 探偵ノート（直接編集可能） -->
+          <div class="mb-4">
+            <h3 class="text-base sm:text-lg font-black mb-2.5">📝 探究②の記録（マイ探偵ノート）</h3>
+            ${renderDetectiveNoteHTML("step4")}
+          </div>
+
+          <!-- それでも早く終わった人向け -->
+          <div class="bg-amber-50 dark:bg-amber-950/40 border-2 border-dashed border-amber-400 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <div class="font-black text-sm sm:text-base">🎮 全部クリアして時間が余ったら？</div>
+              <div class="text-xs sm:text-sm text-slate-600 dark:text-slate-300">「AI探偵ウソ・ホント見抜きバトル（全5問）」で腕試ししよう！</div>
             </div>
+            <button onclick="goToStep(7)" class="bg-amber-400 hover:bg-amber-500 text-slate-950 font-black text-sm px-4 py-2.5 rounded-xl shadow-sm">
+              🎮 EXクイズに挑戦 →
+            </button>
+          </div>
+        `;
+      }
 
-            <div onclick="selectAdv('remake')" class="cursor-pointer rounded-2xl p-5 border-2 transition ${
-              selectedAdvanced === 'remake'
-                ? 'bg-white dark:bg-slate-800 border-blue-500 ring-4 ring-blue-500/15'
-                : 'bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 hover:border-blue-400'
-            }">
-              <div class="text-lg font-black mb-1">🛠️ 質問改造探偵</div>
-              <p class="text-sm text-slate-600 dark:text-slate-300 mb-3">AIに条件や反対の例を聞き直してみる！</p>
-              <div class="space-y-2">
-                <button onclick="event.stopPropagation(); copyText('どこが不確か？', this)" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-sm py-2.5 px-3 rounded-xl transition">
-                  📋 「どこが不確か？」をコピー
-                </button>
-                <button onclick="event.stopPropagation(); copyText('反対の例は？', this)" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-sm py-2.5 px-3 rounded-xl transition">
-                  📋 「反対の例は？」をコピー
-                </button>
-              </div>
+      // ----------------------------------------
+      // STEP 6: 探偵報告（マイ探偵ノートから自動生成された発表カード！）
+      // ----------------------------------------
+      if (state.currentStep === 5) {
+        const c = state.cases[state.activeCaseIndex] || state.cases[0];
+        const verdictMap = {
+          ok: { sym: "○", label: "確かめられた！", cls: "bg-emerald-600 text-white" },
+          part: { sym: "△", label: "一部だけ確かめられた", cls: "bg-orange-500 text-white" },
+          unk: { sym: "？", label: "まだ不明（未確認）", cls: "bg-purple-600 text-white" }
+        };
+        const vInfo = verdictMap[c.verdict] || { sym: "未", label: "下のボタンで判定を選ぼう", cls: "bg-slate-400 text-white" };
+
+        bodyHtml = `
+          <!-- 発表する事件ファイルの選択 -->
+          ${state.cases.length > 1 ? `
+            <div class="flex flex-wrap items-center gap-2 mb-4">
+              <span class="text-xs font-black text-slate-500">発表するファイルを選択：</span>
+              ${state.cases.map((item, idx) => `
+                <button onclick="switchCase(${idx})" class="px-3 py-1.5 rounded-xl text-xs font-black border transition ${
+                  idx === state.activeCaseIndex ? 'bg-indigo-600 border-indigo-600 text-white' : 'bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700'
+                }">📁 事件#${idx + 1}</button>
+              `).join("")}
             </div>
+          ` : ""}
 
-            <div onclick="selectAdv('more')" class="cursor-pointer rounded-2xl p-5 border-2 transition ${
-              selectedAdvanced === 'more'
-                ? 'bg-white dark:bg-slate-800 border-blue-500 ring-4 ring-blue-500/15'
-                : 'bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 hover:border-blue-400'
-            }">
-              <div class="text-lg font-black mb-1">🍚 おかわり探偵</div>
-              <p class="text-sm text-slate-600 dark:text-slate-300 mb-3">別の題材（カードA・B・C）で新しく1つ検証する！</p>
-              <button onclick="event.stopPropagation(); openModal('copyModal')" class="w-full bg-amber-400 hover:bg-amber-500 text-slate-950 font-black text-sm py-2.5 px-3 rounded-xl transition">
-                📋 質問カードBOXを開く
+          <!-- 自動生成された「探偵報告スライドカード」 -->
+          <div class="bg-gradient-to-br from-slate-900 to-indigo-950 text-white rounded-3xl p-5 sm:p-7 shadow-xl mb-6 border-2 border-indigo-500/50">
+            <div class="flex flex-wrap items-center justify-between gap-2 border-b border-white/15 pb-3 mb-4">
+              <div class="flex items-center gap-2">
+                <span class="bg-amber-400 text-slate-950 text-xs font-black px-2.5 py-1 rounded-full">🕵️ 探偵報告カード</span>
+                <span class="font-bold text-sm text-indigo-200">事件ファイル #${state.activeCaseIndex + 1}</span>
+              </div>
+              <button onclick="openModal('noteModal')" class="bg-white/15 hover:bg-white/25 text-xs font-bold px-3 py-1.5 rounded-full transition">
+                ✏️ 内容を編集する
               </button>
             </div>
-          </div>
 
-          <!-- 早く終わった生徒向け：秘密ミッション -->
-          <div class="border-2 border-dashed border-amber-400 bg-amber-50/80 dark:bg-amber-950/40 rounded-2xl p-5">
-            ${!secretUnlocked ? `
-              <div class="flex flex-wrap items-center justify-between gap-3">
-                <div>
-                  <div class="text-base sm:text-lg font-black">🔒 早く終わった人向け：秘密ミッション</div>
-                  <div class="text-xs sm:text-sm text-slate-600 dark:text-slate-300">タップして秘密の指令をアンロック！</div>
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
+              <div class="md:col-span-8 space-y-3.5">
+                <div class="bg-white/10 rounded-2xl p-3.5">
+                  <div class="text-xs font-bold text-amber-300 mb-1">① 調べたこと（AIの主張）</div>
+                  <div class="text-base sm:text-lg font-black leading-snug">
+                    ${c.claim ? escapeHtml(c.claim) : '<span class="text-slate-400 text-sm">（まだ未入力です。「内容を編集する」から書けます）</span>'}
+                  </div>
                 </div>
-                <button onclick="unlockSecret()" class="bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-sm px-4 py-2.5 rounded-full shadow-sm">
-                  🔓 指令を開く
+                <div class="bg-white/10 rounded-2xl p-3.5">
+                  <div class="text-xs font-bold text-emerald-300 mb-1">② 確かめたAI以外の資料</div>
+                  <div class="text-base font-extrabold">
+                    ${(c.sourceType || c.sourceName)
+                      ? `${escapeHtml(c.sourceType)} ${escapeHtml(c.sourceName)}`
+                      : '<span class="text-slate-400 text-sm">（見たサイト名や図鑑などを書こう）</span>'}
+                  </div>
+                  ${c.memo ? `<div class="text-xs sm:text-sm text-indigo-100 mt-1.5 pt-1.5 border-t border-white/10">💡 メモ：${escapeHtml(c.memo)}</div>` : ""}
+                </div>
+              </div>
+
+              <!-- 判定の大きなスタンプ表示 -->
+              <div class="md:col-span-4">
+                <button onclick="showVerdictCard('${c.verdict || 'unk'}')" class="w-full rounded-2xl p-5 text-center shadow-lg transition hover:scale-[1.02] ${vInfo.cls}">
+                  <div class="text-xs font-bold opacity-90 mb-1">③ 今の判定（タップで拡大）</div>
+                  <div class="text-6xl font-black leading-none my-1">${vInfo.sym}</div>
+                  <div class="text-sm font-black mt-2">${vInfo.label}</div>
                 </button>
               </div>
-            ` : `
-              <div>
-                <div class="text-base sm:text-lg font-black mb-1">🔓 秘密ミッション：AIに自己点検させて検証せよ！</div>
-                <p class="text-sm text-slate-700 dark:text-slate-300 mb-3">
-                  下の質問をAIに送り、<strong>指摘された箇所を独立資料で確かめよう</strong>。（AIの自己点検も間違えることがあるよ！）
-                </p>
-                <div class="bg-white dark:bg-slate-900 border-2 border-dashed border-amber-500 rounded-xl p-3 font-extrabold text-sm sm:text-base mb-3">
-                  「さっきの説明で、間違っている可能性がある箇所を一つ挙げて」
-                </div>
-                <button onclick="copyText('さっきの説明で、間違っている可能性がある箇所を一つ挙げて', this)" class="bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-sm sm:text-base px-5 py-2.5 rounded-xl shadow-sm">
-                  📋 秘密の質問文をコピー
-                </button>
-              </div>
-            `}
-          </div>
-        `;
-      }
-
-      // STEP 6: 探偵報告
-      if (currentStep === 5) {
-        bodyHtml = `
-          <div class="bg-amber-50 dark:bg-amber-950/50 border-l-4 border-amber-400 p-4 rounded-xl font-bold text-base mb-5">
-            📢 今日の探偵報告は正解発表ではありません。<strong>①調べたこと ②見た資料 ③今の判定</strong> の3つを見せよう！
-          </div>
-
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <div class="bg-slate-50 dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700">
-              <span class="inline-block bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 text-xs font-black px-2.5 py-0.5 rounded-full mb-1">1つ目</span>
-              <h3 class="font-black text-lg mb-1">調べたこと</h3>
-              <p class="text-sm text-slate-600 dark:text-slate-300">AIの答えの中から選んだ一文</p>
-            </div>
-            <div class="bg-slate-50 dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700">
-              <span class="inline-block bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 text-xs font-black px-2.5 py-0.5 rounded-full mb-1">2つ目</span>
-              <h3 class="font-black text-lg mb-1">見た資料</h3>
-              <p class="text-sm text-slate-600 dark:text-slate-300">どこの公式ページ・図鑑・機関を見たか</p>
-            </div>
-            <div class="bg-slate-50 dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700">
-              <span class="inline-block bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 text-xs font-black px-2.5 py-0.5 rounded-full mb-1">3つ目</span>
-              <h3 class="font-black text-lg mb-2">今の判定（タップで拡大）</h3>
-              <div class="grid grid-cols-3 gap-2">
-                <button onclick="showVerdictCard('ok')" class="py-2 rounded-xl border-2 border-emerald-500 bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 font-black text-2xl">○</button>
-                <button onclick="showVerdictCard('part')" class="py-2 rounded-xl border-2 border-orange-500 bg-orange-50 dark:bg-orange-950/50 text-orange-500 font-black text-2xl">△</button>
-                <button onclick="showVerdictCard('unk')" class="py-2 rounded-xl border-2 border-purple-500 bg-purple-50 dark:bg-purple-950/50 text-purple-600 font-black text-2xl">？</button>
-              </div>
             </div>
           </div>
 
+          <!-- 報告スタイル選択＆45秒タイマー -->
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div class="bg-slate-50 dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700">
               <div class="font-extrabold text-sm mb-2.5">🗣️ 報告スタイルを選ぼう（一人30〜45秒）</div>
               <div class="space-y-2">
                 <button onclick="setReportStyle('A')" class="w-full text-left px-4 py-3 rounded-xl border-2 font-bold text-sm transition ${
-                  reportStyle === 'A' ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/60' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900'
-                }">A. 一言で話す</button>
+                  state.reportStyle === 'A' ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/60' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900'
+                }">A. 上のカードを見ながら一言で話す</button>
                 <button onclick="setReportStyle('B')" class="w-full text-left px-4 py-3 rounded-xl border-2 font-bold text-sm transition ${
-                  reportStyle === 'B' ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/60' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900'
-                }">B. 画面を見せて指差す</button>
+                  state.reportStyle === 'B' ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/60' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900'
+                }">B. 上のカード（または資料画面）を見せて指差す</button>
                 <button onclick="setReportStyle('C')" class="w-full text-left px-4 py-3 rounded-xl border-2 font-bold text-sm transition ${
-                  reportStyle === 'C' ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/60' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900'
-                }">C. 先生に記録を代読してもらう</button>
+                  state.reportStyle === 'C' ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/60' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900'
+                }">C. 先生にカードの内容を代読してもらう</button>
               </div>
             </div>
 
@@ -947,10 +1619,13 @@
         `;
       }
 
-      // STEP 7: 出口の一問
-      if (currentStep === 6) {
+      // ----------------------------------------
+      // STEP 7: 出口の一問（まとめ＆認定証）
+      // ----------------------------------------
+      if (state.currentStep === 6) {
+        const rank = calculateRank();
         bodyHtml = `
-          <div class="bg-slate-50 dark:bg-slate-800/70 p-5 sm:p-7 rounded-2xl border border-slate-200 dark:border-slate-700">
+          <div class="bg-slate-50 dark:bg-slate-800/70 p-5 sm:p-7 rounded-2xl border border-slate-200 dark:border-slate-700 mb-5">
             <span class="inline-block bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 text-xs font-black px-3 py-1 rounded-full mb-2">🏁 ラストミッション</span>
             <h3 class="text-xl sm:text-2xl font-black mb-5">
               Q. AIが「本当です」と2回言ったら、それは確かめたことになる？
@@ -958,101 +1633,290 @@
 
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
               <button onclick="setExitChoice(1)" class="p-4 rounded-xl border-2 font-black text-base transition ${
-                exitChoice === 1 ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/60' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900'
+                state.exitChoice === 1 ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/60' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900'
               }">① なる</button>
               <button onclick="setExitChoice(2)" class="p-4 rounded-xl border-2 font-black text-base transition ${
-                exitChoice === 2 ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/60' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900'
+                state.exitChoice === 2 ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/60' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900'
               }">② まだならない</button>
               <button onclick="setExitChoice(3)" class="p-4 rounded-xl border-2 font-black text-base transition ${
-                exitChoice === 3 ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/60' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900'
+                state.exitChoice === 3 ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/60' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900'
               }">③ 場合による</button>
             </div>
 
             <div class="font-extrabold mb-2.5">理由を選ぼう：</div>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <button onclick="setExitReason('outside')" class="p-4 rounded-xl border-2 text-left font-bold transition ${
-                exitReason === 'outside' ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/60' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900'
+                state.exitReason === 'outside' ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/60' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900'
               }">🏛️ AI以外の資料で見たから</button>
               <button onclick="setExitReason('notyet')" class="p-4 rounded-xl border-2 text-left font-bold transition ${
-                exitReason === 'notyet' ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/60' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900'
+                state.exitReason === 'notyet' ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/60' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900'
               }">🤖 まだAI以外の資料を見ていないから</button>
             </div>
 
-            ${exitChoice ? `
-              <div class="mt-5 p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border-l-4 border-emerald-500 text-emerald-900 dark:text-emerald-200 font-bold text-sm sm:text-base">
-                🎓 <strong>ナイス探偵！</strong> AIが何度「本当です」と言っても、同じAIの答えだけでは確認になりません。<strong>「AI以外の独立した資料で確かめる」</strong>力をこれからも使っていこう！
+            ${state.exitChoice && state.exitReason ? `
+              <div class="mt-6 p-5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                  <span class="font-black text-lg">🎓 AI探偵 認定クリア！</span>
+                  <span class="bg-white/20 px-3 py-1 rounded-full text-sm font-black">今日のランク：${rank.label}</span>
+                </div>
+                <p class="text-sm sm:text-base font-bold opacity-95">
+                  AIが何度「本当です」と言っても、同じAIの答えだけでは確認になりません。<strong>「AI以外の独立した資料で確かめる」</strong>力をこれからも使っていこう！
+                </p>
               </div>
             ` : ""}
+          </div>
+
+          <!-- 時間余り対策：EXクイズへの誘導 -->
+          <div class="bg-amber-50 dark:bg-amber-950/40 border-2 border-amber-400 rounded-2xl p-4 sm:p-5 flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <div class="font-black text-base">🎮 まだ時間があるときは？</div>
+              <div class="text-xs sm:text-sm text-slate-600 dark:text-slate-300">おまけステージ「AI探偵ウソ・ホント見抜きバトル（全5問）」に挑戦しよう！</div>
+            </div>
+            <button onclick="goToStep(7)" class="bg-amber-400 hover:bg-amber-500 text-slate-950 font-black px-5 py-2.5 rounded-xl shadow-sm">
+              🎮 EXクイズへ進む →
+            </button>
           </div>
         `;
       }
 
-      container.innerHTML = `
-        <section class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 sm:p-8 shadow-md">
-          <div class="border-b border-slate-100 dark:border-slate-800 pb-4 mb-6">
-            <span class="inline-block bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 text-xs sm:text-sm font-black px-3 py-1 rounded-full mb-1.5">
-              STEP ${currentStep + 1} / ${STEPS.length}（目安：${step.time}）
-            </span>
-            <h2 class="text-xl sm:text-2xl font-black tracking-tight">${step.title}</h2>
+      // ----------------------------------------
+      // STEP 8 (EX): おまけ・AI探偵ウソ・ホント見抜きバトル（全5問）
+      // ----------------------------------------
+      if (state.currentStep === 7) {
+        const answeredCount = state.exAnswers.filter(a => a !== null).length;
+        const correctCount = state.exAnswers.filter((a, i) => a === EX_QUIZZES[i].correct).length;
+
+        bodyHtml = `
+          <div class="flex flex-wrap items-center justify-between gap-3 bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800 rounded-2xl p-4 mb-5">
+            <div class="font-black text-sm sm:text-base">
+              🏆 スコア：<span class="text-blue-600 dark:text-blue-400 text-xl">${correctCount}</span> / ${EX_QUIZZES.length} 問正解（回答済み：${answeredCount}問）
+            </div>
+            <button onclick="resetExQuiz()" class="bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-xs font-extrabold px-3 py-1.5 rounded-full">
+              ↺ クイズをやり直す
+            </button>
           </div>
+
+          <div class="space-y-4">
+            ${EX_QUIZZES.map((item, qIdx) => {
+              const ans = state.exAnswers[qIdx];
+              const isCorrect = ans === item.correct;
+              return `
+                <div class="bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 sm:p-5">
+                  <div class="flex items-start gap-2.5 mb-3">
+                    <span class="bg-amber-400 text-slate-950 font-black text-xs px-2.5 py-1 rounded-full shrink-0 mt-0.5">Q${qIdx + 1}</span>
+                    <h3 class="font-black text-sm sm:text-base leading-snug">${item.q}</h3>
+                  </div>
+
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    ${item.choices.map((ch, cIdx) => {
+                      let btnCls = "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:border-blue-400";
+                      if (ans !== null) {
+                        if (cIdx === item.correct) {
+                          btnCls = "border-emerald-500 bg-emerald-50 dark:bg-emerald-950/60 text-emerald-900 dark:text-emerald-200";
+                        } else if (cIdx === ans) {
+                          btnCls = "border-red-400 bg-red-50 dark:bg-red-950/50 text-red-800 dark:text-red-200";
+                        }
+                      }
+                      return `
+                        <button onclick="answerExQuiz(${qIdx}, ${cIdx})" class="text-left p-3.5 rounded-xl border-2 font-bold text-xs sm:text-sm transition ${btnCls}">
+                          ${ch}
+                        </button>
+                      `;
+                    }).join("")}
+                  </div>
+
+                  ${ans !== null ? `
+                    <div class="mt-3 p-3.5 rounded-xl text-xs sm:text-sm font-bold border-l-4 ${
+                      isCorrect
+                        ? 'bg-emerald-50 dark:bg-emerald-950/50 border-emerald-500 text-emerald-900 dark:text-emerald-200'
+                        : 'bg-orange-50 dark:bg-orange-950/50 border-orange-500 text-orange-900 dark:text-orange-200'
+                    }">
+                      <span class="font-black mr-1">${isCorrect ? '⭕ 正解！' : '❌ おしい！'}</span>
+                      ${item.explain}
+                    </div>
+                  ` : ""}
+                </div>
+              `;
+            }).join("")}
+          </div>
+        `;
+      }
+
+      // 全体のカード枠を描画
+      container.innerHTML = `
+        <section class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 sm:p-7 shadow-md">
+          <div class="border-b border-slate-100 dark:border-slate-800 pb-3.5 mb-5 flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <span class="inline-block bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 text-xs sm:text-sm font-black px-3 py-1 rounded-full mb-1.5">
+                ${state.currentStep === 7 ? 'EXTRA STAGE（時間余り・腕試し）' : `STEP ${state.currentStep + 1} / 7（目安：${step.time}）`}
+              </span>
+              <h2 class="text-xl sm:text-2xl font-black tracking-tight">${step.title}</h2>
+            </div>
+            <button onclick="openModal('helpModal')" class="text-xs font-extrabold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-700 px-3 py-1.5 rounded-full hover:bg-emerald-100 transition">
+              ❓ コピペや操作に迷ったら
+            </button>
+          </div>
+
+          <!-- 生徒向け：このページの目標・使う画面・操作手順3ステップ -->
+          ${renderActionGuideHTML(step)}
+
+          <!-- 各ステップの本体 -->
           ${bodyHtml}
         </section>
       `;
     }
 
-    // 各種インタラクションハンドラ
-    function selectIntro(n) {
-      introChoice = n;
-      playTone(n === 2 ? 784 : 523.25, 0.12);
+    // ==========================================
+    // 8. インタラクション＆モーダル制御
+    // ==========================================
+    function switchIntroTab(idx) {
+      state.introTab = idx;
+      playTone(587.33, 0.08);
+      saveState();
       renderStage();
     }
 
+    function selectIntro(n) {
+      state.introChoices[state.introTab] = n;
+      const opt = INTRO_CASES[state.introTab].options.find(o => o.id === n);
+      playTone(opt && opt.isCorrect ? 784 : 523.25, 0.12);
+      saveState();
+      renderStage();
+    }
+
+    function selectCard(cardKey) {
+      state.selectedCard = cardKey;
+      playTone(659.25, 0.08);
+      saveState();
+      if (state.currentStep === 1) renderStage();
+      renderModalCards();
+    }
+
+    function updateGameName(val) {
+      state.customGameName = val;
+      saveState();
+      document.querySelectorAll(".gamePromptPreview").forEach(el => {
+        el.textContent = `「${getGamePrompt()}」`;
+      });
+      document.querySelectorAll(".game-input").forEach(el => {
+        if (el.value !== val) el.value = val;
+      });
+    }
+
+    function updateFreeTopic(val) {
+      state.customFreeTopic = val;
+      saveState();
+      document.querySelectorAll(".freePromptPreview").forEach(el => {
+        el.textContent = `コピーされる文章：「${getFreePrompt()}」`;
+      });
+      document.querySelectorAll(".free-input").forEach(el => {
+        if (el.value !== val) el.value = val;
+      });
+    }
+
+    function renderModalCards() {
+      const area = document.getElementById("modalCardsArea");
+      if (area) area.innerHTML = renderMissionCardsHTML(true);
+    }
+
     function toggleFiveStep(idx) {
-      fiveStepsDone[idx] = !fiveStepsDone[idx];
-      playTone(fiveStepsDone[idx] ? 659.25 : 440, 0.08);
+      state.fiveStepsDone[idx] = !state.fiveStepsDone[idx];
+      playTone(state.fiveStepsDone[idx] ? 659.25 : 440, 0.08);
+      saveState();
       renderStage();
     }
 
     function voteShowcase(type) {
-      showcaseVotes[type]++;
+      state.showcaseVotes[type]++;
       playTone(659.25, 0.08);
+      saveState();
       renderStage();
     }
 
-    function selectAdv(type) {
-      selectedAdvanced = type;
-      playTone(587.33, 0.08);
-      renderStage();
-    }
-
-    function unlockSecret() {
-      secretUnlocked = true;
-      playChime();
+    function toggleChallenge(id) {
+      const idx = state.completedChallenges.indexOf(id);
+      if (idx >= 0) {
+        state.completedChallenges.splice(idx, 1);
+        playTone(440, 0.08);
+      } else {
+        state.completedChallenges.push(id);
+        playChime();
+        showToast("🎉 チャレンジクリア！探偵ランクがアップするよ！");
+      }
+      saveState();
       renderStage();
     }
 
     function setReportStyle(style) {
-      reportStyle = style;
+      state.reportStyle = style;
       playTone(587.33, 0.08);
+      saveState();
       renderStage();
     }
 
     function setExitChoice(n) {
-      exitChoice = n;
+      state.exitChoice = n;
       playTone(659.25, 0.1);
+      saveState();
       renderStage();
     }
 
     function setExitReason(r) {
-      exitReason = r;
+      state.exitReason = r;
       playChime();
+      saveState();
       renderStage();
+    }
+
+    function answerExQuiz(qIdx, cIdx) {
+      state.exAnswers[qIdx] = cIdx;
+      const correct = EX_QUIZZES[qIdx].correct === cIdx;
+      if (correct) playChime();
+      else playTone(330, 0.15);
+      saveState();
+      renderStage();
+    }
+
+    function resetExQuiz() {
+      state.exAnswers = [null, null, null, null, null];
+      playTone(523.25, 0.08);
+      saveState();
+      renderStage();
+    }
+
+    // 判定カード拡大モーダル
+    function showVerdictCard(type) {
+      playTone(784, 0.12);
+      const map = {
+        ok: {
+          sym: "○", title: "確かめられた！",
+          colorClass: "text-emerald-600 dark:text-emerald-400",
+          desc: "AIとは別の公式資料・信頼できる情報源で同じ内容が確認できた！"
+        },
+        part: {
+          sym: "△", title: "一部だけ確かめられた",
+          colorClass: "text-orange-500 dark:text-orange-400",
+          desc: "合っている部分もあるけれど、条件が違う・一部だけ確認できた状態。"
+        },
+        unk: {
+          sym: "？", title: "まだ不明（未確認）",
+          colorClass: "text-purple-600 dark:text-purple-400",
+          desc: "まだ確かな資料が見つからない状態。「まだ不明」も立派な探偵の発見！"
+        }
+      };
+      const item = map[type] || map.unk;
+      document.getElementById("bigVerdictContent").innerHTML = `
+        <div class="text-8xl font-black leading-none ${item.colorClass}">${item.sym}</div>
+        <div class="text-2xl sm:text-3xl font-black mt-4 mb-2 ${item.colorClass}">${item.title}</div>
+        <p class="text-sm sm:text-base text-slate-600 dark:text-slate-300 font-medium">${item.desc}</p>
+      `;
+      openModal("verdictModal");
     }
 
     // サブタイマー（30秒・45秒）
     function startSubTimer(defaultSec) {
       clearInterval(subTimerInterval);
-      if (subTimerSeconds <= 0) subTimerSeconds = defaultSec;
+      if (subTimerSeconds <= 0 || subTimerSeconds > defaultSec) subTimerSeconds = defaultSec;
       subTimerInterval = setInterval(() => {
         subTimerSeconds--;
         const el = document.getElementById("subTimerDisp");
@@ -1060,6 +1924,7 @@
         if (subTimerSeconds <= 0) {
           clearInterval(subTimerInterval);
           playChime();
+          showToast("🔔 発表タイム終了！拍手〜👏");
         }
       }, 1000);
     }
@@ -1071,8 +1936,66 @@
       if (el) el.textContent = `${subTimerSeconds}秒`;
     }
 
-    // 初期描画
+    // モーダル開閉
+    function openModal(id) {
+      if (id === "copyModal") renderModalCards();
+      if (id === "noteModal") {
+        document.getElementById("noteModalBody").innerHTML = renderDetectiveNoteHTML("modal");
+      }
+      const el = document.getElementById(id);
+      el.classList.remove("hidden");
+      el.classList.add("flex");
+    }
+
+    function closeModal(id) {
+      const el = document.getElementById(id);
+      el.classList.add("hidden");
+      el.classList.remove("flex");
+    }
+
+    function closeModalOnBg(e, id) {
+      if (e.target.id === id) closeModal(id);
+    }
+
+    // 先生用：記録初期化（confirmを使わずインライン確認）
+    function showResetConfirm() {
+      const area = document.getElementById("resetConfirmArea");
+      area.innerHTML = `
+        <span class="text-xs font-black text-red-600 mr-2">本当に初期化しますか？</span>
+        <button onclick="executeResetAll()" class="bg-red-600 text-white text-xs font-black px-3 py-1.5 rounded-lg mr-1">はい、初期化</button>
+        <button onclick="cancelResetConfirm()" class="bg-slate-200 dark:bg-slate-700 text-xs font-bold px-3 py-1.5 rounded-lg">やめる</button>
+      `;
+    }
+
+    function cancelResetConfirm() {
+      const area = document.getElementById("resetConfirmArea");
+      area.innerHTML = `
+        <button onclick="showResetConfirm()" class="bg-red-50 dark:bg-red-950/50 hover:bg-red-100 border border-red-300 dark:border-red-800 text-red-700 dark:text-red-300 text-xs font-extrabold px-3 py-1.5 rounded-lg">
+          🗑️ 記録をすべて初期化
+        </button>
+      `;
+    }
+
+    function executeResetAll() {
+      try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
+      state = {
+        currentStep: 0, selectedCard: "A", customGameName: "", customFreeTopic: "",
+        introTab: 0, introChoices: [null, null], fiveStepsDone: [false, false, false, false, false],
+        showcaseVotes: { yes: 0, later: 0 }, completedChallenges: [], secretUnlocked: false,
+        reportStyle: "A", exitChoice: null, exitReason: null,
+        exAnswers: [null, null, null, null, null], activeCaseIndex: 0, cases: [createEmptyCase(1)]
+      };
+      cancelResetConfirm();
+      closeModal("teacherModal");
+      goToStep(0);
+      showToast("✅ すべての記録を初期化しました");
+    }
+
+    // 初期起動
     window.addEventListener("DOMContentLoaded", () => {
+      loadState();
+      remainingSeconds = STEPS[state.currentStep].duration;
+      updateRankBadge();
       renderTimeline();
       renderStage();
       updateTimerUI();

@@ -1,0 +1,1158 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>余弦定理のひみつ探究ラボ｜2本の棒と角度の物語</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Meiryo', 'sans-serif'],
+            mono: ['JetBrains Mono', 'Consolas', 'monospace']
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    .math-var {
+      font-family: 'Times New Roman', serif;
+      font-style: italic;
+      font-weight: 700;
+      padding: 0 2px;
+    }
+    .math-frac {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      vertical-align: middle;
+      margin: 0 0.2em;
+      font-family: 'Times New Roman', serif;
+      line-height: 1.05;
+    }
+    .math-frac > .num {
+      border-bottom: 1.5px solid currentColor;
+      padding: 0 0.25em 0.08em;
+    }
+    .math-frac > .den {
+      padding: 0.08em 0.25em 0;
+    }
+    input[type="range"] {
+      accent-color: #4f46e5;
+    }
+    @keyframes pulseLine {
+      0%, 100% { stroke-dashoffset: 0; }
+      50% { stroke-dashoffset: 16; }
+    }
+    .dashed-target {
+      stroke-dasharray: 8 5;
+      animation: pulseLine 2s linear infinite;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-screen flex flex-col transition-colors duration-200">
+
+  <!-- トップヘッダー -->
+  <header class="bg-white/95 dark:bg-slate-900/95 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-40 backdrop-blur px-4 py-3 shadow-sm">
+    <div class="max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white font-serif font-bold text-lg shadow-md">
+          cos
+        </div>
+        <div>
+          <h1 class="text-base sm:text-lg font-extrabold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
+            余弦定理のひみつ探究ラボ
+            <span class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-700">数学Ⅰ 40分授業</span>
+          </h1>
+          <p class="text-xs text-slate-500 dark:text-slate-400">中心の問い：同じ長さの2本の棒でも、開く角度によって端と端の距離が変わる。測らずに求める方法はあるだろうか？</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <!-- 教師用ガイド表示切替 -->
+        <button type="button" id="teacherNoteToggleBtn" class="px-3 py-1.5 rounded-xl text-xs font-bold border transition bg-amber-50 dark:bg-amber-950/60 border-amber-300 dark:border-amber-700 text-amber-800 dark:text-amber-300 hover:bg-amber-100">
+          👩‍🏫 発問・板書ガイド: OFF
+        </button>
+
+        <!-- 背景テーマ切替 -->
+        <div class="flex items-center bg-slate-200/80 dark:bg-slate-800 p-0.5 rounded-xl border border-slate-300 dark:border-slate-700 text-[11px] font-bold">
+          <button type="button" id="themeLightBtn" data-theme="light" class="px-2 py-1 rounded-lg transition">☀️ ライト</button>
+          <button type="button" id="themeDarkBtn" data-theme="dark" class="px-2 py-1 rounded-lg transition">🌙 ダーク</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- 40分授業タイムライン・ナビゲーション -->
+  <nav class="bg-slate-100 dark:bg-slate-900/80 border-b border-slate-200 dark:border-slate-800 px-4 py-2.5">
+    <div class="max-w-6xl mx-auto flex items-center gap-2 overflow-x-auto pb-1">
+      <button type="button" data-step="1" id="tab-1" class="step-tab shrink-0 px-3 py-2 rounded-xl text-xs font-bold transition text-left">
+        <div class="text-[10px] opacity-80">0〜7分</div>
+        <div>① 2本の棒の不思議</div>
+      </button>
+      <button type="button" data-step="2" id="tab-2" class="step-tab shrink-0 px-3 py-2 rounded-xl text-xs font-bold transition text-left">
+        <div class="text-[10px] opacity-80">7〜15分</div>
+        <div>② 60°・90°・120°比較</div>
+      </button>
+      <button type="button" data-step="3" id="tab-3" class="step-tab shrink-0 px-3 py-2 rounded-xl text-xs font-bold transition text-left">
+        <div class="text-[10px] opacity-80">15〜21分</div>
+        <div>③ 池の向こうを測る</div>
+      </button>
+      <button type="button" data-step="4" id="tab-4" class="step-tab shrink-0 px-3 py-2 rounded-xl text-xs font-bold transition text-left">
+        <div class="text-[10px] opacity-80">21〜30分</div>
+        <div>④ 余弦定理の正体</div>
+      </button>
+      <button type="button" data-step="5" id="tab-5" class="step-tab shrink-0 px-3 py-2 rounded-xl text-xs font-bold transition text-left">
+        <div class="text-[10px] opacity-80">30〜36分</div>
+        <div>⑤ 60°の例を1行ずつ</div>
+      </button>
+      <button type="button" data-step="6" id="tab-6" class="step-tab shrink-0 px-3 py-2 rounded-xl text-xs font-bold transition text-left">
+        <div class="text-[10px] opacity-80">36〜40分</div>
+        <div>⑥ 出口カード＆復習</div>
+      </button>
+    </div>
+  </nav>
+
+  <!-- 教師用発問・板書ガイド（トグル表示） -->
+  <div id="teacherNoteBanner" class="hidden bg-amber-50 dark:bg-amber-950/70 border-b border-amber-200 dark:border-amber-800 px-4 py-3">
+    <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+      <div class="bg-white/80 dark:bg-slate-900/80 p-3 rounded-xl border border-amber-200 dark:border-amber-800">
+        <div class="font-extrabold text-amber-800 dark:text-amber-300 mb-1">🗣️ 教師の発問・声かけ</div>
+        <p id="teacherPromptText" class="text-slate-700 dark:text-slate-200 leading-relaxed"></p>
+      </div>
+      <div class="bg-white/80 dark:bg-slate-900/80 p-3 rounded-xl border border-amber-200 dark:border-amber-800">
+        <div class="font-extrabold text-emerald-800 dark:text-emerald-300 mb-1">📋 板書のポイント・つまずき支援</div>
+        <p id="teacherBoardText" class="text-slate-700 dark:text-slate-200 leading-relaxed"></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- メインコンテンツ領域 -->
+  <main class="flex-1 max-w-6xl w-full mx-auto p-4">
+    <!-- 各ステップの画面コンテナ -->
+    <div id="stepContentContainer"></div>
+
+    <!-- 下部ナビゲーションボタン -->
+    <div class="mt-6 pt-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between">
+      <button type="button" id="prevStepBtn" class="px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition disabled:opacity-40">
+        &larr; 前の場面へ
+      </button>
+      <div class="text-xs font-bold text-slate-500 dark:text-slate-400">
+        到達目標：<span id="goalIndicatorText">2辺を固定すると間の角度が変われば第三辺が変わると説明できる</span>
+      </div>
+      <button type="button" id="nextStepBtn" class="px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-indigo-600 hover:bg-indigo-500 text-white shadow-md transition disabled:opacity-40">
+        次の場面へ &rarr;
+      </button>
+    </div>
+  </main>
+
+  <script>
+    /* =========================================================================
+       状態管理
+       ========================================================================= */
+    let currentStep = 1;
+    let showTeacherNote = false;
+
+    // Step 1 状態（2本の棒）
+    let stickAngle = 35; // 10°〜170°
+    let revealStickDist = false; // 予想中は距離を隠せる
+    let step1QuizAnswered = null;
+
+    // Step 2 状態（60°・90°・120°比較）
+    let selectedOrder = []; // 生徒が選んだ短い順
+    let orderChecked = false;
+    let doubleAngleQuizAnswered = null;
+
+    // Step 3 状態（池の測定）
+    let pondAngle = 60;
+    let pondSideA = 6;
+    let pondSideB = 8;
+    let pondFormulaShown = false;
+
+    // Step 4 状態（余弦定理の解剖）
+    let theoremAngle = 60; // 60, 90, 120 の切替
+
+    // Step 5 状態（60°の例を1行ずつ確認）
+    let calcRevealLine = 1; // 1〜4行目まで段階表示
+
+    // Step 6 状態（出口カード）
+    let exitQ1 = '';
+    let exitQ2 = [];
+    let exitQ3 = '';
+    let exitSubmitted = false;
+
+    /* =========================================================================
+       指導案データ（発問・板書・到達目標）
+       ========================================================================= */
+    const STEP_META = {
+      1: {
+        goal: '① 2辺を固定すると間の角度が変われば第三辺が変わると説明できる',
+        prompt: '「長さ5cmの棒を2本、片方の端でつなぎました。反対側の端と端は何cm離れているでしょう？」「棒の長さは変えましたか？何を変えたら、端と端の距離が変わった？」',
+        board: '板書：『2本の長さが同じでも、間の角度が違えば、端と端の距離は違う』。※ここではまだ cos や公式を出さない。つまずき支援：つなぎ目の色シール（赤点）の開き方を指さす。'
+      },
+      2: {
+        goal: '① 角度が広いほど第三辺が長いが、角度と長さは比例しない',
+        prompt: '「2本とも5cmで、間の角度だけを 60°・90°・120° に変えます。端と端の距離が短い順に並べよう」「角度が2倍（60°→120°）なら、距離も2倍（5cm→10cm）になる？」',
+        board: '60°は正三角形なのでちょうど5cm。120°は10cmより短い（約8.7cm）ことを確かめ、「角度が大きいと長いが、比例するわけではない」と確認する。'
+      },
+      3: {
+        goal: '② 測れない場合にも、2辺とその間の角度から計算する意義がわかる',
+        prompt: '「校庭の2地点を結ぶ距離を知りたいが、間に池があって直接測れない。池の手前から2方向の距離と、その間の角度なら調べられるとしたら、何ができれば便利？」',
+        board: '板書：「わかっている2辺の長さと、その間の角度から計算できればよい」。※直角のとき（3²+4²=5²）は30秒程度にとどめ、暗記テストはしない。'
+      },
+      4: {
+        goal: '③ 余弦定理の cos は角度の情報を式に取り込む部分だと説明できる',
+        prompt: '「2本の長さ a, b が同じなのに答えが変わるのは、式のどこが変わるから？」「90°のときはどうなる？」',
+        board: 'c² = a² + b² - 2ab cos C を3色で囲む（青：2本の長さ / 紫：角度による調整項 / オレンジ：求めたい辺）。90°では cos90°=0 で三平方の定理と一致する！'
+      },
+      5: {
+        goal: '③ 60°の具体例を通して、観察結果（5cm）と計算式（5cm）が一致すると実感する',
+        prompt: '「a=5, b=5, C=60° を1行ずつ入れてみよう。60°で5cmになったのは、さっきの実物（正三角形）の結果と一致する？」',
+        board: 'c² = 5² + 5² - 2×5×5×(1/2) → c² = 25 + 25 - 25 = 25 → c = 5。計算の速さよりも「式が現実の図形を説明していること」を言葉にする。'
+      },
+      6: {
+        goal: '全到達目標の振り返り（自分の言葉で余弦定理の必要性を説明できる）',
+        prompt: '「今日の3つの問いに自分の言葉で答えてみよう。公式を丸暗記していなくても、仕組みが説明できれば大成功です！」',
+        board: '回収・振り返りポイント：①角度、②2辺の長さとその間の角度、③直接測れなくても残りの辺を計算できる、の趣旨があれば達成！'
+      }
+    };
+
+    /* =========================================================================
+       テーマ・ガイド制御
+       ========================================================================= */
+    function setTheme(mode) {
+      const root = document.documentElement;
+      if (mode === 'dark') {
+        root.classList.add('dark');
+      } else {
+        root.classList.remove('dark');
+      }
+      const activeCls = 'px-2 py-1 rounded-lg transition bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-sm';
+      const inactiveCls = 'px-2 py-1 rounded-lg transition text-slate-600 dark:text-slate-400 hover:text-slate-900';
+      document.getElementById('themeLightBtn').className = mode === 'light' ? activeCls : inactiveCls;
+      document.getElementById('themeDarkBtn').className = mode === 'dark' ? activeCls : inactiveCls;
+      renderCurrentStep();
+    }
+
+    function toggleTeacherNote() {
+      showTeacherNote = !showTeacherNote;
+      const banner = document.getElementById('teacherNoteBanner');
+      const btn = document.getElementById('teacherNoteToggleBtn');
+      if (showTeacherNote) {
+        banner.classList.remove('hidden');
+        btn.textContent = '👩‍🏫 発問・板書ガイド: ON';
+        btn.className = 'px-3 py-1.5 rounded-xl text-xs font-bold border transition bg-amber-500 border-amber-500 text-white shadow-sm';
+      } else {
+        banner.classList.add('hidden');
+        btn.textContent = '👩‍🏫 発問・板書ガイド: OFF';
+        btn.className = 'px-3 py-1.5 rounded-xl text-xs font-bold border transition bg-amber-50 dark:bg-amber-950/60 border-amber-300 dark:border-amber-700 text-amber-800 dark:text-amber-300';
+      }
+    }
+
+    function goStep(stepNum) {
+      if (stepNum < 1 || stepNum > 6) return;
+      currentStep = stepNum;
+
+      // タブのアクティブ状態更新
+      for (let i = 1; i <= 6; i++) {
+        const tab = document.getElementById(`tab-${i}`);
+        if (i === currentStep) {
+          tab.className = 'step-tab shrink-0 px-3 py-2 rounded-xl text-xs font-bold transition text-left bg-indigo-600 text-white shadow-md';
+        } else {
+          tab.className = 'step-tab shrink-0 px-3 py-2 rounded-xl text-xs font-bold transition text-left bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-50';
+        }
+      }
+
+      // 前後ボタンとガイド更新
+      document.getElementById('prevStepBtn').disabled = currentStep === 1;
+      document.getElementById('nextStepBtn').disabled = currentStep === 6;
+      document.getElementById('goalIndicatorText').textContent = STEP_META[currentStep].goal;
+      document.getElementById('teacherPromptText').textContent = STEP_META[currentStep].prompt;
+      document.getElementById('teacherBoardText').textContent = STEP_META[currentStep].board;
+
+      renderCurrentStep();
+    }
+
+    /* =========================================================================
+       各ステップの描画ロジック
+       ========================================================================= */
+    function renderCurrentStep() {
+      const container = document.getElementById('stepContentContainer');
+      if (currentStep === 1) container.innerHTML = renderStep1();
+      else if (currentStep === 2) container.innerHTML = renderStep2();
+      else if (currentStep === 3) container.innerHTML = renderStep3();
+      else if (currentStep === 4) container.innerHTML = renderStep4();
+      else if (currentStep === 5) container.innerHTML = renderStep5();
+      else if (currentStep === 6) container.innerHTML = renderStep6();
+    }
+
+    /* ---------------- Step 1: 2本の棒の不思議 (0〜7分) ---------------- */
+    function renderStep1() {
+      // 2本の5cmの棒の座標計算（左下の割りピン原点: (90, 230), 1cm = 32px）
+      const ox = 95, oy = 235, scale = 32;
+      const len = 5 * scale; // 160px
+      const bx = ox + len, by = oy; // 右端 (255, 235)
+      const rad = (stickAngle * Math.PI) / 180;
+      const ax = ox + len * Math.cos(rad);
+      const ay = oy - len * Math.sin(rad);
+
+      // 第三辺の実測値（余弦定理で厳密計算）
+      const distCm = Math.sqrt(25 + 25 - 50 * Math.cos(rad));
+      const midThirdX = (ax + bx) / 2 + 12;
+      const midThirdY = (ay + by) / 2 - 8;
+
+      // 角度アーク
+      const arcR = 36;
+      const arcEndX = ox + arcR * Math.cos(rad);
+      const arcEndY = oy - arcR * Math.sin(rad);
+
+      return `
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+          <!-- 左：2本の棒インタラクティブ実験 -->
+          <div class="lg:col-span-7 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
+            <div class="flex items-center justify-between flex-wrap gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
+              <div>
+                <span class="text-xs font-extrabold text-indigo-600 dark:text-indigo-400">STEP 1（0〜7分）｜長さが変わる「不思議」をつくる</span>
+                <h2 class="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white">2本の5cmの棒をゆっくり開いてみよう</h2>
+              </div>
+              <button type="button" data-action="toggle-stick-dist" class="px-3 py-1.5 rounded-xl text-xs font-bold border transition ${revealStickDist ? 'bg-orange-500 border-orange-500 text-white' : 'bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200'}">
+                ${revealStickDist ? '📏 定規で実測中（距離を表示）' : '🙈 予想タイム（距離を隠す）'}
+              </button>
+            </div>
+
+            <!-- SVG 2本の棒キャンバス -->
+            <div class="bg-slate-50 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800 p-2">
+              <svg viewBox="0 0 420 275" class="w-full h-auto max-h-[280px] select-none">
+                <!-- 背景の同心円ガイド（棒の先端の軌道） -->
+                <circle cx="${ox}" cy="${oy}" r="${len}" fill="none" stroke="currentColor" class="text-slate-200 dark:text-slate-800" stroke-dasharray="4 4" stroke-width="1.5" />
+
+                <!-- 角度の扇形 -->
+                <path d="M ${ox},${oy} L ${ox + arcR},${oy} A ${arcR},${arcR} 0 0,0 ${arcEndX.toFixed(1)},${arcEndY.toFixed(1)} Z" fill="rgba(245, 158, 11, 0.22)" stroke="#f59e0b" stroke-width="2" />
+                <text x="${ox + 46}" y="${oy - 10}" font-size="14" font-weight="800" fill="#d97706">${stickAngle}°</text>
+
+                <!-- 第三辺（端と端の距離：オレンジ点線） -->
+                <line x1="${ax.toFixed(1)}" y1="${ay.toFixed(1)}" x2="${bx}" y2="${by}" stroke="#f97316" stroke-width="3.5" class="dashed-target" />
+                <rect x="${(midThirdX - 38).toFixed(1)}" y="${(midThirdY - 14).toFixed(1)}" width="84" height="26" rx="8" fill="#fff7ed" stroke="#f97316" stroke-width="2" />
+                <text x="${(midThirdX + 4).toFixed(1)}" y="${(midThirdY + 4).toFixed(1)}" text-anchor="middle" font-size="13" font-weight="800" fill="#c2410c">
+                  ${revealStickDist ? `約 ${distCm.toFixed(1)} cm` : '？ cm'}
+                </text>
+
+                <!-- 下の棒（5cm固定） -->
+                <line x1="${ox}" y1="${oy}" x2="${bx}" y2="${by}" stroke="#2563eb" stroke-width="8" stroke-linecap="round" />
+                <text x="${(ox + bx) / 2}" y="${oy + 24}" text-anchor="middle" font-size="14" font-weight="800" fill="#2563eb">棒①：5 cm（固定）</text>
+
+                <!-- 動く棒（5cm） -->
+                <line x1="${ox}" y1="${oy}" x2="${ax.toFixed(1)}" y2="${ay.toFixed(1)}" stroke="#3b82f6" stroke-width="8" stroke-linecap="round" />
+                <text x="${((ox + ax) / 2 - 28).toFixed(1)}" y="${((oy + ay) / 2 - 8).toFixed(1)}" text-anchor="middle" font-size="13" font-weight="800" fill="#2563eb">棒②：5 cm</text>
+
+                <!-- つなぎ目の割りピン（赤シール） -->
+                <circle cx="${ox}" cy="${oy}" r="8" fill="#ef4444" stroke="#ffffff" stroke-width="2.5" />
+                <text x="${ox}" y="${oy + 24}" text-anchor="middle" font-size="11" font-weight="bold" fill="#ef4444">つなぎ目</text>
+
+                <!-- 両端の点 -->
+                <circle cx="${ax.toFixed(1)}" cy="${ay.toFixed(1)}" r="6" fill="#f97316" stroke="#ffffff" stroke-width="2" />
+                <circle cx="${bx}" cy="${by}" r="6" fill="#f97316" stroke="#ffffff" stroke-width="2" />
+              </svg>
+            </div>
+
+            <!-- 開く角度の操作スライダー＆クイックボタン -->
+            <div class="bg-indigo-50/70 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800 rounded-xl p-4 space-y-3">
+              <div class="flex items-center justify-between">
+                <label class="text-xs sm:text-sm font-extrabold text-indigo-950 dark:text-indigo-200">
+                  🎛️ 開く角度を動かす：<span class="text-lg font-mono text-indigo-600 dark:text-indigo-400">${stickAngle}°</span>
+                </label>
+                <div class="flex gap-1.5">
+                  <button type="button" data-stick-angle="15" class="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-xs font-bold hover:bg-indigo-50">ほぼ閉じる (15°)</button>
+                  <button type="button" data-stick-angle="60" class="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-xs font-bold hover:bg-indigo-50">60°</button>
+                  <button type="button" data-stick-angle="140" class="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-xs font-bold hover:bg-indigo-50">大きく開く (140°)</button>
+                </div>
+              </div>
+              <input type="range" min="10" max="170" value="${stickAngle}" data-input="stick-angle" class="w-full cursor-pointer">
+            </div>
+          </div>
+
+          <!-- 右：発見クイズ＆板書まとめ -->
+          <div class="lg:col-span-5 space-y-4">
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
+              <div class="text-xs font-extrabold text-amber-600 dark:text-amber-400 uppercase tracking-wider">💡 観察チェッククイズ</div>
+              <p class="text-sm font-bold text-slate-900 dark:text-white leading-relaxed">
+                2本の棒の長さ（5cm と 5cm）はまったく変えていません。<br>
+                それなのに「端と端の距離（オレンジ色の点線）」が変わったのは、何を変えたからでしょう？
+              </p>
+
+              <div class="space-y-2">
+                ${[
+                  { id: 'length', label: '① 棒の長さ' },
+                  { id: 'thickness', label: '② 棒の太さ' },
+                  { id: 'angle', label: '③ 2本の棒の「間の角度（開き方）」' }
+                ].map(opt => {
+                  let cls = 'w-full p-3 rounded-xl border-2 text-left text-xs sm:text-sm font-bold transition ';
+                  if (step1QuizAnswered === opt.id) {
+                    cls += opt.id === 'angle'
+                      ? 'border-emerald-500 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'
+                      : 'border-rose-500 bg-rose-500/10 text-rose-700 dark:text-rose-300';
+                  } else {
+                    cls += 'border-slate-200 dark:border-slate-700 hover:border-indigo-400 bg-slate-50/70 dark:bg-slate-800/60';
+                  }
+                  return `<button type="button" data-step1-quiz="${opt.id}" class="${cls}">${opt.label}</button>`;
+                }).join('')}
+              </div>
+
+              ${step1QuizAnswered ? `
+                <div class="p-3.5 rounded-xl text-xs leading-relaxed ${step1QuizAnswered === 'angle' ? 'bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-700 text-emerald-900 dark:text-emerald-200' : 'bg-rose-50 dark:bg-rose-950/60 border border-rose-300 dark:border-rose-700 text-rose-900 dark:text-rose-200'}">
+                  ${step1QuizAnswered === 'angle'
+                    ? '⭕ <strong>大正解！</strong> 棒の長さ（5cmと5cm）が同じでも、つなぎ目の<strong>「間の角度」</strong>を広げるほど、反対側の端と端の距離は遠くなります！'
+                    : '❌ 棒の長さも太さも変えていませんね！動かしたのはつなぎ目の<strong>「③ 間の角度（開き方）」</strong>です。'}
+                </div>
+              ` : ''}
+            </div>
+
+            <div class="bg-indigo-600 text-white rounded-2xl p-5 shadow-md space-y-2">
+              <div class="text-xs font-extrabold uppercase tracking-wider text-indigo-200">📌 今日の最初のまとめ（黒板メモ）</div>
+              <p class="text-sm sm:text-base font-extrabold leading-relaxed">
+                「2本の長さが同じでも、間の角度が違えば、端と端の距離は違う」
+              </p>
+              <p class="text-xs text-indigo-100">
+                つまり、残りの1辺の長さを決めるには<strong>「2辺の長さ」＋「間の角度」</strong>のセットが必要です！
+              </p>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    /* ---------------- Step 2: 60°・90°・120°の比較 (7〜15分) ---------------- */
+    function renderStep2() {
+      const cards = [
+        { deg: 60, label: '60° の三角形', realText: 'ちょうど 5.0 cm（正三角形！）', note: '3つの角がすべて60°になるため、第三辺も5cm！' },
+        { deg: 90, label: '90° の三角形', realText: '約 7.1 cm（直角三角形）', note: '5cmより長くなる（5√2 ≒ 7.07cm）。' },
+        { deg: 120, label: '120° の三角形', realText: '約 8.7 cm（鈍角三角形）', note: '一番長いが、10cm（5cmの2倍）には届かない！' }
+      ];
+
+      // 3つの三角形ミニSVG生成
+      const drawMiniTri = (deg) => {
+        const ox = 55, oy = 115, s = 14;
+        const l = 5 * s; // 70px
+        const rad = (deg * Math.PI) / 180;
+        const ax = ox + l * Math.cos(rad);
+        const ay = oy - l * Math.sin(rad);
+        const bx = ox + l, by = oy;
+        return `
+          <svg viewBox="0 0 160 135" class="w-full h-28 mx-auto">
+            <line x1="${ax.toFixed(1)}" y1="${ay.toFixed(1)}" x2="${bx}" y2="${by}" stroke="#f97316" stroke-width="3" stroke-dasharray="5 3" />
+            <line x1="${ox}" y1="${oy}" x2="${bx}" y2="${by}" stroke="#2563eb" stroke-width="4" stroke-linecap="round" />
+            <line x1="${ox}" y1="${oy}" x2="${ax.toFixed(1)}" y2="${ay.toFixed(1)}" stroke="#3b82f6" stroke-width="4" stroke-linecap="round" />
+            <circle cx="${ox}" cy="${oy}" r="4" fill="#ef4444" />
+            <text x="${ox + 16}" y="${oy - 8}" font-size="11" font-weight="800" fill="#d97706">${deg}°</text>
+            <text x="${(ox + bx) / 2}" y="${oy + 14}" text-anchor="middle" font-size="10" font-weight="bold" fill="#2563eb">5cm</text>
+          </svg>
+        `;
+      };
+
+      const isCorrectOrder = selectedOrder.length === 3 && selectedOrder[0] === 60 && selectedOrder[1] === 90 && selectedOrder[2] === 120;
+
+      return `
+        <div class="space-y-5">
+          <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
+            <div class="flex items-center justify-between flex-wrap gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
+              <div>
+                <span class="text-xs font-extrabold text-indigo-600 dark:text-indigo-400">STEP 2（7〜15分）｜3つの三角形を比べる</span>
+                <h2 class="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white">2本とも5cmのまま、60°・90°・120° を「短い順」に並べよう！</h2>
+              </div>
+              <button type="button" data-action="reset-order" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-200">
+                🔄 並べ替えをリセット
+              </button>
+            </div>
+
+            <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300">
+              下の3つのカード（最初はシャッフル配置）を、<strong>端と端の距離（オレンジの点線）が短い順</strong>にクリックして番号をつけよう！
+            </p>
+
+            <!-- 並べ替えカード（90°, 120°, 60° の順に提示） -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              ${[90, 120, 60].map(deg => {
+                const card = cards.find(c => c.deg === deg);
+                const rankIdx = selectedOrder.indexOf(deg);
+                const isPicked = rankIdx !== -1;
+                return `
+                  <div data-pick-deg="${deg}" class="cursor-pointer rounded-2xl border-2 p-4 transition relative ${isPicked ? 'border-indigo-500 bg-indigo-50/50 dark:bg-indigo-950/40' : 'border-slate-200 dark:border-slate-700 bg-slate-50/60 dark:bg-slate-800/50 hover:border-indigo-400'}">
+                    <div class="flex items-center justify-between mb-1">
+                      <span class="font-extrabold text-sm text-slate-900 dark:text-white">${card.label}</span>
+                      ${isPicked
+                        ? `<span class="px-2.5 py-0.5 rounded-full bg-indigo-600 text-white text-xs font-extrabold">第 ${rankIdx + 1} 位（短い順）</span>`
+                        : `<span class="px-2.5 py-0.5 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-500 text-[11px] font-bold">クリックして選択</span>`
+                      }
+                    </div>
+                    ${drawMiniTri(deg)}
+                    ${orderChecked ? `
+                      <div class="mt-2 p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/70 border border-amber-300 dark:border-amber-700 text-xs">
+                        <div class="font-extrabold text-amber-800 dark:text-amber-300">📏 実測：${card.realText}</div>
+                        <div class="text-slate-600 dark:text-slate-300 mt-0.5">${card.note}</div>
+                      </div>
+                    ` : ''}
+                  </div>
+                `;
+              }).join('')}
+            </div>
+
+            <div class="flex items-center justify-between flex-wrap gap-3 pt-2">
+              <div class="text-xs font-bold text-slate-500">
+                選択中：${selectedOrder.length === 0 ? 'まだ選ばれていません' : selectedOrder.map(d => d + '°').join(' ＜ ')}
+              </div>
+              <button type="button" data-action="check-order" ${selectedOrder.length < 3 ? 'disabled' : ''} class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs sm:text-sm font-extrabold shadow-md transition disabled:opacity-40">
+                📏 実測結果と答え合わせをする！
+              </button>
+            </div>
+
+            ${orderChecked ? `
+              <div class="p-4 rounded-xl border-2 ${isCorrectOrder ? 'border-emerald-500 bg-emerald-500/10 text-emerald-900 dark:text-emerald-200' : 'border-amber-500 bg-amber-500/10 text-amber-900 dark:text-amber-200'} text-xs sm:text-sm leading-relaxed">
+                ${isCorrectOrder ? '⭕ <strong>大正解！短い順に 60° ＜ 90° ＜ 120° です！</strong>' : '💡 正しい短い順は <strong>60°（5cm） ＜ 90°（約7.1cm） ＜ 120°（約8.7cm）</strong> です！'}
+                <br>同じ5cmの2辺でも、間の角度が 0°〜180° の範囲で広がるほど、第三辺は長くなります。
+              </div>
+            ` : ''}
+          </div>
+
+          <!-- 重要発問：角度が2倍なら距離も2倍？ -->
+          <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-3">
+            <div class="text-xs font-extrabold text-rose-600 dark:text-rose-400">🤔 ここで大切な疑問（つまずき防止チェック）</div>
+            <p class="text-sm font-bold text-slate-900 dark:text-white">
+              60° のときの距離は「5cm」でした。では、角度が 2倍の「120°」になると、距離も 2倍の「10cm」になるでしょうか？
+            </p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <button type="button" data-double-quiz="yes" class="p-3 rounded-xl border-2 text-left text-xs font-bold transition ${doubleAngleQuizAnswered === 'yes' ? 'border-rose-500 bg-rose-500/10 text-rose-800 dark:text-rose-200' : 'border-slate-200 dark:border-slate-700 hover:border-indigo-400'}">
+                A. 角度が2倍だから、距離も2倍の 10cm になる！
+              </button>
+              <button type="button" data-double-quiz="no" class="p-3 rounded-xl border-2 text-left text-xs font-bold transition ${doubleAngleQuizAnswered === 'no' ? 'border-emerald-500 bg-emerald-500/10 text-emerald-800 dark:text-emerald-200' : 'border-slate-200 dark:border-slate-700 hover:border-indigo-400'}">
+                B. 10cm にはならない！（角度と長さは比例しない）
+              </button>
+            </div>
+            ${doubleAngleQuizAnswered ? `
+              <div class="p-3.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800 text-xs leading-relaxed text-slate-800 dark:text-slate-200">
+                <strong>【解説】</strong> 5cm と 5cm の棒をまっすぐ一直線（<strong>180°</strong>）に開いたときに初めて 5 + 5 = <strong>10cm</strong> になります！<br>
+                だから 120° ではまだ 10cm には届きません（約8.7cm）。<strong>「角度が2倍になっても、長さは2倍（比例）にはならない」</strong>——だからこそ、正確な長さを出す新しい計算ルールが必要なのです！
+              </div>
+            ` : ''}
+          </div>
+        </div>
+      `;
+    }
+
+    /* ---------------- Step 3: 池の向こうを測る (15〜21分) ---------------- */
+    function renderStep3() {
+      const rad = (pondAngle * Math.PI) / 180;
+      const dist = Math.sqrt(pondSideA * pondSideA + pondSideB * pondSideB - 2 * pondSideA * pondSideB * Math.cos(rad));
+
+      // 観測点 C を基準 (cx, cy) とし、辺の長さと間の角度に応じて地点 A, B の座標を動的に計算
+      const scale = 20; // 1m = 20px
+      const cx = pondAngle === 120 ? 145 : 75;
+      const cy = 215;
+
+      // 地点 A（右下方向へ水平に pondSideB * scale）
+      const ax = cx + pondSideB * scale;
+      const ay = cy;
+
+      // 地点 B（観測点 C から pondAngle° の方向へ pondSideA * scale）
+      const bx = cx + pondSideA * scale * Math.cos(rad);
+      const by = cy - pondSideA * scale * Math.sin(rad);
+
+      // 角度の扇形アーク（C から A 方向と B 方向を結ぶ）
+      const arcR = 34;
+      const arcEndX = cx + arcR * Math.cos(rad);
+      const arcEndY = cy - arcR * Math.sin(rad);
+      const angLabelX = cx + (arcR + 18) * Math.cos(rad / 2);
+      const angLabelY = cy - (arcR + 18) * Math.sin(rad / 2) + 4;
+
+      // 池の中心（三角形の重心のやや右上寄りに配置）
+      const pondX = (cx + ax + bx) / 3 + 12;
+      const pondY = (cy + ay + by) / 3 + 4;
+
+      // 各ラベルの位置
+      const sideALabelX = (cx + bx) / 2 - 48;
+      const sideALabelY = (cy + by) / 2 - 12;
+      const sideBLabelX = (cx + ax) / 2 - 46;
+      const sideBLabelY = cy + 12;
+      const distLabelX = Math.min(285, Math.max(180, (ax + bx) / 2 + 6));
+      const distLabelY = Math.max(46, (ay + by) / 2 - 22);
+
+      return `
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+          <div class="lg:col-span-7 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
+            <div class="border-b border-slate-100 dark:border-slate-800 pb-3">
+              <span class="text-xs font-extrabold text-indigo-600 dark:text-indigo-400">STEP 3（15〜21分）｜なぜ計算する必要がある？</span>
+              <h2 class="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white">間に「池」があって、直接メジャーで測れない！</h2>
+            </div>
+
+            <!-- 池のイラスト図解 SVG（長さ・角度に完全連動） -->
+            <div class="bg-emerald-50/60 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800 p-2">
+              <svg viewBox="0 0 420 265" class="w-full h-auto max-h-[265px] select-none">
+                <!-- 中央の池（三角形内部の障害物） -->
+                <ellipse cx="${pondX.toFixed(1)}" cy="${pondY.toFixed(1)}" rx="62" ry="36" fill="#bae6fd" stroke="#0284c7" stroke-width="2.5" />
+                <text x="${pondX.toFixed(1)}" y="${(pondY - 3).toFixed(1)}" text-anchor="middle" font-size="13" font-weight="800" fill="#0369a1">💧 大きな池</text>
+                <text x="${pondX.toFixed(1)}" y="${(pondY + 13).toFixed(1)}" text-anchor="middle" font-size="10" font-weight="bold" fill="#0369a1">（直接測れない！）</text>
+
+                <!-- 陸地で測れる2辺 -->
+                <line x1="${cx}" y1="${cy}" x2="${bx.toFixed(1)}" y2="${by.toFixed(1)}" stroke="#2563eb" stroke-width="3.5" stroke-linecap="round" />
+                <rect x="${sideALabelX.toFixed(1)}" y="${sideALabelY.toFixed(1)}" width="92" height="24" rx="6" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5" />
+                <text x="${(sideALabelX + 46).toFixed(1)}" y="${(sideALabelY + 16).toFixed(1)}" text-anchor="middle" font-size="12" font-weight="800" fill="#1d4ed8">測れる: ${pondSideA} m</text>
+
+                <line x1="${cx}" y1="${cy}" x2="${ax.toFixed(1)}" y2="${ay}" stroke="#2563eb" stroke-width="3.5" stroke-linecap="round" />
+                <rect x="${sideBLabelX.toFixed(1)}" y="${sideBLabelY}" width="92" height="24" rx="6" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5" />
+                <text x="${(sideBLabelX + 46).toFixed(1)}" y="${sideBLabelY + 16}" text-anchor="middle" font-size="12" font-weight="800" fill="#1d4ed8">測れる: ${pondSideB} m</text>
+
+                <!-- 間の角度の扇形 -->
+                <path d="M ${cx},${cy} L ${cx + arcR},${cy} A ${arcR},${arcR} 0 0,0 ${arcEndX.toFixed(1)},${arcEndY.toFixed(1)} Z" fill="rgba(245, 158, 11, 0.32)" stroke="#f59e0b" stroke-width="2" />
+                <text x="${angLabelX.toFixed(1)}" y="${angLabelY.toFixed(1)}" text-anchor="middle" font-size="13" font-weight="800" fill="#d97706">${pondAngle}°</text>
+
+                <!-- 池の上を通る求めたい距離 c -->
+                <line x1="${bx.toFixed(1)}" y1="${by.toFixed(1)}" x2="${ax.toFixed(1)}" y2="${ay}" stroke="#f97316" stroke-width="3.5" class="dashed-target" />
+                <rect x="${distLabelX.toFixed(1)}" y="${distLabelY.toFixed(1)}" width="126" height="28" rx="8" fill="#fff7ed" stroke="#f97316" stroke-width="2" />
+                <text x="${(distLabelX + 63).toFixed(1)}" y="${(distLabelY + 18).toFixed(1)}" text-anchor="middle" font-size="11.5" font-weight="800" fill="#c2410c">
+                  ${pondFormulaShown ? `計算結果: 約 ${dist.toFixed(1)} m` : '直接測れない！ ? m'}
+                </text>
+
+                <!-- 観測点 C (左下) -->
+                <circle cx="${cx}" cy="${cy}" r="7" fill="#ef4444" stroke="#fff" stroke-width="2" />
+                <text x="${cx}" y="${cy + 22}" text-anchor="middle" font-size="12" font-weight="800" fill="#ef4444">観測点 C</text>
+
+                <!-- 地点 B (上) -->
+                <circle cx="${bx.toFixed(1)}" cy="${by.toFixed(1)}" r="7" fill="#1e293b" stroke="#fff" stroke-width="2" />
+                <text x="${bx.toFixed(1)}" y="${(by - 13).toFixed(1)}" text-anchor="middle" font-size="13" font-weight="800" class="fill-slate-800 dark:fill-slate-200">地点 B</text>
+
+                <!-- 地点 A (右下) -->
+                <circle cx="${ax.toFixed(1)}" cy="${ay}" r="7" fill="#1e293b" stroke="#fff" stroke-width="2" />
+                <text x="${ax.toFixed(1)}" y="${ay + 22}" text-anchor="middle" font-size="13" font-weight="800" class="fill-slate-800 dark:fill-slate-200">地点 A</text>
+              </svg>
+            </div>
+
+            <!-- 現場の条件を変更して実験 -->
+            <div class="grid grid-cols-3 gap-2 bg-slate-50 dark:bg-slate-800/60 p-3 rounded-xl border border-slate-200 dark:border-slate-700 text-xs">
+              <div>
+                <label class="font-bold text-slate-600 dark:text-slate-300 block mb-1">手前の距離①: ${pondSideA}m</label>
+                <input type="range" min="4" max="10" value="${pondSideA}" data-input="pond-a" class="w-full">
+              </div>
+              <div>
+                <label class="font-bold text-slate-600 dark:text-slate-300 block mb-1">手前の距離②: ${pondSideB}m</label>
+                <input type="range" min="4" max="10" value="${pondSideB}" data-input="pond-b" class="w-full">
+              </div>
+              <div>
+                <label class="font-bold text-amber-600 dark:text-amber-400 block mb-1">間の角度: ${pondAngle}°</label>
+                <select data-change="pond-angle" class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded px-2 py-1 font-bold">
+                  <option value="60" ${pondAngle === 60 ? 'selected' : ''}>60°</option>
+                  <option value="90" ${pondAngle === 90 ? 'selected' : ''}>90° (直角)</option>
+                  <option value="120" ${pondAngle === 120 ? 'selected' : ''}>120°</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="lg:col-span-5 space-y-4">
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-3">
+              <div class="text-xs font-extrabold text-indigo-600 dark:text-indigo-400">🧭 数学の必要性</div>
+              <p class="text-sm font-bold text-slate-900 dark:text-white leading-relaxed">
+                池の上、川幅、山のトンネル、宇宙の星の距離……現実の世界には<strong>「定規やメジャーを当てて直接測れない場所」</strong>がたくさんあります。
+              </p>
+              <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                でも、自分たちがいる安全な場所から<strong>「2方向までの距離」</strong>と<strong>「その間の角度」</strong>さえ測れれば、計算だけで向こう側の距離をピタリと当てることができます！
+              </p>
+
+              <button type="button" data-action="toggle-pond-formula" class="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs sm:text-sm font-extrabold shadow-md transition">
+                ${pondFormulaShown ? '🔒 計算結果を隠す' : '✨ 2辺と間の角度から距離を計算してみる！'}
+              </button>
+
+              ${pondFormulaShown ? `
+                <div class="p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-700 text-xs space-y-1 text-emerald-950 dark:text-emerald-200">
+                  <div class="font-extrabold">✅ 池を渡らずに距離が判明！</div>
+                  <div>2辺（${pondSideA}m, ${pondSideB}m）と間の角度（${pondAngle}°）から、対岸の距離は <strong>約 ${dist.toFixed(1)} m</strong> と計算できます！</div>
+                </div>
+              ` : ''}
+            </div>
+
+            <div class="bg-slate-100 dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 text-xs text-slate-600 dark:text-slate-400 space-y-1">
+              <div class="font-bold text-slate-800 dark:text-slate-200">💡 ちょっと豆知識（90°のとき）</div>
+              <p>間の角度がちょうど <strong>90°（直角）</strong> のときは、昔から知られている「三平方の定理（3² + 4² = 5² など）」で計算できます。では、60°や120°のように直角じゃないときはどう計算するのでしょうか？次のステップで正体を見ます！</p>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    /* ---------------- Step 4: 余弦定理の正体 (21〜30分) ---------------- */
+    function renderStep4() {
+      const cosMap = {
+        60: { frac: '<span class="math-frac"><span class="num">1</span><span class="den">2</span></span>', val: 0.5, label: 'プラス（引かれるので短くなる）', adjText: '- 2ab × (1/2) = -ab' },
+        90: { frac: '0', val: 0, label: 'ゼロ（最後の項が消えて三平方の定理に一致！）', adjText: '- 2ab × 0 = 0' },
+        120: { frac: '-<span class="math-frac"><span class="num">1</span><span class="den">2</span></span>', val: -0.5, label: 'マイナス（マイナスを引くので足されて長くなる！）', adjText: '- 2ab × (-1/2) = +ab' }
+      };
+      const info = cosMap[theoremAngle];
+      // a=5, b=5 のときの c^2 の値
+      const cSq = 25 + 25 - 2 * 5 * 5 * info.val;
+
+      return `
+        <div class="space-y-5">
+          <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-5">
+            <div class="border-b border-slate-100 dark:border-slate-800 pb-3">
+              <span class="text-xs font-extrabold text-indigo-600 dark:text-indigo-400">STEP 4（21〜30分）｜余弦定理は何をしている式か</span>
+              <h2 class="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white">余弦定理の「3つのパーツ」を色分けして見よう！</h2>
+            </div>
+
+            <!-- 3色カラーコード式表示 -->
+            <div class="bg-slate-50 dark:bg-slate-950 border-2 border-slate-200 dark:border-slate-800 rounded-2xl p-5 text-center space-y-4">
+              <div class="text-xl sm:text-3xl font-extrabold tracking-wide flex flex-wrap items-center justify-center gap-2">
+                <span class="px-3 py-1.5 rounded-xl bg-orange-100 dark:bg-orange-950 border-2 border-orange-500 text-orange-700 dark:text-orange-300">
+                  <span class="math-var">c</span><sup>2</sup>
+                </span>
+                <span>＝</span>
+                <span class="px-3 py-1.5 rounded-xl bg-blue-100 dark:bg-blue-950 border-2 border-blue-500 text-blue-700 dark:text-blue-300">
+                  <span class="math-var">a</span><sup>2</sup> ＋ <span class="math-var">b</span><sup>2</sup>
+                </span>
+                <span class="px-3 py-1.5 rounded-xl bg-purple-100 dark:bg-purple-950 border-2 border-purple-500 text-purple-700 dark:text-purple-300">
+                  － 2<span class="math-var">ab</span> cos <span class="math-var">C</span>
+                </span>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-left text-xs">
+                <div class="p-3 rounded-xl bg-orange-50 dark:bg-orange-950/50 border border-orange-300 dark:border-orange-800">
+                  <div class="font-extrabold text-orange-700 dark:text-orange-300 mb-1">🟠 ① 求めたい辺の情報</div>
+                  <p class="text-slate-700 dark:text-slate-300">角度 <span class="math-var">C</span> の向かい側にある、知りたい第三辺 <span class="math-var">c</span> の2乗です。</p>
+                </div>
+                <div class="p-3 rounded-xl bg-blue-50 dark:bg-blue-950/50 border border-blue-300 dark:border-blue-800">
+                  <div class="font-extrabold text-blue-700 dark:text-blue-300 mb-1">🔵 ② 2本の長さの情報</div>
+                  <p class="text-slate-700 dark:text-slate-300">分かっている2本の棒の長さ <span class="math-var">a</span>, <span class="math-var">b</span> の情報です（三平方の定理と同じ形！）。</p>
+                </div>
+                <div class="p-3 rounded-xl bg-purple-50 dark:bg-purple-950/50 border border-purple-300 dark:border-purple-800">
+                  <div class="font-extrabold text-purple-700 dark:text-purple-300 mb-1">🟣 ③ 間の角度による調整項</div>
+                  <p class="text-slate-700 dark:text-slate-300"><strong>cos <span class="math-var">C</span></strong> が「間の角度の開き具合」を数字に翻訳して、長さを増減調整します！</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- 角度を切り替えて cos C の働きを体感 -->
+            <div class="bg-purple-50/60 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800 rounded-2xl p-4 space-y-4">
+              <div class="flex items-center justify-between flex-wrap gap-2">
+                <div class="text-xs sm:text-sm font-extrabold text-purple-900 dark:text-purple-200">
+                  🎛️ 角度 <span class="math-var">C</span> を切り替えて、「調整項 －2ab cos C」の動きを見よう（a = 5, b = 5 のとき）
+                </div>
+                <div class="flex gap-2">
+                  ${[60, 90, 120].map(deg => `
+                    <button type="button" data-theorem-angle="${deg}" class="px-3.5 py-1.5 rounded-xl text-xs font-extrabold border transition ${theoremAngle === deg ? 'bg-purple-600 border-purple-600 text-white shadow' : 'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200'}">
+                      C = ${deg}°
+                    </button>
+                  `).join('')}
+                </div>
+              </div>
+
+              <!-- cos の値早見カード -->
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-center text-xs">
+                <div class="p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
+                  <div class="text-slate-500 mb-1">今の cos ${theoremAngle}° の値</div>
+                  <div class="text-xl font-extrabold text-purple-600 dark:text-purple-400">cos ${theoremAngle}° ＝ ${info.frac}</div>
+                </div>
+                <div class="p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
+                  <div class="text-slate-500 mb-1">調整項（－2ab cos C）の働き</div>
+                  <div class="text-sm font-extrabold text-slate-800 dark:text-slate-100 mt-1">${info.label}</div>
+                </div>
+                <div class="p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
+                  <div class="text-slate-500 mb-1">計算される c<sup>2</sup> の値</div>
+                  <div class="text-xl font-extrabold text-orange-600 dark:text-orange-400">c<sup>2</sup> ＝ 50 ${info.val === 0 ? '' : (info.val > 0 ? '- 25' : '+ 25')} ＝ ${cSq}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    /* ---------------- Step 5: 60°の例を1行ずつ確認 (30〜36分) ---------------- */
+    function renderStep5() {
+      const calcLines = [
+        {
+          step: 1,
+          title: '① 元の式に a = 5, b = 5, C = 60° を当てはめる',
+          expr: '<span class="math-var">c</span><sup>2</sup> ＝ 5<sup>2</sup> ＋ 5<sup>2</sup> － 2 &times; 5 &times; 5 &times; cos 60°',
+          note: '2本の棒が 5cm と 5cm、間の角が 60° であることを式に書き込みました。'
+        },
+        {
+          step: 2,
+          title: '② 5² ＝ 25 と、表から cos 60° ＝ 1/2 を入れる',
+          expr: '<span class="math-var">c</span><sup>2</sup> ＝ 25 ＋ 25 － 2 &times; 5 &times; 5 &times; <span class="math-frac"><span class="num">1</span><span class="den">2</span></span>',
+          note: 'cos 60° を「1/2」という数に置き換えます（2 × 1/2 が約分されて消えます！）。'
+        },
+        {
+          step: 3,
+          title: '③ 足し算・引き算を計算する',
+          expr: '<span class="math-var">c</span><sup>2</sup> ＝ 25 ＋ 25 － 25 ＝ <strong>25</strong>',
+          note: '2本の長さの分（50）から、角度60°の調整分（25）が引かれて 25 になりました！'
+        },
+        {
+          step: 4,
+          title: '④ 2乗して 25 になる正の数を答える',
+          expr: '<span class="math-var">c</span> ＞ 0 なので、<strong><span class="math-var">c</span> ＝ 5（cm）</strong>',
+          note: '🎉 Step 2 で確かめた「60°の正三角形なら第三辺はちょうど 5cm」という実測結果とピタリと一致しました！'
+        }
+      ];
+
+      return `
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+          <div class="lg:col-span-8 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
+            <div class="flex items-center justify-between flex-wrap gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
+              <div>
+                <span class="text-xs font-extrabold text-indigo-600 dark:text-indigo-400">STEP 5（30〜36分）｜一例だけ、ゆっくり計算する</span>
+                <h2 class="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white">a = 5, b = 5, C = 60° を1行ずつ進めてみよう</h2>
+              </div>
+              <div class="flex gap-2">
+                <button type="button" data-action="reset-calc" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-200">
+                  最初から
+                </button>
+                <button type="button" data-action="advance-calc" ${calcRevealLine >= 4 ? 'disabled' : ''} class="px-4 py-1.5 rounded-xl text-xs font-extrabold bg-indigo-600 hover:bg-indigo-500 text-white shadow transition disabled:opacity-40">
+                  次の1行を表示 &darr;
+                </button>
+              </div>
+            </div>
+
+            <div class="space-y-3">
+              ${calcLines.map(item => {
+                const visible = item.step <= calcRevealLine;
+                if (!visible) {
+                  return `
+                    <div data-reveal-calc="${item.step}" class="cursor-pointer p-4 rounded-xl border-2 border-dashed border-slate-300 dark:border-slate-700 text-center text-xs font-bold text-slate-400 hover:border-indigo-400 hover:text-indigo-500 transition">
+                      🔒 ${item.title}（次の行を予想してからクリック！）
+                    </div>
+                  `;
+                }
+                return `
+                  <div class="p-4 rounded-xl border-2 ${item.step === 4 ? 'border-emerald-500 bg-emerald-50/60 dark:bg-emerald-950/40' : 'border-indigo-200 dark:border-indigo-800 bg-slate-50 dark:bg-slate-950'} space-y-1.5">
+                    <div class="text-xs font-extrabold text-indigo-600 dark:text-indigo-400">${item.title}</div>
+                    <div class="text-lg sm:text-xl font-bold text-slate-900 dark:text-white py-1">${item.expr}</div>
+                    <div class="text-xs text-slate-600 dark:text-slate-300">${item.note}</div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+
+          <!-- 右：cos早見表と90°の口頭確認 -->
+          <div class="lg:col-span-4 space-y-4">
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm space-y-3">
+              <div class="text-xs font-extrabold text-slate-700 dark:text-slate-200">📋 今日の cos 値カード（暗記不要）</div>
+              <table class="w-full text-center border-collapse border border-slate-200 dark:border-slate-700 text-xs font-bold">
+                <tr class="bg-slate-100 dark:bg-slate-800">
+                  <th class="border border-slate-200 dark:border-slate-700 p-2">角度 C</th>
+                  <th class="border border-slate-200 dark:border-slate-700 p-2">60°</th>
+                  <th class="border border-slate-200 dark:border-slate-700 p-2">90°</th>
+                  <th class="border border-slate-200 dark:border-slate-700 p-2">120°</th>
+                </tr>
+                <tr>
+                  <td class="border border-slate-200 dark:border-slate-700 p-2">cos C</td>
+                  <td class="border border-slate-200 dark:border-slate-700 p-2 text-indigo-600 dark:text-indigo-400"><span class="math-frac"><span class="num">1</span><span class="den">2</span></span></td>
+                  <td class="border border-slate-200 dark:border-slate-700 p-2 text-emerald-600 dark:text-emerald-400">0</td>
+                  <td class="border border-slate-200 dark:border-slate-700 p-2 text-rose-600 dark:text-rose-400">-<span class="math-frac"><span class="num">1</span><span class="den">2</span></span></td>
+                </tr>
+              </table>
+              <p class="text-[11px] text-slate-500 dark:text-slate-400">※今は値を覚えているかではなく、「角度によって cos の値が変わる」ことだけ確認できればOKです。</p>
+            </div>
+
+            <div class="bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-800 rounded-2xl p-4 text-xs space-y-1.5">
+              <div class="font-extrabold text-amber-800 dark:text-amber-300">💬 もし 90° だったら？</div>
+              <p class="text-slate-700 dark:text-slate-200 leading-relaxed">
+                cos 90° ＝ <strong>0</strong> なので、後ろの項が 0 になって消えます！<br>
+                すると <strong>c² ＝ 5² ＋ 5² ＝ 50</strong> となり、60° のときの 25 より大きくなります（つまり辺も長くなる！）。
+              </p>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    /* ---------------- Step 6: 出口カード＆復習 (36〜40分) ---------------- */
+    function renderStep6() {
+      const q2Options = [
+        { id: 'side1', label: '1本目の辺の長さ（a）', isGood: true },
+        { id: 'side2', label: '2本目の辺の長さ（b）', isGood: true },
+        { id: 'between_angle', label: 'その2辺の「間の角度」（C）', isGood: true },
+        { id: 'other_angle', label: '関係ない別の場所の角度', isGood: false },
+        { id: 'color', label: '棒の色や重さ', isGood: false }
+      ];
+
+      const isQ2Perfect = exitQ2.length === 3 && exitQ2.includes('side1') && exitQ2.includes('side2') && exitQ2.includes('between_angle');
+
+      return `
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 sm:p-6 shadow-sm space-y-6">
+          <div class="border-b border-slate-100 dark:border-slate-800 pb-3 flex items-center justify-between flex-wrap gap-2">
+            <div>
+              <span class="text-xs font-extrabold text-indigo-600 dark:text-indigo-400">STEP 6（36〜40分）｜出口カード＆復習まとめ</span>
+              <h2 class="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white">今日の学びを自分の言葉で整理しよう！</h2>
+            </div>
+            <span class="text-xs font-bold text-slate-500">※公式の丸暗記は不要です</span>
+          </div>
+
+          <!-- 問い① -->
+          <div class="space-y-2">
+            <div class="text-sm font-extrabold text-slate-900 dark:text-white">
+              ① 2本の長さが同じでも第三辺が変わるのは、何が変わるからですか？
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+              ${[
+                { id: 'angle', text: '2本の「間の角度」が変わるから' },
+                { id: 'area', text: '三角形の「色」が変わるから' },
+                { id: 'same', text: '実は第三辺は変わらない' }
+              ].map(opt => `
+                <button type="button" data-exit-q1="${opt.id}" class="p-3 rounded-xl border-2 text-left text-xs font-bold transition ${exitQ1 === opt.id ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-950/60 text-indigo-800 dark:text-indigo-200' : 'border-slate-200 dark:border-slate-700 hover:border-indigo-400'}">
+                  ${opt.text}
+                </button>
+              `).join('')}
+            </div>
+          </div>
+
+          <!-- 問い② -->
+          <div class="space-y-2">
+            <div class="text-sm font-extrabold text-slate-900 dark:text-white">
+              ② 余弦定理を使うために必要な「3つの情報」をすべて選ぼう！（3つ選択）
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
+              ${q2Options.map(opt => {
+                const checked = exitQ2.includes(opt.id);
+                return `
+                  <button type="button" data-exit-q2="${opt.id}" class="p-3 rounded-xl border-2 text-left text-xs font-bold transition flex items-center gap-2 ${checked ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-950/60 text-indigo-800 dark:text-indigo-200' : 'border-slate-200 dark:border-slate-700 hover:border-indigo-400'}">
+                    <span>${checked ? '☑️' : '⬜'}</span>
+                    <span>${opt.label}</span>
+                  </button>
+                `;
+              }).join('')}
+            </div>
+          </div>
+
+          <!-- 問い③ -->
+          <div class="space-y-2">
+            <label class="block text-sm font-extrabold text-slate-900 dark:text-white">
+              ③ 「余弦定理を学ぶと便利なのはなぜ？」を、自分の言葉で一文にしてみよう！
+            </label>
+            <input type="text" id="exitQ3Input" value="${exitQ3.replace(/"/g, '&quot;')}" data-input="exit-q3" placeholder="例：池があって直接測れなくても、2辺と間の角度から残りの辺を計算できるから。" class="w-full p-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-xs sm:text-sm text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          </div>
+          </div>
+
+          <!-- 問い② -->
+          <div class="space-y-2">
+            <div class="text-sm font-extrabold text-slate-900 dark:text-white">
+              ② 余弦定理を使うために必要な「3つの情報」をすべて選ぼう！（3つ選択）
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
+              ${q2Options.map(opt => {
+                const checked = exitQ2.includes(opt.id);
+                return `
+                  <button onclick="toggleExitQ2('${opt.id}')" class="p-3 rounded-xl border-2 text-left text-xs font-bold transition flex items-center gap-2 ${checked ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-950/60 text-indigo-800 dark:text-indigo-200' : 'border-slate-200 dark:border-slate-700 hover:border-indigo-400'}">
+                    <span>${checked ? '☑️' : '⬜'}</span>
+                    <span>${opt.label}</span>
+                  </button>
+                `;
+              }).join('')}
+            </div>
+          </div>
+
+          <!-- 問い③ -->
+          <div class="space-y-2">
+            <label class="block text-sm font-extrabold text-slate-900 dark:text-white">
+              ③ 「余弦定理を学ぶと便利なのはなぜ？」を、自分の言葉で一文にしてみよう！
+            </label>
+            <input type="text" id="exitQ3Input" value="${exitQ3.replace(/"/g, '&quot;')}" oninput="exitQ3 = this.value;" placeholder="例：池があって直接測れなくても、2辺と間の角度から残りの辺を計算できるから。" class="w-full p-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-xs sm:text-sm text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          </div>
+
+          <div class="flex items-center justify-end gap-3">
+            <button type="button" id="submitExitBtn" class="px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs sm:text-sm font-extrabold shadow-md transition">
+              ✅ 出口カードを提出して振り返りを確認！
+            </button>
+          </div>
+
+          ${exitSubmitted ? `
+            <div class="p-5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 border-2 border-emerald-400 dark:border-emerald-700 space-y-3 text-xs sm:text-sm">
+              <div class="font-extrabold text-emerald-800 dark:text-emerald-300 text-base">
+                🎉 お疲れさまでした！今日の到達チェック＆復習ノート
+              </div>
+              <ul class="space-y-2 text-slate-800 dark:text-slate-200">
+                <li>
+                  <strong>① 変わる理由：</strong>
+                  ${exitQ1 === 'angle' ? '⭕ 正解！' : '👉 正解は'} <strong>「2本の間の角度」</strong>が変わるから。
+                </li>
+                <li>
+                  <strong>② 必要な3つの情報：</strong>
+                  ${isQ2Perfect ? '⭕ 3つとも完璧です！' : '👉 正解は'} <strong>「2本の辺の長さ」と「その間の角度」</strong>の3つです（どの角度でもよいわけではなく、必ず「間の角度」が必要です）。
+                </li>
+                <li>
+                  <strong>③ 余弦定理の便利さ（模範例）：</strong>
+                  「池や建物があって直接定規で測れなくても、手前で測れる2辺と間の角度から残りの1辺の長さを計算できるから！」
+                </li>
+              </ul>
+              <div class="pt-2 border-t border-emerald-200 dark:border-emerald-800 text-xs text-slate-600 dark:text-slate-300">
+                <strong>🔮 次回の予告：</strong>「余弦定理の最後に、どうして <span class="math-var">2ab</span> cos <span class="math-var">C</span> が現れるのだろう？」——次は直角三角形を作って式の理由を探ります！
+              </div>
+            </div>
+          ` : ''}
+        </div>
+      `;
+    }
+
+    function toggleExitQ2(id) {
+      if (exitQ2.includes(id)) {
+        exitQ2 = exitQ2.filter(x => x !== id);
+      } else {
+        exitQ2.push(id);
+      }
+      renderCurrentStep();
+    }
+
+    function advanceCalcLine() {
+      if (calcRevealLine < 4) {
+        calcRevealLine++;
+        renderCurrentStep();
+      }
+    }
+
+    function revealCalcLine(stepNum) {
+      calcRevealLine = stepNum;
+      renderCurrentStep();
+    }
+
+    // 初期化
+    window.addEventListener('DOMContentLoaded', () => {
+      document.addEventListener('click', (e) => {
+        if (e.target.closest('#teacherNoteToggleBtn')) {
+          toggleTeacherNote();
+          return;
+        }
+        const themeBtn = e.target.closest('[data-theme]');
+        if (themeBtn) {
+          setTheme(themeBtn.dataset.theme);
+          return;
+        }
+        const stepTab = e.target.closest('[data-step]');
+        if (stepTab) {
+          goStep(parseInt(stepTab.dataset.step, 10));
+          return;
+        }
+        if (e.target.closest('#prevStepBtn')) {
+          goStep(currentStep - 1);
+          return;
+        }
+        if (e.target.closest('#nextStepBtn')) {
+          goStep(currentStep + 1);
+          return;
+        }
+        const actionBtn = e.target.closest('[data-action]');
+        if (actionBtn) {
+          const act = actionBtn.dataset.action;
+          if (act === 'toggle-stick-dist') {
+            revealStickDist = !revealStickDist;
+            renderCurrentStep();
+          } else if (act === 'reset-order') {
+            selectedOrder = [];
+            orderChecked = false;
+            renderCurrentStep();
+          } else if (act === 'check-order') {
+            if (selectedOrder.length === 3) {
+              orderChecked = true;
+              renderCurrentStep();
+            }
+          } else if (act === 'toggle-pond-formula') {
+            pondFormulaShown = !pondFormulaShown;
+            renderCurrentStep();
+          } else if (act === 'reset-calc') {
+            calcRevealLine = 1;
+            renderCurrentStep();
+          } else if (act === 'advance-calc') {
+            advanceCalcLine();
+          }
+          return;
+        }
+        const stickAngleBtn = e.target.closest('[data-stick-angle]');
+        if (stickAngleBtn) {
+          stickAngle = parseInt(stickAngleBtn.dataset.stickAngle, 10);
+          renderCurrentStep();
+          return;
+        }
+        const step1QuizBtn = e.target.closest('[data-step1-quiz]');
+        if (step1QuizBtn) {
+          step1QuizAnswered = step1QuizBtn.dataset.step1Quiz;
+          revealStickDist = true;
+          renderCurrentStep();
+          return;
+        }
+        const pickDegCard = e.target.closest('[data-pick-deg]');
+        if (pickDegCard && !orderChecked) {
+          const deg = parseInt(pickDegCard.dataset.pickDeg, 10);
+          if (!selectedOrder.includes(deg)) {
+            selectedOrder.push(deg);
+            renderCurrentStep();
+          }
+          return;
+        }
+        const doubleQuizBtn = e.target.closest('[data-double-quiz]');
+        if (doubleQuizBtn) {
+          doubleAngleQuizAnswered = doubleQuizBtn.dataset.doubleQuiz;
+          orderChecked = true;
+          renderCurrentStep();
+          return;
+        }
+        const theoremAngleBtn = e.target.closest('[data-theorem-angle]');
+        if (theoremAngleBtn) {
+          theoremAngle = parseInt(theoremAngleBtn.dataset.theoremAngle, 10);
+          renderCurrentStep();
+          return;
+        }
+        const revealCalcCard = e.target.closest('[data-reveal-calc]');
+        if (revealCalcCard) {
+          revealCalcLine(parseInt(revealCalcCard.dataset.revealCalc, 10));
+          return;
+        }
+        const exitQ1Btn = e.target.closest('[data-exit-q1]');
+        if (exitQ1Btn) {
+          exitQ1 = exitQ1Btn.dataset.exitQ1;
+          renderCurrentStep();
+          return;
+        }
+        const exitQ2Btn = e.target.closest('[data-exit-q2]');
+        if (exitQ2Btn) {
+          toggleExitQ2(exitQ2Btn.dataset.exitQ2);
+          return;
+        }
+        const submitBtn = e.target.closest('#submitExitBtn');
+        if (submitBtn) {
+          const inp = document.getElementById('exitQ3Input');
+          if (inp) exitQ3 = inp.value;
+          exitSubmitted = true;
+          renderCurrentStep();
+        }
+      });
+
+      document.addEventListener('input', (e) => {
+        const inpType = e.target.dataset.input;
+        if (!inpType) return;
+        if (inpType === 'stick-angle') {
+          stickAngle = parseInt(e.target.value, 10);
+          renderCurrentStep();
+        } else if (inpType === 'pond-a') {
+          pondSideA = parseInt(e.target.value, 10);
+          renderCurrentStep();
+        } else if (inpType === 'pond-b') {
+          pondSideB = parseInt(e.target.value, 10);
+          renderCurrentStep();
+        } else if (inpType === 'exit-q3') {
+          exitQ3 = e.target.value;
+        }
+      });
+
+      document.addEventListener('change', (e) => {
+        if (e.target.dataset.change === 'pond-angle') {
+          pondAngle = parseInt(e.target.value, 10);
+          renderCurrentStep();
+        }
+      });
+
+      setTheme('light');
+      goStep(1);
+    });
+  </script>
+</body>
+</html>

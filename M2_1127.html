@@ -1,0 +1,2204 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>2直線のなす角を傾きから求めよう｜数学Ⅱ 学習・復習アプリ</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Google Fonts (Noto Sans JP & Inter) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Noto+Sans+JP:wght@400;500;700;800&display=swap" rel="stylesheet" />
+
+  <!-- KaTeX (数式オブジェクト描画ライブラリ) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous" />
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Noto Sans JP"', 'Inter', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              500: '#4f46e5',
+              600: '#4338ca',
+              700: '#3730a3',
+            },
+          },
+        },
+      },
+    };
+  </script>
+
+  <style>
+    /* スムーズな表示切り替えと数式微調整 */
+    .fade-in {
+      animation: fadeIn 0.28s ease-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .katex {
+      font-size: 1.08em;
+    }
+    .katex-display {
+      margin: 0.4em 0 !important;
+      overflow-x: auto;
+      overflow-y: hidden;
+      padding: 2px 0;
+    }
+    /* スライダーの操作性向上 */
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      height: 8px;
+      border-radius: 9999px;
+      background: #e2e8f0;
+      outline: none;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 22px;
+      height: 22px;
+      border-radius: 9999px;
+      background: #4f46e5;
+      border: 3px solid #ffffff;
+      box-shadow: 0 2px 6px rgba(79, 70, 229, 0.45);
+      cursor: pointer;
+    }
+    input[type="range"]::-moz-range-thumb {
+      width: 22px;
+      height: 22px;
+      border-radius: 9999px;
+      background: #4f46e5;
+      border: 3px solid #ffffff;
+      box-shadow: 0 2px 6px rgba(79, 70, 229, 0.45);
+      cursor: pointer;
+    }
+    .slider-orange::-webkit-slider-thumb {
+      background: #ea580c !important;
+      box-shadow: 0 2px 6px rgba(234, 88, 12, 0.45) !important;
+    }
+    .slider-orange::-moz-range-thumb {
+      background: #ea580c !important;
+      box-shadow: 0 2px 6px rgba(234, 88, 12, 0.45) !important;
+    }
+    /* グラフ上の数式ラベルオーバーレイ */
+    .graph-label {
+      position: absolute;
+      pointer-events: none;
+      transform: translate(-50%, -50%);
+      white-space: nowrap;
+      line-height: 1;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col">
+
+  <!-- ヘッダー -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-brand-600 text-white flex items-center justify-center font-bold shadow-sm shrink-0">
+          <span class="math-tex text-white" data-tex="\theta"></span>
+        </div>
+        <div>
+          <p class="text-xs font-bold text-brand-600 tracking-wide">数学Ⅱ｜三角関数・図形と方程式</p>
+          <h1 class="text-base sm:text-lg font-extrabold text-slate-900 leading-tight">2直線のなす角を、傾きから求める</h1>
+        </div>
+      </div>
+
+      <!-- モード切替＆進捗表示 -->
+      <div class="flex items-center gap-2 sm:gap-3">
+        <button id="btn-home" onclick="goToStep(0)" class="px-3 py-2 rounded-xl text-xs sm:text-sm font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 transition">
+          学習マップ
+        </button>
+        <div class="flex items-center gap-2 bg-brand-50 border border-brand-100 px-3 py-1.5 rounded-xl">
+          <span class="text-xs font-bold text-brand-700">進行度</span>
+          <span id="progress-badge" class="text-xs sm:text-sm font-extrabold text-brand-600">0個完了（全6ステップ）</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 横スクロール対応ステップナビゲーション -->
+    <nav class="border-t border-slate-100 bg-slate-50">
+      <div class="max-w-6xl mx-auto px-3 py-2 flex items-center gap-1.5 overflow-x-auto" id="step-nav">
+        <!-- JSで動的生成 -->
+      </div>
+    </nav>
+  </header>
+
+  <!-- メインコンテンツエリア -->
+  <main class="flex-1 max-w-6xl w-full mx-auto px-4 py-5 sm:py-7">
+    <!-- トースト通知（alert代替） -->
+    <div id="toast-box" class="fixed bottom-5 right-5 z-50 hidden max-w-sm bg-slate-900 text-white px-4 py-3 rounded-2xl shadow-xl text-sm font-medium transition"></div>
+
+    <!-- 各ステップの描画先 -->
+    <div id="app-content" class="fade-in"></div>
+
+    <!-- 下部 前へ・次へナビゲーション -->
+    <div id="bottom-nav" class="mt-8 pt-5 border-t border-slate-200 flex items-center justify-between gap-3">
+      <button id="btn-prev" onclick="prevStep()" class="px-4 sm:px-5 py-3 rounded-xl font-bold text-sm bg-white border border-slate-300 text-slate-700 hover:bg-slate-100 transition shadow-sm disabled:opacity-40 disabled:cursor-not-allowed">
+        ← 前のステップへ
+      </button>
+      <div id="bottom-step-indicator" class="text-xs sm:text-sm font-bold text-slate-500 text-center"></div>
+      <button id="btn-next" onclick="nextStep()" class="px-4 sm:px-5 py-3 rounded-xl font-bold text-sm bg-brand-600 text-white hover:bg-brand-700 transition shadow-sm disabled:opacity-40 disabled:cursor-not-allowed">
+        次のステップへ →
+      </button>
+    </div>
+  </main>
+
+  <footer class="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-400">
+    2直線のなす角 授業解説・復習ワークシート連動アプリ
+  </footer>
+
+  <script>
+    /* =========================================================================
+     * 1. 数式オブジェクト描画エンジン（KaTeX + MathMLフォールバック）
+     *    テキスト内に「√」や「/」を一切出さず、すべて数式オブジェクトで描画します。
+     * ========================================================================= */
+    function texToFallbackMathML(tex) {
+      // KaTeX読み込み前の万が一のフォールバック（簡易MathML変換）
+      const clean = tex.trim();
+      if (clean === '\\theta') return '<math><mi>θ</mi></math>';
+      if (clean === '\\alpha') return '<math><mi>α</mi></math>';
+      if (clean === '\\beta') return '<math><mi>β</mi></math>';
+      return `<math><mrow><mtext>${clean.replace(/\\/g, '')}</mtext></mrow></math>`;
+    }
+
+    function renderMathElement(el) {
+      const tex = el.getAttribute('data-tex');
+      if (!tex) return;
+      const isDisplay = el.classList.contains('math-tex-block');
+      if (window.katex && typeof window.katex.render === 'function') {
+        try {
+          window.katex.render(tex, el, {
+            displayMode: isDisplay,
+            throwOnError: false,
+            strict: false,
+          });
+        } catch (err) {
+          el.innerHTML = texToFallbackMathML(tex);
+        }
+      } else {
+        el.innerHTML = texToFallbackMathML(tex);
+      }
+    }
+
+    function renderAllMath(root = document) {
+      const nodes = root.querySelectorAll('.math-tex, .math-tex-block');
+      nodes.forEach(renderMathElement);
+    }
+
+    // 文字列内で手軽にインライン数式・ブロック数式HTMLを生成するヘルパー
+    function M(tex) {
+      const escaped = tex.replace(/"/g, '&quot;');
+      return `<span class="math-tex inline-block align-middle" data-tex="${escaped}"></span>`;
+    }
+    function MB(tex) {
+      const escaped = tex.replace(/"/g, '&quot;');
+      return `<div class="math-tex-block my-2" data-tex="${escaped}"></div>`;
+    }
+
+    // 最大公約数と既約分数のLaTeX化（実験室・ランダム問題用）
+    function gcd(a, b) {
+      a = Math.abs(Math.round(a));
+      b = Math.abs(Math.round(b));
+      while (b !== 0) {
+        const t = b;
+        b = a % b;
+        a = t;
+      }
+      return a || 1;
+    }
+
+    function rationalToTex(num, den) {
+      if (den === 0) return '\\text{定義されない}';
+      if (num === 0) return '0';
+      const sign = (num * den < 0) ? '-' : '';
+      const g = gcd(num, den);
+      const n = Math.abs(num) / g;
+      const d = Math.abs(den) / g;
+      if (d === 1) return `${sign}${n}`;
+      return `${sign}\\frac{${n}}{${d}}`;
+    }
+
+    function decimalToRationalTex(val) {
+      // 0.5刻み・0.25刻みなどの小数を有理数LaTeXに変換
+      const scale = 100;
+      const num = Math.round(val * scale);
+      return rationalToTex(num, scale);
+    }
+
+    /* =========================================================================
+     * 2. トースト通知（alert()は一切使用しない）
+     * ========================================================================= */
+    let toastTimer = null;
+    function showToast(msg, type = 'info') {
+      const box = document.getElementById('toast-box');
+      if (!box) return;
+      box.className = 'fixed bottom-5 right-5 z-50 max-w-sm px-4 py-3 rounded-2xl shadow-xl text-sm font-bold transition fade-in ';
+      if (type === 'success') {
+        box.className += 'bg-emerald-600 text-white';
+      } else if (type === 'warn') {
+        box.className += 'bg-amber-500 text-white';
+      } else {
+        box.className += 'bg-slate-900 text-white';
+      }
+      box.textContent = msg;
+      box.classList.remove('hidden');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        box.classList.add('hidden');
+      }, 3200);
+    }
+
+    /* =========================================================================
+     * 3. 座標平面キャンバス＋数式ラベルオーバーレイ描画エンジン
+     * ========================================================================= */
+    let activeGraphDrawers = [];
+
+    function drawCoordinatePlane(containerId, config) {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+
+      const draw = () => {
+        const rect = container.getBoundingClientRect();
+        const width = Math.max(260, Math.floor(rect.width));
+        const height = Math.max(240, Math.floor(rect.height));
+        const dpr = window.devicePixelRatio || 1;
+
+        container.innerHTML = '';
+        const canvas = document.createElement('canvas');
+        canvas.style.width = `${width}px`;
+        canvas.style.height = `${height}px`;
+        canvas.width = Math.floor(width * dpr);
+        canvas.height = Math.floor(height * dpr);
+        canvas.className = 'block rounded-2xl';
+        container.appendChild(canvas);
+
+        const overlay = document.createElement('div');
+        overlay.className = 'absolute inset-0 pointer-events-none overflow-hidden rounded-2xl';
+        container.appendChild(overlay);
+
+        const ctx = canvas.getContext('2d');
+        ctx.scale(dpr, dpr);
+
+        const range = config.range || 2.8;
+        const cx = width * (config.originXRatio ?? 0.5);
+        const cy = height * (config.originYRatio ?? 0.55);
+        const scale = Math.min(width, height) / (range * 2.15);
+
+        const toPx = (x, y) => ({ x: cx + x * scale, y: cy - y * scale });
+
+        // 背景
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, width, height);
+
+        // グリッド線
+        ctx.strokeStyle = '#f1f5f9';
+        ctx.lineWidth = 1;
+        const maxGrid = Math.ceil(range + 2);
+        for (let i = -maxGrid; i <= maxGrid; i++) {
+          const px = toPx(i, 0).x;
+          ctx.beginPath();
+          ctx.moveTo(px, 0);
+          ctx.lineTo(px, height);
+          ctx.stroke();
+
+          const py = toPx(0, i).y;
+          ctx.beginPath();
+          ctx.moveTo(0, py);
+          ctx.lineTo(width, py);
+          ctx.stroke();
+        }
+
+        // x軸・y軸
+        ctx.strokeStyle = '#64748b';
+        ctx.lineWidth = 1.6;
+        // x軸
+        ctx.beginPath();
+        ctx.moveTo(10, cy);
+        ctx.lineTo(width - 10, cy);
+        ctx.stroke();
+        // x軸矢印
+        ctx.beginPath();
+        ctx.moveTo(width - 16, cy - 5);
+        ctx.lineTo(width - 8, cy);
+        ctx.lineTo(width - 16, cy + 5);
+        ctx.stroke();
+
+        // y軸
+        ctx.beginPath();
+        ctx.moveTo(cx, height - 10);
+        ctx.lineTo(cx, 10);
+        ctx.stroke();
+        // y軸矢印
+        ctx.beginPath();
+        ctx.moveTo(cx - 5, 16);
+        ctx.lineTo(cx, 8);
+        ctx.lineTo(cx + 5, 16);
+        ctx.stroke();
+
+        // 軸ラベル（数式オブジェクト）
+        const addLabel = (px, py, tex, extraClass = 'text-xs text-slate-600 font-bold') => {
+          const div = document.createElement('div');
+          div.className = `graph-label ${extraClass}`;
+          div.style.left = `${px}px`;
+          div.style.top = `${py}px`;
+          div.innerHTML = M(tex);
+          overlay.appendChild(div);
+        };
+
+        addLabel(width - 18, cy + 16, 'x', 'text-xs text-slate-600');
+        addLabel(cx - 16, 16, 'y', 'text-xs text-slate-600');
+        addLabel(cx - 12, cy + 14, 'O', 'text-xs text-slate-500');
+
+        // 目盛り数字
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '11px Inter, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
+        const tickStep = range > 4 ? 2 : 1;
+        for (let i = -maxGrid; i <= maxGrid; i += tickStep) {
+          if (i === 0) continue;
+          const pX = toPx(i, 0);
+          if (pX.x > 22 && pX.x < width - 26) {
+            ctx.fillText(String(i), pX.x, cy + 5);
+          }
+          const pY = toPx(0, i);
+          if (pY.y > 22 && pY.y < height - 18) {
+            ctx.textAlign = 'right';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(String(i), cx - 6, pY.y);
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'top';
+          }
+        }
+
+        // 直角三角形ガイド（STEP 1用）
+        if (config.triangles && config.triangles.length > 0) {
+          config.triangles.forEach(tri => {
+            const p0 = toPx(0, 0);
+            const p1 = toPx(1, 0);
+            const p2 = toPx(1, tri.m);
+
+            ctx.save();
+            ctx.fillStyle = tri.fill || 'rgba(79, 70, 229, 0.12)';
+            ctx.beginPath();
+            ctx.moveTo(p0.x, p0.y);
+            ctx.lineTo(p1.x, p1.y);
+            ctx.lineTo(p2.x, p2.y);
+            ctx.closePath();
+            ctx.fill();
+
+            ctx.strokeStyle = tri.color || '#4f46e5';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 4]);
+            ctx.beginPath();
+            ctx.moveTo(p0.x, p0.y);
+            ctx.lineTo(p1.x, p1.y);
+            ctx.lineTo(p2.x, p2.y);
+            ctx.stroke();
+            ctx.restore();
+
+            // 直角マーク
+            const sq = 8;
+            ctx.strokeStyle = tri.color || '#4f46e5';
+            ctx.lineWidth = 1.4;
+            ctx.beginPath();
+            ctx.moveTo(p1.x - sq, p1.y);
+            ctx.lineTo(p1.x - sq, p1.y - (tri.m >= 0 ? sq : -sq));
+            ctx.lineTo(p1.x, p1.y - (tri.m >= 0 ? sq : -sq));
+            ctx.stroke();
+
+            if (tri.baseTex) {
+              addLabel((p0.x + p1.x) / 2, p1.y + 18, tri.baseTex, 'text-xs bg-white/90 px-1.5 py-0.5 rounded shadow-sm border border-slate-200 text-slate-700');
+            }
+            if (tri.heightTex) {
+              addLabel(p1.x + (tri.heightOffsetX || 26), (p1.y + p2.y) / 2, tri.heightTex, `text-xs bg-white/95 px-1.5 py-0.5 rounded shadow-sm border font-bold ${tri.labelClass || 'text-indigo-700 border-indigo-200'}`);
+            }
+          });
+        }
+
+        // 角度の扇形描画ヘルパー（標準の数学角：反時計回り正）
+        const drawAngleArc = (startRad, endRad, radiusPx, fillColor, strokeColor, labelTex, labelClass) => {
+          // Canvasのy軸は下向きなので角度を反転
+          ctx.save();
+          ctx.fillStyle = fillColor;
+          ctx.beginPath();
+          ctx.moveTo(cx, cy);
+          ctx.arc(cx, cy, radiusPx, -startRad, -endRad, endRad > startRad);
+          ctx.closePath();
+          ctx.fill();
+
+          ctx.strokeStyle = strokeColor;
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(cx, cy, radiusPx, -startRad, -endRad, endRad > startRad);
+          ctx.stroke();
+          ctx.restore();
+
+          if (labelTex) {
+            const mid = (startRad + endRad) / 2;
+            const lr = radiusPx + 20;
+            addLabel(cx + Math.cos(mid) * lr, cy - Math.sin(mid) * lr, labelTex, labelClass || 'text-xs font-bold text-slate-800 bg-white/90 px-1.5 py-0.5 rounded-md shadow-sm');
+          }
+        };
+
+        // カスタム角度アーク（alpha, beta, thetaなど）
+        if (config.arcs && config.arcs.length > 0) {
+          config.arcs.forEach(a => {
+            drawAngleArc(a.startRad, a.endRad, a.radius || 46, a.fill, a.stroke, a.labelTex, a.labelClass);
+          });
+        }
+
+        // 自動鋭角ハイライト（2直線のなす鋭角θを自動計算して描画）
+        if (config.autoAcuteAngle && config.lines && config.lines.length >= 2) {
+          const l1 = config.lines[0];
+          const l2 = config.lines[1];
+          const a1 = l1.vertical ? Math.PI / 2 : Math.atan(l1.m);
+          const a2 = l2.vertical ? Math.PI / 2 : Math.atan(l2.m);
+
+          // 2直線の方向角を [0, pi) に正規化
+          const n1 = ((a1 % Math.PI) + Math.PI) % Math.PI;
+          const n2 = ((a2 % Math.PI) + Math.PI) % Math.PI;
+
+          let low = Math.min(n1, n2);
+          let high = Math.max(n1, n2);
+          let diff = high - low;
+
+          // 鋭角側を選ぶ
+          let startR, endR;
+          if (diff <= Math.PI / 2 + 1e-6) {
+            startR = low;
+            endR = high;
+          } else {
+            startR = high;
+            endR = low + Math.PI;
+            diff = Math.PI - diff;
+          }
+
+          const isRightAngle = Math.abs(diff - Math.PI / 2) < 0.015;
+          if (isRightAngle) {
+            // 直角マークを描画
+            const r = 18;
+            const ux = Math.cos(startR), uy = -Math.sin(startR);
+            const vx = Math.cos(endR), vy = -Math.sin(endR);
+            ctx.save();
+            ctx.strokeStyle = '#dc2626';
+            ctx.lineWidth = 2.2;
+            ctx.fillStyle = 'rgba(220, 38, 38, 0.12)';
+            ctx.beginPath();
+            ctx.moveTo(cx, cy);
+            ctx.lineTo(cx + ux * r, cy + uy * r);
+            ctx.lineTo(cx + (ux + vx) * r, cy + (uy + vy) * r);
+            ctx.lineTo(cx + vx * r, cy + vy * r);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+            ctx.restore();
+
+            const mid = (startR + endR) / 2;
+            addLabel(cx + Math.cos(mid) * 38, cy - Math.sin(mid) * 38, '90^\\circ', 'text-xs font-extrabold text-red-700 bg-red-50 px-1.5 py-0.5 rounded-md border border-red-200 shadow-sm');
+          } else if (diff > 0.02) {
+            drawAngleArc(
+              startR,
+              endR,
+              config.acuteRadius || 52,
+              'rgba(16, 185, 129, 0.22)',
+              '#059669',
+              config.acuteLabelTex || '\\theta',
+              'text-xs font-extrabold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200 shadow-sm'
+            );
+          }
+        }
+
+        // 直線の描画
+        if (config.lines) {
+          config.lines.forEach((line) => {
+            ctx.save();
+            ctx.strokeStyle = line.color || '#2563eb';
+            ctx.lineWidth = line.width || 3;
+            if (line.dashed) ctx.setLineDash([7, 5]);
+            ctx.beginPath();
+
+            const b = line.b || 0;
+            if (line.vertical) {
+              const xVal = line.xVal || 0;
+              const pTop = toPx(xVal, range * 2);
+              const pBot = toPx(xVal, -range * 2);
+              ctx.moveTo(pTop.x, pTop.y);
+              ctx.lineTo(pBot.x, pBot.y);
+            } else {
+              const xMin = -range * 3;
+              const xMax = range * 3;
+              const p1 = toPx(xMin, line.m * xMin + b);
+              const p2 = toPx(xMax, line.m * xMax + b);
+              ctx.moveTo(p1.x, p1.y);
+              ctx.lineTo(p2.x, p2.y);
+            }
+            ctx.stroke();
+            ctx.restore();
+          });
+        }
+
+        // 凡例（左上）
+        if (config.lines && config.showLegend !== false) {
+          const legend = document.createElement('div');
+          legend.className = 'absolute top-2.5 left-2.5 bg-white/95 backdrop-blur border border-slate-200 rounded-xl px-3 py-2 shadow-sm flex flex-col gap-1.5';
+          config.lines.forEach(line => {
+            if (!line.legendTex) return;
+            const row = document.createElement('div');
+            row.className = 'flex items-center gap-2 text-xs font-bold text-slate-700';
+            row.innerHTML = `<span class="inline-block w-4 h-1 rounded-full shrink-0" style="background:${line.color}"></span>${M(line.legendTex)}`;
+            legend.appendChild(row);
+          });
+          overlay.appendChild(legend);
+        }
+
+        renderAllMath(overlay);
+      };
+
+      draw();
+      activeGraphDrawers.push(draw);
+    }
+
+    window.addEventListener('resize', () => {
+      activeGraphDrawers.forEach(fn => fn());
+    });
+
+    /* =========================================================================
+     * 4. アプリケーション状態管理
+     * ========================================================================= */
+    const STORAGE_KEY = 'math2_angle_two_lines_v1';
+
+    const defaultState = {
+      currentStep: 0, // 0: ホーム, 1..6: STEP 1..6
+      completedSteps: {},
+      // STEP 1 ワークシート状態
+      step1Highlight: 'both', // 'm1', 'm2', 'both'
+      step1Answers: { a1: '', a2: '', a3: '', a4: '' },
+      step1Checked: false,
+      // STEP 2 ステップ解説の開示段階
+      step2Reveal: 0,
+      step2Checked: false,
+      // STEP 3 ワークシート状態
+      step3ShowActualAngles: false,
+      step3Reveal: 0,
+      // STEP 4 実験室状態
+      labM1: 1,
+      labM2: 3,
+      labShowSteps: true,
+      // STEP 5 演習状態
+      drillTab: 'A', // 'A', 'B', 'C', 'D', 'RANDOM'
+      drillSolved: {},
+      randomProblem: null,
+      // STEP 6 振り返り状態
+      step6PerpAnswer: '',
+      step6PerpChecked: false,
+      step6ChallengeRevealed: false,
+      exitTicketText: '',
+      selfChecks: [false, false, false, false],
+    };
+
+    let state = loadState();
+
+    function loadState() {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) {
+          return { ...defaultState, ...JSON.parse(saved) };
+        }
+      } catch (e) {}
+      return { ...defaultState };
+    }
+
+    function saveState() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      } catch (e) {}
+      updateProgressUI();
+    }
+
+    const STEPS_META = [
+      { id: 0, short: 'ホーム', title: '今日の問い・学習マップ', time: '導入' },
+      { id: 1, short: 'STEP 1', title: '傾きと tan を図でつなぐ', time: '0〜8分' },
+      { id: 2, short: 'STEP 2', title: '45°と60°の2直線（角度の差）', time: '8〜15分' },
+      { id: 3, short: 'STEP 3', title: '角度が分からない2直線', time: '15〜25分' },
+      { id: 4, short: 'STEP 4', title: '公式を導く・実験室', time: '25〜35分' },
+      { id: 5, short: 'STEP 5', title: '段階別演習・入試問題', time: '35〜45分' },
+      { id: 6, short: 'STEP 6', title: '垂直条件・発展・振り返り', time: '45〜50分' },
+    ];
+
+    function markStepCompleted(stepId) {
+      if (stepId >= 1 && stepId <= 6) {
+        state.completedSteps[stepId] = true;
+        saveState();
+        renderNav();
+      }
+    }
+
+    function updateProgressUI() {
+      const count = Object.keys(state.completedSteps).filter(k => state.completedSteps[k]).length;
+      const badge = document.getElementById('progress-badge');
+      if (badge) {
+        badge.textContent = `${count}個完了（全6ステップ）`;
+      }
+    }
+
+    /* =========================================================================
+     * 5. ナビゲーション＆画面遷移
+     * ========================================================================= */
+    function renderNav() {
+      const nav = document.getElementById('step-nav');
+      if (!nav) return;
+      nav.innerHTML = STEPS_META.map(s => {
+        const isActive = state.currentStep === s.id;
+        const isDone = !!state.completedSteps[s.id];
+        return `
+          <button
+            onclick="goToStep(${s.id})"
+            class="shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition ${
+              isActive
+                ? 'bg-brand-600 text-white shadow-sm'
+                : isDone
+                ? 'bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100'
+                : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'
+            }"
+          >
+            ${isDone ? '<span class="text-emerald-500">✔</span>' : ''}
+            <span>${s.short}</span>
+          </button>
+        `;
+      }).join('');
+
+      const btnPrev = document.getElementById('btn-prev');
+      const btnNext = document.getElementById('btn-next');
+      const indicator = document.getElementById('bottom-step-indicator');
+      if (btnPrev) btnPrev.disabled = state.currentStep === 0;
+      if (btnNext) {
+        btnNext.disabled = state.currentStep === 6;
+        btnNext.textContent = state.currentStep === 0 ? 'STEP 1 から始める →' : '次のステップへ →';
+      }
+      if (indicator) {
+        const meta = STEPS_META[state.currentStep];
+        indicator.textContent = `${meta.short}：${meta.title}`;
+      }
+    }
+
+    function goToStep(stepId) {
+      state.currentStep = stepId;
+      saveState();
+      renderNav();
+      renderCurrentStep();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function nextStep() {
+      if (state.currentStep < 6) {
+        if (state.currentStep >= 1) markStepCompleted(state.currentStep);
+        goToStep(state.currentStep + 1);
+      }
+    }
+
+    function prevStep() {
+      if (state.currentStep > 0) {
+        goToStep(state.currentStep - 1);
+      }
+    }
+
+    /* 共通パーツ：「この画面でやること」バナー */
+    function renderMissionBanner(stepLabel, timeLabel, missionTitle, missionPoints) {
+      return `
+        <section class="bg-gradient-to-r from-indigo-600 to-blue-600 text-white rounded-2xl p-4 sm:p-5 shadow-md mb-6">
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+            <span class="inline-flex items-center gap-1.5 bg-white/20 backdrop-blur px-3 py-1 rounded-full text-xs font-extrabold tracking-wide">
+              🎯 この画面でやること｜${stepLabel}
+            </span>
+            <span class="text-xs font-bold bg-black/20 px-2.5 py-1 rounded-full">目安：${timeLabel}</span>
+          </div>
+          <h2 class="text-lg sm:text-xl font-extrabold leading-snug mb-2">${missionTitle}</h2>
+          <ul class="space-y-1 text-xs sm:text-sm text-indigo-50">
+            ${missionPoints.map(pt => `<li class="flex items-start gap-2"><span class="mt-0.5 text-amber-300 font-bold">▸</span><span>${pt}</span></li>`).join('')}
+          </ul>
+        </section>
+      `;
+    }
+
+    /* =========================================================================
+     * 6. 各ステップの画面描画関数
+     * ========================================================================= */
+    function renderCurrentStep() {
+      activeGraphDrawers = [];
+      const container = document.getElementById('app-content');
+      container.classList.remove('fade-in');
+      void container.offsetWidth;
+      container.classList.add('fade-in');
+
+      switch (state.currentStep) {
+        case 0: renderHome(container); break;
+        case 1: renderStep1(container); break;
+        case 2: renderStep2(container); break;
+        case 3: renderStep3(container); break;
+        case 4: renderStep4(container); break;
+        case 5: renderStep5(container); break;
+        case 6: renderStep6(container); break;
+      }
+      renderAllMath(container);
+    }
+
+    /* -------------------------------------------------------------------------
+     * STEP 0：ホーム（今日の問い・学習マップ）
+     * ------------------------------------------------------------------------- */
+    function renderHome(container) {
+      container.innerHTML = `
+        <div class="space-y-6">
+          <!-- 授業の中心の問い -->
+          <section class="bg-gradient-to-br from-brand-600 via-indigo-600 to-sky-600 text-white rounded-3xl p-6 sm:p-8 shadow-lg">
+            <div class="inline-flex items-center gap-2 bg-white/20 px-3 py-1 rounded-full text-xs font-extrabold mb-3">
+              💡 今日の中心の問い
+            </div>
+            <h2 class="text-xl sm:text-2xl md:text-3xl font-extrabold leading-relaxed mb-4">
+              「2本の直線が何度傾いているか分からないのに、<br class="hidden sm:inline" />なす角の ${M('\\tan')} だけを求められるのはなぜ？」
+            </h2>
+            <p class="text-sm sm:text-base text-indigo-100 leading-relaxed mb-6">
+              このアプリでは、図を見ながらステップ順に考えることで、公式を丸暗記するのではなく「仕組み」から理解し、入試問題レベルまで解けるように練習します。授業の説明にも、テスト前の復習にも使えます。
+            </p>
+            <div class="flex flex-wrap gap-3">
+              <button onclick="goToStep(1)" class="px-6 py-3.5 rounded-2xl bg-white text-brand-700 font-extrabold text-sm sm:text-base shadow-md hover:bg-indigo-50 transition">
+                STEP 1 から順番に学ぶ →
+              </button>
+              <button onclick="goToStep(4)" class="px-5 py-3.5 rounded-2xl bg-white/15 hover:bg-white/25 text-white font-bold text-sm sm:text-base border border-white/30 transition">
+                公式実験室をさわる
+              </button>
+              <button onclick="goToStep(5)" class="px-5 py-3.5 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-sm sm:text-base shadow-md transition">
+                復習ドリル（演習）へ進む
+              </button>
+            </div>
+          </section>
+
+          <!-- この授業の3つのねらい -->
+          <section class="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 shadow-sm">
+            <h3 class="text-base font-extrabold text-slate-900 mb-3 flex items-center gap-2">
+              <span class="w-7 h-7 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center text-sm">🎯</span>
+              この単元のねらい（できるようになること）
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div class="p-4 rounded-xl bg-slate-50 border border-slate-200">
+                <div class="text-xs font-extrabold text-brand-600 mb-1">ねらい 1</div>
+                <p class="text-sm font-bold text-slate-800 leading-relaxed">
+                  直線の傾きと ${M('\\tan')} が同じ ${M('\\frac{\\text{縦の変化}}{\\text{横の変化}}')} を表すと説明できる。
+                </p>
+              </div>
+              <div class="p-4 rounded-xl bg-slate-50 border border-slate-200">
+                <div class="text-xs font-extrabold text-brand-600 mb-1">ねらい 2</div>
+                <p class="text-sm font-bold text-slate-800 leading-relaxed">
+                  角度そのものが分からなくても、2本の傾きからなす角の ${M('\\tan')} を求められる。
+                </p>
+              </div>
+              <div class="p-4 rounded-xl bg-slate-50 border border-slate-200">
+                <div class="text-xs font-extrabold text-brand-600 mb-1">ねらい 3</div>
+                <p class="text-sm font-bold text-slate-800 leading-relaxed">
+                  負の傾き・垂直・一般形 ${M('ax+by+c=0')} の直線にも考え方を応用できる。
+                </p>
+              </div>
+            </div>
+          </section>
+
+          <!-- 6ステップ学習マップ -->
+          <section>
+            <h3 class="text-base font-extrabold text-slate-900 mb-3">📚 学習の流れ（好きなステップから復習できます）</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              ${[
+                { id: 1, title: '傾きと tan を図でつなぐ', desc: `グラフで ${M('y=x')} と ${M('y=\\sqrt{3}x')} を見て、傾きと ${M('\\tan')} が一致する理由を確認します。`, time: '0〜8分', tag: '基礎・図解' },
+                { id: 2, title: '45°と60°の2直線（角度の差）', desc: `2直線の間の角 ${M('15^\\circ')} の ${M('\\tan')} を、加法定理を使って計算してみます。`, time: '8〜15分', tag: '加法定理' },
+                { id: 3, title: '角度が分からない2直線', desc: `${M('y=2x')} と ${M('y=3x')} のように角度が不明でも、${M('\\tan')} だけで答えが出る仕組みを発見します。`, time: '15〜25分', tag: '核心の気づき' },
+                { id: 4, title: '公式の導出と実験室', desc: `公式を導き、スライダーで傾きを動かしながら絶対値の意味や垂直を体感します。`, time: '25〜35分', tag: '実験・公式' },
+                { id: 5, title: '段階別演習・入試問題', desc: `基本・負の傾き・一般形・無理数の有理化まで、4段階の問題＋ランダム問題で復習します。`, time: '35〜45分', tag: '実践ドリル' },
+                { id: 6, title: '垂直条件・発展・振り返り', desc: `分母が ${M('0')} になる意味、鉛直線の注意点を確認し、出口チケットでまとめます。`, time: '45〜50分', tag: 'まとめ' },
+              ].map(card => {
+                const done = !!state.completedSteps[card.id];
+                return `
+                  <button onclick="goToStep(${card.id})" class="text-left bg-white hover:bg-indigo-50/40 border ${done ? 'border-emerald-300' : 'border-slate-200'} rounded-2xl p-5 shadow-sm hover:shadow-md transition flex flex-col justify-between group">
+                    <div>
+                      <div class="flex items-center justify-between gap-2 mb-2">
+                        <span class="text-xs font-extrabold px-2.5 py-1 rounded-lg ${done ? 'bg-emerald-100 text-emerald-800' : 'bg-brand-50 text-brand-700'}">
+                          ${done ? '✔ ' : ''}STEP ${card.id}｜${card.tag}
+                        </span>
+                        <span class="text-xs text-slate-400 font-semibold">${card.time}</span>
+                      </div>
+                      <h4 class="text-base font-extrabold text-slate-900 group-hover:text-brand-700 mb-1.5">${card.title}</h4>
+                      <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">${card.desc}</p>
+                    </div>
+                    <div class="mt-4 text-xs font-bold text-brand-600 flex items-center gap-1">
+                      <span>この画面をひらく</span><span>→</span>
+                    </div>
+                  </button>
+                `;
+              }).join('')}
+            </div>
+          </section>
+        </div>
+      `;
+    }
+
+    /* -------------------------------------------------------------------------
+     * STEP 1：傾きと tan を図でつなぐ（0〜8分）
+     * ------------------------------------------------------------------------- */
+    function renderStep1(container) {
+      const hl = state.step1Highlight;
+      container.innerHTML = `
+        ${renderMissionBanner(
+          'STEP 1',
+          '0〜8分',
+          `グラフを見て、「直線の傾き」と「${M('\\tan')}」が同じ意味であることを確かめよう`,
+          [
+            `左のグラフでボタンを押し、右に ${M('1')} 進んだときの上に上がる量（直角三角形の高さ）を観察します。`,
+            `右のワークシートの空欄を選んで、${M('y=x')} と ${M('y=\\sqrt{3}x')} の角度と ${M('\\tan')} をチェックします。`,
+          ]
+        )}
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <!-- 左：インタラクティブ図解 -->
+          <div class="lg:col-span-6 bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 shadow-sm flex flex-col">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+              <h3 class="text-sm font-extrabold text-slate-800">📊 座標平面で「右に1進む」を確認</h3>
+              <div class="flex gap-1.5">
+                <button onclick="setStep1HL('m1')" class="px-2.5 py-1.5 rounded-lg text-xs font-bold border transition ${hl === 'm1' ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}">
+                  ${M('y=x')} のみ
+                </button>
+                <button onclick="setStep1HL('m2')" class="px-2.5 py-1.5 rounded-lg text-xs font-bold border transition ${hl === 'm2' ? 'bg-orange-600 text-white border-orange-600' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}">
+                  ${M('y=\\sqrt{3}x')} のみ
+                </button>
+                <button onclick="setStep1HL('both')" class="px-2.5 py-1.5 rounded-lg text-xs font-bold border transition ${hl === 'both' ? 'bg-brand-600 text-white border-brand-600' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}">
+                  両方表示
+                </button>
+              </div>
+            </div>
+
+            <div id="graph-step1" class="relative w-full h-72 sm:h-80 border border-slate-200 rounded-2xl bg-white"></div>
+
+            <!-- つまずき防止ポイント -->
+            <div class="mt-4 p-4 rounded-xl bg-amber-50 border border-amber-200">
+              <div class="text-xs font-extrabold text-amber-800 mb-1">📌 確認ポイント（ここが大事！）</div>
+              <div class="text-sm text-slate-800 leading-relaxed">
+                傾きは単なる「${M('y')} の値」ではなく、${M('\\frac{y\\text{の変化量}}{x\\text{の変化量}}')} です。直角三角形で見ると次の式が成り立ちます。
+              </div>
+              <div class="mt-2 bg-white rounded-xl p-2.5 border border-amber-200 text-center">
+                ${MB('\\tan \\alpha = \\frac{\\text{高さ}}{\\text{底辺}} = \\frac{y\\text{の変化量}}{x\\text{の変化量}} = \\text{傾き}')}
+              </div>
+            </div>
+          </div>
+
+          <!-- 右：ワークシート確認クイズ -->
+          <div class="lg:col-span-6 bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex flex-col justify-between">
+            <div>
+              <h3 class="text-base font-extrabold text-slate-900 mb-1">✏️ ワークシート確認（空欄を選んでみよう）</h3>
+              <p class="text-xs text-slate-500 mb-4">右に ${M('1')} 進んだときの上昇量と、${M('x')} 軸となす角を確認しましょう。</p>
+
+              <div class="space-y-4">
+                <!-- 設問1 -->
+                <div class="p-4 rounded-xl bg-blue-50/60 border border-blue-200">
+                  <div class="text-sm font-bold text-slate-800 mb-2">
+                    ① 直線 ${M('y = x')}（右に ${M('1')} 進むと上に ${M('1')} 進む）
+                  </div>
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                    <label class="block">
+                      <span class="text-xs font-bold text-slate-600 block mb-1">${M('x')} 軸となす角は？</span>
+                      <select onchange="updateStep1Ans('a1', this.value)" class="w-full p-2.5 rounded-xl border border-slate-300 bg-white font-bold">
+                        <option value="">選択してください</option>
+                        <option value="30" ${state.step1Answers.a1 === '30' ? 'selected' : ''}>30°</option>
+                        <option value="45" ${state.step1Answers.a1 === '45' ? 'selected' : ''}>45°</option>
+                        <option value="60" ${state.step1Answers.a1 === '60' ? 'selected' : ''}>60°</option>
+                      </select>
+                    </label>
+                    <label class="block">
+                      <span class="text-xs font-bold text-slate-600 block mb-1">その角の ${M('\\tan')} は？</span>
+                      <div class="flex gap-2">
+                        ${[
+                          { v: '1', tex: '1' },
+                          { v: 'sqrt3', tex: '\\sqrt{3}' },
+                          { v: 'invsqrt3', tex: '\\frac{1}{\\sqrt{3}}' },
+                        ].map(opt => `
+                          <button type="button" onclick="updateStep1Ans('a2', '${opt.v}')" class="flex-1 py-2 px-2 rounded-xl border text-sm font-bold transition ${state.step1Answers.a2 === opt.v ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'}">
+                            ${M(opt.tex)}
+                          </button>
+                        `).join('')}
+                      </div>
+                    </label>
+                  </div>
+                </div>
+
+                <!-- 設問2 -->
+                <div class="p-4 rounded-xl bg-orange-50/60 border border-orange-200">
+                  <div class="text-sm font-bold text-slate-800 mb-2">
+                    ② 直線 ${M('y = \\sqrt{3}x')}（右に ${M('1')} 進むと上に ${M('\\sqrt{3}')} 進む）
+                  </div>
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                    <label class="block">
+                      <span class="text-xs font-bold text-slate-600 block mb-1">${M('x')} 軸となす角は？</span>
+                      <select onchange="updateStep1Ans('a3', this.value)" class="w-full p-2.5 rounded-xl border border-slate-300 bg-white font-bold">
+                        <option value="">選択してください</option>
+                        <option value="30" ${state.step1Answers.a3 === '30' ? 'selected' : ''}>30°</option>
+                        <option value="45" ${state.step1Answers.a3 === '45' ? 'selected' : ''}>45°</option>
+                        <option value="60" ${state.step1Answers.a3 === '60' ? 'selected' : ''}>60°</option>
+                      </select>
+                    </label>
+                    <label class="block">
+                      <span class="text-xs font-bold text-slate-600 block mb-1">その角の ${M('\\tan')} は？</span>
+                      <div class="flex gap-2">
+                        ${[
+                          { v: '1', tex: '1' },
+                          { v: 'sqrt3', tex: '\\sqrt{3}' },
+                          { v: '2', tex: '2' },
+                        ].map(opt => `
+                          <button type="button" onclick="updateStep1Ans('a4', '${opt.v}')" class="flex-1 py-2 px-2 rounded-xl border text-sm font-bold transition ${state.step1Answers.a4 === opt.v ? 'bg-orange-600 text-white border-orange-600' : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'}">
+                            ${M(opt.tex)}
+                          </button>
+                        `).join('')}
+                      </div>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 判定ボタン -->
+              <div class="mt-4 flex items-center gap-3">
+                <button onclick="checkStep1()" class="px-5 py-3 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-extrabold text-sm shadow-sm transition">
+                  答え合わせをする
+                </button>
+              </div>
+
+              <!-- 判定結果とまとめ -->
+              ${state.step1Checked ? renderStep1Feedback() : ''}
+            </div>
+          </div>
+        </div>
+      `;
+
+      // グラフ描画設定
+      const lines = [];
+      const triangles = [];
+      const arcs = [];
+
+      if (hl === 'm1' || hl === 'both') {
+        lines.push({ m: 1, color: '#2563eb', legendTex: 'y = x \\; (m=1)' });
+        triangles.push({
+          m: 1,
+          color: '#2563eb',
+          fill: 'rgba(37, 99, 235, 0.14)',
+          baseTex: '\\text{底辺 } 1',
+          heightTex: hl === 'both' ? '1' : '\\text{高さ } 1',
+          heightOffsetX: hl === 'both' ? 18 : 30,
+          labelClass: 'text-blue-700 border-blue-200',
+        });
+        arcs.push({
+          startRad: 0,
+          endRad: Math.PI / 4,
+          radius: 42,
+          fill: 'rgba(37, 99, 235, 0.18)',
+          stroke: '#2563eb',
+          labelTex: '45^\\circ',
+          labelClass: 'text-xs font-extrabold text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200',
+        });
+      }
+
+      if (hl === 'm2' || hl === 'both') {
+        lines.push({ m: Math.sqrt(3), color: '#ea580c', legendTex: 'y = \\sqrt{3}x \\; (m=\\sqrt{3})' });
+        triangles.push({
+          m: Math.sqrt(3),
+          color: '#ea580c',
+          fill: 'rgba(234, 88, 12, 0.10)',
+          baseTex: hl === 'm2' ? '\\text{底辺 } 1' : null,
+          heightTex: hl === 'both' ? '\\sqrt{3}' : '\\text{高さ } \\sqrt{3}',
+          heightOffsetX: hl === 'both' ? 24 : 36,
+          labelClass: 'text-orange-700 border-orange-200',
+        });
+        arcs.push({
+          startRad: 0,
+          endRad: Math.PI / 3,
+          radius: hl === 'both' ? 66 : 46,
+          fill: 'rgba(234, 88, 12, 0.12)',
+          stroke: '#ea580c',
+          labelTex: '60^\\circ',
+          labelClass: 'text-xs font-extrabold text-orange-700 bg-orange-50 px-1.5 py-0.5 rounded border border-orange-200',
+        });
+      }
+
+      drawCoordinatePlane('graph-step1', {
+        range: 2.3,
+        originXRatio: 0.38,
+        originYRatio: 0.72,
+        lines,
+        triangles,
+        arcs,
+      });
+    }
+
+    function setStep1HL(val) {
+      state.step1Highlight = val;
+      renderCurrentStep();
+    }
+
+    function updateStep1Ans(key, val) {
+      state.step1Answers[key] = val;
+      state.step1Checked = false;
+      renderCurrentStep();
+    }
+
+    function checkStep1() {
+      state.step1Checked = true;
+      const a = state.step1Answers;
+      const allCorrect = a.a1 === '45' && a.a2 === '1' && a.a3 === '60' && a.a4 === 'sqrt3';
+      if (allCorrect) {
+        markStepCompleted(1);
+        showToast('全問正解です！傾きと tan の関係がつかめました。', 'success');
+      } else {
+        showToast('惜しい！グラフの直角三角形を見ながらもう一度確認してみよう。', 'warn');
+      }
+      renderCurrentStep();
+    }
+
+    function renderStep1Feedback() {
+      const a = state.step1Answers;
+      const ok = a.a1 === '45' && a.a2 === '1' && a.a3 === '60' && a.a4 === 'sqrt3';
+      return `
+        <div class="mt-4 p-4 rounded-xl border ${ok ? 'bg-emerald-50 border-emerald-200' : 'bg-rose-50 border-rose-200'}">
+          <div class="font-extrabold text-sm ${ok ? 'text-emerald-800' : 'text-rose-800'} mb-1">
+            ${ok ? '🎉 全問正解！STEP 1 クリア' : '🔍 もう一度チェックしてみよう'}
+          </div>
+          <p class="text-xs sm:text-sm text-slate-700 leading-relaxed">
+            ① ${M('y=x')} は ${M('45^\\circ')} で ${M('\\tan 45^\\circ = 1')}（傾きと同じ）<br/>
+            ② ${M('y=\\sqrt{3}x')} は ${M('60^\\circ')} で ${M('\\tan 60^\\circ = \\sqrt{3}')}（傾きと同じ）<br/>
+            どちらも、底辺が ${M('1')} の直角三角形における「高さ」がそのまま傾きであり ${M('\\tan')} の値になります。
+          </p>
+        </div>
+      `;
+    }
+
+    /* -------------------------------------------------------------------------
+     * STEP 2：45°と60°の2直線（角度の差）（8〜15分）
+     * ------------------------------------------------------------------------- */
+    function renderStep2(container) {
+      const rev = state.step2Reveal;
+      container.innerHTML = `
+        ${renderMissionBanner(
+          'STEP 2',
+          '8〜15分',
+          `2直線の間の角 ${M('15^\\circ')} の ${M('\\tan')} を、覚えていなくても加法定理で求めてみよう`,
+          [
+            `左の図で、${M('60^\\circ')} と ${M('45^\\circ')} の「差」が 2直線のなす角 ${M('15^\\circ')} になることを目で確認します。`,
+            `右のボタンを押して、${M('\\tan(60^\\circ - 45^\\circ)')} の計算と分母の有理化を1行ずつ確認しましょう。`,
+          ]
+        )}
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <!-- 左：グラフ -->
+          <div class="lg:col-span-5 bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 shadow-sm">
+            <h3 class="text-sm font-extrabold text-slate-800 mb-3">📊 2直線の間の角は「角度の差」</h3>
+            <div id="graph-step2" class="relative w-full h-72 sm:h-80 border border-slate-200 rounded-2xl bg-white"></div>
+            <div class="mt-4 p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-sm text-emerald-900 font-bold text-center">
+              小さい方のなす角 ${M('= 60^\\circ - 45^\\circ = 15^\\circ')}
+            </div>
+          </div>
+
+          <!-- 右：加法定理ステップ展開 -->
+          <div class="lg:col-span-7 bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
+            <div class="p-4 rounded-xl bg-indigo-50 border border-indigo-200">
+              <div class="text-xs font-extrabold text-indigo-700 mb-1">📖 使ってよい公式（${M('\\tan')} の加法定理）</div>
+              <div class="text-center">
+                ${MB('\\tan(A - B) = \\frac{\\tan A - \\tan B}{1 + \\tan A \\tan B}')}
+              </div>
+            </div>
+
+            <div>
+              <h3 class="text-sm font-extrabold text-slate-800 mb-2">
+                発問：「${M('\\tan 15^\\circ')} を暗記していなくても求められる？」
+              </h3>
+              <p class="text-xs text-slate-500 mb-3">下のボタンを押して、1ステップずつ計算を確かめましょう。</p>
+
+              <div class="space-y-2.5">
+                <!-- ステップ1 -->
+                <div class="p-3.5 rounded-xl border ${rev >= 1 ? 'bg-white border-indigo-200 shadow-sm' : 'bg-slate-50 border-dashed border-slate-300'}">
+                  <div class="text-xs font-bold text-indigo-600 mb-1">手順 1：${M('A = 60^\\circ, \\; B = 45^\\circ')} を公式に当てはめる</div>
+                  ${rev >= 1
+                    ? `<div class="text-center">${MB('\\tan(60^\\circ - 45^\\circ) = \\frac{\\tan 60^\\circ - \\tan 45^\\circ}{1 + \\tan 60^\\circ \\tan 45^\\circ}')}</div>`
+                    : `<div class="text-xs text-slate-400 py-2 text-center">（ボタンで表示されます）</div>`
+                  }
+                </div>
+
+                <!-- ステップ2 -->
+                <div class="p-3.5 rounded-xl border ${rev >= 2 ? 'bg-white border-indigo-200 shadow-sm' : 'bg-slate-50 border-dashed border-slate-300'}">
+                  <div class="text-xs font-bold text-indigo-600 mb-1">手順 2：${M('\\tan 60^\\circ = \\sqrt{3}, \\; \\tan 45^\\circ = 1')}（＝傾き）を代入する</div>
+                  ${rev >= 2
+                    ? `<div class="text-center">${MB('= \\frac{\\sqrt{3} - 1}{1 + \\sqrt{3} \\cdot 1} = \\frac{\\sqrt{3} - 1}{\\sqrt{3} + 1}')}</div>`
+                    : `<div class="text-xs text-slate-400 py-2 text-center">（ボタンで表示されます）</div>`
+                  }
+                </div>
+
+                <!-- ステップ3 -->
+                <div class="p-3.5 rounded-xl border ${rev >= 3 ? 'bg-emerald-50 border-emerald-300 shadow-sm' : 'bg-slate-50 border-dashed border-slate-300'}">
+                  <div class="text-xs font-bold text-emerald-700 mb-1">手順 3：分母を有理化して答えを出す</div>
+                  ${rev >= 3
+                    ? `<div class="text-center">${MB('= \\frac{(\\sqrt{3} - 1)^2}{(\\sqrt{3} + 1)(\\sqrt{3} - 1)} = \\frac{4 - 2\\sqrt{3}}{3 - 1} = 2 - \\sqrt{3}')}</div>`
+                    : `<div class="text-xs text-slate-400 py-2 text-center">（ボタンで表示されます）</div>`
+                  }
+                </div>
+              </div>
+
+              <div class="mt-4 flex flex-wrap gap-2">
+                ${rev < 3 ? `
+                  <button onclick="advanceStep2()" class="px-5 py-3 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-extrabold text-sm shadow-sm transition">
+                    手順 ${rev + 1} を見る →
+                  </button>
+                ` : `
+                  <button onclick="resetStep2()" class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition">
+                    もう一度最初から見る
+                  </button>
+                `}
+              </div>
+            </div>
+
+            ${rev >= 3 ? `
+              <div class="p-4 rounded-xl bg-amber-50 border border-amber-200 fade-in">
+                <div class="text-xs font-extrabold text-amber-800 mb-1">💡 ここで大事な「気づき」</div>
+                <p class="text-sm font-bold text-slate-800 leading-relaxed">
+                  「差の角の ${M('\\tan')}」は、${M('15^\\circ')} という角度を覚えていなくても、
+                  <span class="underline decoration-amber-400 decoration-4">元の2つの角の ${M('\\tan')}（つまり直線の傾き！）</span>さえ分かれば計算できます！
+                </p>
+              </div>
+            ` : ''}
+          </div>
+        </div>
+      `;
+
+      drawCoordinatePlane('graph-step2', {
+        range: 2.3,
+        originXRatio: 0.38,
+        originYRatio: 0.72,
+        lines: [
+          { m: 1, color: '#2563eb', legendTex: 'y = x \\; (45^\\circ)' },
+          { m: Math.sqrt(3), color: '#ea580c', legendTex: 'y = \\sqrt{3}x \\; (60^\\circ)' },
+        ],
+        arcs: [
+          {
+            startRad: 0,
+            endRad: Math.PI / 4,
+            radius: 36,
+            fill: 'rgba(37, 99, 235, 0.14)',
+            stroke: '#2563eb',
+            labelTex: '45^\\circ',
+            labelClass: 'text-xs font-bold text-blue-700 bg-white/90 px-1 rounded',
+          },
+          {
+            startRad: Math.PI / 4,
+            endRad: Math.PI / 3,
+            radius: 78,
+            fill: 'rgba(16, 185, 129, 0.28)',
+            stroke: '#059669',
+            labelTex: '15^\\circ',
+            labelClass: 'text-xs font-extrabold text-emerald-800 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-300 shadow-sm',
+          },
+        ],
+      });
+    }
+
+    function advanceStep2() {
+      state.step2Reveal = Math.min(3, state.step2Reveal + 1);
+      if (state.step2Reveal === 3) {
+        markStepCompleted(2);
+        showToast('STEP 2 完了！差の角の計算方法が分かりました。', 'success');
+      }
+      renderCurrentStep();
+    }
+
+    function resetStep2() {
+      state.step2Reveal = 0;
+      renderCurrentStep();
+    }
+
+    /* -------------------------------------------------------------------------
+     * STEP 3：角度が分からなくても計算できる！（15〜25分）
+     * ------------------------------------------------------------------------- */
+    function renderStep3(container) {
+      const rev = state.step3Reveal;
+      const showDeg = state.step3ShowActualAngles;
+
+      container.innerHTML = `
+        ${renderMissionBanner(
+          'STEP 3',
+          '15〜25分',
+          `角度が分からない2直線 ${M('y=2x')} と ${M('y=3x')} で、${M('\\tan\\theta')} だけを求めてみよう`,
+          [
+            `それぞれの直線が ${M('x')} 軸となす角を ${M('\\alpha, \\; \\beta')}（何度かは不明！）とおきます。`,
+            `「角度を知らなくても ${M('\\tan\\alpha, \\; \\tan\\beta')} だけは傾きからすぐ分かる」という核心を体感しましょう。`,
+          ]
+        )}
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <!-- 左：グラフ -->
+          <div class="lg:col-span-5 bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 shadow-sm">
+            <div class="flex items-center justify-between gap-2 mb-3">
+              <h3 class="text-sm font-extrabold text-slate-800">📊 未知の角 ${M('\\alpha, \\; \\beta')} と差 ${M('\\theta')}</h3>
+              <button onclick="toggleStep3Angles()" class="text-xs font-bold px-2.5 py-1.5 rounded-lg border transition ${showDeg ? 'bg-amber-100 border-amber-300 text-amber-900' : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'}">
+                ${showDeg ? '実際の角度を隠す' : '参考：実際の角度を覗く'}
+              </button>
+            </div>
+            <div id="graph-step3" class="relative w-full h-72 sm:h-80 border border-slate-200 rounded-2xl bg-white"></div>
+            <div class="mt-3 p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-700 leading-relaxed">
+              ${showDeg
+                ? `参考値：${M('\\alpha \\approx 63.4^\\circ, \\; \\beta \\approx 71.6^\\circ, \\; \\theta \\approx 8.1^\\circ')}。<br/><strong>こんな中途半端な角度は暗記できませんが、計算に度数は一切使いません！</strong>`
+                : `角 ${M('\\alpha')} と ${M('\\beta')} は有名な角（${M('30^\\circ, 45^\\circ, 60^\\circ')}）ではありません。でも大丈夫！`
+              }
+            </div>
+          </div>
+
+          <!-- 右：導出ステップ -->
+          <div class="lg:col-span-7 bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
+            <h3 class="text-base font-extrabold text-slate-900">✏️ 問題：${M('y=2x')} と ${M('y=3x')} のなす角 ${M('\\theta')} の ${M('\\tan\\theta')} を求めよう</h3>
+
+            <div class="space-y-3">
+              <!-- ① -->
+              <div class="p-4 rounded-xl bg-slate-50 border border-slate-200">
+                <div class="text-xs font-extrabold text-brand-600 mb-1">① 傾きから ${M('\\tan')} を読み取る（角度は不要！）</div>
+                <div class="text-sm text-slate-800">
+                  それぞれの ${M('x')} 軸となす角を ${M('\\alpha, \\; \\beta')}（${M('0^\\circ < \\alpha < \\beta < 90^\\circ')}）とおくと：
+                </div>
+                <div class="mt-2 flex flex-wrap gap-3 justify-center">
+                  <div class="px-4 py-2 bg-blue-50 border border-blue-200 rounded-xl font-bold text-blue-900">
+                    ${M('\\tan \\alpha = 2')}
+                  </div>
+                  <div class="px-4 py-2 bg-orange-50 border border-orange-200 rounded-xl font-bold text-orange-900">
+                    ${M('\\tan \\beta = 3')}
+                  </div>
+                </div>
+              </div>
+
+              <!-- ② -->
+              <div class="p-4 rounded-xl border ${rev >= 1 ? 'bg-white border-indigo-200 shadow-sm' : 'bg-slate-50 border-dashed border-slate-300'}">
+                <div class="text-xs font-extrabold text-indigo-600 mb-1">② なす角 ${M('\\theta')} を ${M('\\alpha, \\; \\beta')} で表す</div>
+                ${rev >= 1
+                  ? `<div class="text-center font-bold">${MB('\\theta = \\beta - \\alpha')}</div>`
+                  : `<div class="text-xs text-slate-400 text-center py-2">（ボタンを押して確認）</div>`
+                }
+              </div>
+
+              <!-- ③ -->
+              <div class="p-4 rounded-xl border ${rev >= 2 ? 'bg-emerald-50 border-emerald-300 shadow-sm' : 'bg-slate-50 border-dashed border-slate-300'}">
+                <div class="text-xs font-extrabold text-emerald-700 mb-1">③ ${M('\\tan')} の差の公式に代入する</div>
+                ${rev >= 2
+                  ? `<div class="text-center">${MB('\\tan \\theta = \\tan(\\beta - \\alpha) = \\frac{\\tan\\beta - \\tan\\alpha}{1 + \\tan\\beta \\tan\\alpha} = \\frac{3 - 2}{1 + 3 \\times 2} = \\frac{1}{7}')}</div>`
+                  : `<div class="text-xs text-slate-400 text-center py-2">（ボタンを押して確認）</div>`
+                }
+              </div>
+            </div>
+
+            <div class="flex flex-wrap gap-2">
+              ${rev < 2 ? `
+                <button onclick="advanceStep3()" class="px-5 py-3 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-extrabold text-sm shadow-sm transition">
+                  次の手順を見る →
+                </button>
+              ` : `
+                <button onclick="resetStep3()" class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition">
+                  もう一度確認する
+                </button>
+              `}
+            </div>
+
+            ${rev >= 2 ? `
+              <div class="p-4 rounded-2xl bg-gradient-to-r from-amber-50 to-yellow-50 border-2 border-amber-300 fade-in">
+                <div class="text-xs font-extrabold text-amber-800 mb-1">🌟 今日の中心の問いへの答え（核心！）</div>
+                <p class="text-sm font-bold text-slate-800 leading-relaxed">
+                  <strong>発問：「${M('\\alpha')} と ${M('\\beta')} の角度を求めていないのに、なぜ答えが出た？」</strong><br/>
+                  → ${M('\\tan')} の加法定理の右辺には「角度 ${M('\\alpha, \\beta')} そのもの」が出てこず、<strong>「${M('\\tan\\alpha')} と ${M('\\tan\\beta')}（＝2直線の傾き）」だけ</strong>で計算できるからです！
+                </p>
+              </div>
+            ` : ''}
+          </div>
+        </div>
+      `;
+
+      const a1 = Math.atan(2);
+      const a2 = Math.atan(3);
+      drawCoordinatePlane('graph-step3', {
+        range: 2.5,
+        originXRatio: 0.35,
+        originYRatio: 0.78,
+        lines: [
+          { m: 2, color: '#2563eb', legendTex: 'y = 2x \\; (\\tan\\alpha = 2)' },
+          { m: 3, color: '#ea580c', legendTex: 'y = 3x \\; (\\tan\\beta = 3)' },
+        ],
+        arcs: [
+          {
+            startRad: 0,
+            endRad: a1,
+            radius: 36,
+            fill: 'rgba(37, 99, 235, 0.14)',
+            stroke: '#2563eb',
+            labelTex: showDeg ? '\\alpha \\approx 63.4^\\circ' : '\\alpha',
+            labelClass: 'text-xs font-bold text-blue-700 bg-white/95 px-1.5 py-0.5 rounded shadow-sm',
+          },
+          {
+            startRad: a1,
+            endRad: a2,
+            radius: 88,
+            fill: 'rgba(16, 185, 129, 0.30)',
+            stroke: '#059669',
+            labelTex: showDeg ? '\\theta \\approx 8.1^\\circ' : '\\theta',
+            labelClass: 'text-xs font-extrabold text-emerald-800 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-300 shadow-sm',
+          },
+        ],
+      });
+    }
+
+    function toggleStep3Angles() {
+      state.step3ShowActualAngles = !state.step3ShowActualAngles;
+      renderCurrentStep();
+    }
+
+    function advanceStep3() {
+      state.step3Reveal = Math.min(2, state.step3Reveal + 1);
+      if (state.step3Reveal === 2) {
+        markStepCompleted(3);
+        showToast('核心をつかみました！STEP 3 完了です。', 'success');
+      }
+      renderCurrentStep();
+    }
+
+    function resetStep3() {
+      state.step3Reveal = 0;
+      renderCurrentStep();
+    }
+
+    /* -------------------------------------------------------------------------
+     * STEP 4：公式を導く・インタラクティブ実験室（25〜35分）
+     * ------------------------------------------------------------------------- */
+    function renderStep4(container) {
+      const m1 = state.labM1;
+      const m2 = state.labM2;
+      const denom = 1 + m1 * m2;
+      const isPerp = Math.abs(denom) < 1e-6;
+      const isParallel = Math.abs(m1 - m2) < 1e-6;
+
+      // 分数LaTeXを精密に計算（0.5刻みなので2倍して整数化）
+      const n1 = Math.round(m1 * 2); // m1 = n1 / 2
+      const n2 = Math.round(m2 * 2); // m2 = n2 / 2
+      // (m2 - m1) / (1 + m1*m2) = (2*(n2 - n1)) / (4 + n1*n2)
+      const fracNum = 2 * (n2 - n1);
+      const fracDen = 4 + n1 * n2;
+      const rawFracTex = rationalToTex(fracNum, fracDen);
+      const absFracTex = rationalToTex(Math.abs(fracNum), Math.abs(fracDen));
+
+      const m1Tex = rationalToTex(n1, 2);
+      const m2Tex = rationalToTex(n2, 2);
+
+      // 鋭角θ（度数法参考）
+      let degStr = '';
+      if (isPerp) {
+        degStr = '90^\\circ';
+      } else if (isParallel) {
+        degStr = '0^\\circ';
+      } else {
+        const rad = Math.atan(Math.abs((m2 - m1) / denom));
+        degStr = `${(rad * 180 / Math.PI).toFixed(1)}^\\circ`;
+      }
+
+      container.innerHTML = `
+        ${renderMissionBanner(
+          'STEP 4',
+          '25〜35分',
+          'どんな2直線でも使える公式をまとめ、スライダーで実験して性質を確かめよう',
+          [
+            `まず上の「公式のまとめ」で、なぜ「絶対値」や「分母 ${M('\\neq 0')}」の条件がつくのかを確認します。`,
+            `下の「実験室」で ${M('m_1, \\; m_2')} を動かしたり、入れ替えボタンを押して挙動を体感しましょう。`,
+          ]
+        )}
+
+        <!-- 公式まとめカード -->
+        <section class="bg-white rounded-2xl border-2 border-indigo-200 p-5 shadow-sm mb-6">
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+            <h3 class="text-base font-extrabold text-indigo-900">📘 2直線のなす鋭角 ${M('\\theta')} の公式</h3>
+            <span class="text-xs font-bold bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full">重要公式</span>
+          </div>
+          <div class="bg-indigo-50/70 rounded-2xl p-4 text-center border border-indigo-100">
+            <div class="text-xs font-bold text-slate-600 mb-1">
+              傾きが ${M('m_1, \\; m_2')} の2直線（いずれも鉛直でない）のなす鋭角を ${M('\\theta')} とすると
+            </div>
+            ${MB('\\tan \\theta = \\left| \\frac{m_2 - m_1}{1 + m_1 m_2} \\right| \\qquad \\text{（ただし } 1 + m_1 m_2 \\neq 0 \\text{）}')}
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mt-4 text-xs sm:text-sm">
+            <div class="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200">
+              <div class="font-extrabold text-emerald-800 mb-1">① なぜ絶対値 ${M('|\\;\\;\\;|')} がある？</div>
+              <p class="text-slate-700 leading-relaxed">
+                ${M('m_1')} と ${M('m_2')} の順序や角の向きが変わると符号（${M('+')} と ${M('-')}）が変わりますが、<strong>鋭角の ${M('\\tan')} は必ず正（または ${M('0')}）</strong>になるためです。
+              </p>
+            </div>
+            <div class="p-3.5 rounded-xl bg-rose-50 border border-rose-200">
+              <div class="font-extrabold text-rose-800 mb-1">② 分母 ${M('1+m_1 m_2 = 0')} のときは？</div>
+              <p class="text-slate-700 leading-relaxed">
+                「計算不能」ではなく<strong>「2直線が垂直（${M('90^\\circ')}）」という意味</strong>です。${M('\\tan 90^\\circ')} は定義されません。
+              </p>
+            </div>
+            <div class="p-3.5 rounded-xl bg-amber-50 border border-amber-200">
+              <div class="font-extrabold text-amber-800 mb-1">③ よくある誤解に注意！</div>
+              <p class="text-slate-700 leading-relaxed">
+                傾きの差 ${M('m_2 - m_1')} だけでは角度の差は求まりません。分母 ${M('1 + m_1 m_2')} は <strong>${M('\\tan')} の加法定理</strong>から来ています。
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <!-- インタラクティブ実験室 -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <!-- 左：リアルタイムグラフ -->
+          <div class="lg:col-span-6 bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 shadow-sm">
+            <div class="flex items-center justify-between gap-2 mb-3">
+              <h3 class="text-sm font-extrabold text-slate-800">🔬 リアルタイム実験グラフ</h3>
+              <span class="text-xs font-bold px-2.5 py-1 rounded-lg ${isPerp ? 'bg-red-100 text-red-700' : 'bg-emerald-100 text-emerald-800'}">
+                なす鋭角 ${M('\\theta \\approx ' + degStr)}
+              </span>
+            </div>
+            <div id="graph-step4" class="relative w-full h-72 sm:h-80 border border-slate-200 rounded-2xl bg-white"></div>
+            <div class="mt-3 flex flex-wrap gap-2">
+              <span class="text-xs font-bold text-slate-500 self-center">試してみよう：</span>
+              <button onclick="setLabPreset(2, 3)" class="px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-xs font-bold text-slate-700">
+                ${M('2')} と ${M('3')}
+              </button>
+              <button onclick="setLabPreset(2, -1)" class="px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-xs font-bold text-slate-700">
+                負の傾き（${M('2')} と ${M('-1')}）
+              </button>
+              <button onclick="setLabPreset(2, -0.5)" class="px-2.5 py-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-xs font-bold text-red-700 border border-red-200">
+                垂直（${M('2')} と ${M('-\\frac{1}{2}')}）
+              </button>
+              <button onclick="swapLabSlopes()" class="px-3 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-xs font-extrabold text-indigo-700 border border-indigo-200">
+                ⇄ ${M('m_1')} と ${M('m_2')} を入れ替える
+              </button>
+            </div>
+          </div>
+
+          <!-- 右：スライダー＆リアルタイム式計算 -->
+          <div class="lg:col-span-6 bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex flex-col justify-between space-y-4">
+            <div class="space-y-4">
+              <h3 class="text-sm font-extrabold text-slate-800">🎛️ 傾きを動かして計算の変化を見よう</h3>
+
+              <!-- スライダー m1 -->
+              <div class="p-3.5 rounded-xl bg-blue-50/70 border border-blue-200">
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-xs font-extrabold text-blue-800">青い直線：傾き ${M('m_1')}</span>
+                  <span class="text-base font-extrabold text-blue-900 bg-white px-3 py-0.5 rounded-lg border border-blue-200">${M('m_1 = ' + m1Tex)}</span>
+                </div>
+                <input type="range" min="-4" max="4" step="0.5" value="${m1}" oninput="updateLabSlope(1, this.value)" class="w-full" />
+              </div>
+
+              <!-- スライダー m2 -->
+              <div class="p-3.5 rounded-xl bg-orange-50/70 border border-orange-200">
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-xs font-extrabold text-orange-800">オレンジの直線：傾き ${M('m_2')}</span>
+                  <span class="text-base font-extrabold text-orange-900 bg-white px-3 py-0.5 rounded-lg border border-orange-200">${M('m_2 = ' + m2Tex)}</span>
+                </div>
+                <input type="range" min="-4" max="4" step="0.5" value="${m2}" oninput="updateLabSlope(2, this.value)" class="w-full slider-orange" />
+              </div>
+
+              <!-- リアルタイム計算結果 -->
+              <div class="p-4 rounded-2xl border ${isPerp ? 'bg-red-50 border-red-300' : 'bg-slate-50 border-slate-200'}">
+                <div class="text-xs font-extrabold ${isPerp ? 'text-red-700' : 'text-slate-600'} mb-2">
+                  公式への代入結果
+                </div>
+                ${isPerp ? `
+                  <div class="text-center">
+                    ${MB('1 + m_1 m_2 = 1 + \\left(' + m1Tex + '\\right)\\left(' + m2Tex + '\\right) = 0')}
+                  </div>
+                  <div class="mt-2 p-3 rounded-xl bg-white border border-red-200 text-center text-sm font-extrabold text-red-700">
+                    分母が ${M('0')} になりました！<br/>2直線は <strong>垂直（${M('\\theta = 90^\\circ')}）</strong> なので、${M('\\tan 90^\\circ')} は定義されません。
+                  </div>
+                ` : `
+                  <div class="text-center overflow-x-auto">
+                    ${MB('\\frac{m_2 - m_1}{1 + m_1 m_2} = \\frac{' + m2Tex + ' - \\left(' + m1Tex + '\\right)}{1 + \\left(' + m1Tex + '\\right)\\left(' + m2Tex + '\\right)} = ' + rawFracTex)}
+                  </div>
+                  <div class="mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-center">
+                    <span class="text-xs font-bold text-emerald-700 block mb-1">絶対値をつけると、なす鋭角 ${M('\\theta')} の値が求まる！</span>
+                    ${MB('\\tan \\theta = \\left|' + rawFracTex + '\\right| = ' + absFracTex)}
+                  </div>
+                `}
+              </div>
+            </div>
+
+            <button onclick="completeStep4()" class="w-full py-3 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-extrabold text-sm shadow-sm transition">
+              ✔ 公式の意味を確認できた（STEP 4 を完了にする）
+            </button>
+          </div>
+        </div>
+      `;
+
+      drawCoordinatePlane('graph-step4', {
+        range: 3.0,
+        lines: [
+          { m: m1, color: '#2563eb', legendTex: `y = ${m1Tex === '1' ? '' : m1Tex === '-1' ? '-' : m1Tex}x` },
+          { m: m2, color: '#ea580c', legendTex: `y = ${m2Tex === '1' ? '' : m2Tex === '-1' ? '-' : m2Tex}x` },
+        ],
+        autoAcuteAngle: true,
+      });
+    }
+
+    function updateLabSlope(which, val) {
+      if (which === 1) state.labM1 = parseFloat(val);
+      else state.labM2 = parseFloat(val);
+      renderCurrentStep();
+    }
+
+    function setLabPreset(m1, m2) {
+      state.labM1 = m1;
+      state.labM2 = m2;
+      renderCurrentStep();
+    }
+
+    function swapLabSlopes() {
+      const tmp = state.labM1;
+      state.labM1 = state.labM2;
+      state.labM2 = tmp;
+      showToast('m₁ と m₂ を入れ替えました！絶対値のおかげで鋭角の tan θ は同じになります。', 'info');
+      renderCurrentStep();
+    }
+
+    function completeStep4() {
+      markStepCompleted(4);
+      showToast('STEP 4 完了！次は実際の問題で演習してみましょう。', 'success');
+    }
+
+    /* -------------------------------------------------------------------------
+     * STEP 5：段階別演習・入試問題＋ランダム復習ドリル（35〜45分）
+     * ------------------------------------------------------------------------- */
+    const DRILL_PROBLEMS = {
+      A: {
+        id: 'A',
+        badge: '問A｜基本',
+        title: '傾きがすぐ読める2直線',
+        statement: `2直線 ${M('y = x')} と ${M('y = 2x')} のなす鋭角を ${M('\\theta')} とするとき、${M('\\tan\\theta')} を求めよう。`,
+        hint: `それぞれの傾きは ${M('m_1 = 1, \\; m_2 = 2')} です。公式 ${M('\\tan\\theta = \\left|\\frac{m_2 - m_1}{1 + m_1 m_2}\\right|')} に代入しよう。`,
+        options: [
+          { id: '1', tex: '\\frac{1}{3}', correct: true },
+          { id: '2', tex: '1', correct: false },
+          { id: '3', tex: '\\frac{1}{2}', correct: false },
+          { id: '4', tex: '3', correct: false },
+        ],
+        steps: [
+          `傾きを読み取る：${M('m_1 = 1, \\; m_2 = 2')}`,
+          `公式に代入する：${MB('\\tan\\theta = \\left|\\frac{2 - 1}{1 + 1 \\times 2}\\right| = \\left|\\frac{1}{3}\\right| = \\frac{1}{3}')}`,
+        ],
+        graph: {
+          range: 2.5,
+          lines: [
+            { m: 1, color: '#2563eb', legendTex: 'y = x' },
+            { m: 2, color: '#ea580c', legendTex: 'y = 2x' },
+          ],
+          autoAcuteAngle: true,
+        },
+      },
+      B: {
+        id: 'B',
+        badge: '問B｜負の傾き',
+        title: '右下がりの直線があっても同じ',
+        statement: `2直線 ${M('y = 2x')} と ${M('y = -x')} のなす鋭角を ${M('\\theta')} とするとき、${M('\\tan\\theta')} を求めよう。`,
+        hint: `傾きは ${M('m_1 = 2, \\; m_2 = -1')} です。分母が負になっても、最後に絶対値をつけるので答えは正の値になります。`,
+        options: [
+          { id: '1', tex: '-3', correct: false },
+          { id: '2', tex: '\\frac{1}{3}', correct: false },
+          { id: '3', tex: '3', correct: true },
+          { id: '4', tex: '1', correct: false },
+        ],
+        steps: [
+          `傾きを読み取る：${M('m_1 = 2, \\; m_2 = -1')}`,
+          `公式に代入する：${MB('\\tan\\theta = \\left|\\frac{-1 - 2}{1 + 2 \\times (-1)}\\right| = \\left|\\frac{-3}{-1}\\right| = 3')}`,
+          `ポイント：右下がり（負の傾き）の直線が入っても、絶対値を使うことで鋭角側の ${M('\\tan\\theta > 0')} がそのまま求まります。`,
+        ],
+        graph: {
+          range: 2.5,
+          lines: [
+            { m: 2, color: '#2563eb', legendTex: 'y = 2x' },
+            { m: -1, color: '#ea580c', legendTex: 'y = -x' },
+          ],
+          autoAcuteAngle: true,
+        },
+      },
+      C: {
+        id: 'C',
+        badge: '問C｜入試問題①',
+        title: '一般形から傾きを取り出す',
+        statement: `2直線 ${M('6x - 2y + 5 = 0')} と ${M('2x + 3y - 12 = 0')} のなす鋭角を ${M('\\theta')} とするとき、${M('\\tan\\theta = \\frac{\\fbox{⑦}}{3}')} となる。${M('\\tan\\theta')}（および空欄⑦）を求めよう。`,
+        hint: `まず2つの式をそれぞれ ${M('y = mx + b')} の形に変形して傾きを取り出します。1本目は ${M('m_1 = 3')}、2本目は ${M('m_2 = -\\frac{2}{3}')} になります。`,
+        options: [
+          { id: '1', tex: '\\frac{7}{3} \\; (\\text{空欄⑦}=7)', correct: false },
+          { id: '2', tex: '\\frac{11}{3} \\; (\\text{空欄⑦}=11)', correct: true },
+          { id: '3', tex: '\\frac{11}{9} \\; (\\text{空欄⑦}=11)', correct: false },
+          { id: '4', tex: '\\frac{5}{3} \\; (\\text{空欄⑦}=5)', correct: false },
+        ],
+        steps: [
+          `1本目を ${M('y = mx + b')} に変形：${MB('6x - 2y + 5 = 0 \\iff y = 3x + \\frac{5}{2} \\quad \\therefore m_1 = 3')}`,
+          `2本目を ${M('y = mx + b')} に変形：${MB('2x + 3y - 12 = 0 \\iff y = -\\frac{2}{3}x + 4 \\quad \\therefore m_2 = -\\frac{2}{3}')}`,
+          `公式に代入する（なす角は平行移動しても変わらないので傾きだけを使う！）：${MB('\\tan\\theta = \\left|\\frac{-\\frac{2}{3} - 3}{1 + 3 \\times \\left(-\\frac{2}{3}\\right)}\\right| = \\left|\\frac{-\\frac{11}{3}}{1 - 2}\\right| = \\left|\\frac{-\\frac{11}{3}}{-1}\\right| = \\frac{11}{3}')}`,
+          `したがって、空欄⑦は ${M('11')} です。`,
+        ],
+        graph: {
+          range: 4.5,
+          lines: [
+            { m: 3, b: 2.5, color: '#2563eb', legendTex: '6x-2y+5=0 \\; (m_1=3)' },
+            { m: -2 / 3, b: 4, color: '#ea580c', legendTex: '2x+3y-12=0 \\; (m_2=-\\frac{2}{3})' },
+          ],
+          autoAcuteAngle: false,
+        },
+      },
+      D: {
+        id: 'D',
+        badge: '問D｜入試問題②',
+        title: '無理数があっても同じ（分母の有理化）',
+        statement: `2直線 ${M('y = 2x')} と ${M('y = (\\sqrt{3} + 1)x')} のなす鋭角を ${M('\\theta')} とするとき、${M('\\tan\\theta = \\frac{9 - 5\\sqrt{3}}{\\fbox{⑧}}')} となる。${M('\\tan\\theta')}（および空欄⑧）を求めよう。`,
+        hint: `傾き ${M('m_1 = 2, \\; m_2 = \\sqrt{3}+1')} を代入すると ${M('\\frac{\\sqrt{3}-1}{3+2\\sqrt{3}}')} になります。分母の有理化（分子・分母に ${M('2\\sqrt{3}-3')} を掛ける）を丁寧に計算しよう。`,
+        options: [
+          { id: '1', tex: '\\frac{9 - 5\\sqrt{3}}{3} \\; (\\text{空欄⑧}=3)', correct: true },
+          { id: '2', tex: '\\frac{9 - 5\\sqrt{3}}{6} \\; (\\text{空欄⑧}=6)', correct: false },
+          { id: '3', tex: '\\frac{9 - 5\\sqrt{3}}{2} \\; (\\text{空欄⑧}=2)', correct: false },
+          { id: '4', tex: '\\frac{5\\sqrt{3} - 9}{3} \\; (\\text{空欄⑧}=3)', correct: false },
+        ],
+        steps: [
+          `傾きを読み取る：${M('m_1 = 2, \\; m_2 = \\sqrt{3} + 1')}`,
+          `公式に代入する：${MB('\\tan\\theta = \\left|\\frac{(\\sqrt{3} + 1) - 2}{1 + 2(\\sqrt{3} + 1)}\\right| = \\left|\\frac{\\sqrt{3} - 1}{3 + 2\\sqrt{3}}\\right|')}`,
+          `ここで ${M('\\sqrt{3} - 1 > 0')}、${M('3 + 2\\sqrt{3} > 0')} なので絶対値を外し、分母を有理化する（${M('2\\sqrt{3} + 3')} に ${M('2\\sqrt{3} - 3')} を掛ける）：${MB('\\frac{(\\sqrt{3} - 1)(2\\sqrt{3} - 3)}{(2\\sqrt{3} + 3)(2\\sqrt{3} - 3)} = \\frac{6 - 3\\sqrt{3} - 2\\sqrt{3} + 3}{12 - 9} = \\frac{9 - 5\\sqrt{3}}{3}')}`,
+          `念のため符号確認：${M('9 = \\sqrt{81}')}、${M('5\\sqrt{3} = \\sqrt{75}')} なので ${M('9 - 5\\sqrt{3} > 0')}。したがって、空欄⑧は ${M('3')} です。`,
+        ],
+        graph: {
+          range: 2.5,
+          lines: [
+            { m: 2, color: '#2563eb', legendTex: 'y = 2x' },
+            { m: Math.sqrt(3) + 1, color: '#ea580c', legendTex: 'y = (\\sqrt{3}+1)x' },
+          ],
+          autoAcuteAngle: true,
+        },
+      },
+    };
+
+    let drillHintVisible = false;
+    let drillSelectedOpt = null;
+
+    function generateRandomDrill() {
+      const pairs = [
+        { m1: 1, m2: 3 },
+        { m1: -2, m2: 1 },
+        { m1: 3, m2: -1 },
+        { m1: -3, m2: -1 },
+        { m1: 4, m2: 1 },
+        { m1: 2, m2: 5 },
+        { m1: -1, m2: 4 },
+        { m1: 1, m2: -3 },
+      ];
+      const pick = pairs[Math.floor(Math.random() * pairs.length)];
+      const num = Math.abs(pick.m2 - pick.m1);
+      const den = Math.abs(1 + pick.m1 * pick.m2);
+      const ansTex = rationalToTex(num, den);
+
+      // 誤答選択肢を生成（重複しないように）
+      const distractors = new Set([ansTex]);
+      const candidates = [
+        rationalToTex(Math.abs(pick.m2 + pick.m1), Math.max(1, den)),
+        rationalToTex(num, Math.abs(1 - pick.m1 * pick.m2) || 2),
+        rationalToTex(den, Math.max(1, num)),
+        rationalToTex(num + 1, Math.max(1, den)),
+        rationalToTex(Math.max(1, num - 1), Math.max(1, den + 1)),
+      ];
+      const opts = [{ id: 'ans', tex: ansTex, correct: true }];
+      for (const c of candidates) {
+        if (!distractors.has(c) && opts.length < 4) {
+          distractors.add(c);
+          opts.push({ id: 'd' + opts.length, tex: c, correct: false });
+        }
+      }
+      // シャッフル
+      opts.sort(() => Math.random() - 0.5);
+
+      const m1Str = pick.m1 === 1 ? '' : pick.m1 === -1 ? '-' : String(pick.m1);
+      const m2Str = pick.m2 === 1 ? '' : pick.m2 === -1 ? '-' : String(pick.m2);
+
+      state.randomProblem = {
+        id: 'RANDOM',
+        badge: '復習ランダム問題',
+        title: '何度でも練習しよう！',
+        statement: `2直線 ${M('y = ' + m1Str + 'x')} と ${M('y = ' + m2Str + 'x')} のなす鋭角を ${M('\\theta')} とするとき、${M('\\tan\\theta')} を求めよう。`,
+        hint: `傾きは ${M('m_1 = ' + pick.m1 + ', \\; m_2 = ' + pick.m2)} です。公式に代入して約分・絶対値を確認しよう。`,
+        options: opts,
+        steps: [
+          `傾きを確認：${M('m_1 = ' + pick.m1 + ', \\; m_2 = ' + pick.m2)}`,
+          `公式に代入：${MB('\\tan\\theta = \\left|\\frac{' + pick.m2 + ' - (' + pick.m1 + ')}{1 + (' + pick.m1 + ')(' + pick.m2 + ')}\\right| = ' + ansTex)}`,
+        ],
+        graph: {
+          range: 3.0,
+          lines: [
+            { m: pick.m1, color: '#2563eb', legendTex: `y = ${m1Str}x` },
+            { m: pick.m2, color: '#ea580c', legendTex: `y = ${m2Str}x` },
+          ],
+          autoAcuteAngle: true,
+        },
+      };
+      drillHintVisible = false;
+      drillSelectedOpt = null;
+    }
+
+    function renderStep5(container) {
+      if (state.drillTab === 'RANDOM' && !state.randomProblem) {
+        generateRandomDrill();
+      }
+      const prob = state.drillTab === 'RANDOM' ? state.randomProblem : DRILL_PROBLEMS[state.drillTab];
+      const isSolved = !!state.drillSolved[prob.id] || (drillSelectedOpt && prob.options.find(o => o.id === drillSelectedOpt)?.correct);
+
+      const solvedBaseCount = ['A', 'B', 'C', 'D'].filter(k => state.drillSolved[k]).length;
+
+      container.innerHTML = `
+        ${renderMissionBanner(
+          'STEP 5',
+          '35〜45分',
+          '段階別演習（基本〜入試問題）で、公式を使いこなせるようにしよう',
+          [
+            `上のタブから問題を選び、まずグラフの形をイメージしてから答えを選択します。`,
+            `つまずいたら「ヒントを見る」を活用しましょう。数学が苦手な場合は 問A・問B・問C を優先してクリアするのがおすすめです。`,
+          ]
+        )}
+
+        <!-- 問題切り替えタブ -->
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-5">
+          <div class="flex flex-wrap gap-2">
+            ${['A', 'B', 'C', 'D'].map(key => {
+              const p = DRILL_PROBLEMS[key];
+              const active = state.drillTab === key;
+              const done = !!state.drillSolved[key];
+              return `
+                <button onclick="selectDrillTab('${key}')" class="px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold border transition ${
+                  active
+                    ? 'bg-brand-600 text-white border-brand-600 shadow-sm'
+                    : done
+                    ? 'bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100'
+                    : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                }">
+                  ${done ? '✔ ' : ''}${p.badge}
+                </button>
+              `;
+            }).join('')}
+            <button onclick="selectDrillTab('RANDOM')" class="px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold border transition ${
+              state.drillTab === 'RANDOM'
+                ? 'bg-amber-500 text-white border-amber-500 shadow-sm'
+                : 'bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100'
+            }">
+              🎲 ランダム復習問題
+            </button>
+          </div>
+          <div class="text-xs font-bold text-slate-500">
+            基本〜入試問題：4問中 ${solvedBaseCount}問 クリア
+          </div>
+        </div>
+
+        <!-- 問題＆グラフカード -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <!-- 左：問題文と選択肢 -->
+          <div class="lg:col-span-7 bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 shadow-sm space-y-5">
+            <div>
+              <div class="flex items-center justify-between gap-2 mb-2">
+                <span class="text-xs font-extrabold px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700">${prob.badge}</span>
+                ${state.drillTab === 'RANDOM' ? `
+                  <button onclick="newRandomDrill()" class="text-xs font-bold px-3 py-1.5 rounded-lg bg-amber-100 hover:bg-amber-200 text-amber-900 transition">
+                    ↻ 別の問題をつくる
+                  </button>
+                ` : ''}
+              </div>
+              <h3 class="text-base sm:text-lg font-extrabold text-slate-900 mb-2">${prob.title}</h3>
+              <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 text-sm sm:text-base text-slate-800 leading-relaxed font-medium">
+                ${prob.statement}
+              </div>
+            </div>
+
+            <!-- ヒントボタン -->
+            <div>
+              <button onclick="toggleDrillHint()" class="text-xs font-bold text-brand-600 hover:text-brand-800 underline">
+                ${drillHintVisible ? '▲ ヒントを閉じる' : '💡 計算のヒントを見る'}
+              </button>
+              ${drillHintVisible ? `
+                <div class="mt-2 p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-xs sm:text-sm text-slate-800 leading-relaxed fade-in">
+                  ${prob.hint}
+                </div>
+              ` : ''}
+            </div>
+
+            <!-- 選択肢 -->
+            <div>
+              <div class="text-xs font-extrabold text-slate-500 mb-2">正しい答えを選んでください：</div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                ${prob.options.map(opt => {
+                  const chosen = drillSelectedOpt === opt.id;
+                  let cls = 'bg-white border-slate-200 hover:border-brand-400 hover:bg-indigo-50/40 text-slate-800';
+                  if (chosen) {
+                    cls = opt.correct
+                      ? 'bg-emerald-50 border-emerald-500 ring-2 ring-emerald-200 text-emerald-900'
+                      : 'bg-rose-50 border-rose-500 ring-2 ring-rose-200 text-rose-900';
+                  }
+                  return `
+                    <button onclick="answerDrill('${opt.id}')" class="p-4 rounded-xl border-2 text-center font-bold transition flex items-center justify-center min-h-[64px] ${cls}">
+                      ${M(opt.tex)}
+                    </button>
+                  `;
+                }).join('')}
+              </div>
+            </div>
+
+            <!-- 解説表示（正解または確認後） -->
+            ${drillSelectedOpt ? renderDrillFeedback(prob) : ''}
+          </div>
+
+          <!-- 右：視覚化グラフ＋公式リファレンス -->
+          <div class="lg:col-span-5 space-y-4">
+            <div class="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 shadow-sm">
+              <h4 class="text-sm font-extrabold text-slate-800 mb-2">📊 2直線の位置関係を図で確認</h4>
+              <div id="graph-step5" class="relative w-full h-64 sm:h-72 border border-slate-200 rounded-2xl bg-white"></div>
+              ${prob.id === 'C' ? `
+                <p class="mt-2 text-xs text-slate-500 leading-relaxed">
+                  ※ 交点が原点になくても、2直線のなす角は「傾き」だけで決まります（原点に平行移動した直線と同じ角になります）。
+                </p>
+              ` : ''}
+            </div>
+
+            <div class="bg-indigo-50/80 rounded-2xl border border-indigo-200 p-4">
+              <div class="text-xs font-extrabold text-indigo-800 mb-1">📖 公式メモ（復習用）</div>
+              <div class="text-center">
+                ${MB('\\tan\\theta = \\left|\\frac{m_2 - m_1}{1 + m_1 m_2}\\right|')}
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+
+      drawCoordinatePlane('graph-step5', prob.graph);
+    }
+
+    function selectDrillTab(tab) {
+      state.drillTab = tab;
+      drillHintVisible = false;
+      drillSelectedOpt = null;
+      if (tab === 'RANDOM' && !state.randomProblem) {
+        generateRandomDrill();
+      }
+      renderCurrentStep();
+    }
+
+    function newRandomDrill() {
+      generateRandomDrill();
+      renderCurrentStep();
+    }
+
+    function toggleDrillHint() {
+      drillHintVisible = !drillHintVisible;
+      renderCurrentStep();
+    }
+
+    function answerDrill(optId) {
+      const prob = state.drillTab === 'RANDOM' ? state.randomProblem : DRILL_PROBLEMS[state.drillTab];
+      drillSelectedOpt = optId;
+      const picked = prob.options.find(o => o.id === optId);
+      if (picked && picked.correct) {
+        if (prob.id !== 'RANDOM') {
+          state.drillSolved[prob.id] = true;
+          const solvedCount = ['A', 'B', 'C', 'D'].filter(k => state.drillSolved[k]).length;
+          if (solvedCount >= 3) {
+            markStepCompleted(5);
+          }
+          saveState();
+        }
+        showToast('正解です！途中の式も確認しておきましょう。', 'success');
+      } else {
+        showToast('惜しい！符号や分母の計算をもう一度見直してみよう。', 'warn');
+      }
+      renderCurrentStep();
+    }
+
+    function renderDrillFeedback(prob) {
+      const picked = prob.options.find(o => o.id === drillSelectedOpt);
+      const isOk = picked && picked.correct;
+      return `
+        <div class="p-4 rounded-2xl border ${isOk ? 'bg-emerald-50 border-emerald-300' : 'bg-rose-50 border-rose-200'} fade-in">
+          <div class="font-extrabold text-sm ${isOk ? 'text-emerald-800' : 'text-rose-800'} mb-2">
+            ${isOk ? '🎉 正解！くわしい解説' : '❌ もう一度考えてみよう（解説を参考にできます）'}
+          </div>
+          ${isOk ? `
+            <ol class="space-y-2 text-xs sm:text-sm text-slate-800 list-decimal list-inside">
+              ${prob.steps.map(st => `<li class="leading-relaxed">${st}</li>`).join('')}
+            </ol>
+          ` : `
+            <p class="text-xs sm:text-sm text-slate-700">
+              傾きの読み取りや、分母 ${M('1 + m_1 m_2')} の符号・絶対値を確認して、別の選択肢を選んでみてください。
+            </p>
+          `}
+        </div>
+      `;
+    }
+
+    /* -------------------------------------------------------------------------
+     * STEP 6：垂直条件・発展・振り返り（45〜50分）
+     * ------------------------------------------------------------------------- */
+    function renderStep6(container) {
+      const hasSlopeWord = state.exitTicketText.includes('傾き');
+      const hasAddWord = state.exitTicketText.includes('加法定理');
+      const checkedCount = state.selfChecks.filter(Boolean).length;
+
+      container.innerHTML = `
+        ${renderMissionBanner(
+          'STEP 6',
+          '45〜50分',
+          '公式から「垂直条件」を見つけ、今日の学びを自分の言葉でまとめよう',
+          [
+            `① 公式の分母が ${M('0')} になるときから、垂直な直線の傾きの条件を確認します。`,
+            `② 発展の問いで、傾きの公式が使えない「鉛直線」のケースを図で確認します。`,
+            `③ 最後に出口チケットと自己チェックを記入して、学習を完了しましょう。`,
+          ]
+        )}
+
+        <div class="space-y-6">
+          <!-- 1. 垂直条件の発見 -->
+          <section class="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 shadow-sm">
+            <h3 class="text-base font-extrabold text-slate-900 mb-3 flex items-center gap-2">
+              <span class="w-7 h-7 rounded-lg bg-rose-100 text-rose-700 flex items-center justify-center text-sm">⊥</span>
+              1. 公式から新しい性質を見つける（垂直条件）
+            </h3>
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-center">
+              <div class="lg:col-span-7 space-y-3">
+                <p class="text-sm text-slate-800 font-bold leading-relaxed">
+                  発問：直線 ${M('y = 2x')} に垂直な直線 ${M('y = mx')} の傾き ${M('m')} はいくつだろう？
+                </p>
+                <p class="text-xs sm:text-sm text-slate-600">
+                  ヒント：2直線が垂直（${M('90^\\circ')}）のとき、公式の分母 ${M('1 + 2m')} は ${M('0')} になります。
+                </p>
+                <div class="flex flex-wrap gap-2.5 pt-1">
+                  ${[
+                    { v: '-2', tex: 'm = -2' },
+                    { v: 'half', tex: 'm = \\frac{1}{2}' },
+                    { v: '-half', tex: 'm = -\\frac{1}{2}' },
+                    { v: '0', tex: 'm = 0' },
+                  ].map(opt => `
+                    <button onclick="checkStep6Perp('${opt.v}')" class="px-4 py-2.5 rounded-xl border-2 text-sm font-bold transition ${
+                      state.step6PerpAnswer === opt.v
+                        ? (opt.v === '-half' ? 'bg-emerald-50 border-emerald-500 text-emerald-900' : 'bg-rose-50 border-rose-400 text-rose-800')
+                        : 'bg-white border-slate-200 hover:border-brand-400 text-slate-800'
+                    }">
+                      ${M(opt.tex)}
+                    </button>
+                  `).join('')}
+                </div>
+
+                ${state.step6PerpChecked ? `
+                  <div class="p-4 rounded-xl ${state.step6PerpAnswer === '-half' ? 'bg-emerald-50 border-emerald-200' : 'bg-amber-50 border-amber-200'} border fade-in">
+                    <div class="text-sm font-extrabold ${state.step6PerpAnswer === '-half' ? 'text-emerald-800' : 'text-amber-800'} mb-1">
+                      ${state.step6PerpAnswer === '-half' ? '🎉 大正解！' : '💡 ヒントを見てみよう'}
+                    </div>
+                    <div class="text-xs sm:text-sm text-slate-800 leading-relaxed">
+                      分母 ${M('1 + 2m = 0')} を解くと ${M('m = -\\frac{1}{2}')} です。<br/>
+                      一般に、2直線が垂直になる条件は<strong>「傾きの積が ${M('-1')}」</strong>（${M('m_1 m_2 = -1')}）となります！
+                    </div>
+                  </div>
+                ` : ''}
+              </div>
+
+              <div class="lg:col-span-5">
+                <div id="graph-step6-perp" class="relative w-full h-56 border border-slate-200 rounded-2xl bg-white"></div>
+              </div>
+            </div>
+          </section>
+
+          <!-- 2. 発展の問い（鉛直線の例外） -->
+          <section class="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 shadow-sm">
+            <h3 class="text-base font-extrabold text-slate-900 mb-2 flex items-center gap-2">
+              <span class="w-7 h-7 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center text-sm">🚀</span>
+              2. 補足・発展の問い（公式の適用範囲を考えよう）
+            </h3>
+            <p class="text-sm text-slate-800 font-bold mb-3">
+              「原点を通る直線のうち、${M('y = x')} と ${M('45^\\circ')} の角をなす直線はいくつある？」
+            </p>
+            <button onclick="toggleStep6Challenge()" class="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-extrabold text-xs sm:text-sm shadow-sm transition">
+              ${state.step6ChallengeRevealed ? '解説を閉じる' : '図と答えを見て確認する'}
+            </button>
+
+            ${state.step6ChallengeRevealed ? `
+              <div class="mt-4 grid grid-cols-1 lg:grid-cols-12 gap-5 items-center fade-in">
+                <div class="lg:col-span-5">
+                  <div id="graph-step6-challenge" class="relative w-full h-56 border border-slate-200 rounded-2xl bg-white"></div>
+                </div>
+                <div class="lg:col-span-7 p-4 rounded-xl bg-amber-50 border border-amber-200 space-y-2 text-xs sm:text-sm text-slate-800 leading-relaxed">
+                  <div class="font-extrabold text-amber-900">答えは2本：${M('x')} 軸（${M('y = 0')}）と ${M('y')} 軸（${M('x = 0')}）！</div>
+                  <p>
+                    公式 ${M('\\tan 45^\\circ = \\left|\\frac{m - 1}{1 + m}\\right| = 1')} だけを解くと、${M('m = 0')}（つまり ${M('y = 0')}）しか出てきません。
+                  </p>
+                  <p>
+                    なぜなら、<strong>鉛直線 ${M('x = 0')} は「傾き」が定義できず ${M('y = mx')} の形で表せない</strong>ため、公式の適用外になるからです。答えが1本しか出ないときは、必ず図を描いて鉛直線がないか確認しましょう！
+                  </p>
+                </div>
+              </div>
+            ` : ''}
+          </section>
+
+          <!-- 3. 出口チケット＆自己チェック -->
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <!-- 出口チケット -->
+            <section class="lg:col-span-7 bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 shadow-sm space-y-3">
+              <h3 class="text-base font-extrabold text-slate-900">📝 出口チケット（自分の言葉で説明しよう）</h3>
+              <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                <strong>「傾き」「加法定理」</strong>の2つの言葉を使って、「角度が分からなくても ${M('\\tan')} が求められる理由」を書いてみよう。
+              </p>
+
+              <div class="flex flex-wrap gap-2">
+                <span class="text-xs font-extrabold px-2.5 py-1 rounded-full ${hasSlopeWord ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-500'}">
+                  ${hasSlopeWord ? '✔ ' : '○ '}キーワード「傾き」
+                </span>
+                <span class="text-xs font-extrabold px-2.5 py-1 rounded-full ${hasAddWord ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-500'}">
+                  ${hasAddWord ? '✔ ' : '○ '}キーワード「加法定理」
+                </span>
+              </div>
+
+              <textarea
+                id="exit-ticket-input"
+                rows="4"
+                oninput="updateExitTicket(this.value)"
+                placeholder="例：直線の傾きはx軸となす角のtanと等しいため、tanの加法定理を使うと..."
+                class="w-full p-3.5 rounded-xl border border-slate-300 focus:border-brand-500 focus:ring-2 focus:ring-brand-100 outline-none text-sm leading-relaxed"
+              >${state.exitTicketText}</textarea>
+
+              <details class="bg-indigo-50/70 rounded-xl border border-indigo-200 p-3.5">
+                <summary class="text-xs font-extrabold text-indigo-800 cursor-pointer select-none">
+                  ✨ 説明の例（解答例）を見て自分の文と比べる
+                </summary>
+                <p class="mt-2 text-xs sm:text-sm text-slate-700 leading-relaxed">
+                  直線の<strong>傾き</strong>は ${M('x')} 軸となす角の ${M('\\tan')} と等しい。2直線のなす角は2つの角の差で表され、${M('\\tan')} の<strong>加法定理</strong>を使えば元の角度そのものではなく、それぞれの ${M('\\tan')}（つまり傾き）だけで計算できるから。
+                </p>
+              </details>
+            </section>
+
+            <!-- 自己チェックリスト -->
+            <section class="lg:col-span-5 bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 shadow-sm flex flex-col justify-between">
+              <div>
+                <div class="flex items-center justify-between gap-2 mb-3">
+                  <h3 class="text-base font-extrabold text-slate-900">✅ 自己チェック</h3>
+                  <span class="text-xs font-extrabold px-2.5 py-1 rounded-full bg-brand-50 text-brand-700">4項目中 ${checkedCount}項目 達成</span>
+                </div>
+                <div class="space-y-2.5">
+                  ${[
+                    `図を使って、傾きと ${M('\\tan')} の関係を説明できる`,
+                    `一般形 ${M('ax+by+c=0')} から傾きを取り出せる`,
+                    `${M('\\tan')} の差の公式を使ってなす角の ${M('\\tan')} を計算できる`,
+                    `分母が ${M('0')} になる「垂直」の場合に気づける`,
+                  ].map((label, idx) => `
+                    <label class="flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition ${state.selfChecks[idx] ? 'bg-emerald-50 border-emerald-300' : 'bg-slate-50 border-slate-200 hover:bg-slate-100'}">
+                      <input type="checkbox" ${state.selfChecks[idx] ? 'checked' : ''} onchange="toggleSelfCheck(${idx})" class="mt-1 w-4 h-4 accent-emerald-600 rounded" />
+                      <span class="text-xs sm:text-sm font-bold text-slate-800 leading-snug">${label}</span>
+                    </label>
+                  `).join('')}
+                </div>
+              </div>
+
+              <button onclick="finishAllLearning()" class="mt-5 w-full py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-sm shadow-sm transition">
+                🎓 振り返りを完了する
+              </button>
+            </section>
+          </div>
+        </div>
+      `;
+
+      // 垂直グラフ
+      drawCoordinatePlane('graph-step6-perp', {
+        range: 2.5,
+        lines: [
+          { m: 2, color: '#2563eb', legendTex: 'y = 2x' },
+          { m: -0.5, color: '#ea580c', legendTex: 'y = -\\frac{1}{2}x' },
+        ],
+        autoAcuteAngle: true,
+      });
+
+      // 発展グラフ
+      if (state.step6ChallengeRevealed) {
+        drawCoordinatePlane('graph-step6-challenge', {
+          range: 2.2,
+          lines: [
+            { m: 1, color: '#2563eb', legendTex: 'y = x' },
+            { m: 0, color: '#059669', legendTex: 'y = 0 \\; (x\\text{軸})' },
+            { vertical: true, xVal: 0, color: '#dc2626', legendTex: 'x = 0 \\; (y\\text{軸})' },
+          ],
+          arcs: [
+            { startRad: 0, endRad: Math.PI / 4, radius: 42, fill: 'rgba(5, 150, 105, 0.2)', stroke: '#059669', labelTex: '45^\\circ', labelClass: 'text-xs font-bold text-emerald-700 bg-white/90 px-1 rounded' },
+            { startRad: Math.PI / 4, endRad: Math.PI / 2, radius: 52, fill: 'rgba(220, 38, 38, 0.18)', stroke: '#dc2626', labelTex: '45^\\circ', labelClass: 'text-xs font-bold text-red-700 bg-white/90 px-1 rounded' },
+          ],
+        });
+      }
+    }
+
+    function checkStep6Perp(val) {
+      state.step6PerpAnswer = val;
+      state.step6PerpChecked = true;
+      saveState();
+      if (val === '-half') {
+        showToast('正解！垂直条件は傾きの積が -1 です。', 'success');
+      } else {
+        showToast('分母 1 + 2m = 0 を m について解いてみよう！', 'warn');
+      }
+      renderCurrentStep();
+    }
+
+    function toggleStep6Challenge() {
+      state.step6ChallengeRevealed = !state.step6ChallengeRevealed;
+      renderCurrentStep();
+    }
+
+    function updateExitTicket(val) {
+      state.exitTicketText = val;
+      saveState();
+      // キーワードバッジのみ軽く再評価するため再描画せずDOM更新してもよいが、カーソル維持のためバッジだけ更新
+      const hasSlope = val.includes('傾き');
+      const hasAdd = val.includes('加法定理');
+      // 次回描画用に保存済み
+      if (hasSlope && hasAdd) {
+        markStepCompleted(6);
+      }
+    }
+
+    function toggleSelfCheck(idx) {
+      state.selfChecks[idx] = !state.selfChecks[idx];
+      saveState();
+      renderCurrentStep();
+    }
+
+    function finishAllLearning() {
+      markStepCompleted(6);
+      showToast('おつかれさまでした！全ステップの振り返りを記録しました。', 'success');
+    }
+
+    /* =========================================================================
+     * 7. 初期化（KaTeXロード完了を待って美しく数式オブジェクトを描画）
+     * ========================================================================= */
+    function initApp() {
+      updateProgressUI();
+      renderNav();
+      renderCurrentStep();
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      initApp();
+      // KaTeXはdefer読み込みのため、ロード完了後に再度全数式を確実にレンダリング
+      window.addEventListener('load', () => {
+        renderAllMath(document);
+        activeGraphDrawers.forEach(fn => fn());
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,2363 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>重心の本質探究ラボ｜家具設計ミッションから入試問題へ</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Meiryo', 'sans-serif'],
+            mono: ['JetBrains Mono', 'Consolas', 'monospace']
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    /* 数式組版スタイル */
+    .math-var {
+      font-family: 'Times New Roman', serif;
+      font-style: italic;
+      font-weight: 700;
+      padding: 0 1px;
+    }
+    .math-frac {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      vertical-align: middle;
+      margin: 0 0.2em;
+      font-family: 'Times New Roman', serif;
+      line-height: 1.05;
+      font-size: 0.95em;
+    }
+    .math-frac > .num {
+      border-bottom: 1.5px solid currentColor;
+      padding: 0 0.25em 0.08em;
+    }
+    .math-frac > .den {
+      padding: 0.08em 0.25em 0;
+    }
+    input[type="range"] {
+      accent-color: #0d9488;
+    }
+    /* アニメーション定義 */
+    @keyframes drawLine {
+      from { stroke-dashoffset: 500; }
+      to { stroke-dashoffset: 0; }
+    }
+    .animate-draw {
+      stroke-dasharray: 500;
+      stroke-dashoffset: 0;
+      animation: drawLine 0.8s ease-out forwards;
+    }
+    @keyframes popIn {
+      0% { transform: scale(0.5); opacity: 0; }
+      80% { transform: scale(1.08); opacity: 1; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .animate-pop {
+      transform-box: fill-box;
+      transform-origin: center;
+      animation: popIn 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+    @keyframes pulseGlow {
+      0%, 100% { filter: drop-shadow(0 0 3px rgba(245, 158, 11, 0.4)); }
+      50% { filter: drop-shadow(0 0 10px rgba(245, 158, 11, 0.9)); }
+    }
+    .glow-active {
+      animation: pulseGlow 1.8s infinite;
+    }
+    .seesaw-beam {
+      transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+      transform-origin: 220px 140px;
+    }
+    .table-tilt {
+      transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-screen flex flex-col transition-colors duration-200">
+
+  <!-- トップヘッダー -->
+  <header class="bg-white/95 dark:bg-slate-900/95 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-40 backdrop-blur px-4 py-3 shadow-sm">
+    <div class="max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-600 to-emerald-600 flex items-center justify-center text-white font-serif font-extrabold text-xl shadow-md">
+          G
+        </div>
+        <div>
+          <h1 class="text-base sm:text-lg font-extrabold tracking-tight text-slate-900 dark:text-white flex items-center gap-2 flex-wrap">
+            重心の本質探究ラボ
+            <span class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-teal-100 dark:bg-teal-950 text-teal-800 dark:text-teal-300 border border-teal-300 dark:border-teal-700">高校数学A｜50分授業</span>
+            <span class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-700">🪑 家具設計ミッション</span>
+          </h1>
+          <p class="text-xs text-slate-500 dark:text-slate-400">「真ん中」を問い直し、面積・シーソー・中線・2:1の証明から入試レベルの面積比へ</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <!-- 生徒用ポイント・解説ノート表示切替 -->
+        <button type="button" id="studyGuideToggleBtn" class="px-3 py-1.5 rounded-xl text-xs font-bold border transition bg-amber-50 dark:bg-amber-950/60 border-amber-300 dark:border-amber-700 text-amber-800 dark:text-amber-300 hover:bg-amber-100">
+          📖 ポイント・解説ノート: OFF
+        </button>
+
+        <!-- 背景テーマ切替 -->
+        <div class="flex items-center bg-slate-200/80 dark:bg-slate-800 p-0.5 rounded-xl border border-slate-300 dark:border-slate-700 text-[11px] font-bold">
+          <button type="button" id="themeLightBtn" data-theme="light" class="px-2 py-1 rounded-lg transition">☀️ ライト</button>
+          <button type="button" id="themeDarkBtn" data-theme="dark" class="px-2 py-1 rounded-lg transition">🌙 ダーク</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- 50分授業タイムライン・ナビゲーション（8単元） -->
+  <nav class="bg-slate-100 dark:bg-slate-900/80 border-b border-slate-200 dark:border-slate-800 px-4 py-2.5">
+    <div class="max-w-6xl mx-auto flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
+      <button type="button" data-step="1" id="tab-1" class="step-tab shrink-0 px-3 py-2 rounded-xl text-xs font-bold transition text-left">
+        <div class="text-[10px] opacity-80">0〜4分</div>
+        <div>01 真ん中と面積</div>
+      </button>
+      <button type="button" data-step="2" id="tab-2" class="step-tab shrink-0 px-3 py-2 rounded-xl text-xs font-bold transition text-left">
+        <div class="text-[10px] opacity-80">4〜13分</div>
+        <div>02 シーソーと分布</div>
+      </button>
+      <button type="button" data-step="3" id="tab-3" class="step-tab shrink-0 px-3 py-2 rounded-xl text-xs font-bold transition text-left">
+        <div class="text-[10px] opacity-80">13〜17分</div>
+        <div>03 中線と重心発見</div>
+      </button>
+      <button type="button" data-step="4" id="tab-4" class="step-tab shrink-0 px-3 py-2 rounded-xl text-xs font-bold transition text-left">
+        <div class="text-[10px] opacity-80">17〜23分</div>
+        <div>04 なぜ 2：1 か</div>
+      </button>
+      <button type="button" data-step="5" id="tab-5" class="step-tab shrink-0 px-3 py-2 rounded-xl text-xs font-bold transition text-left">
+        <div class="text-[10px] opacity-80">23〜28分</div>
+        <div>05 比の基礎演習</div>
+      </button>
+      <button type="button" data-step="6" id="tab-6" class="step-tab shrink-0 px-3 py-2 rounded-xl text-xs font-bold transition text-left">
+        <div class="text-[10px] opacity-80">28〜39分</div>
+        <div>06 提示問題に挑戦</div>
+      </button>
+      <button type="button" data-step="7" id="tab-7" class="step-tab shrink-0 px-3 py-2 rounded-xl text-xs font-bold transition text-left">
+        <div class="text-[10px] opacity-80">39〜46分</div>
+        <div>07 発展演習 A〜D</div>
+      </button>
+      <button type="button" data-step="8" id="tab-8" class="step-tab shrink-0 px-3 py-2 rounded-xl text-xs font-bold transition text-left">
+        <div class="text-[10px] opacity-80">46〜50分</div>
+        <div>08 出口課題・評価</div>
+      </button>
+    </div>
+  </nav>
+
+  <!-- 生徒用ポイント・解説ノート（トグル表示） -->
+  <div id="studyGuideBanner" class="hidden bg-amber-50 dark:bg-amber-950/70 border-b border-amber-200 dark:border-amber-800 px-4 py-3">
+    <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+      <div class="bg-white/95 dark:bg-slate-900/95 p-3.5 rounded-xl border border-amber-200 dark:border-amber-800 shadow-sm">
+        <div class="font-extrabold text-teal-700 dark:text-teal-300 mb-1.5 flex items-center gap-1.5">
+          <span>🎯 この単元で押さえるべき核心ポイント</span>
+        </div>
+        <div id="studyKeyPointText" class="text-slate-700 dark:text-slate-200 leading-relaxed space-y-1"></div>
+      </div>
+      <div class="bg-white/95 dark:bg-slate-900/95 p-3.5 rounded-xl border border-amber-200 dark:border-amber-800 shadow-sm">
+        <div class="font-extrabold text-rose-700 dark:text-rose-300 mb-1.5 flex items-center gap-1.5">
+          <span>⚠️ よくあるミス＆問題攻略のコツ</span>
+        </div>
+        <div id="studyPitfallText" class="text-slate-700 dark:text-slate-200 leading-relaxed space-y-1"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- メインコンテンツ領域 -->
+  <main class="flex-1 max-w-6xl w-full mx-auto p-4">
+    <div id="stepContentContainer"></div>
+
+    <!-- 下部ナビゲーション -->
+    <div class="mt-6 pt-4 border-t border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3">
+      <button type="button" id="prevStepBtn" class="px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition disabled:opacity-40">
+        &larr; 前の単元へ
+      </button>
+      <div class="text-xs font-bold text-slate-500 dark:text-slate-400 text-center flex-1">
+        🎯 このステップのゴール：<span id="goalIndicatorText" class="text-teal-700 dark:text-teal-400"></span>
+      </div>
+      <button type="button" id="nextStepBtn" class="px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-teal-600 hover:bg-teal-500 text-white shadow-md transition disabled:opacity-40">
+        次の単元へ &rarr;
+      </button>
+    </div>
+  </main>
+
+  <script>
+    /* =========================================================================
+       グローバル状態管理
+       ========================================================================= */
+    let currentStep = 1;
+    let showStudyGuide = false;
+
+    // Step 1: 天板バランス & ピザ面積
+    let s1Shape = 'trapezoid'; // 'circle', 'rect', 'trapezoid'
+    let s1LegPos = 'none'; // 'none', 'diag', 'centroid', 'left'
+    let s1PizzaSlices = 3; // 1〜6切れ
+    let s1Quiz1 = null;
+    let s1Quiz2 = null;
+
+    // Step 2: シーソー & 25枚タイル分布
+    let s2Mode = 'adult'; // 'adult' (60kg vs 30kg) or 'practice' (60kg vs 40kg)
+    let s2DistLeft = 2.0; // 左の人の距離(m)
+    let s2DistRight = 2.0; // 右の人の距離(m)
+    let s2TileSplitShown = false; // 中央線で上下の重さを可視化
+
+    // Step 3: 細い帯から中線・重心を発見する7段階探究ストーリー
+    let s3StoryStage = 1; // 1:長方形, 2:台形, 3:連続変形, 4:不等辺三角形の帯, 5:なぜ中線上か, 6:中線上のどこ?, 7:見方を変えて交点G
+    let s3ShowMidLine1 = false; // Stage 1, 2 用：中央を結ぶ線を表示
+    let s3MorphT = 0; // Stage 3 用：0(長方形) 〜 50(台形) 〜 100(不等辺三角形)
+    let s3AnimFrame = null;
+    let s3TriDotCount = 0; // Stage 4 用：0〜5個の帯の中点●を打つ
+    let s3TriLineDrawn = false; // Stage 4 用：定規で中線ADを引く
+    let s3WhyQuiz = null; // Stage 5 用：「なぜ中線上か」誤解解消クイズ ('area' or 'strips')
+    let s3Candidate = null; // Stage 6 用：候補1(30cm), 2(45cm), 3(60cm)
+    let s3Predict90 = null; // 90cm予想 (30, 45, 60, 75) -> Step 4 の答え合わせと連動
+    let s3ViewMode = 'bc'; // Stage 7 用：'bc'(1回目), 'ca'(2回目・CA平行帯), 'both'(交点G), 'all'(3本目CF)
+    let s3RightTab = 'guide'; // 右パネル切替：'guide'(探究課題), 'drill'(確認演習), 'compare'(3つの線の区別)
+    let s3CompareLine = 'median'; // 'median', 'perp', 'bisector'
+    let s3DrillRevealed = {}; // 確認演習の解答トグル状態
+
+    // Step 4: 2:1の証明アニメーション
+    let s4ProofPhase = 1; // 1:中点連結DE, 2:対頂角・錯角(相似), 3:回転・2倍拡大重ね合わせ, 4:3種類の比と90cm検証
+    let s4MorphProgress = 0; // 0〜100% 相似三角形モーフィング用
+    let s4AnimFrame = null;
+
+    // Step 5: 比の基礎演習（4問）+ 相似への橋渡し
+    const S5_PROBLEMS = [
+      { id: 1, cond: 'GD = 5', ask1: 'AG', ans1: 10, ask2: 'AD', ans2: 15, hint: 'GDは「1個分」なので5。AGは2個分、ADは3個分です！' },
+      { id: 2, cond: 'AD = 21', ask1: 'AG', ans1: 14, ask2: 'GD', ans2: 7, hint: 'ADは全体の「3個分」で21。まず1個分（21÷3=7）を求めよう！' },
+      { id: 3, cond: 'AG = 14', ask1: 'GD', ans1: 7, ask2: 'AD', ans2: 21, hint: 'AGは「2個分」で14。1個分はその半分の7です！' },
+      { id: 4, cond: '【追加】AG = 9', ask1: 'GD', ans1: 4.5, ask2: 'AD', ans2: 13.5, hint: '2個分が9なので、1個分は 9÷2 = 4.5。全体3個分は 4.5×3 = 13.5！' }
+    ];
+    let s5Inputs = { 1: { v1: '', v2: '' }, 2: { v1: '', v2: '' }, 3: { v1: '', v2: '' }, 4: { v1: '', v2: '' } };
+    let s5Checked = { 1: false, 2: false, 3: false, 4: false };
+    let s5BridgeQuiz = null; // '2:1' or '2:3'
+
+    // Step 6: 提示問題（BD=6, AG=8）ステップ解説
+    let s6Phase = 1; // 1:条件整理＆GD, 2:相似発見＆GQ, 3:面積比4:9グリッド
+    let s6AreaGuess = null; // '2:3', '4:9', '4:6'
+    let s6ShowGrid = false;
+
+    // Step 7: 発展演習 A〜D
+    let s7SubTab = 'A'; // 'A', 'B', 'C', 'D'
+    let s7AGuess = null; // 'same' or 'diff'
+    let s7AShowMoment = false;
+    let s7BInput = '';
+    let s7BChecked = false;
+    let s7CStage = 1; // 1〜3
+    let s7DMode = 'three'; // 'three' (3等分) or 'six' (6等分)
+    let s7DInput1 = '';
+    let s7DInput2 = '';
+    let s7DChecked = false;
+
+    // Step 8: 出口課題（AD=18, BC=15, △ABC=81）
+    let s8Ans = { q1: '', q2: '', q3: '', q4: '', q5: '', reason: '' };
+    let s8Submitted = false;
+    let s8SelfChecks = { draw: false, sim: false, area: false };
+
+    /* =========================================================================
+       自習用ポイント・解説データ（核心ポイント・よくあるミス対策・ゴール）
+       ========================================================================= */
+    const STEP_META = {
+      1: {
+        goal: '「均質・同じ厚さ」なら面積の比＝重さ（質量）の比になることを理解する',
+        keyPoint: '・円や長方形は対称な形なので「見た目ど真ん中（対角線の交点）」でつり合います。<br>・しかし<strong>台形のように形が偏っている図形</strong>では、面積（重さ）が多く集まる側へ支点をずらさないと倒れてしまいます。<br>・同じ材料・同じ厚さの板なら、<strong>「面積が2倍・3倍 ⇒ 重さも2倍・3倍」</strong>として考えるのが重心の出発点です。',
+        pitfall: '❌ <strong>「どんな四角形でも対角線の交点が重心」と思い込むミス</strong>に注意！左の実験で台形の「対角線の交点」を押して傾く様子を確かめよう。<br>💡 また、<strong>厚さや材料が違う板</strong>では「面積比＝重さの比」は使えないこともセットで覚えておこう。'
+      },
+      2: {
+        goal: 'つり合いは「重さ」だけでなく「支点からの距離」の両方で決まると説明できる',
+        keyPoint: '・シーソーがつり合う条件は <strong>「左の重さ × 距離 ＝ 右の重さ × 距離」</strong>（モーメントのつり合い）です。<br>・つまり、<strong>重い方は支点に近く、軽い方は支点から遠く</strong>にあるとバランスが取れます。<br>・三角形は底辺側に面積（重さ）が集中しているため、支点（重心）は高さの半分より<strong>底辺寄り</strong>になります。',
+        pitfall: '❌ <strong>「面積を半分に分ける線の上なら必ずつり合う」と勘違いしやすい！</strong><br>💡 25枚の階段ブロック実験で「中央線より上と下を比べる」を押し、上半分(6.5kg)と下半分(18.5kg)の重さの偏りを自分の目で確認してみよう。'
+      },
+      3: {
+        goal: '細い帯のつり合いから「中線」と「重心（中線の交点）」を自分で発見する',
+        keyPoint: '・<strong>発見の流れ</strong>：長方形 → 台形 → 三角形と形が変わっても、「細い帯に分ければ各帯は中央でつり合う」という原理は変わりません。<br>・すべての帯の中央●を結ぶと、頂点と対辺の中点を結ぶ直線（<strong>中線</strong>）になります。<br>・底辺を BC から CA に見方を変えて同じことをすると2本目の中線 BE が現れ、<strong>AD と BE の交点 G が全体の重心</strong>になります。',
+        pitfall: '❌ <strong>よくある誤解①</strong>：「中線が面積を半分にするから重心がある」は不十分！面積が半分でもつり合うとは限りません。<strong>「すべての細い帯の重心が中線AD上に並んでいるから」</strong>が正しい理由です。<br>❌ <strong>よくある誤解②</strong>：中線は必ず垂直（垂直二等分線）でも、角を二等分する線でもありません。右の「3つの線の比較」で確認しよう！'
+      },
+      4: {
+        goal: '中点連結定理と相似（△GAB ∽ △GDE）から、AG：GD＝2：1 になる理由を説明できる',
+        keyPoint: '・証明の2ステップ：①中点連結定理より <strong>AB // DE</strong> かつ <strong>AB：DE ＝ 2：1</strong>。②平行線の錯角と対頂角が等しいので <strong>△GAB ∽ △GDE</strong>（砂時計型の相似）。<br>・よって対応する辺の比から <strong>AG：GD ＝ 2：1</strong> が導かれます。<br>・入試で使い分ける3つの比：<strong>AG：GD＝2：1（部分：部分）</strong>、<strong>AG：AD＝2：3（部分：全体）</strong>、<strong>GD：AD＝1：3</strong>。',
+        pitfall: '❌ <strong>「頂点側が2、辺の中点側が1」の向きを逆にしてしまうミス</strong>が多い！<br>💡 「頂点Aは尖っていて軽いから遠い（2）、底辺D側は広くて重いから近い（1）」とシーソーの原理で覚えれば一生忘れません！Step 3の回転・拡大アニメも必ず再生しよう。'
+      },
+      5: {
+        goal: '中線を「3個分」に分けて考え、どんな数値でも AG・GD・AD を素早く正確に求める',
+        keyPoint: '・長さ計算の最強ワザは<strong>「まず1個分（GD）を求めること」</strong>です。<br>・中線AD全体＝<strong>3個分</strong>、頂点側AG＝<strong>2個分</strong>、中点側GD＝<strong>1個分</strong>。<br>・例：AD＝21なら「3個分で21 ⇒ 1個分は 21÷3＝7 ⇒ AGは2個分で14、GDは7」と暗算レベルで解けます！',
+        pitfall: '❌ <strong>「AG：AD」を「2：1」と間違えるミス</strong>が相似問題で一番多い落とし穴です！<br>💡 小さい三角形の中線は AG（2個分）、大きい三角形全体の中線は <strong>AD（3個分）</strong>。下にある「橋渡しチェック」で 2：3 になる感覚を確実に掴んでから次へ進もう。'
+      },
+      6: {
+        goal: '平行線から相似な三角形ペアを見つけ、相似比 2：3 と面積比 4：9 を根拠付きで求める',
+        keyPoint: '・<strong>手順①</strong>：問題文に書かれていない長さ（DC＝6 や <strong>AD＝8＋4＝12</strong> など）も先にすべて図に書き込む。<br>・<strong>手順②</strong>：PQ // BC より <strong>△AGQ ∽ △ADC</strong>（相似比 AG：AD＝2：3）を使って GQ を求める。<br>・<strong>手順③</strong>：△APQ と △ABC は底辺も高さもそれぞれ 2/3 倍なので、面積比は <strong>2²：3² ＝ 4：9</strong> になります。',
+        pitfall: '❌ <strong>ミス①</strong>：GQ を求めるときに、対応しない BC(=12) と比べてしまう（△AGQ の相棒は △ADC なので対応辺は DC=6！）。<br>❌ <strong>ミス②</strong>：面積比をそのまま「2：3」と答えてしまう。<br>💡 Step 6③の「合同な小さい三角形9個に分解」ボタンを押すと、上4個・全体9個であることが一目で納得できます！'
+      },
+      7: {
+        goal: '上下の面積比 4：5 の理由、面積の逆算、二重重心（16：81）、面積6等分を攻略する',
+        keyPoint: '・<strong>【A】上下の面積比</strong>：上側(△APQ)が 4、全体が 9 なので、下側の台形(PBCQ)は 9－4＝<strong>5</strong>（つまり <strong>4：5</strong>）。重心を通る平行線でも面積は半分になりません！<br>・<strong>【B】逆算</strong>：「4個分＝24 ⇒ 1個分＝6 ⇒ 全体9個分＝54」と1個分経由で解く。<br>・<strong>【C】二重重心</strong>：2/3 を2回掛けて相似比 <strong>4：9</strong> ⇒ 面積比 <strong>16：81</strong>。<br>・<strong>【D】6等分</strong>：3本の中線は三角形の面積をぴったり <strong>6等分（各 1/6）</strong>にします。',
+        pitfall: '💡 <strong>「なぜ重心を通る平行線なのに上が4、下が5でつり合うの？」</strong>と疑問に思ったら、課題Aの「⚖️ なぜ40と50でつり合うの？」ボタンを押そう！<br>上は軽い(4)けれど境界から遠く、下は重い(5)けれど境界に近いため、導入のシーソーと全く同じ原理で完璧につり合っています。'
+      },
+      8: {
+        goal: 'ヒントなしで長さ・相似・面積比を根拠付きで完答し、テスト本番の解き方を定着させる',
+        keyPoint: '・入試・定期テストでの<strong>黄金の5ステップ</strong>：<br>①中点Dを使って底辺を半分に分ける → ②AG：GD：AD＝<strong>2：1：3</strong> で長さを出す → ③平行線から相似比 <strong>2：3</strong> で横の長さを出す → ④相似比を2乗して面積比 <strong>4：9</strong> で上の三角形を出す → ⑤<strong>「全体－上側」</strong>で下の四角形を出す！',
+        pitfall: '✅ <strong>採点前のセルフチェック</strong>：<br>・③PQ を求めるとき、AD＝18 ではなく <strong>BC＝15</strong> の 2/3 倍を計算したか？<br>・⑤四角形 PBCQ は「81 × 4/9 ＝ 36」で止めず、ちゃんと <strong>81 － 36 ＝ 45</strong> まで引き算したか？<br>・根拠を一言で書けるようになれば、この単元は完全マスターです！'
+      }
+    };
+
+    /* =========================================================================
+       テーマ・ガイド・ステップ移動制御
+       ========================================================================= */
+    function setTheme(mode) {
+      const root = document.documentElement;
+      if (mode === 'dark') root.classList.add('dark');
+      else root.classList.remove('dark');
+
+      const activeCls = 'px-2 py-1 rounded-lg transition bg-white dark:bg-slate-900 text-teal-600 dark:text-teal-400 shadow-sm';
+      const inactiveCls = 'px-2 py-1 rounded-lg transition text-slate-600 dark:text-slate-400 hover:text-slate-900';
+      document.getElementById('themeLightBtn').className = mode === 'light' ? activeCls : inactiveCls;
+      document.getElementById('themeDarkBtn').className = mode === 'dark' ? activeCls : inactiveCls;
+      renderCurrentStep();
+    }
+
+    function toggleStudyGuide() {
+      showStudyGuide = !showStudyGuide;
+      const banner = document.getElementById('studyGuideBanner');
+      const btn = document.getElementById('studyGuideToggleBtn');
+      if (showStudyGuide) {
+        banner.classList.remove('hidden');
+        btn.textContent = '📖 ポイント・解説ノート: ON';
+        btn.className = 'px-3 py-1.5 rounded-xl text-xs font-bold border transition bg-amber-500 border-amber-500 text-white shadow-sm';
+      } else {
+        banner.classList.add('hidden');
+        btn.textContent = '📖 ポイント・解説ノート: OFF';
+        btn.className = 'px-3 py-1.5 rounded-xl text-xs font-bold border transition bg-amber-50 dark:bg-amber-950/60 border-amber-300 dark:border-amber-700 text-amber-800 dark:text-amber-300 hover:bg-amber-100';
+      }
+    }
+
+    function goStep(stepNum) {
+      if (stepNum < 1 || stepNum > 8) return;
+      if (s3AnimFrame) {
+        cancelAnimationFrame(s3AnimFrame);
+        s3AnimFrame = null;
+      }
+      if (s4AnimFrame) {
+        cancelAnimationFrame(s4AnimFrame);
+        s4AnimFrame = null;
+      }
+      currentStep = stepNum;
+
+      for (let i = 1; i <= 8; i++) {
+        const tab = document.getElementById(`tab-${i}`);
+        if (i === currentStep) {
+          tab.className = 'step-tab shrink-0 px-3 py-2 rounded-xl text-xs font-bold transition text-left bg-teal-600 text-white shadow-md';
+        } else {
+          tab.className = 'step-tab shrink-0 px-3 py-2 rounded-xl text-xs font-bold transition text-left bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700';
+        }
+      }
+
+      document.getElementById('prevStepBtn').disabled = currentStep === 1;
+      document.getElementById('nextStepBtn').disabled = currentStep === 8;
+      document.getElementById('goalIndicatorText').textContent = STEP_META[currentStep].goal;
+      document.getElementById('studyKeyPointText').innerHTML = STEP_META[currentStep].keyPoint;
+      document.getElementById('studyPitfallText').innerHTML = STEP_META[currentStep].pitfall;
+
+      renderCurrentStep();
+    }
+
+    function renderCurrentStep() {
+      const container = document.getElementById('stepContentContainer');
+      switch (currentStep) {
+        case 1: container.innerHTML = renderStep1(); break;
+        case 2: container.innerHTML = renderStep2(); break;
+        case 3: container.innerHTML = renderStep3(); break;
+        case 4: container.innerHTML = renderStep4(); break;
+        case 5: container.innerHTML = renderStep5(); break;
+        case 6: container.innerHTML = renderStep6(); break;
+        case 7: container.innerHTML = renderStep7(); break;
+        case 8: container.innerHTML = renderStep8(); break;
+      }
+    }
+
+    /* =========================================================================
+       STEP 1: 01 真ん中とは何か（0〜4分）
+       ========================================================================= */
+    function renderStep1() {
+      // 天板ごとの支点と傾き計算
+      // 傾き角度(deg): 0なら水平静止、プラスなら右に傾く、マイナスなら左に傾く
+      let tiltDeg = 0;
+      let legX = 210;
+      let statusText = '下のボタンから、1本脚を取り付ける位置を選んでテストしよう！';
+      let statusBadgeCls = 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300';
+
+      if (s1Shape === 'circle') {
+        if (s1LegPos === 'centroid' || s1LegPos === 'diag') {
+          legX = 210; tiltDeg = 0;
+          statusText = '⭕ ピタッと水平に静止！円の「中心」は上下左右が完全に対称なので1本脚でつり合います。';
+          statusBadgeCls = 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-400 text-emerald-800 dark:text-emerald-200';
+        } else if (s1LegPos === 'left') {
+          legX = 165; tiltDeg = 18;
+          statusText = '⚠️ ガタン！右側に傾いて倒れてしまいました。中心からズレるとつり合いません。';
+          statusBadgeCls = 'bg-rose-50 dark:bg-rose-950/60 border-rose-400 text-rose-800 dark:text-rose-200';
+        }
+      } else if (s1Shape === 'rect') {
+        if (s1LegPos === 'centroid' || s1LegPos === 'diag') {
+          legX = 210; tiltDeg = 0;
+          statusText = '⭕ ピタッと水平に静止！長方形の「対角線の交点」は点対称の中心なのでつり合います。';
+          statusBadgeCls = 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-400 text-emerald-800 dark:text-emerald-200';
+        } else if (s1LegPos === 'left') {
+          legX = 160; tiltDeg = 18;
+          statusText = '⚠️ ガタン！右側に重みが偏って傾いてしまいました！';
+          statusBadgeCls = 'bg-rose-50 dark:bg-rose-950/60 border-rose-400 text-rose-800 dark:text-rose-200';
+        }
+      } else if (s1Shape === 'trapezoid') {
+        // 台形：左端が垂直(x=130)、上底100(130〜230)、下底180(130〜310)
+        // 対角線の交点のxは約194.3、真の重心のxは約201.4（下底の広い右側へ寄る！）
+        if (s1LegPos === 'diag') {
+          legX = 192; tiltDeg = 12;
+          statusText = '❗ おっと！台形は「対角線の交点」に脚を置くと傾きます！下側の広い方に重さが偏っているからです。';
+          statusBadgeCls = 'bg-amber-50 dark:bg-amber-950/60 border-amber-400 text-amber-900 dark:text-amber-200';
+        } else if (s1LegPos === 'centroid') {
+          legX = 205; tiltDeg = 0;
+          statusText = '⭕ 見事につり合いました！台形の真の重心は、対角線の交点ではなく「面積（重さ）が多く集まる側」へ少しズレた点になります！';
+          statusBadgeCls = 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-400 text-emerald-800 dark:text-emerald-200';
+        } else if (s1LegPos === 'left') {
+          legX = 160; tiltDeg = 20;
+          statusText = '⚠️ 左に寄りすぎ！右側へ大きく傾いて倒れてしまいます。';
+          statusBadgeCls = 'bg-rose-50 dark:bg-rose-950/60 border-rose-400 text-rose-800 dark:text-rose-200';
+        }
+      }
+
+      // 天板のSVG描画（上面図と横から見たバランス実験図）
+      let topViewSvg = '';
+      if (s1Shape === 'circle') {
+        topViewSvg = `
+          <circle cx="210" cy="80" r="56" fill="rgba(45, 212, 191, 0.35)" stroke="#0f766e" stroke-width="3" />
+          <circle cx="210" cy="80" r="4" fill="#0f766e" />
+          <text x="210" y="152" text-anchor="middle" font-size="12" font-weight="800" class="fill-slate-700 dark:fill-slate-300">円形天板（完全な対称）</text>
+        `;
+      } else if (s1Shape === 'rect') {
+        topViewSvg = `
+          <rect x="130" y="34" width="160" height="92" fill="rgba(45, 212, 191, 0.35)" stroke="#0f766e" stroke-width="3" />
+          <line x1="130" y1="34" x2="290" y2="126" stroke="#0f766e" stroke-dasharray="4 3" stroke-width="1.5" opacity="0.7" />
+          <line x1="290" y1="34" x2="130" y2="126" stroke="#0f766e" stroke-dasharray="4 3" stroke-width="1.5" opacity="0.7" />
+          <circle cx="210" cy="80" r="4" fill="#0f766e" />
+          <text x="210" y="152" text-anchor="middle" font-size="12" font-weight="800" class="fill-slate-700 dark:fill-slate-300">長方形天板（対角線の交点＝重心）</text>
+        `;
+      } else {
+        // 台形：左辺垂直(130,34)-(130,126)、上底(130,34)-(230,34)、下底(130,126)-(310,126)
+        topViewSvg = `
+          <polygon points="130,34 230,34 310,126 130,126" fill="rgba(251, 146, 60, 0.35)" stroke="#c2410c" stroke-width="3" />
+          <line x1="130" y1="34" x2="310" y2="126" stroke="#c2410c" stroke-dasharray="4 3" stroke-width="1.5" opacity="0.7" />
+          <line x1="230" y1="34" x2="130" y2="126" stroke="#c2410c" stroke-dasharray="4 3" stroke-width="1.5" opacity="0.7" />
+          <circle cx="192" cy="67" r="4.5" fill="#ea580c" />
+          <text x="192" y="56" text-anchor="middle" font-size="10" font-weight="800" fill="#c2410c">対角線交点</text>
+          <circle cx="205" cy="88" r="5" fill="#10b981" stroke="#fff" stroke-width="1.5" />
+          <text x="246" y="92" text-anchor="middle" font-size="10" font-weight="800" fill="#047857">真の重心 G</text>
+          <text x="210" y="152" text-anchor="middle" font-size="12" font-weight="800" class="fill-slate-700 dark:fill-slate-300">台形天板（対角線の交点 ≠ 真の重心！）</text>
+        `;
+      }
+
+      // 横から見たバランス実験SVG
+      const sideViewSvg = `
+        <g transform="translate(0, 165)">
+          <text x="20" y="14" font-size="11" font-weight="800" class="fill-slate-500">横から見たバランス実験（1本脚）</text>
+          <!-- 床 -->
+          <line x1="50" y1="88" x2="370" y2="88" stroke="#94a3b8" stroke-width="2" />
+          <!-- 1本脚（支点） -->
+          ${s1LegPos !== 'none' ? `
+            <polygon points="${legX},42 ${legX - 10},88 ${legX + 10},88" fill="#0f766e" />
+            <circle cx="${legX}" cy="42" r="4" fill="#f59e0b" />
+          ` : `
+            <text x="210" y="75" text-anchor="middle" font-size="11" font-weight="bold" fill="#94a3b8">↑ 脚の位置を下のボタンで選ぼう</text>
+          `}
+          <!-- 天板（傾きアニメーション） -->
+          <g class="table-tilt" style="transform-origin: ${legX}px 42px; transform: rotate(${tiltDeg}deg);">
+            <rect x="130" y="30" width="${s1Shape === 'trapezoid' ? 180 : 160}" height="12" rx="4" fill="${s1Shape === 'trapezoid' ? '#fb923c' : '#2dd4bf'}" stroke="${s1Shape === 'trapezoid' ? '#c2410c' : '#0f766e'}" stroke-width="2" />
+            ${s1Shape === 'trapezoid' ? `<text x="260" y="24" text-anchor="middle" font-size="10" font-weight="bold" fill="#c2410c">下底が広くて重い側</text>` : ''}
+          </g>
+        </g>
+      `;
+
+      // ピザの面積と質量
+      const pizzaArea = s1PizzaSlices * 100;
+      const pizzaMass = s1PizzaSlices * 50;
+
+      return `
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+          <!-- 左：0〜2分 カフェの家具設計ミッション -->
+          <div class="lg:col-span-7 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
+            <div class="border-b border-slate-100 dark:border-slate-800 pb-3 flex items-center justify-between flex-wrap gap-2">
+              <div>
+                <span class="text-xs font-extrabold text-teal-600 dark:text-teal-400">01（0〜2分）｜カフェの家具設計ミッション</span>
+                <h2 class="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white">脚が1本のテーブル、どこに取り付ける？</h2>
+              </div>
+              <div class="flex gap-1.5">
+                <button type="button" data-s1-shape="circle" class="px-2.5 py-1 rounded-lg text-xs font-bold border transition ${s1Shape === 'circle' ? 'bg-teal-600 border-teal-600 text-white' : 'bg-slate-50 dark:bg-slate-800 border-slate-300 dark:border-slate-700'}">円形</button>
+                <button type="button" data-s1-shape="rect" class="px-2.5 py-1 rounded-lg text-xs font-bold border transition ${s1Shape === 'rect' ? 'bg-teal-600 border-teal-600 text-white' : 'bg-slate-50 dark:bg-slate-800 border-slate-300 dark:border-slate-700'}">長方形</button>
+                <button type="button" data-s1-shape="trapezoid" class="px-2.5 py-1 rounded-lg text-xs font-bold border transition ${s1Shape === 'trapezoid' ? 'bg-orange-500 border-orange-500 text-white' : 'bg-slate-50 dark:bg-slate-800 border-slate-300 dark:border-slate-700'}">台形 (注目!)</button>
+              </div>
+            </div>
+
+            <div class="bg-slate-50 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800 p-2">
+              <svg viewBox="0 0 420 265" class="w-full h-auto max-h-[265px] select-none">
+                ${topViewSvg}
+                ${sideViewSvg}
+              </svg>
+            </div>
+
+            <!-- 脚の設置テストボタン -->
+            <div class="grid grid-cols-3 gap-2">
+              <button type="button" data-s1-leg="left" class="py-2 px-2 rounded-xl text-xs font-bold border-2 transition ${s1LegPos === 'left' ? 'border-rose-500 bg-rose-500/10 text-rose-700 dark:text-rose-300' : 'border-slate-200 dark:border-slate-700 hover:border-teal-400'}">
+                ⬅️ 左寄りに置く
+              </button>
+              <button type="button" data-s1-leg="diag" class="py-2 px-2 rounded-xl text-xs font-bold border-2 transition ${s1LegPos === 'diag' ? 'border-amber-500 bg-amber-500/10 text-amber-800 dark:text-amber-300' : 'border-slate-200 dark:border-slate-700 hover:border-teal-400'}">
+                ✖️ ${s1Shape === 'circle' ? '円の中心' : '対角線の交点'}
+              </button>
+              <button type="button" data-s1-leg="centroid" class="py-2 px-2 rounded-xl text-xs font-bold border-2 transition ${s1LegPos === 'centroid' ? 'border-emerald-500 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300' : 'border-slate-200 dark:border-slate-700 hover:border-teal-400'}">
+                🎯 真の重心 G
+              </button>
+            </div>
+
+            <div class="p-3.5 rounded-xl border text-xs leading-relaxed font-bold ${statusBadgeCls}">
+              ${statusText}
+            </div>
+          </div>
+
+          <!-- 右：2〜4分 ピザを切り分ける（面積と質量） -->
+          <div class="lg:col-span-5 space-y-4">
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
+              <div class="border-b border-slate-100 dark:border-slate-800 pb-2">
+                <span class="text-xs font-extrabold text-orange-600 dark:text-orange-400">01（2〜4分）｜ピザを切り分ける</span>
+                <h3 class="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white">同じ厚さ・同じ材料なら「面積＝重さ」</h3>
+              </div>
+
+              <!-- 四角いピザ6切れのビジュアル -->
+              <div class="bg-amber-50/70 dark:bg-slate-950 p-3 rounded-xl border border-amber-200 dark:border-slate-800 space-y-3">
+                <div class="grid grid-cols-3 gap-1.5 max-w-[220px] mx-auto">
+                  ${[1, 2, 3, 4, 5, 6].map(n => `
+                    <div data-s1-pizza="${n}" class="cursor-pointer h-12 rounded-lg border-2 flex flex-col items-center justify-center transition ${n <= s1PizzaSlices ? 'bg-orange-400/90 border-orange-600 text-white shadow-sm scale-[1.02]' : 'bg-white/60 dark:bg-slate-900 border-dashed border-slate-300 dark:border-slate-700 text-slate-400'}">
+                      <span class="text-xs font-extrabold">🍕 ${n}</span>
+                      <span class="text-[9px] opacity-90">100cm²</span>
+                    </div>
+                  `).join('')}
+                </div>
+
+                <div class="flex items-center justify-between text-xs font-bold px-2">
+                  <span>選んだ切れ数：<strong class="text-orange-600 dark:text-orange-400 text-sm">${s1PizzaSlices} 切れ</strong></span>
+                  <span>面積：<strong class="font-mono">${pizzaArea} cm²</strong></span>
+                  <span>質量：<strong class="font-mono text-teal-600 dark:text-teal-400">${pizzaMass} g</strong></span>
+                </div>
+                <input type="range" min="1" max="6" value="${s1PizzaSlices}" data-input="s1-pizza" class="w-full">
+              </div>
+
+              <!-- 発見まとめボックス -->
+              <div class="p-3 rounded-xl bg-teal-50 dark:bg-teal-950/60 border border-teal-200 dark:border-teal-800 text-xs text-teal-950 dark:text-teal-200 font-bold">
+                📌 大事なルール：「均質・同じ厚さ」の板なら、<br>
+                <span class="text-sm text-teal-700 dark:text-teal-300">面積の比 ＝ 質量（重さ）の比</span> になる！
+              </div>
+
+              <!-- 確認問題（2問） -->
+              <div class="space-y-3 pt-1 text-xs">
+                <div class="space-y-1.5">
+                  <div class="font-bold text-slate-800 dark:text-slate-200">Q1. 同じ材料・厚さの板で、150 cm² と 450 cm² では質量は何倍？</div>
+                  <div class="flex gap-2">
+                    ${['2倍', '3倍', '4倍'].map(opt => `
+                      <button type="button" data-s1-q1="${opt}" class="flex-1 py-1.5 rounded-lg border font-bold transition ${s1Quiz1 === opt ? (opt === '3倍' ? 'bg-emerald-600 border-emerald-600 text-white' : 'bg-rose-500 border-rose-500 text-white') : 'bg-slate-50 dark:bg-slate-800 border-slate-300 dark:border-slate-700'}">${opt}</button>
+                    `).join('')}
+                  </div>
+                  ${s1Quiz1 ? `<div class="text-[11px] font-bold ${s1Quiz1 === '3倍' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}">${s1Quiz1 === '3倍' ? '⭕ 正解！ 450 ÷ 150 = 3倍。面積が3倍なら質量も3倍です。' : '❌ 450 ÷ 150 を計算してみよう！面積が3倍なので質量も3倍です。'}</div>` : ''}
+                </div>
+
+                <div class="space-y-1.5">
+                  <div class="font-bold text-slate-800 dark:text-slate-200">Q2. もし「厚さ」が2倍の板が混ざっていたら、面積だけで重さを判断できる？</div>
+                  <div class="flex gap-2">
+                    ${['できる', 'できない'].map(opt => `
+                      <button type="button" data-s1-q2="${opt}" class="flex-1 py-1.5 rounded-lg border font-bold transition ${s1Quiz2 === opt ? (opt === 'できない' ? 'bg-emerald-600 border-emerald-600 text-white' : 'bg-rose-500 border-rose-500 text-white') : 'bg-slate-50 dark:bg-slate-800 border-slate-300 dark:border-slate-700'}">${opt}</button>
+                    `).join('')}
+                  </div>
+                  ${s1Quiz2 ? `<div class="text-[11px] font-bold ${s1Quiz2 === 'できない' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}">${s1Quiz2 === 'できない' ? '⭕ 正解！厚さが違うと体積（質量）が変わるため「同じ厚さ・均質」が前提条件です。' : '❌ 厚さが2倍になると同じ面積でも重さが2倍になるので、面積だけでは判断できません！'}</div>` : ''}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    /* =========================================================================
+       STEP 2: 02 重さと位置の両方を見る（4〜13分）
+       ========================================================================= */
+    function renderStep2() {
+      const leftMass = 60;
+      const rightMass = s2Mode === 'adult' ? 30 : 40;
+      const momentLeft = Math.round(leftMass * s2DistLeft * 10) / 10;
+      const momentRight = Math.round(rightMass * s2DistRight * 10) / 10;
+      const diff = momentRight - momentLeft; // 正なら右が下がる
+      const isBalanced = Math.abs(diff) < 0.01;
+      const tiltAngle = isBalanced ? 0 : Math.max(-16, Math.min(16, diff * 0.25));
+
+      // シーソー上の座標（支点 x=220, y=140, 1m = 65px）
+      const leftX = 220 - s2DistLeft * 65;
+      const rightX = 220 + s2DistRight * 65;
+
+      return `
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+          <!-- 左：4〜8分 シーソー実験 -->
+          <div class="lg:col-span-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
+            <div class="border-b border-slate-100 dark:border-slate-800 pb-3 flex items-center justify-between flex-wrap gap-2">
+              <div>
+                <span class="text-xs font-extrabold text-teal-600 dark:text-teal-400">02（4〜8分）｜シーソーの予想と検証</span>
+                <h2 class="text-base font-extrabold text-slate-900 dark:text-white">重い方と軽い方、どうすればつり合う？</h2>
+              </div>
+              <div class="flex gap-1.5">
+                <button type="button" data-s2-mode="adult" class="px-2.5 py-1 rounded-lg text-xs font-bold border transition ${s2Mode === 'adult' ? 'bg-teal-600 border-teal-600 text-white' : 'bg-slate-50 dark:bg-slate-800 border-slate-300 dark:border-slate-700'}">60kg vs 30kg</button>
+                <button type="button" data-s2-mode="practice" class="px-2.5 py-1 rounded-lg text-xs font-bold border transition ${s2Mode === 'practice' ? 'bg-indigo-600 border-indigo-600 text-white' : 'bg-slate-50 dark:bg-slate-800 border-slate-300 dark:border-slate-700'}">追加演習: 60kg vs 40kg</button>
+              </div>
+            </div>
+
+            <!-- シーソーSVGアニメーション -->
+            <div class="bg-slate-50 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800 p-2">
+              <svg viewBox="0 0 440 205" class="w-full h-auto max-h-[210px] select-none">
+                <!-- 地面 -->
+                <line x1="30" y1="185" x2="410" y2="185" stroke="#94a3b8" stroke-width="2" />
+                <!-- 支点 -->
+                <polygon points="220,140 200,185 240,185" fill="#0f766e" />
+                <text x="220" y="199" text-anchor="middle" font-size="11" font-weight="800" class="fill-slate-600 dark:fill-slate-400">支点</text>
+
+                <!-- 動くシーソーの板と乗っている人 -->
+                <g class="seesaw-beam" style="transform: rotate(${tiltAngle}deg);">
+                  <line x1="40" y1="140" x2="400" y2="140" stroke="${isBalanced ? '#10b981' : '#334155'}" stroke-width="8" stroke-linecap="round" />
+                  <!-- 目盛り -->
+                  ${[-2, -1.5, -1, -0.5, 0.5, 1, 1.5, 2].map(m => `
+                    <line x1="${220 + m * 65}" y1="135" x2="${220 + m * 65}" y2="145" stroke="#94a3b8" stroke-width="1.5" />
+                  `).join('')}
+
+                  <!-- 左のおもり（60kg） -->
+                  <circle cx="${leftX}" cy="112" r="24" fill="#fb923c" stroke="#c2410c" stroke-width="2.5" />
+                  <text x="${leftX}" y="116" text-anchor="middle" font-size="12" font-weight="800" fill="#ffffff">${leftMass}kg</text>
+                  <text x="${(leftX + 220) / 2}" y="160" text-anchor="middle" font-size="11" font-weight="800" fill="#c2410c">${s2DistLeft.toFixed(1)} m</text>
+
+                  <!-- 右のおもり（30kg or 40kg） -->
+                  <circle cx="${rightX}" cy="116" r="${s2Mode === 'adult' ? 18 : 20}" fill="#2dd4bf" stroke="#0f766e" stroke-width="2.5" />
+                  <text x="${rightX}" y="120" text-anchor="middle" font-size="11" font-weight="800" fill="#0f172a">${rightMass}kg</text>
+                  <text x="${(rightX + 220) / 2}" y="160" text-anchor="middle" font-size="11" font-weight="800" fill="#0f766e">${s2DistRight.toFixed(1)} m</text>
+                </g>
+
+                ${isBalanced ? `
+                  <rect x="135" y="12" width="170" height="28" rx="14" fill="#10b981" class="animate-pop" />
+                  <text x="220" y="30" text-anchor="middle" font-size="12" font-weight="800" fill="#ffffff">✨ ピタッとつり合った！</text>
+                ` : ''}
+              </svg>
+            </div>
+
+            <!-- 距離操作スライダー -->
+            <div class="grid grid-cols-2 gap-3 text-xs bg-slate-50 dark:bg-slate-800/60 p-3 rounded-xl border border-slate-200 dark:border-slate-700">
+              <div>
+                <label class="font-bold text-orange-700 dark:text-orange-400 block mb-1">左 (${leftMass}kg) の距離: ${s2DistLeft.toFixed(1)} m</label>
+                <input type="range" min="0.5" max="2.5" step="0.5" value="${s2DistLeft}" data-input="s2-left" class="w-full">
+                <div class="mt-1 font-mono text-[11px]">左のモーメント: <strong>${leftMass} × ${s2DistLeft.toFixed(1)} = ${momentLeft}</strong></div>
+              </div>
+              <div>
+                <label class="font-bold text-teal-700 dark:text-teal-400 block mb-1">右 (${rightMass}kg) の距離: ${s2DistRight.toFixed(1)} m</label>
+                <input type="range" min="0.5" max="2.5" step="0.5" value="${s2DistRight}" data-input="s2-right" class="w-full">
+                <div class="mt-1 font-mono text-[11px]">右のモーメント: <strong>${rightMass} × ${s2DistRight.toFixed(1)} = ${momentRight}</strong></div>
+              </div>
+            </div>
+
+            <div class="p-3 rounded-xl text-xs font-bold border ${isBalanced ? 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-400 text-emerald-900 dark:text-emerald-200' : 'bg-amber-50 dark:bg-amber-950/60 border-amber-300 text-amber-900 dark:text-amber-200'}">
+              ${isBalanced
+                ? `⭕ <strong>つり合いの法則成立！</strong> ${leftMass}×${s2DistLeft.toFixed(1)} ＝ ${rightMass}×${s2DistRight.toFixed(1)}（＝${momentLeft}）。<br><strong>「重い方は支点に近く、軽い方は支点から遠く」</strong>でつり合います！`
+                : `💡 ヒント：${s2Mode === 'adult' ? '子ども(30kg)を 2.0m に固定すると、大人(60kg)は何mでつり合うかな？' : '40kgを 1.5m にしたとき、60kgは何mでつり合うかな？（40×1.5=60）'}`}
+            </div>
+          </div>
+
+          <!-- 右：8〜13分 同じ25枚なのに支点が違う？ -->
+          <div class="lg:col-span-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
+            <div class="border-b border-slate-100 dark:border-slate-800 pb-3 flex items-center justify-between flex-wrap gap-2">
+              <div>
+                <span class="text-xs font-extrabold text-orange-600 dark:text-orange-400">02（8〜13分）｜面積の分布を比べる</span>
+                <h2 class="text-base font-extrabold text-slate-900 dark:text-white">同じ「25枚（25kg）」なのに、支点が違う？</h2>
+              </div>
+              <button type="button" data-action="s2-toggle-split" class="px-3 py-1.5 rounded-xl text-xs font-bold border transition ${s2TileSplitShown ? 'bg-orange-500 border-orange-500 text-white' : 'bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-600'}">
+                ${s2TileSplitShown ? '🔍 中央線での比較を表示中' : '🔍 中央線より上と下を比べる'}
+              </button>
+            </div>
+
+            <!-- 25枚の正方形ブロック比較SVG -->
+            <div class="bg-slate-50 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800 p-3">
+              <svg viewBox="0 0 440 205" class="w-full h-auto max-h-[210px] select-none">
+                <!-- 左：5×5の長方形（25枚） -->
+                <g transform="translate(30, 22)">
+                  ${Array.from({ length: 5 }).map((_, row) =>
+                    Array.from({ length: 5 }).map((__, col) => `
+                      <rect x="${col * 24}" y="${row * 24}" width="21" height="21" rx="2" fill="#99f6e4" stroke="#0f766e" stroke-width="1.5" />
+                    `).join('')
+                  ).join('')}
+                  <text x="60" y="142" text-anchor="middle" font-size="11.5" font-weight="800" class="fill-slate-800 dark:fill-slate-200">長方形：25枚（均等）</text>
+                  <text x="60" y="158" text-anchor="middle" font-size="10" font-weight="bold" fill="#0f766e">各段 5・5・5・5・5 枚</text>
+                  ${s2TileSplitShown ? `
+                    <line x1="-10" y1="60" x2="130" y2="60" stroke="#ef4444" stroke-width="2.5" stroke-dasharray="5 3" />
+                    <circle cx="60" cy="60" r="5" fill="#ef4444" stroke="#fff" stroke-width="1.5" />
+                    <text x="60" y="-6" text-anchor="middle" font-size="10.5" font-weight="800" fill="#0f766e">上 12.5kg ＝ 下 12.5kg</text>
+                  ` : ''}
+                </g>
+
+                <!-- 右：階段状（上から 1, 3, 5, 7, 9 = 25枚） -->
+                <g transform="translate(215, 22)">
+                  ${[1, 3, 5, 7, 9].map((count, row) => {
+                    const startX = (9 - count) * 11;
+                    return Array.from({ length: count }).map((_, col) => `
+                      <rect x="${startX + col * 22}" y="${row * 24}" width="19" height="21" rx="2" fill="${row >= 3 ? '#fb923c' : '#fed7aa'}" stroke="#c2410c" stroke-width="1.5" />
+                    `).join('') + `<text x="206" y="${row * 24 + 15}" font-size="10" font-weight="800" fill="#c2410c">${count}枚</text>`;
+                  }).join('')}
+                  <text x="98" y="142" text-anchor="middle" font-size="11.5" font-weight="800" class="fill-slate-800 dark:fill-slate-200">三角形に近い階段：25枚</text>
+                  <text x="98" y="158" text-anchor="middle" font-size="10" font-weight="bold" fill="#c2410c">底辺側に重さが集中！</text>
+                  ${s2TileSplitShown ? `
+                    <line x1="-5" y1="60" x2="200" y2="60" stroke="#ef4444" stroke-width="2" stroke-dasharray="5 3" />
+                    <circle cx="98" cy="82" r="5.5" fill="#10b981" stroke="#fff" stroke-width="1.5" class="animate-pop" />
+                    <text x="98" y="-6" text-anchor="middle" font-size="10.5" font-weight="800" fill="#c2410c">上半分 6.5kg ≪ 下半分 18.5kg！</text>
+                    <text x="98" y="98" text-anchor="middle" font-size="9.5" font-weight="800" fill="#047857">支点は底辺側へ移動！</text>
+                  ` : ''}
+                </g>
+              </svg>
+            </div>
+
+            <div class="space-y-2 text-xs leading-relaxed">
+              <div class="p-3 rounded-xl bg-indigo-50 dark:bg-indigo-950/50 border border-indigo-200 dark:border-indigo-800 text-slate-800 dark:text-slate-200">
+                <div class="font-extrabold text-indigo-700 dark:text-indigo-300 mb-1">💡 ここから分かる「三角形の重心」の大ヒント！</div>
+                左も右も同じ 25kg ですが、三角形に近い右の形は<strong>底辺側に重さが集中</strong>しています。<br>
+                シーソーの原理（重い方が支点に近い）を思い出すと、三角形の天板をつり合わせる支点（重心）は<strong>「高さのど真ん中」ではなく「少し底辺寄り」</strong>に来るはずです！
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    /* =========================================================================
+       STEP 3: 03 中線と重心を発見する（13〜17分）
+       長方形 → 台形 → 不等辺三角形の細い帯から自然に中線と重心へ至る7ステップ
+       ========================================================================= */
+    function renderStep3() {
+      // 不等辺三角形の共通頂点座標（Aは左寄りにして非対称を明確化）
+      const A = { x: 155, y: 34 };
+      const B = { x: 45, y: 214 };
+      const C = { x: 375, y: 214 };
+      const D = { x: (B.x + C.x) / 2, y: (B.y + C.y) / 2 }; // (210, 214)
+      const E = { x: (A.x + C.x) / 2, y: (A.y + C.y) / 2 }; // (265, 124)
+      const F = { x: (A.x + B.x) / 2, y: (A.y + B.y) / 2 }; // (100, 124)
+      const G = { x: (A.x + B.x + C.x) / 3, y: (A.y + B.y + C.y) / 3 }; // (191.7, 154)
+
+      const stages = [
+        { id: 1, short: '① 長方形' },
+        { id: 2, short: '② 台形' },
+        { id: 3, short: '③ 連続変形' },
+        { id: 4, short: '④ 帯→中線' },
+        { id: 5, short: '⑤ 中線上の理由' },
+        { id: 6, short: '⑥ どこが重心?' },
+        { id: 7, short: '⑦ 見方を変える' }
+      ];
+
+      // --- 左メインSVGの構築（7ステージそれぞれに最適化されたインタラクティブ図） ---
+      let mainSvg = '';
+      let controlsHtml = '';
+      let stageTitle = '';
+      let stageLead = '';
+
+      if (s3StoryStage === 1) {
+        // 1. 長方形のテーブルを4枚の細長い板に分ける
+        stageTitle = '1. まず、長方形のテーブルを「細長い板」に分けて考える';
+        stageLead = '細長い板を1枚だけ取り出して指1本で支えるなら、どこを支えますか？ それぞれの板の中央（●）を結ぶと一直線になります！';
+        const rx = 95, rw = 230, ry = 36, rh = 176;
+        const bands = 4;
+        const bh = rh / bands;
+        let bandsSvg = '';
+        for (let i = 0; i < bands; i++) {
+          const y0 = ry + i * bh;
+          const cy = y0 + bh / 2;
+          bandsSvg += `
+            <rect x="${rx}" y="${y0 + 2}" width="${rw}" height="${bh - 4}" rx="4" fill="rgba(45, 212, 191, 0.22)" stroke="#0f766e" stroke-width="2" />
+            <circle cx="${rx + rw / 2}" cy="${cy}" r="5.5" fill="#f59e0b" stroke="#fff" stroke-width="1.5" class="animate-pop" />
+            <text x="${rx + rw + 12}" y="${cy + 4}" font-size="10.5" font-weight="bold" class="fill-slate-500 dark:fill-slate-400">板${i + 1}の中央</text>
+          `;
+        }
+        mainSvg = `
+          ${bandsSvg}
+          ${s3ShowMidLine1 ? `
+            <line x1="${rx + rw / 2}" y1="${ry - 10}" x2="${rx + rw / 2}" y2="${ry + rh + 10}" stroke="#ef4444" stroke-width="3" stroke-dasharray="6 3" class="animate-draw" />
+            <rect x="122" y="${ry + rh + 14}" width="176" height="22" rx="6" fill="#fef2f2" stroke="#ef4444" stroke-width="1.5" />
+            <text x="210" y="${ry + rh + 29}" text-anchor="middle" font-size="11" font-weight="800" fill="#dc2626">左右のつり合いはこの直線上！</text>
+          ` : `
+            <text x="210" y="${ry + rh + 24}" text-anchor="middle" font-size="11.5" font-weight="bold" class="fill-slate-500">4枚の細長い板：それぞれの●は真ん中（同じ重さ）</text>
+          `}
+        `;
+        controlsHtml = `
+          <div class="flex flex-wrap gap-2">
+            <button type="button" data-action="s3-toggle-midline1" class="flex-1 py-2.5 px-3 rounded-xl text-xs font-extrabold shadow-sm transition ${s3ShowMidLine1 ? 'bg-rose-600 hover:bg-rose-500 text-white' : 'bg-teal-600 hover:bg-teal-500 text-white'}">
+              ${s3ShowMidLine1 ? '📏 中央の点●を結んだ直線を表示中（上下はまだ決まらない）' : '📏 各板のつり合う点●を直線で結んでみよう！'}
+            </button>
+            <button type="button" data-s3-story="2" class="py-2.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-extrabold shadow-sm transition">
+              ② 台形へ進む &rarr;
+            </button>
+          </div>
+        `;
+      } else if (s3StoryStage === 2) {
+        // 2. 台形のテーブルで考える（帯の長さが違う！）
+        stageTitle = '2. 今度は、台形のテーブルで考える（板の長さが違う！）';
+        stageLead = '板の長さが違っていても、均質な細長い板なら「それぞれの中央（●）」でつり合います。ただし下の板ほど長くて重い点に注目！';
+        const bands = 4;
+        const topY = 36, botY = 212, h = botY - topY;
+        const tlX = 145, trX = 275, blX = 65, brX = 355;
+        let bandsSvg = '';
+        for (let i = 0; i < bands; i++) {
+          const t0 = i / bands;
+          const t1 = (i + 1) / bands;
+          const tm = (t0 + t1) / 2;
+          const y0 = topY + h * t0 + 1.5;
+          const y1 = topY + h * t1 - 1.5;
+          const x0L = tlX + (blX - tlX) * t0;
+          const x0R = trX + (brX - trX) * t0;
+          const x1L = tlX + (blX - tlX) * t1;
+          const x1R = trX + (brX - trX) * t1;
+          const mx = ((tlX + (blX - tlX) * tm) + (trX + (brX - trX) * tm)) / 2;
+          const my = topY + h * tm;
+          const weightLabels = ['軽い', 'やや軽い', 'やや重い', '一番重い!'];
+          const rDot = 4 + i * 1.6;
+          bandsSvg += `
+            <polygon points="${x0L.toFixed(1)},${y0.toFixed(1)} ${x0R.toFixed(1)},${y0.toFixed(1)} ${x1R.toFixed(1)},${y1.toFixed(1)} ${x1L.toFixed(1)},${y1.toFixed(1)}" fill="rgba(251, 146, 60, ${0.18 + i * 0.08})" stroke="#c2410c" stroke-width="2" />
+            <circle cx="${mx.toFixed(1)}" cy="${my.toFixed(1)}" r="${rDot}" fill="#ea580c" stroke="#fff" stroke-width="1.5" class="animate-pop" />
+            <text x="${(x1R + 8).toFixed(1)}" y="${(my + 4).toFixed(1)}" font-size="10" font-weight="800" fill="#c2410c">${weightLabels[i]}</text>
+          `;
+        }
+        mainSvg = `
+          ${bandsSvg}
+          ${s3ShowMidLine1 ? `
+            <line x1="210" y1="26" x2="210" y2="222" stroke="#ef4444" stroke-width="3" stroke-dasharray="6 3" class="animate-draw" />
+            <rect x="95" y="226" width="230" height="22" rx="6" fill="#fff7ed" stroke="#ea580c" stroke-width="1.5" />
+            <text x="210" y="241" text-anchor="middle" font-size="10.5" font-weight="800" fill="#c2410c">長さが違っても、中央●を結ぶ直線上に重心がある！</text>
+          ` : `
+            <text x="210" y="238" text-anchor="middle" font-size="11" font-weight="bold" class="fill-slate-500">下の板ほど長い＝重い（だから上下の中央とは限らない）</text>
+          `}
+        `;
+        controlsHtml = `
+          <div class="flex flex-wrap gap-2">
+            <button type="button" data-action="s3-toggle-midline1" class="flex-1 py-2.5 px-3 rounded-xl text-xs font-extrabold shadow-sm transition ${s3ShowMidLine1 ? 'bg-orange-600 text-white' : 'bg-teal-600 hover:bg-teal-500 text-white'}">
+              ${s3ShowMidLine1 ? '📏 各帯の中央を結ぶ直線を表示中' : '📏 長さの違う板の中央●も結んでみよう！'}
+            </button>
+            <button type="button" data-s3-story="3" class="py-2.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-extrabold shadow-sm transition">
+              ③ 連続変形へ &rarr;
+            </button>
+          </div>
+        `;
+      } else if (s3StoryStage === 3) {
+        // 3. 台形の上辺をどんどん短くしてみる（長方形 → 台形 → 不等辺三角形）
+        stageTitle = '3. 台形の上辺をどんどん短くして、1つの点にしてみよう！';
+        stageLead = '上の辺を縮めていくと「長方形 → 台形 → 三角形」に変身します。どの瞬間でも、細い帯の中央●が1本の直線に並び続けることに注目！';
+        const t = s3MorphT / 100; // 0:長方形, 0.5:台形, 1.0:不等辺三角形
+        const tlX = 75 + (A.x - 75) * t;
+        const trX = 345 + (A.x - 345) * t;
+        const blX = 75 + (B.x - 75) * t;
+        const brX = 345 + (C.x - 345) * t;
+        const topY = A.y, botY = B.y;
+        const topMidX = (tlX + trX) / 2;
+        const botMidX = (blX + brX) / 2; // 常に 210
+
+        const shapeName = t < 0.08 ? '長方形' : (t > 0.94 ? '不等辺三角形（完成！）' : '台形（上辺を縮小中…）');
+        const fillCol = t > 0.94 ? 'rgba(20, 184, 166, 0.16)' : (t < 0.08 ? 'rgba(59, 130, 246, 0.14)' : 'rgba(251, 146, 60, 0.18)');
+        const strokeCol = t > 0.94 ? '#0f766e' : (t < 0.08 ? '#2563eb' : '#ea580c');
+
+        let stripLines = '';
+        for (let k = 1; k <= 5; k++) {
+          const r = k / 6;
+          const y = topY + (botY - topY) * r;
+          const lx = tlX + (blX - tlX) * r;
+          const rx = trX + (brX - trX) * r;
+          const mx = (lx + rx) / 2;
+          stripLines += `
+            <line x1="${lx.toFixed(1)}" y1="${y.toFixed(1)}" x2="${rx.toFixed(1)}" y2="${y.toFixed(1)}" stroke="${strokeCol}" stroke-width="1.6" opacity="0.6" />
+            <circle cx="${mx.toFixed(1)}" cy="${y.toFixed(1)}" r="4.5" fill="#f59e0b" stroke="#fff" stroke-width="1.2" />
+          `;
+        }
+
+        mainSvg = `
+          <polygon points="${tlX.toFixed(1)},${topY} ${trX.toFixed(1)},${topY} ${brX.toFixed(1)},${botY} ${blX.toFixed(1)},${botY}" fill="${fillCol}" stroke="${strokeCol}" stroke-width="2.5" stroke-linejoin="round" />
+          ${stripLines}
+          <line x1="${topMidX.toFixed(1)}" y1="${topY}" x2="${botMidX.toFixed(1)}" y2="${botY}" stroke="#ef4444" stroke-width="2.5" stroke-dasharray="5 3" />
+          <circle cx="${topMidX.toFixed(1)}" cy="${topY}" r="4.5" fill="#ef4444" />
+          <circle cx="${botMidX.toFixed(1)}" cy="${botY}" r="4.5" fill="#ef4444" />
+          <rect x="115" y="226" width="190" height="24" rx="8" fill="#f8fafc" stroke="${strokeCol}" stroke-width="1.5" />
+          <text x="210" y="242" text-anchor="middle" font-size="11.5" font-weight="800" fill="${strokeCol}">現在：${shapeName}</text>
+          ${t > 0.94 ? `
+            <text x="${A.x}" y="${A.y - 10}" text-anchor="middle" font-size="14" font-weight="900" class="fill-slate-800 dark:fill-slate-100">A (点になった!)</text>
+            <text x="${B.x - 12}" y="${B.y + 5}" font-size="13" font-weight="800" class="fill-slate-800 dark:fill-slate-100">B</text>
+            <text x="${C.x + 10}" y="${C.y + 5}" font-size="13" font-weight="800" class="fill-slate-800 dark:fill-slate-100">C</text>
+            <text x="${D.x + 16}" y="${D.y - 4}" font-size="12" font-weight="800" fill="#ef4444">D (中点)</text>
+          ` : `
+            <text x="${topMidX.toFixed(1)}" y="${topY - 10}" text-anchor="middle" font-size="11" font-weight="800" fill="${strokeCol}">← 上辺を縮める →</text>
+          `}
+        `;
+        controlsHtml = `
+          <div class="bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-700 rounded-xl p-3 space-y-2.5">
+            <div class="flex items-center justify-between flex-wrap gap-2">
+              <span class="text-xs font-extrabold text-amber-900 dark:text-amber-200">🎬 上辺を縮めて変形（0%:長方形 → 50%:台形 → 100%:三角形）：${Math.round(s3MorphT)}%</span>
+              <button type="button" data-action="s3-play-morph" class="px-3 py-1 rounded-lg bg-amber-600 hover:bg-amber-500 text-white text-xs font-extrabold shadow">▶ 変形アニメ再生</button>
+            </div>
+            <input type="range" min="0" max="100" value="${Math.round(s3MorphT)}" data-input="s3-morph" class="w-full cursor-pointer">
+            <div class="flex justify-between gap-2 text-[11px] font-bold">
+              <button type="button" data-s3-morph-preset="0" class="flex-1 py-1 rounded bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600">長方形 (0%)</button>
+              <button type="button" data-s3-morph-preset="50" class="flex-1 py-1 rounded bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600">台形 (50%)</button>
+              <button type="button" data-s3-morph-preset="100" class="flex-1 py-1 rounded bg-teal-600 text-white">三角形 (100%)</button>
+            </div>
+          </div>
+        `;
+      } else if (s3StoryStage === 4) {
+        // 4. 左右対称ではない三角形の細い帯の中央を結ぶ → 「中線」を発見！
+        stageTitle = '4. 不等辺三角形の細い帯の中央●を結んでみよう！';
+        stageLead = 'まだ「中線」という言葉は忘れて活動してみよう！ 5本の横線の中点に印●を付けて定規で結ぶと、どこからどこまで伸びる直線になる？';
+        let stripsSvg = '';
+        for (let k = 1; k <= 5; k++) {
+          const r = k / 6;
+          const y = A.y + (B.y - A.y) * r;
+          const lx = A.x + (B.x - A.x) * r;
+          const rx = A.x + (C.x - A.x) * r;
+          const mx = (lx + rx) / 2;
+          stripsSvg += `<line x1="${lx.toFixed(1)}" y1="${y.toFixed(1)}" x2="${rx.toFixed(1)}" y2="${y.toFixed(1)}" stroke="#0d9488" stroke-width="1.8" opacity="0.65" />`;
+          if (k <= s3TriDotCount) {
+            stripsSvg += `<circle cx="${mx.toFixed(1)}" cy="${y.toFixed(1)}" r="5" fill="#f59e0b" stroke="#fff" stroke-width="1.5" class="animate-pop" />`;
+          }
+        }
+        mainSvg = `
+          <polygon points="${A.x},${A.y} ${B.x},${B.y} ${C.x},${C.y}" fill="rgba(20, 184, 166, 0.08)" stroke="#0f766e" stroke-width="2.5" stroke-linejoin="round" />
+          ${stripsSvg}
+          ${s3TriLineDrawn ? `
+            <line x1="${A.x}" y1="${A.y}" x2="${D.x}" y2="${D.y}" stroke="#ef4444" stroke-width="3.5" class="animate-draw" />
+            <rect x="218" y="88" width="168" height="44" rx="10" fill="#fef2f2" stroke="#ef4444" stroke-width="2" class="animate-pop" />
+            <text x="302" y="106" text-anchor="middle" font-size="11.5" font-weight="900" fill="#dc2626">これが「中線 AD」！</text>
+            <text x="302" y="122" text-anchor="middle" font-size="10" font-weight="bold" fill="#991b1b">頂点A と 辺BCの中点D を結ぶ</text>
+          ` : ''}
+          <circle cx="${A.x}" cy="${A.y}" r="4.5" fill="#0f766e" />
+          <text x="${A.x}" y="${A.y - 10}" text-anchor="middle" font-size="14" font-weight="800" class="fill-slate-800 dark:fill-slate-100">A</text>
+          <text x="${B.x - 14}" y="${B.y + 5}" font-size="14" font-weight="800" class="fill-slate-800 dark:fill-slate-100">B</text>
+          <text x="${C.x + 10}" y="${C.y + 5}" font-size="14" font-weight="800" class="fill-slate-800 dark:fill-slate-100">C</text>
+          <circle cx="${D.x}" cy="${D.y}" r="4.5" fill="#ef4444" />
+          <text x="${D.x}" y="${D.y + 18}" text-anchor="middle" font-size="12" font-weight="800" fill="#0f766e">D (BCの中点)</text>
+          <text x="${(B.x + D.x) / 2}" y="${D.y + 16}" text-anchor="middle" font-size="10" font-weight="bold" fill="#64748b">＝</text>
+          <text x="${(C.x + D.x) / 2}" y="${D.y + 16}" text-anchor="middle" font-size="10" font-weight="bold" fill="#64748b">＝</text>
+        `;
+        controlsHtml = `
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <button type="button" data-action="s3-add-tridot" class="py-2.5 px-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-white text-xs font-extrabold shadow-sm transition">
+              ● 1. 細い帯の中点に印を付ける (${s3TriDotCount}/5個)
+            </button>
+            <button type="button" data-action="s3-draw-triline" class="py-2.5 px-3 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-extrabold shadow-sm transition ${s3TriDotCount < 3 ? 'opacity-60' : ''}">
+              📏 2. 印●を定規で結ぶ！
+            </button>
+          </div>
+        `;
+      } else if (s3StoryStage === 5) {
+        // 5. なぜ重心は中線上にあるのか？（重さの代表点●がすべて中線AD上に乗る！）
+        stageTitle = '5. なぜ重心は中線 AD 上にあるのか？（重要ポイント！）';
+        stageLead = '細い帯1本ずつの重さを「中央の点●」に集めて考えます。下ほど重いですが、重さの代表点●がすべて中線AD上に乗っているから全体の重心もAD上にあるのです！';
+        let weightDotsSvg = '';
+        const labels = ['とても軽い', '軽い', 'ふつう', '重い', 'とても重い！'];
+        for (let k = 1; k <= 5; k++) {
+          const r = k / 6;
+          const y = A.y + (B.y - A.y) * r;
+          const lx = A.x + (B.x - A.x) * r;
+          const rx = A.x + (C.x - A.x) * r;
+          const mx = (lx + rx) / 2;
+          const dotR = 3.5 + k * 2.1; // 下に行くほど重くて大きい●！
+          weightDotsSvg += `
+            <line x1="${lx.toFixed(1)}" y1="${y.toFixed(1)}" x2="${rx.toFixed(1)}" y2="${y.toFixed(1)}" stroke="#94a3b8" stroke-width="1.2" stroke-dasharray="3 3" />
+            <circle cx="${mx.toFixed(1)}" cy="${y.toFixed(1)}" r="${dotR.toFixed(1)}" fill="rgba(234, 88, 12, ${0.45 + k * 0.1})" stroke="#9a3412" stroke-width="1.5" class="animate-pop" />
+            <text x="${(rx + 8).toFixed(1)}" y="${(y + 4).toFixed(1)}" font-size="10" font-weight="800" fill="${k >= 4 ? '#c2410c' : '#64748b'}">${labels[k - 1]}</text>
+          `;
+        }
+        mainSvg = `
+          <polygon points="${A.x},${A.y} ${B.x},${B.y} ${C.x},${C.y}" fill="rgba(251, 146, 60, 0.06)" stroke="#0f766e" stroke-width="2" />
+          <line x1="${A.x}" y1="${A.y}" x2="${D.x}" y2="${D.y}" stroke="#0f766e" stroke-width="3" />
+          ${weightDotsSvg}
+          <text x="${A.x}" y="${A.y - 10}" text-anchor="middle" font-size="14" font-weight="800" class="fill-slate-800 dark:fill-slate-100">A</text>
+          <text x="${B.x - 14}" y="${B.y + 5}" font-size="14" font-weight="800" class="fill-slate-800 dark:fill-slate-100">B</text>
+          <text x="${C.x + 10}" y="${C.y + 5}" font-size="14" font-weight="800" class="fill-slate-800 dark:fill-slate-100">C</text>
+          <text x="${D.x}" y="${D.y + 18}" text-anchor="middle" font-size="12" font-weight="800" fill="#0f766e">D（すべての重さ●がこの1本の線上に集合！）</text>
+        `;
+        controlsHtml = `
+          <div class="bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 rounded-xl p-3 space-y-2 text-xs">
+            <div class="font-extrabold text-rose-800 dark:text-rose-300">❓ 理解チェック：「なぜ重心は中線 AD 上にあるの？」正しい説明はどっち？</div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <button type="button" data-s3-why="area" class="p-2.5 rounded-xl border-2 text-left font-bold transition ${s3WhyQuiz === 'area' ? 'border-rose-500 bg-rose-500/15 text-rose-800 dark:text-rose-200' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900'}">
+                A. 中線ADが三角形の「面積を半分」に分けるから
+              </button>
+              <button type="button" data-s3-why="strips" class="p-2.5 rounded-xl border-2 text-left font-bold transition ${s3WhyQuiz === 'strips' ? 'border-emerald-500 bg-emerald-500/15 text-emerald-800 dark:text-emerald-200' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900'}">
+                B. すべての「細い帯の重心●」が中線AD上に並んでいるから
+              </button>
+            </div>
+            ${s3WhyQuiz ? `
+              <div class="font-bold leading-relaxed ${s3WhyQuiz === 'strips' ? 'text-emerald-700 dark:text-emerald-300' : 'text-rose-700 dark:text-rose-300'}">
+                ${s3WhyQuiz === 'strips'
+                  ? '⭕ 大正解！ Step 02のシーソーで学んだ通り「面積が等しいだけ」ではつり合いは保証されません（距離も必要）。各細い帯の重心が全部AD上に並んでいるからこそ、全体の重心もAD上にあるのです！'
+                  : '❌ ここは超重要な落とし穴！ 「面積が半分＝つり合う」ではありません（距離が違えば傾きます）。正解は B「それぞれの細い帯の重心●がすべて中線AD上に並んでいるから」です！'}
+              </div>
+            ` : ''}
+          </div>
+        `;
+      } else if (s3StoryStage === 6) {
+        // 6. でも、中線上のどこなのか？（候補①②③の予想＋AD=90cmミッション）
+        stageTitle = '6. でも、中線 AD 上の「どこ」に脚を付ければいい？';
+        stageLead = '中線 AD 上にあることは分かりましたが、正確な場所はまだ分かりません。候補①（上寄り）・②（真ん中）・③（底辺寄り）のどれでしょう？';
+        const c1 = { x: A.x + (D.x - A.x) * (1 / 3), y: A.y + (D.y - A.y) * (1 / 3), id: 1, cm: 30, label: '候補① (上寄り・30cm)' };
+        const c2 = { x: A.x + (D.x - A.x) * (1 / 2), y: A.y + (D.y - A.y) * (1 / 2), id: 2, cm: 45, label: '候補② (ど真ん中・45cm)' };
+        const c3 = { x: A.x + (D.x - A.x) * (2 / 3), y: A.y + (D.y - A.y) * (2 / 3), id: 3, cm: 60, label: '候補③ (底辺寄り・60cm)' };
+
+        mainSvg = `
+          <polygon points="${A.x},${A.y} ${B.x},${B.y} ${C.x},${C.y}" fill="rgba(20, 184, 166, 0.08)" stroke="#0f766e" stroke-width="2" />
+          <line x1="${A.x}" y1="${A.y}" x2="${D.x}" y2="${D.y}" stroke="#1e293b" class="dark:stroke-slate-200" stroke-width="3" />
+          ${[c1, c2, c3].map(c => {
+            const sel = s3Candidate === c.id;
+            return `
+              <g data-s3-cand="${c.id}" class="cursor-pointer">
+                <circle cx="${c.x.toFixed(1)}" cy="${c.y.toFixed(1)}" r="${sel ? 9 : 7}" fill="${sel ? '#ef4444' : '#f59e0b'}" stroke="#fff" stroke-width="2" class="${sel ? 'glow-active' : ''}" />
+                <rect x="${(c.x + 14).toFixed(1)}" y="${(c.y - 12).toFixed(1)}" width="146" height="23" rx="6" fill="${sel ? '#fef2f2' : '#fffbeb'}" stroke="${sel ? '#ef4444' : '#f59e0b'}" stroke-width="1.5" />
+                <text x="${(c.x + 87).toFixed(1)}" y="${(c.y + 4).toFixed(1)}" text-anchor="middle" font-size="11" font-weight="800" fill="${sel ? '#dc2626' : '#b45309'}">${c.label}</text>
+              </g>
+            `;
+          }).join('')}
+          <text x="${A.x}" y="${A.y - 10}" text-anchor="middle" font-size="14" font-weight="800" class="fill-slate-800 dark:fill-slate-100">A</text>
+          <text x="${B.x - 14}" y="${B.y + 5}" font-size="14" font-weight="800" class="fill-slate-800 dark:fill-slate-100">B</text>
+          <text x="${C.x + 10}" y="${C.y + 5}" font-size="14" font-weight="800" class="fill-slate-800 dark:fill-slate-100">C</text>
+          <text x="${D.x}" y="${D.y + 18}" text-anchor="middle" font-size="12" font-weight="800" fill="#0f766e">D（底辺側：重い！）</text>
+        `;
+        controlsHtml = `
+          <div class="bg-amber-50 dark:bg-amber-950/50 border border-amber-300 dark:border-amber-700 rounded-xl p-3 space-y-2.5 text-xs">
+            <div class="font-extrabold text-amber-900 dark:text-amber-200">🎯 家具設計ミッション予想：中線 AD = 90cm のとき、Aから脚までの距離は？</div>
+            <div class="grid grid-cols-3 gap-2">
+              <button type="button" data-s3-cand="1" class="py-2 rounded-xl border-2 font-extrabold transition ${s3Candidate === 1 ? 'bg-rose-600 border-rose-600 text-white' : 'bg-white dark:bg-slate-900 border-amber-300'}">候補① 30cm (上寄り)</button>
+              <button type="button" data-s3-cand="2" class="py-2 rounded-xl border-2 font-extrabold transition ${s3Candidate === 2 ? 'bg-amber-600 border-amber-600 text-white' : 'bg-white dark:bg-slate-900 border-amber-300'}">候補② 45cm (真ん中)</button>
+              <button type="button" data-s3-cand="3" class="py-2 rounded-xl border-2 font-extrabold transition ${s3Candidate === 3 ? 'bg-teal-600 border-teal-600 text-white' : 'bg-white dark:bg-slate-900 border-amber-300'}">候補③ 60cm (底辺寄り)</button>
+            </div>
+            ${s3Candidate ? `
+              <div class="font-bold text-slate-800 dark:text-slate-200 leading-relaxed">
+                ${s3Candidate === 3
+                  ? '👍 鋭い予想！ 底辺側に重い帯が多いので、真ん中(45cm)より底辺寄りに重心があるはずです！<br>でも<strong>中線 AD 1本だけでは「ちょうど 60cm かどうか」までは決められません</strong>。どうすれば正確な1点に絞れるでしょう？ → <strong>⑦ 見方を変える</strong>へ！'
+                  : '🤔 底辺側に重い板がたくさん集まっていますよ！シーソーでは「重い方」に支点が寄るので、真ん中より底辺寄りの <strong>候補③</strong> あたりになりそうです！では正確な1点を突き止めるため <strong>⑦ 見方を変える</strong>へ進もう！'}
+              </div>
+            ` : ''}
+          </div>
+        `;
+      } else {
+        // 7. 三角形の見方を変えればよい！（CAを底辺とした細い帯 → 中線BE → 交点Gが重心！）
+        stageTitle = '7. 三角形の「見方（底辺）」を変えれば、重心が1点に決まる！';
+        stageLead = '1回目は BC を底辺にしました。今度は CA を底辺として同じように平行な細い帯を考えると、中線 BE 上にも重心があることが分かります！';
+
+        // CA に平行な5本の細い帯（頂点B側から辺CAへ向かって分割）
+        let caStripsSvg = '';
+        if (s3ViewMode === 'ca' || s3ViewMode === 'both') {
+          for (let k = 1; k <= 5; k++) {
+            const u = k / 6;
+            const p1x = B.x + (A.x - B.x) * u;
+            const p1y = B.y + (A.y - B.y) * u;
+            const p2x = B.x + (C.x - B.x) * u;
+            const p2y = B.y + (C.y - B.y) * u;
+            const mx = (p1x + p2x) / 2;
+            const my = (p1y + p2y) / 2;
+            caStripsSvg += `
+              <line x1="${p1x.toFixed(1)}" y1="${p1y.toFixed(1)}" x2="${p2x.toFixed(1)}" y2="${p2y.toFixed(1)}" stroke="#2563eb" stroke-width="1.6" opacity="0.55" class="animate-draw" />
+              <circle cx="${mx.toFixed(1)}" cy="${my.toFixed(1)}" r="4" fill="#3b82f6" stroke="#fff" stroke-width="1.2" class="animate-pop" />
+            `;
+          }
+        }
+
+        // BC に平行な細い帯（1回目の見方）
+        let bcStripsSvg = '';
+        if (s3ViewMode === 'bc') {
+          for (let k = 1; k <= 5; k++) {
+            const r = k / 6;
+            const y = A.y + (B.y - A.y) * r;
+            const lx = A.x + (B.x - A.x) * r;
+            const rx = A.x + (C.x - A.x) * r;
+            const mx = (lx + rx) / 2;
+            bcStripsSvg += `
+              <line x1="${lx.toFixed(1)}" y1="${y.toFixed(1)}" x2="${rx.toFixed(1)}" y2="${y.toFixed(1)}" stroke="#0d9488" stroke-width="1.6" opacity="0.55" />
+              <circle cx="${mx.toFixed(1)}" cy="${y.toFixed(1)}" r="4" fill="#10b981" stroke="#fff" stroke-width="1.2" />
+            `;
+          }
+        }
+
+        mainSvg = `
+          <polygon points="${A.x},${A.y} ${B.x},${B.y} ${C.x},${C.y}" fill="rgba(20, 184, 166, 0.07)" stroke="#0f766e" stroke-width="2.5" stroke-linejoin="round" />
+          ${bcStripsSvg}
+          ${caStripsSvg}
+
+          <!-- 中線 AD (1回目) -->
+          ${s3ViewMode !== 'ca' ? `<line x1="${A.x}" y1="${A.y}" x2="${D.x}" y2="${D.y}" stroke="#0f766e" stroke-width="3" />` : ''}
+          <!-- 中線 BE (2回目) -->
+          ${s3ViewMode !== 'bc' ? `<line x1="${B.x}" y1="${B.y}" x2="${E.x}" y2="${E.y}" stroke="#2563eb" stroke-width="3" class="animate-draw" />` : ''}
+          <!-- 中線 CF (3本目) -->
+          ${s3ViewMode === 'all' ? `<line x1="${C.x}" y1="${C.y}" x2="${F.x}" y2="${F.y}" stroke="#7c3aed" stroke-width="3" class="animate-draw" />` : ''}
+
+          <!-- 交点＝重心 G -->
+          ${s3ViewMode === 'both' || s3ViewMode === 'all' ? `
+            <circle cx="${G.x.toFixed(1)}" cy="${G.y.toFixed(1)}" r="8" fill="#ef4444" stroke="#fff" stroke-width="2.5" class="animate-pop glow-active" />
+            <rect x="${(G.x + 12).toFixed(1)}" y="${(G.y - 26).toFixed(1)}" width="118" height="24" rx="6" fill="#fef2f2" stroke="#ef4444" stroke-width="1.8" />
+            <text x="${(G.x + 71).toFixed(1)}" y="${(G.y - 10).toFixed(1)}" text-anchor="middle" font-size="11.5" font-weight="900" fill="#dc2626">交点 G ＝ 重心！</text>
+          ` : ''}
+
+          <text x="${A.x}" y="${A.y - 10}" text-anchor="middle" font-size="14" font-weight="800" class="fill-slate-800 dark:fill-slate-100">A</text>
+          <text x="${B.x - 14}" y="${B.y + 5}" font-size="14" font-weight="800" class="fill-slate-800 dark:fill-slate-100">B</text>
+          <text x="${C.x + 10}" y="${C.y + 5}" font-size="14" font-weight="800" class="fill-slate-800 dark:fill-slate-100">C</text>
+          <circle cx="${D.x}" cy="${D.y}" r="4" fill="#0f766e" />
+          <text x="${D.x}" y="${D.y + 18}" text-anchor="middle" font-size="12" font-weight="800" fill="#0f766e">D (BC中点)</text>
+          ${s3ViewMode !== 'bc' ? `<circle cx="${E.x}" cy="${E.y}" r="4.5" fill="#2563eb" /><text x="${E.x + 16}" y="${E.y - 6}" font-size="12" font-weight="800" fill="#2563eb">E (CA中点)</text>` : ''}
+          ${s3ViewMode === 'all' ? `<circle cx="${F.x}" cy="${F.y}" r="4.5" fill="#7c3aed" /><text x="${F.x - 14}" y="${F.y - 6}" font-size="12" font-weight="800" fill="#7c3aed">F</text>` : ''}
+        `;
+        controlsHtml = `
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-1.5 text-xs font-extrabold">
+            <button type="button" data-s3-view="bc" class="py-2 px-2 rounded-xl border transition ${s3ViewMode === 'bc' ? 'bg-teal-600 border-teal-600 text-white' : 'bg-slate-50 dark:bg-slate-800 border-slate-300 dark:border-slate-700'}">1回目: BC底辺</button>
+            <button type="button" data-s3-view="ca" class="py-2 px-2 rounded-xl border transition ${s3ViewMode === 'ca' ? 'bg-blue-600 border-blue-600 text-white' : 'bg-slate-50 dark:bg-slate-800 border-slate-300 dark:border-slate-700'}">2回目: CA底辺</button>
+            <button type="button" data-s3-view="both" class="py-2 px-2 rounded-xl border transition ${s3ViewMode === 'both' ? 'bg-rose-600 border-rose-600 text-white shadow' : 'bg-slate-50 dark:bg-slate-800 border-slate-300 dark:border-slate-700'}">✨ 重ねて交点G!</button>
+            <button type="button" data-s3-view="all" class="py-2 px-2 rounded-xl border transition ${s3ViewMode === 'all' ? 'bg-purple-600 border-purple-600 text-white shadow' : 'bg-slate-50 dark:bg-slate-800 border-slate-300 dark:border-slate-700'}">3本目CFも一致!</button>
+          </div>
+          <div class="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-300 dark:border-emerald-700 text-xs font-bold text-emerald-900 dark:text-emerald-200 leading-relaxed">
+            📌 <strong>重心の定義に到達！</strong>：同じ天板なので、中線 AD 上にもあり中線 BE 上にもある「<strong>ただ1つの交点 G</strong>」が重心です！ 次の <strong>04 なぜ 2：1 か</strong> で、この G が中線を 2：1 に分ける理由を幾何学的に証明します！
+          </div>
+        `;
+      }
+
+      // --- 右パネル用：3つの線の区別SVG ---
+      let compareSvg = '';
+      let compareDesc = '';
+      if (s3CompareLine === 'median') {
+        compareSvg = `
+          <line x1="${A.x}" y1="${A.y}" x2="${D.x}" y2="${D.y}" stroke="#0f766e" stroke-width="3" class="animate-draw" />
+          <circle cx="${D.x}" cy="${D.y}" r="4.5" fill="#0f766e" />
+          <text x="${(B.x + D.x) / 2}" y="${B.y + 16}" text-anchor="middle" font-size="11" font-weight="bold" fill="#0f766e">＝</text>
+          <text x="${(C.x + D.x) / 2}" y="${B.y + 16}" text-anchor="middle" font-size="11" font-weight="bold" fill="#0f766e">＝</text>
+        `;
+        compareDesc = '<strong>【中線（重心をつくる線）】</strong>頂点 A と向かいの辺 BC の中点 D を結ぶ線。一般に BC とは<strong>垂直になりません</strong>！';
+      } else if (s3CompareLine === 'perp') {
+        compareSvg = `
+          <line x1="${D.x}" y1="30" x2="${D.x}" y2="230" stroke="#6366f1" stroke-width="3" stroke-dasharray="6 3" class="animate-draw" />
+          <polyline points="${D.x},${D.y - 12} ${D.x + 12},${D.y - 12} ${D.x + 12},${D.y}" fill="none" stroke="#6366f1" stroke-width="2" />
+          <circle cx="${D.x}" cy="${D.y}" r="4.5" fill="#6366f1" />
+        `;
+        compareDesc = '<strong>【垂直二等分線（外心をつくる線）】</strong>中点 D を通り辺 BC に垂直な線。一般に<strong>頂点 A を通りません</strong>！';
+      } else {
+        const lenAB = Math.hypot(B.x - A.x, B.y - A.y);
+        const lenAC = Math.hypot(C.x - A.x, C.y - A.y);
+        const ix = (lenAC * B.x + lenAB * C.x) / (lenAB + lenAC);
+        compareSvg = `
+          <line x1="${A.x}" y1="${A.y}" x2="${ix.toFixed(1)}" y2="${B.y}" stroke="#ec4899" stroke-width="3" stroke-dasharray="6 3" class="animate-draw" />
+          <circle cx="${ix.toFixed(1)}" cy="${B.y}" r="4.5" fill="#ec4899" />
+          <text x="${ix.toFixed(1)}" y="${B.y + 16}" text-anchor="middle" font-size="10.5" font-weight="bold" fill="#ec4899">中点Dとズレる！</text>
+        `;
+        compareDesc = '<strong>【角の二等分線（内心をつくる線）】</strong>角 A を等しく2つに分ける線。一般に<strong>辺 BC の中点 D を通りません</strong>！';
+      }
+
+      // --- 右パネル用：中線の意味を確認する6ステップ演習 ---
+      const drillItems = [
+        { id: 1, q: '長方形を細い帯に分け、それぞれの中央に印を付けよう', focus: 'つり合いの点の集まり', a: 'すべての帯の中央が一直線上に並び、左右のつり合いはこの直線上にあると分かる。' },
+        { id: 2, q: '台形でも同じように細い帯の中央を取ってみよう', focus: '長さが違っても中央でつり合う', a: '帯の長さが異なっても均質なら中央でつり合う。ただし下側ほど重い。' },
+        { id: 3, q: '不等辺三角形でも同じことをしてみよう', focus: '中点が一直線上に並ぶ', a: '左右対称でない三角形でも、底辺に平行な帯の中点はきれいに一直線上に並ぶ！' },
+        { id: 4, q: 'その直線は頂点とどの点を結んでいるか確認しよう', focus: '中線の発見', a: '頂点 A と向かいの辺 BC の中点 D を結んでいる。これが「中線」の正体！' },
+        { id: 5, q: '別の辺（CA）を底辺にして同じことをしよう', focus: '2本目の中線の発見', a: 'CA に平行な細い帯の中央を結ぶと、頂点 B と CA の中点 E を結ぶ2本目の中線 BE になる。' },
+        { id: 6, q: '2本の中線の交点にはどんな意味があるか考えよう', focus: '重心の発見', a: 'AD 上にも BE 上にも重心があるため、ただ1つの交点 G が三角形全体の重心になる！' }
+      ];
+
+      return `
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+          <!-- 左：7段階の探究ストーリーボード -->
+          <div class="lg:col-span-7 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
+            <div class="border-b border-slate-100 dark:border-slate-800 pb-3 space-y-2.5">
+              <div class="flex items-center justify-between flex-wrap gap-2">
+                <span class="text-xs font-extrabold text-teal-600 dark:text-teal-400">03（13〜17分）｜つり合う場所を探したら、自然に「中線」にたどり着いた！</span>
+                <span class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">ステップ ${s3StoryStage} / 7</span>
+              </div>
+              <!-- 7段階のストーリー切替ピル -->
+              <div class="flex flex-wrap gap-1">
+                ${stages.map(st => `
+                  <button type="button" data-s3-story="${st.id}" class="px-2.5 py-1.5 rounded-lg text-[11px] font-extrabold border transition ${s3StoryStage === st.id ? 'bg-teal-600 border-teal-600 text-white shadow-sm' : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-teal-400'}">
+                    ${st.short}
+                  </button>
+                `).join('')}
+              </div>
+            </div>
+
+            <div>
+              <h2 class="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white">${stageTitle}</h2>
+              <p class="text-xs text-slate-600 dark:text-slate-300 mt-1 leading-relaxed">${stageLead}</p>
+            </div>
+
+            <!-- インタラクティブ SVG ステージ -->
+            <div class="bg-slate-50 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800 p-2">
+              <svg viewBox="0 0 420 256" class="w-full h-auto max-h-[260px] select-none">
+                ${mainSvg}
+              </svg>
+            </div>
+
+            <!-- ステージ別コントロール -->
+            <div class="space-y-2.5">
+              ${controlsHtml}
+            </div>
+
+            <!-- ストーリー前後移動 -->
+            <div class="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800 text-xs font-bold">
+              <button type="button" data-s3-story="${Math.max(1, s3StoryStage - 1)}" ${s3StoryStage === 1 ? 'disabled' : ''} class="px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 disabled:opacity-40 hover:bg-slate-100 dark:hover:bg-slate-800">
+                &larr; 前の発見
+              </button>
+              <button type="button" data-s3-story="${Math.min(7, s3StoryStage + 1)}" ${s3StoryStage === 7 ? 'disabled' : ''} class="px-3 py-1.5 rounded-lg bg-slate-800 dark:bg-slate-700 text-white disabled:opacity-40 hover:bg-slate-700">
+                次の発見 &rarr;
+              </button>
+            </div>
+          </div>
+
+          <!-- 右：思考の流れマップ / 確認演習 / 3つの線の区別（切替タブ） -->
+          <div class="lg:col-span-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm space-y-4">
+            <div class="flex gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl text-[11px] font-extrabold">
+              <button type="button" data-s3-rtab="guide" class="flex-1 py-1.5 rounded-lg transition ${s3RightTab === 'guide' ? 'bg-white dark:bg-slate-900 text-teal-700 dark:text-teal-300 shadow-sm' : 'text-slate-500'}">🗺️ 発見の流れ</button>
+              <button type="button" data-s3-rtab="drill" class="flex-1 py-1.5 rounded-lg transition ${s3RightTab === 'drill' ? 'bg-white dark:bg-slate-900 text-teal-700 dark:text-teal-300 shadow-sm' : 'text-slate-500'}">✏️ 確認演習 (6問)</button>
+              <button type="button" data-s3-rtab="compare" class="flex-1 py-1.5 rounded-lg transition ${s3RightTab === 'compare' ? 'bg-white dark:bg-slate-900 text-teal-700 dark:text-teal-300 shadow-sm' : 'text-slate-500'}">🔍 3つの線の区別</button>
+            </div>
+
+            ${s3RightTab === 'guide' ? `
+              <div class="space-y-2.5 text-xs">
+                <div class="font-extrabold text-teal-700 dark:text-teal-300">「なぜ中線？」「なぜ交点？」「なぜ2:1？」をつなぐ思考ルート</div>
+                <div class="space-y-1.5">
+                  ${[
+                    { step: 1, text: '面積が大きいほど重い（01） → 重さの位置で支点が変わる（02）', active: false },
+                    { step: 1, text: '①② 複雑な形も「細長い帯」に分ければ、各帯は中央でつり合う', active: s3StoryStage <= 2 },
+                    { step: 3, text: '③ 台形の上辺を縮めて三角形にしても、同じ考え方が使える', active: s3StoryStage === 3 },
+                    { step: 4, text: '④⑤ 帯の中央●を結んだら、自然に「中線」になった！', active: s3StoryStage === 4 || s3StoryStage === 5 },
+                    { step: 6, text: '⑥ 1本の中線上だけでは、まだ正確な位置が決まらない', active: s3StoryStage === 6 },
+                    { step: 7, text: '⑦ 別の辺を底辺に見方を変えると「2本の中線の交点＝重心」に決まる！', active: s3StoryStage === 7 },
+                    { step: 8, text: '▶ 次へ（04）：相似を利用すると、正確な位置は 2：1 になる！', active: false }
+                  ].map((item, idx) => `
+                    <div class="p-2.5 rounded-xl border transition ${item.active ? 'bg-teal-50 dark:bg-teal-950/60 border-teal-400 dark:border-teal-600 text-teal-900 dark:text-teal-100 font-extrabold shadow-sm' : 'bg-slate-50 dark:bg-slate-950/60 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 font-bold'}">
+                      ${idx > 0 ? '<span class="text-teal-500 mr-1">&darr;</span>' : ''}${item.text}
+                    </div>
+                  `).join('')}
+                </div>
+                <div class="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-[11px] text-amber-900 dark:text-amber-200 leading-relaxed">
+                  💡 <strong>ノートまとめのポイント：</strong><br>
+                  中線は突然降ってきた補助線ではありません。<strong>「細い帯のつり合う点●を集めて結んだ線」</strong>だからこそ、その上に重心があるのです！（※これは物理的・直感的な発見であり、次の04で相似を使って厳密に証明します）
+                </div>
+              </div>
+            ` : ''}
+
+            ${s3RightTab === 'drill' ? `
+              <div class="space-y-2 text-xs">
+                <div class="font-extrabold text-indigo-700 dark:text-indigo-300">中線の意味を確認する6ステップ演習（タップで解説を確認）</div>
+                <div class="space-y-2 max-h-[380px] overflow-y-auto pr-1">
+                  ${drillItems.map(item => {
+                    const open = !!s3DrillRevealed[item.id];
+                    return `
+                      <div data-s3-drill="${item.id}" class="cursor-pointer p-3 rounded-xl border transition ${open ? 'bg-teal-50/70 dark:bg-teal-950/40 border-teal-400' : 'bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 hover:border-teal-400'}">
+                        <div class="flex items-center justify-between gap-2">
+                          <span class="font-extrabold text-slate-800 dark:text-slate-100">Q${item.id}. ${item.q}</span>
+                          <span class="shrink-0 text-[10px] px-1.5 py-0.5 rounded bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-300 font-bold">${item.focus}</span>
+                        </div>
+                        ${open ? `<div class="mt-2 pt-2 border-t border-teal-200 dark:border-teal-800 text-teal-900 dark:text-teal-200 font-bold leading-relaxed">💡 ${item.a}</div>` : `<div class="mt-1 text-[10px] text-slate-400">クリックして答え・ねらいを表示</div>`}
+                      </div>
+                    `;
+                  }).join('')}
+                </div>
+              </div>
+            ` : ''}
+
+            ${s3RightTab === 'compare' ? `
+              <div class="space-y-3 text-xs">
+                <div class="font-extrabold text-indigo-600 dark:text-indigo-400">🔍 混同注意！3つの線を不等辺三角形で比べて区別しよう</div>
+                <div class="flex gap-1.5">
+                  <button type="button" data-s3-line="median" class="flex-1 py-1.5 rounded-lg text-[11px] font-bold border transition ${s3CompareLine === 'median' ? 'bg-teal-600 border-teal-600 text-white' : 'bg-slate-50 dark:bg-slate-800 border-slate-300 dark:border-slate-700'}">中線(重心)</button>
+                  <button type="button" data-s3-line="perp" class="flex-1 py-1.5 rounded-lg text-[11px] font-bold border transition ${s3CompareLine === 'perp' ? 'bg-indigo-600 border-indigo-600 text-white' : 'bg-slate-50 dark:bg-slate-800 border-slate-300 dark:border-slate-700'}">垂直二等分線</button>
+                  <button type="button" data-s3-line="bisector" class="flex-1 py-1.5 rounded-lg text-[11px] font-bold border transition ${s3CompareLine === 'bisector' ? 'bg-pink-600 border-pink-600 text-white' : 'bg-slate-50 dark:bg-slate-800 border-slate-300 dark:border-slate-700'}">角の二等分線</button>
+                </div>
+                <svg viewBox="0 0 420 245" class="w-full h-40 bg-slate-50 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800">
+                  <polygon points="${A.x},${A.y} ${B.x},${B.y} ${C.x},${C.y}" fill="none" stroke="#94a3b8" stroke-width="2" />
+                  ${compareSvg}
+                  <text x="${A.x}" y="${A.y - 8}" text-anchor="middle" font-size="13" font-weight="800" class="fill-slate-700 dark:fill-slate-200">A</text>
+                  <text x="${B.x - 12}" y="${B.y + 4}" font-size="13" font-weight="800" class="fill-slate-700 dark:fill-slate-200">B</text>
+                  <text x="${C.x + 8}" y="${C.y + 4}" font-size="13" font-weight="800" class="fill-slate-700 dark:fill-slate-200">C</text>
+                </svg>
+                <div class="text-slate-700 dark:text-slate-300 leading-relaxed p-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">${compareDesc}</div>
+              </div>
+            ` : ''}
+          </div>
+        </div>
+      `;
+    }
+
+    /* =========================================================================
+       STEP 4: 04 なぜ中線を 2：1 に分けるのか（17〜23分）
+       ========================================================================= */
+    function renderStep4() {
+      const A = { x: 155, y: 28 };
+      const B = { x: 40, y: 215 };
+      const C = { x: 385, y: 215 };
+      const D = { x: 212.5, y: 215 };
+      const E = { x: 270, y: 121.5 };
+      const G = { x: 193.33, y: 152.67 };
+
+      // Phase 3 の回転・2倍拡大モーフィング座標計算（△GDE → △GAB）
+      // p = 0 で △GDE、p = 1 で △GAB にピッタリ一致！
+      const p = s4ProofPhase === 3 ? s4MorphProgress / 100 : 0;
+      const morphD = { x: D.x + (A.x - D.x) * p, y: D.y + (A.y - D.y) * p };
+      const morphE = { x: E.x + (B.x - E.x) * p, y: E.y + (B.y - E.y) * p };
+
+      const phaseTexts = {
+        1: {
+          title: '① 中点連結定理で「平行」と「2：1」を見つける',
+          body: '点 D は BC の中点、点 E は AC の中点です。この2つを結んだ線分 <strong>DE</strong> は、中点連結定理により向かいの辺 <strong>AB と平行（AB // DE）</strong>であり、長さはちょうど半分（<strong>AB : DE = 2 : 1</strong>）になります！'
+        },
+        2: {
+          title: '② Gの上下に「砂時計型の相似な三角形」を発見！',
+          body: '<strong>△GAB</strong>（大きい三角形）と <strong>△GDE</strong>（小さい三角形）に注目します。AB // DE なので<strong>錯角（Z字の角）が等しく</strong>、さらにGの<strong>対頂角も等しい</strong>ため、2組の角が等しく <strong>△GAB ∽ △GDE</strong> です！'
+        },
+        3: {
+          title: '③ 小さい △GDE を180°回転して2倍に拡大すると…ピッタリ重なる！',
+          body: '下のスライダーやアニメーションボタンを動かしてみよう！△GDE の頂点 D は A に、E は B に、辺 <strong>GD は AG にピッタリ重なります</strong>。相似比が 2：1 なので、<strong>AG : GD = 2 : 1</strong> が証明されました！'
+        },
+        4: {
+          title: '④ 3本目の中線も必ず G を通る ＆ 90cmの予想を検証！',
+          body: 'もう1本の中線 CF と AD の交点も同じ理由で AD を 2：1 に分けます。線分 AD を 2：1 に分ける点は<strong>ただ1つだけ</strong>なので、3本の中線はすべて1点 G で交わります！<br>また、AD = 90cm は「3個分」なので、1個分＝30cm、<strong>AG = 60cm, GD = 30cm</strong> です！'
+        }
+      };
+
+      return `
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+          <!-- 左：相似証明アニメーションSVG -->
+          <div class="lg:col-span-7 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
+            <div class="border-b border-slate-100 dark:border-slate-800 pb-3 flex items-center justify-between flex-wrap gap-2">
+              <div>
+                <span class="text-xs font-extrabold text-teal-600 dark:text-teal-400">04（17〜23分）｜相似による 2：1 の証明</span>
+                <h2 class="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white">△GAB ∽ △GDE の対応をアニメーションで体感しよう</h2>
+              </div>
+              <div class="flex gap-1">
+                ${[1, 2, 3, 4].map(n => `
+                  <button type="button" data-s4-phase="${n}" class="px-2.5 py-1 rounded-lg text-xs font-extrabold border transition ${s4ProofPhase === n ? 'bg-teal-600 border-teal-600 text-white shadow' : 'bg-slate-50 dark:bg-slate-800 border-slate-300 dark:border-slate-700'}">Step ${n}</button>
+                `).join('')}
+              </div>
+            </div>
+
+            <div class="bg-slate-50 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800 p-2">
+              <svg viewBox="0 0 420 250" class="w-full h-auto max-h-[260px] select-none">
+                <!-- 外枠 △ABC -->
+                <polygon points="${A.x},${A.y} ${B.x},${B.y} ${C.x},${C.y}" fill="rgba(20, 184, 166, 0.06)" stroke="#94a3b8" stroke-width="2" />
+
+                <!-- 相似な2つの三角形（Phase 2以降で強調） -->
+                ${s4ProofPhase >= 2 ? `
+                  <polygon points="${G.x},${G.y} ${A.x},${A.y} ${B.x},${B.y}" fill="rgba(59, 130, 246, 0.16)" stroke="#2563eb" stroke-width="2" />
+                  <polygon points="${G.x},${G.y} ${D.x},${D.y} ${E.x},${E.y}" fill="rgba(249, 115, 22, 0.25)" stroke="#ea580c" stroke-width="2" />
+                ` : ''}
+
+                <!-- モーフィング中の △GDE → △GAB (Phase 3) -->
+                ${s4ProofPhase === 3 ? `
+                  <polygon points="${G.x},${G.y} ${morphD.x.toFixed(1)},${morphD.y.toFixed(1)} ${morphE.x.toFixed(1)},${morphE.y.toFixed(1)}" fill="rgba(234, 88, 12, 0.35)" stroke="#c2410c" stroke-width="3" stroke-dasharray="6 3" />
+                ` : ''}
+
+                <!-- 中線 AD と BE -->
+                <line x1="${A.x}" y1="${A.y}" x2="${D.x}" y2="${D.y}" stroke="#334155" class="dark:stroke-slate-300" stroke-width="2.5" />
+                <line x1="${B.x}" y1="${B.y}" x2="${E.x}" y2="${E.y}" stroke="#334155" class="dark:stroke-slate-300" stroke-width="2.5" />
+
+                <!-- 平行辺 AB と DE を強調 -->
+                <line x1="${A.x}" y1="${A.y}" x2="${B.x}" y2="${B.y}" stroke="#2563eb" stroke-width="4" />
+                <line x1="${D.x}" y1="${D.y}" x2="${E.x}" y2="${E.y}" stroke="#f97316" stroke-width="4" class="animate-draw" />
+
+                <!-- 平行マークと比 2:1 -->
+                <rect x="64" y="102" width="44" height="22" rx="6" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5" />
+                <text x="86" y="117" text-anchor="middle" font-size="11" font-weight="800" fill="#1d4ed8">比: 2</text>
+                <rect x="242" y="164" width="44" height="22" rx="6" fill="#fff7ed" stroke="#f97316" stroke-width="1.5" />
+                <text x="264" y="179" text-anchor="middle" font-size="11" font-weight="800" fill="#c2410c">比: 1</text>
+
+                <!-- AG と GD の比ラベル (Phase 3, 4) -->
+                ${s4ProofPhase >= 3 ? `
+                  <rect x="148" y="78" width="54" height="22" rx="6" fill="#ecfdf5" stroke="#10b981" stroke-width="1.8" />
+                  <text x="175" y="93" text-anchor="middle" font-size="11" font-weight="900" fill="#047857">AG = 2</text>
+                  <rect x="180" y="178" width="54" height="22" rx="6" fill="#fef3c7" stroke="#f59e0b" stroke-width="1.8" />
+                  <text x="207" y="193" text-anchor="middle" font-size="11" font-weight="900" fill="#b45309">GD = 1</text>
+                ` : ''}
+
+                <!-- 頂点と点G -->
+                <circle cx="${G.x}" cy="${G.y}" r="5.5" fill="#ef4444" stroke="#fff" stroke-width="1.5" />
+                <text x="${G.x - 14}" y="${G.y + 4}" font-size="13" font-weight="900" fill="#ef4444">G</text>
+                <text x="${A.x}" y="${A.y - 9}" text-anchor="middle" font-size="14" font-weight="800" class="fill-slate-800 dark:fill-slate-100">A</text>
+                <text x="${B.x - 14}" y="${B.y + 5}" text-anchor="middle" font-size="14" font-weight="800" class="fill-slate-800 dark:fill-slate-100">B</text>
+                <text x="${C.x + 14}" y="${C.y + 5}" text-anchor="middle" font-size="14" font-weight="800" class="fill-slate-800 dark:fill-slate-100">C</text>
+                <text x="${D.x}" y="${D.y + 18}" text-anchor="middle" font-size="13" font-weight="800" fill="#c2410c">D</text>
+                <text x="${E.x + 12}" y="${E.y - 4}" font-size="13" font-weight="800" fill="#c2410c">E</text>
+              </svg>
+            </div>
+
+            <!-- Phase 3 専用：モーフィング再生コントロール -->
+            ${s4ProofPhase === 3 ? `
+              <div class="bg-orange-50 dark:bg-orange-950/50 border border-orange-300 dark:border-orange-700 rounded-xl p-3 space-y-2">
+                <div class="flex items-center justify-between gap-2">
+                  <span class="text-xs font-extrabold text-orange-900 dark:text-orange-200">🎬 △GDE を180°回転＆2倍拡大して △GAB に重ねる：${Math.round(s4MorphProgress)}%</span>
+                  <button type="button" data-action="s4-play-morph" class="px-3 py-1 rounded-lg bg-orange-600 hover:bg-orange-500 text-white text-xs font-bold shadow">▶ アニメーション再生</button>
+                </div>
+                <input type="range" min="0" max="100" value="${Math.round(s4MorphProgress)}" data-input="s4-morph" class="w-full">
+              </div>
+            ` : ''}
+
+            <div class="p-4 rounded-xl bg-teal-50/80 dark:bg-teal-950/40 border border-teal-200 dark:border-teal-800 text-xs sm:text-sm space-y-1.5">
+              <div class="font-extrabold text-teal-800 dark:text-teal-300">${phaseTexts[s4ProofPhase].title}</div>
+              <p class="text-slate-700 dark:text-slate-200 leading-relaxed">${phaseTexts[s4ProofPhase].body}</p>
+            </div>
+          </div>
+
+          <!-- 右：対応表 & 3種類の比の整理 & 90cm予想の答え合わせ -->
+          <div class="lg:col-span-5 space-y-4">
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm space-y-3">
+              <div class="text-xs font-extrabold text-indigo-600 dark:text-indigo-400">📋 対応する頂点と辺（同色でペアを確認！）</div>
+              <table class="w-full text-center border-collapse border border-slate-200 dark:border-slate-700 text-xs font-bold">
+                <tr class="bg-slate-100 dark:bg-slate-800">
+                  <th class="border border-slate-200 dark:border-slate-700 p-2 text-blue-700 dark:text-blue-400">大きい △GAB</th>
+                  <th class="border border-slate-200 dark:border-slate-700 p-2">対応</th>
+                  <th class="border border-slate-200 dark:border-slate-700 p-2 text-orange-700 dark:text-orange-400">小さい △GDE</th>
+                </tr>
+                <tr><td class="border border-slate-200 dark:border-slate-700 p-1.5">頂点 A / B / G</td><td class="border border-slate-200 dark:border-slate-700 p-1.5">↔</td><td class="border border-slate-200 dark:border-slate-700 p-1.5">頂点 D / E / G</td></tr>
+                <tr class="bg-blue-50/50 dark:bg-blue-950/30"><td class="border border-slate-200 dark:border-slate-700 p-1.5 text-blue-700 dark:text-blue-300">辺 AB（比 2）</td><td class="border border-slate-200 dark:border-slate-700 p-1.5">：</td><td class="border border-slate-200 dark:border-slate-700 p-1.5 text-orange-700 dark:text-orange-300">辺 DE（比 1）</td></tr>
+                <tr class="bg-emerald-50/60 dark:bg-emerald-950/30"><td class="border border-slate-200 dark:border-slate-700 p-1.5 text-emerald-700 dark:text-emerald-300">辺 AG（比 2）</td><td class="border border-slate-200 dark:border-slate-700 p-1.5">：</td><td class="border border-slate-200 dark:border-slate-700 p-1.5 text-amber-700 dark:text-amber-300">辺 GD（比 1）</td></tr>
+              </table>
+            </div>
+
+            <!-- 超重要：3種類の比の言い換え -->
+            <div class="bg-white dark:bg-slate-900 border-2 border-teal-400 dark:border-teal-700 rounded-2xl p-4 shadow-sm space-y-3">
+              <div class="text-xs font-extrabold text-teal-700 dark:text-teal-300">⭐ 入試で差がつく「3種類の比」をセットで理解！</div>
+              <!-- 3個分バー -->
+              <div class="flex items-center text-xs font-extrabold text-center rounded-xl overflow-hidden border border-slate-300 dark:border-slate-700">
+                <div class="w-1/3 py-2 bg-emerald-500 text-white border-r border-emerald-400">1個分</div>
+                <div class="w-1/3 py-2 bg-emerald-500 text-white border-r-2 border-slate-900 dark:border-white">1個分</div>
+                <div class="w-1/3 py-2 bg-amber-400 text-slate-900">1個分</div>
+              </div>
+              <div class="flex justify-between text-[11px] font-extrabold px-1">
+                <span>A</span>
+                <span class="text-emerald-600 dark:text-emerald-400">← AG（2個分） →</span>
+                <span class="text-red-500">G</span>
+                <span class="text-amber-600 dark:text-amber-400">← GD（1個分）→</span>
+                <span>D</span>
+              </div>
+
+              <div class="grid grid-cols-3 gap-2 text-center text-xs font-extrabold">
+                <div class="p-2 rounded-xl bg-slate-100 dark:bg-slate-800">
+                  <div class="text-[10px] text-slate-500">部分：部分</div>
+                  <div class="text-teal-700 dark:text-teal-300">AG : GD = 2 : 1</div>
+                </div>
+                <div class="p-2 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-300 dark:border-indigo-700">
+                  <div class="text-[10px] text-indigo-600 dark:text-indigo-300">部分：全体(超重要)</div>
+                  <div class="text-indigo-700 dark:text-indigo-300">AG : AD = 2 : 3</div>
+                </div>
+                <div class="p-2 rounded-xl bg-slate-100 dark:bg-slate-800">
+                  <div class="text-[10px] text-slate-500">部分：全体</div>
+                  <div class="text-amber-700 dark:text-amber-300">GD : AD = 1 : 3</div>
+                </div>
+              </div>
+
+              ${s3Predict90 ? `
+                <div class="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 text-xs font-bold text-emerald-900 dark:text-emerald-200">
+                  🎉 Step 03 の予想（${s3Predict90}cm）の答え合わせ：<br>
+                  90cm ÷ 3 = 30cm（1個分）なので、<strong>AG = 60 cm</strong> が大正解！（真ん中 45cm より底辺に 15cm 寄っています）
+                </div>
+              ` : ''}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    /* =========================================================================
+       Step 3 連続変形アニメーション（長方形 → 台形 → 不等辺三角形）
+       ========================================================================= */
+    function playS3MorphAnimation() {
+      if (s3AnimFrame) cancelAnimationFrame(s3AnimFrame);
+      s3MorphT = 0;
+      const startTime = performance.now();
+      const duration = 2000; // 2秒かけて滑らかに変形
+
+      function tick(now) {
+        const elapsed = now - startTime;
+        const ratio = Math.min(1, elapsed / duration);
+        const eased = ratio < 0.5 ? 4 * ratio * ratio * ratio : 1 - Math.pow(-2 * ratio + 2, 3) / 2;
+        s3MorphT = eased * 100;
+        renderCurrentStep();
+        if (ratio < 1 && currentStep === 3 && s3StoryStage === 3) {
+          s3AnimFrame = requestAnimationFrame(tick);
+        } else {
+          s3AnimFrame = null;
+        }
+      }
+      s3AnimFrame = requestAnimationFrame(tick);
+    }
+
+    /* =========================================================================
+       Phase 3 相似モーフィング・アニメーション制御
+       ========================================================================= */
+    function playMorphAnimation() {
+      if (s4AnimFrame) cancelAnimationFrame(s4AnimFrame);
+      s4MorphProgress = 0;
+      const startTime = performance.now();
+      const duration = 1400; // 1.4秒かけて回転・拡大
+
+      function tick(now) {
+        const elapsed = now - startTime;
+        const ratio = Math.min(1, elapsed / duration);
+        // easeInOutCubic
+        const eased = ratio < 0.5 ? 4 * ratio * ratio * ratio : 1 - Math.pow(-2 * ratio + 2, 3) / 2;
+        s4MorphProgress = eased * 100;
+        renderCurrentStep();
+        if (ratio < 1 && currentStep === 4 && s4ProofPhase === 3) {
+          s4AnimFrame = requestAnimationFrame(tick);
+        } else {
+          s4AnimFrame = null;
+        }
+      }
+      s4AnimFrame = requestAnimationFrame(tick);
+    }
+
+    /* =========================================================================
+       数値入力の正規化ヘルパー（全角数字・小数点も許容）
+       ========================================================================= */
+    function parseNumInput(str) {
+      if (str === null || str === undefined) return NaN;
+      const normalized = String(str)
+        .trim()
+        .replace(/[０-９]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0xFEE0))
+        .replace(/．/g, '.');
+      if (normalized === '') return NaN;
+      return Number(normalized);
+    }
+
+    function escapeAttr(str) {
+      return String(str || '').replace(/"/g, '&quot;');
+    }
+
+    /* =========================================================================
+       STEP 5: 05 比を使いこなす個人演習（23〜28分）
+       ========================================================================= */
+    function renderStep5() {
+      return `
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+          <!-- 左：3個分モデル＆個人演習4問 -->
+          <div class="lg:col-span-7 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
+            <div class="border-b border-slate-100 dark:border-slate-800 pb-3">
+              <span class="text-xs font-extrabold text-teal-600 dark:text-teal-400">05（23〜28分）｜比を使いこなす個人演習</span>
+              <h2 class="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white">中線 AD を「同じ長さ 3個分」でとらえて解こう！</h2>
+            </div>
+
+            <!-- 共同例題（AG = 8）の模式図 -->
+            <div class="p-4 rounded-xl bg-teal-50/80 dark:bg-teal-950/40 border border-teal-200 dark:border-teal-800 space-y-2.5 text-xs">
+              <div class="font-extrabold text-teal-800 dark:text-teal-300">📌 共同例題：AG ＝ 8 のとき、GD と AD はいくつ？</div>
+              <div class="flex items-center text-center font-extrabold rounded-xl overflow-hidden border border-teal-400 dark:border-teal-700">
+                <div class="w-1/3 py-2 bg-emerald-500 text-white border-r border-emerald-400">1個分 (4)</div>
+                <div class="w-1/3 py-2 bg-emerald-500 text-white border-r-2 border-slate-900 dark:border-white">1個分 (4)</div>
+                <div class="w-1/3 py-2 bg-amber-400 text-slate-900">1個分 (4)</div>
+              </div>
+              <div class="flex justify-between font-extrabold px-1 text-[11px]">
+                <span>A</span>
+                <span class="text-emerald-700 dark:text-emerald-400">AG ＝ 2個分で 8</span>
+                <span class="text-rose-600">G</span>
+                <span class="text-amber-700 dark:text-amber-400">GD ＝ 1個分で 4</span>
+                <span>D</span>
+              </div>
+              <div class="text-slate-700 dark:text-slate-200 font-bold">
+                ➡ まず<strong>1個分（8 ÷ 2 ＝ 4）</strong>を出すと、<strong>GD ＝ 4</strong>、全体3個分の <strong>AD ＝ 12</strong> と一瞬で求まります！
+              </div>
+            </div>
+
+            <!-- 個人演習 4問 -->
+            <div class="space-y-3">
+              ${S5_PROBLEMS.map((prob) => {
+                const inp = s5Inputs[prob.id];
+                const checked = s5Checked[prob.id];
+                const n1 = parseNumInput(inp.v1);
+                const n2 = parseNumInput(inp.v2);
+                const ok1 = Math.abs(n1 - prob.ans1) < 0.01;
+                const ok2 = Math.abs(n2 - prob.ans2) < 0.01;
+                const allOk = ok1 && ok2;
+
+                // よくある誤答に対するピンポイント問い返し
+                let feedbackMsg = '';
+                if (checked) {
+                  if (allOk) {
+                    feedbackMsg = `⭕ <strong>大正解！</strong> ${prob.ask1} = ${prob.ans1}, ${prob.ask2} = ${prob.ans2} です！`;
+                  } else if (prob.id === 3 && n1 === 28) {
+                    feedbackMsg = '⚠️ <strong>問い返し：</strong>GDをAGの2倍にしていませんか？ AからGまでは2個分、GからDまでは<strong>1個分</strong>です！';
+                  } else if ((prob.id === 3 && n2 === 28) || (prob.id === 4 && n2 === 18)) {
+                    feedbackMsg = '⚠️ <strong>問い返し：</strong>AD ＝ AG × 2 にしていませんか？ 全体 AD は <strong>3個分</strong>です！';
+                  } else {
+                    feedbackMsg = `💡 <strong>ヒント：</strong>${prob.hint}（正解：${prob.ask1} = ${prob.ans1}, ${prob.ask2} = ${prob.ans2}）`;
+                  }
+                }
+
+                return `
+                  <div class="p-3.5 rounded-xl border ${checked ? (allOk ? 'border-emerald-400 bg-emerald-50/40 dark:bg-emerald-950/30' : 'border-amber-400 bg-amber-50/40 dark:bg-amber-950/30') : 'border-slate-200 dark:border-slate-700 bg-slate-50/60 dark:bg-slate-800/40'} space-y-2 text-xs">
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                      <span class="font-extrabold text-slate-900 dark:text-white">問${prob.id}. 条件：${prob.cond}</span>
+                      <div class="flex items-center gap-2 flex-wrap">
+                        <label class="font-bold flex items-center gap-1">
+                          ${prob.ask1} =
+                          <input type="text" data-s5-input="${prob.id}-1" value="${escapeAttr(inp.v1)}" placeholder="?" class="w-14 px-2 py-1 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-center font-mono font-bold">
+                        </label>
+                        <label class="font-bold flex items-center gap-1">
+                          ${prob.ask2} =
+                          <input type="text" data-s5-input="${prob.id}-2" value="${escapeAttr(inp.v2)}" placeholder="?" class="w-14 px-2 py-1 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-center font-mono font-bold">
+                        </label>
+                        <button type="button" data-s5-check="${prob.id}" class="px-3 py-1 rounded-lg bg-teal-600 hover:bg-teal-500 text-white font-extrabold shadow-sm transition">判定</button>
+                      </div>
+                    </div>
+                    ${checked ? `<div class="pt-1 font-bold ${allOk ? 'text-emerald-700 dark:text-emerald-300' : 'text-amber-800 dark:text-amber-300'}">${feedbackMsg}</div>` : ''}
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+
+          <!-- 右：相似への橋渡し（2:1 ではなく 2:3！） -->
+          <div class="lg:col-span-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
+            <div class="border-b border-slate-100 dark:border-slate-800 pb-2">
+              <span class="text-xs font-extrabold text-indigo-600 dark:text-indigo-400">相似への橋渡し（超重要チェック！）</span>
+              <h3 class="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white">Gを通り BC に平行な線 PQ を引くと…？</h3>
+            </div>
+
+            <div class="bg-slate-50 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800 p-2">
+              <svg viewBox="0 0 380 185" class="w-full h-auto select-none">
+                <polygon points="150,22 35,165 345,165" fill="rgba(20, 184, 166, 0.08)" stroke="#0f766e" stroke-width="2" />
+                <!-- 上側の小さい三角形 △APQ -->
+                <polygon points="150,22 73.3,117.3 280,117.3" fill="rgba(20, 184, 166, 0.28)" stroke="#0f766e" stroke-width="2.5" />
+                <!-- 中線 AD -->
+                <line x1="150" y1="22" x2="190" y2="165" stroke="#1e293b" class="dark:stroke-slate-200" stroke-width="2.5" />
+                <!-- 平行線 PQ -->
+                <line x1="73.3" y1="117.3" x2="280" y2="117.3" stroke="#0f766e" stroke-width="3" />
+                <circle cx="176.7" cy="117.3" r="4.5" fill="#ef4444" stroke="#fff" stroke-width="1.5" />
+                <text x="150" y="15" text-anchor="middle" font-size="13" font-weight="800" class="fill-slate-800 dark:fill-slate-100">A</text>
+                <text x="24" y="170" font-size="13" font-weight="800" class="fill-slate-800 dark:fill-slate-100">B</text>
+                <text x="352" y="170" font-size="13" font-weight="800" class="fill-slate-800 dark:fill-slate-100">C</text>
+                <text x="190" y="180" text-anchor="middle" font-size="12" font-weight="800" fill="#0f766e">D</text>
+                <text x="58" y="121" font-size="12" font-weight="800" fill="#0f766e">P</text>
+                <text x="288" y="121" font-size="12" font-weight="800" fill="#0f766e">Q</text>
+                <text x="187" y="110" font-size="12" font-weight="900" fill="#ef4444">G</text>
+                <rect x="135" y="56" width="38" height="19" rx="5" fill="#ecfdf5" stroke="#10b981" stroke-width="1.5" />
+                <text x="154" y="69" text-anchor="middle" font-size="10.5" font-weight="900" fill="#047857">AG=2</text>
+                <rect x="193" y="132" width="42" height="19" rx="5" fill="#fef3c7" stroke="#f59e0b" stroke-width="1.5" />
+                <text x="214" y="145" text-anchor="middle" font-size="10.5" font-weight="900" fill="#b45309">GD=1</text>
+              </svg>
+            </div>
+
+            <div class="space-y-2.5 text-xs">
+              <div class="font-extrabold text-slate-900 dark:text-white">
+                ❓ 色の付いた小さい三角形（△APQ）と、全体（△ABC）の相似比は？
+              </div>
+              <div class="grid grid-cols-2 gap-2">
+                <button type="button" data-s5-bridge="2:1" class="py-2.5 px-3 rounded-xl border-2 font-extrabold transition ${s5BridgeQuiz === '2:1' ? 'border-rose-500 bg-rose-500/15 text-rose-700 dark:text-rose-300' : 'border-slate-200 dark:border-slate-700 hover:border-indigo-400'}">
+                  A. 2 ： 1
+                </button>
+                <button type="button" data-s5-bridge="2:3" class="py-2.5 px-3 rounded-xl border-2 font-extrabold transition ${s5BridgeQuiz === '2:3' ? 'border-emerald-500 bg-emerald-500/15 text-emerald-700 dark:text-emerald-300' : 'border-slate-200 dark:border-slate-700 hover:border-indigo-400'}">
+                  B. 2 ： 3
+                </button>
+              </div>
+              ${s5BridgeQuiz ? `
+                <div class="p-3 rounded-xl border font-bold leading-relaxed ${s5BridgeQuiz === '2:3' ? 'bg-emerald-50 dark:bg-emerald-950/50 border-emerald-400 text-emerald-900 dark:text-emerald-200' : 'bg-rose-50 dark:bg-rose-950/50 border-rose-400 text-rose-900 dark:text-rose-200'}">
+                  ${s5BridgeQuiz === '2:3'
+                    ? '⭕ <strong>完璧！</strong> 小さい三角形の中線は <strong>AG（2個分）</strong>、大きい三角形全体の中線は <strong>AD（3個分）</strong> なので、相似比は <strong>AG : AD ＝ 2 : 3</strong> になります！'
+                    : '❌ <strong>入試で一番多い罠です！</strong> 比較する大きい三角形の中線は GD（1個分）ではなく全体の <strong>AD（3個分）</strong> ですよね！よって相似比は <strong>2：3</strong> です！'}
+                </div>
+              ` : ''}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    /* =========================================================================
+       STEP 6: 06 提示問題に挑戦する（28〜39分）
+       ========================================================================= */
+    function renderStep6() {
+      // 座標設定（△ABC）
+      const A = { x: 155, y: 24 };
+      const B = { x: 35, y: 210 };
+      const C = { x: 385, y: 210 };
+      const D = { x: (B.x + C.x) / 2, y: B.y }; // (210, 210)
+      const P = { x: A.x + (B.x - A.x) * (2 / 3), y: A.y + (B.y - A.y) * (2 / 3) };
+      const Q = { x: A.x + (C.x - A.x) * (2 / 3), y: A.y + (C.y - A.y) * (2 / 3) };
+      const G = { x: A.x + (D.x - A.x) * (2 / 3), y: A.y + (D.y - A.y) * (2 / 3) };
+
+      // 面積比 4:9 を視覚化する「合同な小三角形9個」グリッド
+      let gridSvg = '';
+      if (s6Phase === 3 && s6ShowGrid) {
+        const lerp = (p1, p2, t) => ({ x: p1.x + (p2.x - p1.x) * t, y: p1.y + (p2.y - p1.y) * t });
+        // 横線 (t = 1/3, 2/3)
+        for (const t of [1 / 3, 2 / 3]) {
+          const l = lerp(A, B, t);
+          const r = lerp(A, C, t);
+          gridSvg += `<line x1="${l.x.toFixed(1)}" y1="${l.y.toFixed(1)}" x2="${r.x.toFixed(1)}" y2="${r.y.toFixed(1)}" stroke="#0f766e" stroke-width="1.5" stroke-dasharray="4 3" />`;
+        }
+        // AB に平行な線 (C→B方向)
+        for (const t of [1 / 3, 2 / 3]) {
+          const pTop = lerp(A, C, t);
+          const pBot = lerp(B, C, t);
+          gridSvg += `<line x1="${pTop.x.toFixed(1)}" y1="${pTop.y.toFixed(1)}" x2="${pBot.x.toFixed(1)}" y2="${pBot.y.toFixed(1)}" stroke="#0f766e" stroke-width="1.5" stroke-dasharray="4 3" />`;
+        }
+        // AC に平行な線 (B→C方向)
+        for (const t of [1 / 3, 2 / 3]) {
+          const pTop = lerp(A, B, t);
+          const pBot = lerp(C, B, t);
+          gridSvg += `<line x1="${pTop.x.toFixed(1)}" y1="${pTop.y.toFixed(1)}" x2="${pBot.x.toFixed(1)}" y2="${pBot.y.toFixed(1)}" stroke="#0f766e" stroke-width="1.5" stroke-dasharray="4 3" />`;
+        }
+        // 9個の番号ラベル（上側4個: 1〜4、下側5個: 5〜9）
+        const triCenters = [
+          // 1段目 (1個)
+          { x: (A.x + lerp(A, B, 1 / 3).x + lerp(A, C, 1 / 3).x) / 3, y: (A.y + lerp(A, B, 1 / 3).y + lerp(A, C, 1 / 3).y) / 3, n: '1', top: true },
+          // 2段目 (3個)
+          { x: (lerp(A, B, 1 / 3).x + lerp(A, B, 2 / 3).x + lerp(lerp(A, B, 2 / 3), lerp(A, C, 2 / 3), 0.5).x) / 3, y: (lerp(A, B, 1 / 3).y + lerp(A, B, 2 / 3).y * 2) / 3, n: '2', top: true },
+          { x: (lerp(A, B, 1 / 3).x + lerp(A, C, 1 / 3).x + lerp(lerp(A, B, 2 / 3), lerp(A, C, 2 / 3), 0.5).x) / 3, y: (lerp(A, B, 1 / 3).y * 2 + lerp(A, B, 2 / 3).y) / 3, n: '3', top: true },
+          { x: (lerp(A, C, 1 / 3).x + lerp(A, C, 2 / 3).x + lerp(lerp(A, B, 2 / 3), lerp(A, C, 2 / 3), 0.5).x) / 3, y: (lerp(A, C, 1 / 3).y + lerp(A, C, 2 / 3).y * 2) / 3, n: '4', top: true },
+          // 3段目 (5個)
+          { x: (lerp(A, B, 2 / 3).x + B.x + lerp(B, C, 1 / 3).x) / 3, y: (lerp(A, B, 2 / 3).y + B.y * 2) / 3, n: '5', top: false },
+          { x: (lerp(A, B, 2 / 3).x + lerp(lerp(A, B, 2 / 3), lerp(A, C, 2 / 3), 0.5).x + lerp(B, C, 1 / 3).x) / 3, y: (lerp(A, B, 2 / 3).y * 2 + B.y) / 3, n: '6', top: false },
+          { x: (lerp(lerp(A, B, 2 / 3), lerp(A, C, 2 / 3), 0.5).x + lerp(B, C, 1 / 3).x + lerp(B, C, 2 / 3).x) / 3, y: (lerp(A, B, 2 / 3).y + B.y * 2) / 3, n: '7', top: false },
+          { x: (lerp(lerp(A, B, 2 / 3), lerp(A, C, 2 / 3), 0.5).x + lerp(A, C, 2 / 3).x + lerp(B, C, 2 / 3).x) / 3, y: (lerp(A, B, 2 / 3).y * 2 + B.y) / 3, n: '8', top: false },
+          { x: (lerp(A, C, 2 / 3).x + lerp(B, C, 2 / 3).x + C.x) / 3, y: (lerp(A, C, 2 / 3).y + C.y * 2) / 3, n: '9', top: false }
+        ];
+        triCenters.forEach((tc) => {
+          gridSvg += `
+            <circle cx="${tc.x.toFixed(1)}" cy="${tc.y.toFixed(1)}" r="9" fill="${tc.top ? '#0d9488' : '#f97316'}" class="animate-pop" />
+            <text x="${tc.x.toFixed(1)}" y="${(tc.y + 3.5).toFixed(1)}" text-anchor="middle" font-size="10.5" font-weight="900" fill="#ffffff">${tc.n}</text>
+          `;
+        });
+      }
+
+      return `
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+          <!-- 左：提示問題の動的図解 -->
+          <div class="lg:col-span-7 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
+            <div class="border-b border-slate-100 dark:border-slate-800 pb-3 flex items-center justify-between flex-wrap gap-2">
+              <div>
+                <span class="text-xs font-extrabold text-teal-600 dark:text-teal-400">06（28〜39分）｜入試定番・提示問題に挑戦！</span>
+                <h2 class="text-base font-extrabold text-slate-900 dark:text-white">Gは重心・PQ // BC・BD = 6・AG = 8 のとき</h2>
+              </div>
+              <div class="flex gap-1">
+                <button type="button" data-s6-phase="1" class="px-2.5 py-1 rounded-lg text-xs font-extrabold border transition ${s6Phase === 1 ? 'bg-teal-600 border-teal-600 text-white' : 'bg-slate-50 dark:bg-slate-800 border-slate-300 dark:border-slate-700'}">① GDを求める</button>
+                <button type="button" data-s6-phase="2" class="px-2.5 py-1 rounded-lg text-xs font-extrabold border transition ${s6Phase === 2 ? 'bg-indigo-600 border-indigo-600 text-white' : 'bg-slate-50 dark:bg-slate-800 border-slate-300 dark:border-slate-700'}">② GQを求める</button>
+                <button type="button" data-s6-phase="3" class="px-2.5 py-1 rounded-lg text-xs font-extrabold border transition ${s6Phase === 3 ? 'bg-orange-600 border-orange-600 text-white' : 'bg-slate-50 dark:bg-slate-800 border-slate-300 dark:border-slate-700'}">③ 面積比 4:9</button>
+              </div>
+            </div>
+
+            <div class="bg-slate-50 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800 p-2">
+              <svg viewBox="0 0 420 245" class="w-full h-auto max-h-[255px] select-none">
+                <!-- 全体 △ABC -->
+                <polygon points="${A.x},${A.y} ${B.x},${B.y} ${C.x},${C.y}" fill="rgba(20, 184, 166, 0.06)" stroke="#0f766e" stroke-width="2" />
+
+                <!-- Phase 2: 相似ペア △AGQ と △ADC を強調 -->
+                ${s6Phase === 2 ? `
+                  <polygon points="${A.x},${A.y} ${D.x},${D.y} ${C.x},${C.y}" fill="rgba(99, 102, 241, 0.12)" stroke="#4f46e5" stroke-width="2" />
+                  <polygon points="${A.x},${A.y} ${G.x.toFixed(1)},${G.y.toFixed(1)} ${Q.x.toFixed(1)},${Q.y.toFixed(1)}" fill="rgba(245, 158, 11, 0.30)" stroke="#d97706" stroke-width="2.5" />
+                ` : ''}
+
+                <!-- Phase 3: △APQ を強調 -->
+                ${s6Phase === 3 ? `
+                  <polygon points="${A.x},${A.y} ${P.x.toFixed(1)},${P.y.toFixed(1)} ${Q.x.toFixed(1)},${Q.y.toFixed(1)}" fill="rgba(20, 184, 166, 0.25)" stroke="#0f766e" stroke-width="2.5" />
+                ` : ''}
+
+                ${gridSvg}
+
+                <!-- 中線 AD と平行線 PQ -->
+                <line x1="${A.x}" y1="${A.y}" x2="${D.x}" y2="${D.y}" stroke="#1e293b" class="dark:stroke-slate-200" stroke-width="2.5" />
+                <line x1="${P.x.toFixed(1)}" y1="${P.y.toFixed(1)}" x2="${Q.x.toFixed(1)}" y2="${Q.y.toFixed(1)}" stroke="#0f766e" stroke-width="3" />
+
+                <!-- 数値ラベル -->
+                <rect x="132" y="68" width="52" height="20" rx="5" fill="#ecfdf5" stroke="#10b981" stroke-width="1.5" />
+                <text x="158" y="82" text-anchor="middle" font-size="11" font-weight="900" fill="#047857">AG = 8</text>
+
+                <rect x="172" y="168" width="52" height="20" rx="5" fill="#fef3c7" stroke="#f59e0b" stroke-width="1.5" />
+                <text x="198" y="182" text-anchor="middle" font-size="11" font-weight="900" fill="#b45309">GD = 4</text>
+
+                <text x="${(B.x + D.x) / 2}" y="${B.y + 18}" text-anchor="middle" font-size="12" font-weight="800" fill="#0f766e">BD = 6</text>
+                <text x="${(C.x + D.x) / 2}" y="${B.y + 18}" text-anchor="middle" font-size="12" font-weight="800" fill="${s6Phase === 2 ? '#4f46e5' : '#0f766e'}">DC = 6</text>
+
+                ${s6Phase >= 2 ? `
+                  <rect x="${((G.x + Q.x) / 2 - 26).toFixed(1)}" y="${(G.y - 24).toFixed(1)}" width="54" height="20" rx="5" fill="#fffbeb" stroke="#d97706" stroke-width="1.8" />
+                  <text x="${((G.x + Q.x) / 2 + 1).toFixed(1)}" y="${(G.y - 10).toFixed(1)}" text-anchor="middle" font-size="11" font-weight="900" fill="#b45309">GQ = 4</text>
+                ` : ''}
+
+                <!-- 頂点 -->
+                <circle cx="${G.x.toFixed(1)}" cy="${G.y.toFixed(1)}" r="5" fill="#ef4444" stroke="#fff" stroke-width="1.5" />
+                <text x="${(G.x - 14).toFixed(1)}" y="${(G.y - 6).toFixed(1)}" font-size="12" font-weight="900" fill="#ef4444">G</text>
+                <text x="${A.x}" y="${A.y - 8}" text-anchor="middle" font-size="13" font-weight="800" class="fill-slate-800 dark:fill-slate-100">A</text>
+                <text x="${B.x - 12}" y="${B.y + 5}" font-size="13" font-weight="800" class="fill-slate-800 dark:fill-slate-100">B</text>
+                <text x="${C.x + 10}" y="${C.y + 5}" font-size="13" font-weight="800" class="fill-slate-800 dark:fill-slate-100">C</text>
+                <text x="${D.x}" y="${D.y + 20}" text-anchor="middle" font-size="12" font-weight="800" fill="#0f766e">D</text>
+                <text x="${(P.x - 14).toFixed(1)}" y="${(P.y + 4).toFixed(1)}" font-size="12" font-weight="800" fill="#0f766e">P</text>
+                <text x="${(Q.x + 10).toFixed(1)}" y="${(Q.y + 4).toFixed(1)}" font-size="12" font-weight="800" fill="#0f766e">Q</text>
+              </svg>
+            </div>
+
+            ${s6Phase === 3 ? `
+              <button type="button" data-action="s6-toggle-grid" class="w-full py-2.5 px-4 rounded-xl text-xs font-extrabold shadow-sm transition ${s6ShowGrid ? 'bg-orange-600 text-white' : 'bg-teal-600 hover:bg-teal-500 text-white'}">
+                ${s6ShowGrid ? '🔢 9個の合同な小三角形（上4個：全体9個）を表示中！' : '🧩 合同な小さい三角形9個に分解して目で確かめる！'}
+              </button>
+            ` : ''}
+          </div>
+
+          <!-- 右：ステップ別詳細解説＆面積比予想クイズ -->
+          <div class="lg:col-span-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4 text-xs sm:text-sm">
+            ${s6Phase === 1 ? `
+              <div class="space-y-3">
+                <div class="font-extrabold text-teal-700 dark:text-teal-300 text-sm">① まず、分かっている条件を全部図に書き込もう！</div>
+                <ul class="space-y-2 text-xs leading-relaxed text-slate-700 dark:text-slate-300 list-disc list-inside">
+                  <li>Dは中点だから、BD ＝ 6 より <strong>DC ＝ 6</strong>、全体 <strong>BC ＝ 12</strong>。</li>
+                  <li>Gは重心だから、AG : GD ＝ 2 : 1。</li>
+                  <li>AG ＝ 8（2個分）なので、1個分の <strong>GD ＝ 4</strong>！</li>
+                  <li><strong>★超重要ワザ：</strong>聞かれていない全体 <strong>AD ＝ 8 ＋ 4 ＝ 12</strong> も図に書いておくと、次の相似ですぐ使えます！</li>
+                </ul>
+                <button type="button" data-s6-phase="2" class="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-extrabold shadow">② GQ を求めるへ進む &rarr;</button>
+              </div>
+            ` : ''}
+
+            ${s6Phase === 2 ? `
+              <div class="space-y-3">
+                <div class="font-extrabold text-indigo-700 dark:text-indigo-300 text-sm">② 平行線から相似な三角形ペアを見つけよう！</div>
+                <div class="p-3 rounded-xl bg-indigo-50 dark:bg-indigo-950/50 border border-indigo-200 dark:border-indigo-800 text-xs space-y-1.5 leading-relaxed">
+                  <div><strong>注目ペア：</strong>右半分の <strong>△AGQ</strong>（黄）と <strong>△ADC</strong>（青）</div>
+                  <div><strong>相似の理由：</strong>GQ // DC より、同位角が等しいので <strong>△AGQ ∽ △ADC</strong></div>
+                  <div><strong>相似比：</strong>AG : AD ＝ 8 : 12 ＝ <strong>2 : 3</strong></div>
+                  <div><strong>計算：</strong>GQ : DC ＝ 2 : 3 ⇒ GQ : 6 ＝ 2 : 3 ⇒ <strong>GQ ＝ 4</strong></div>
+                </div>
+                <div class="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-xs text-amber-900 dark:text-amber-200 font-bold">
+                  💡 <strong>なぜ BC (=12) と直接比べないの？</strong><br>
+                  △AGQ の底辺 GQ に対応する辺は △ADC の <strong>DC (=6)</strong> だからです！（左側の PG も同様に 4 となり、PQ ＝ 8、つまり G は PQ の中点でもあります！）
+                </div>
+                <button type="button" data-s6-phase="3" class="w-full py-2.5 rounded-xl bg-orange-600 hover:bg-orange-500 text-white text-xs font-extrabold shadow">③ 面積比を求めるへ進む &rarr;</button>
+              </div>
+            ` : ''}
+
+            ${s6Phase === 3 ? `
+              <div class="space-y-3 text-xs">
+                <div class="font-extrabold text-orange-700 dark:text-orange-300 text-sm">③ △APQ と △ABC の面積比はいくつ？</div>
+                <p class="text-slate-600 dark:text-slate-300 font-bold">相似比は 2 : 3 です。では面積比は次のどれでしょう？</p>
+                <div class="grid grid-cols-3 gap-2">
+                  ${['2:3', '4:9', '4:6'].map((opt) => `
+                    <button type="button" data-s6-guess="${opt}" class="py-2 rounded-xl border-2 font-extrabold transition ${s6AreaGuess === opt ? (opt === '4:9' ? 'border-emerald-500 bg-emerald-500/15 text-emerald-700 dark:text-emerald-300' : 'border-rose-500 bg-rose-500/15 text-rose-700 dark:text-rose-300') : 'border-slate-200 dark:border-slate-700'}">${opt}</button>
+                  `).join('')}
+                </div>
+                ${s6AreaGuess ? `
+                  <div class="p-3 rounded-xl border font-bold leading-relaxed ${s6AreaGuess === '4:9' ? 'bg-emerald-50 dark:bg-emerald-950/50 border-emerald-400 text-emerald-900 dark:text-emerald-200' : 'bg-rose-50 dark:bg-rose-950/50 border-rose-400 text-rose-900 dark:text-rose-200'}">
+                    ${s6AreaGuess === '4:9'
+                      ? '⭕ <strong>大正解！ 4：9 です！</strong><br>底辺が <span class="math-frac"><span class="num">2</span><span class="den">3</span></span> 倍、さらに高さも <span class="math-frac"><span class="num">2</span><span class="den">3</span></span> 倍になるので、面積は 2×2 : 3×3 ＝ <strong>4 : 9</strong> になります！左の「🧩 9個に分解」ボタンも押して目で確認しよう！'
+                      : '❌ <strong>長さの比をそのまま使わないのがコツ！</strong><br>三角形の面積は「底辺 × 高さ ÷ 2」。底辺も高さも両方 <span class="math-frac"><span class="num">2</span><span class="den">3</span></span> 倍になるため、面積比は2乗して <strong>2² : 3² ＝ 4 : 9</strong> になります！'}
+                  </div>
+                ` : ''}
+                <div class="p-3 rounded-xl bg-teal-50 dark:bg-teal-950/40 border border-teal-200 dark:border-teal-800 font-bold text-teal-900 dark:text-teal-200">
+                  ✅ 提示問題の答えまとめ：<strong>GD ＝ 4、GQ ＝ 4、面積比 ＝ 4 : 9</strong>
+                </div>
+              </div>
+            ` : ''}
+          </div>
+        </div>
+      `;
+    }
+
+    /* =========================================================================
+       STEP 7: 07 発展演習 A〜D（39〜46分）
+       ========================================================================= */
+    function renderStep7() {
+      const bVal = parseNumInput(s7BInput);
+      const bOk = Math.abs(bVal - 54) < 0.01;
+      const d1Val = parseNumInput(s7DInput1);
+      const d2Val = parseNumInput(s7DInput2);
+      const dOk = Math.abs(d1Val - 24) < 0.01 && Math.abs(d2Val - 12) < 0.01;
+
+      return `
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-5">
+          <div class="border-b border-slate-100 dark:border-slate-800 pb-3 flex items-center justify-between flex-wrap gap-2">
+            <div>
+              <span class="text-xs font-extrabold text-teal-600 dark:text-teal-400">07（39〜46分）｜条件を変えても解けるか（発展演習）</span>
+              <h2 class="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white">A〜D の4つの入試応用パターンを攻略しよう！</h2>
+            </div>
+            <div class="flex flex-wrap gap-1.5 text-xs font-extrabold">
+              <button type="button" data-s7-tab="A" class="px-3 py-1.5 rounded-xl border transition ${s7SubTab === 'A' ? 'bg-teal-600 border-teal-600 text-white shadow' : 'bg-slate-50 dark:bg-slate-800 border-slate-300 dark:border-slate-700'}">A. 上下の塗り分け (4:5)</button>
+              <button type="button" data-s7-tab="B" class="px-3 py-1.5 rounded-xl border transition ${s7SubTab === 'B' ? 'bg-indigo-600 border-indigo-600 text-white shadow' : 'bg-slate-50 dark:bg-slate-800 border-slate-300 dark:border-slate-700'}">B. 面積の逆算</button>
+              <button type="button" data-s7-tab="C" class="px-3 py-1.5 rounded-xl border transition ${s7SubTab === 'C' ? 'bg-purple-600 border-purple-600 text-white shadow' : 'bg-slate-50 dark:bg-slate-800 border-slate-300 dark:border-slate-700'}">C. 二重重心 (16:81)</button>
+              <button type="button" data-s7-tab="D" class="px-3 py-1.5 rounded-xl border transition ${s7SubTab === 'D' ? 'bg-orange-600 border-orange-600 text-white shadow' : 'bg-slate-50 dark:bg-slate-800 border-slate-300 dark:border-slate-700'}">D. 面積6等分</button>
+            </div>
+          </div>
+
+          ${s7SubTab === 'A' ? `
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5 items-center text-xs sm:text-sm">
+              <div class="bg-slate-50 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800 p-3">
+                <svg viewBox="0 0 360 215" class="w-full h-auto select-none">
+                  <!-- 下側：台形 PBCQ (5個分) -->
+                  <polygon points="82,126 268,126 330,190 30,190" fill="rgba(251, 146, 60, 0.35)" stroke="#c2410c" stroke-width="2" />
+                  <!-- 上側：△APQ (4個分) -->
+                  <polygon points="145,20 82,126 268,126" fill="rgba(20, 184, 166, 0.35)" stroke="#0f766e" stroke-width="2" />
+                  <line x1="145" y1="20" x2="180" y2="190" stroke="#334155" stroke-width="2" stroke-dasharray="4 3" />
+                  <circle cx="168.3" cy="126" r="5" fill="#ef4444" stroke="#fff" stroke-width="1.5" />
+                  <text x="160" y="92" text-anchor="middle" font-size="13" font-weight="900" fill="#0f766e">上側 △APQ = 40 (比: 4)</text>
+                  <text x="180" y="165" text-anchor="middle" font-size="13" font-weight="900" fill="#c2410c">下側 台形PBCQ = 50 (比: 5)</text>
+                  <text x="145" y="14" text-anchor="middle" font-size="12" font-weight="800" class="fill-slate-700 dark:fill-slate-200">A</text>
+                  <text x="20" y="195" font-size="12" font-weight="800" class="fill-slate-700 dark:fill-slate-200">B</text>
+                  <text x="336" y="195" font-size="12" font-weight="800" class="fill-slate-700 dark:fill-slate-200">C</text>
+                  <text x="68" y="130" font-size="12" font-weight="800" fill="#0f766e">P</text>
+                  <text x="275" y="130" font-size="12" font-weight="800" fill="#0f766e">Q</text>
+                  <text x="180" y="120" font-size="12" font-weight="900" fill="#ef4444">G</text>
+                </svg>
+              </div>
+              <div class="space-y-3 text-xs leading-relaxed">
+                <div class="font-extrabold text-teal-700 dark:text-teal-300 text-sm">課題A：△ABC の面積が 90 のとき、下側の台形 PBCQ の面積は？</div>
+                <p class="font-bold">まず予想：重心 G を通る平行線 PQ で分けると、上側と下側の塗料（面積）は同じ量でしょうか？</p>
+                <div class="grid grid-cols-2 gap-2">
+                  <button type="button" data-s7-aguess="same" class="py-2 rounded-xl border-2 font-extrabold ${s7AGuess === 'same' ? 'border-rose-500 bg-rose-500/15 text-rose-700 dark:text-rose-300' : 'border-slate-200 dark:border-slate-700'}">同じ量（45 と 45）</button>
+                  <button type="button" data-s7-aguess="diff" class="py-2 rounded-xl border-2 font-extrabold ${s7AGuess === 'diff' ? 'border-emerald-500 bg-emerald-500/15 text-emerald-700 dark:text-emerald-300' : 'border-slate-200 dark:border-slate-700'}">違う量（下の方が多い！）</button>
+                </div>
+                ${s7AGuess ? `
+                  <div class="p-3 rounded-xl bg-teal-50 dark:bg-teal-950/50 border border-teal-300 dark:border-teal-700 font-bold space-y-1">
+                    <div>上側 △APQ ＝ 90 × <span class="math-frac"><span class="num">4</span><span class="den">9</span></span> ＝ <strong>40</strong></div>
+                    <div>下側 台形PBCQ ＝ 90 － 40 ＝ <strong>50</strong>（面積比は <strong>4 : 5</strong>！）</div>
+                    <div class="text-rose-700 dark:text-rose-300">★ 重心を通る平行線は、面積を二等分しません！</div>
+                  </div>
+                ` : ''}
+                <button type="button" data-action="s7-toggle-moment" class="w-full py-2 px-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-white font-extrabold shadow-sm">
+                  ⚖️ なぜ 40(軽) と 50(重) なのに線 PQ でつり合うの？（シーソー接続）
+                </button>
+                ${s7AShowMoment ? `
+                  <div class="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/50 border border-amber-300 dark:border-amber-700 text-amber-950 dark:text-amber-200 font-bold">
+                    導入のシーソーを思い出そう！ 上側は軽い（4）けれど重心から<strong>遠い</strong>（<span class="math-frac"><span class="num">2h</span><span class="den">9</span></span>）、下側は重い（5）けれど境界に<strong>近い</strong>（<span class="math-frac"><span class="num">8h</span><span class="den">45</span></span>）！<br>
+                    掛け算すると <strong>4 × <span class="math-frac"><span class="num">2</span><span class="den">9</span></span> ＝ <span class="math-frac"><span class="num">8</span><span class="den">9</span></span></strong>、<strong>5 × <span class="math-frac"><span class="num">8</span><span class="den">45</span></span> ＝ <span class="math-frac"><span class="num">8</span><span class="den">9</span></span></strong> でピタリとつり合っています！
+                  </div>
+                ` : ''}
+              </div>
+            </div>
+          ` : ''}
+
+          ${s7SubTab === 'B' ? `
+            <div class="max-w-xl mx-auto space-y-4 text-xs sm:text-sm">
+              <div class="p-4 rounded-xl bg-indigo-50 dark:bg-indigo-950/50 border border-indigo-200 dark:border-indigo-800 space-y-2">
+                <div class="font-extrabold text-indigo-800 dark:text-indigo-300">課題B（標準・逆算）：△APQ の面積が 24 のとき、全体の △ABC の面積は？</div>
+                <p class="text-xs text-slate-600 dark:text-slate-300">💡 ヒント：面積比は △APQ : △ABC ＝ 4 : 9 です。「4個分が 24 なら、まず 1個分はいくつ？」から考えよう！</p>
+              </div>
+              <div class="flex items-center gap-3">
+                <label class="font-extrabold">△ABC の面積 ＝</label>
+                <input type="text" data-input="s7-b" value="${escapeAttr(s7BInput)}" placeholder="数字を入力" class="w-28 px-3 py-2 rounded-xl border-2 border-indigo-300 dark:border-indigo-700 bg-white dark:bg-slate-950 text-center font-mono font-extrabold">
+                <button type="button" data-action="s7-check-b" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold shadow">答え合わせ</button>
+              </div>
+              ${s7BChecked ? `
+                <div class="p-3.5 rounded-xl border-2 font-bold text-xs ${bOk ? 'border-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-900 dark:text-emerald-200' : 'border-rose-400 bg-rose-50 dark:bg-rose-950/40 text-rose-900 dark:text-rose-200'}">
+                  ${bOk
+                    ? '⭕ <strong>大正解！ 54 です！</strong> 1個分 ＝ 24 ÷ 4 ＝ 6。全体は9個分なので 6 × 9 ＝ <strong>54</strong> となります！'
+                    : '❌ 惜しい！ 4個分が 24 なので、1個分は 24 ÷ 4 ＝ 6。全体は 9個分なので、6 × 9 ＝ <strong>54</strong> です！'}
+                </div>
+              ` : ''}
+            </div>
+          ` : ''}
+
+          ${s7SubTab === 'C' ? `
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5 items-center text-xs">
+              <div class="bg-slate-50 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800 p-2">
+                <svg viewBox="0 0 360 215" class="w-full h-auto select-none">
+                  <polygon points="145,20 30,190 330,190" fill="rgba(124, 58, 237, 0.06)" stroke="#7c3aed" stroke-width="2" />
+                  <polygon points="145,20 68.3,133.3 268.3,133.3" fill="rgba(20, 184, 166, 0.16)" stroke="#0f766e" stroke-width="2" />
+                  ${s7CStage >= 2 ? `<polygon points="145,20 93.9,95.6 227.2,95.6" fill="rgba(147, 51, 234, 0.35)" stroke="#7e22ce" stroke-width="2.5" class="animate-pop" />` : ''}
+                  <line x1="145" y1="20" x2="180" y2="190" stroke="#1e293b" class="dark:stroke-slate-200" stroke-width="2.5" />
+                  <circle cx="168.3" cy="133.3" r="4.5" fill="#0f766e" />
+                  <text x="178" y="129" font-size="11" font-weight="900" fill="#0f766e">G (AG:AD=2:3)</text>
+                  <circle cx="160.5" cy="95.6" r="5" fill="#9333ea" stroke="#fff" stroke-width="1.5" />
+                  <text x="170" y="90" font-size="11" font-weight="900" fill="#7e22ce">H (△APQの重心)</text>
+                  <text x="145" y="14" text-anchor="middle" font-size="12" font-weight="800" class="fill-slate-700 dark:fill-slate-200">A</text>
+                </svg>
+              </div>
+              <div class="space-y-3">
+                <div class="font-extrabold text-purple-700 dark:text-purple-300 text-sm">課題C（発展・二重重心）：△APQ の重心を H とすると？</div>
+                <div class="flex gap-1.5">
+                  ${[1, 2, 3].map((st) => `
+                    <button type="button" data-s7-c="${st}" class="flex-1 py-1.5 rounded-lg border font-extrabold ${s7CStage === st ? 'bg-purple-600 border-purple-600 text-white' : 'bg-slate-50 dark:bg-slate-800 border-slate-300 dark:border-slate-700'}">Step ${st}</button>
+                  `).join('')}
+                </div>
+                <div class="p-3.5 rounded-xl bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800 space-y-2 leading-relaxed font-bold">
+                  ${s7CStage === 1 ? '<strong>① AH : AG を確認：</strong>G は PQ の中点なので、AG は △APQ の中線！よって重心 H により <strong>AH : AG ＝ 2 : 3</strong>。' : ''}
+                  ${s7CStage === 2 ? '<strong>② AH : AD を連結：</strong>AG は AD の <span class="math-frac"><span class="num">2</span><span class="den">3</span></span> 倍、さらに AH は AG の <span class="math-frac"><span class="num">2</span><span class="den">3</span></span> 倍！<br>よって AH : AD ＝ <span class="math-frac"><span class="num">2</span><span class="den">3</span></span> × <span class="math-frac"><span class="num">2</span><span class="den">3</span></span> ＝ <strong>4 : 9</strong>！' : ''}
+                  ${s7CStage === 3 ? '<strong>③ 面積比は2乗する：</strong>Hを通る平行線より上の三角形と全体 △ABC の相似比は <strong>4 : 9</strong>。<br>したがって面積比は 4² : 9² ＝ <strong>16 : 81</strong> になります！' : ''}
+                </div>
+              </div>
+            </div>
+          ` : ''}
+
+          ${s7SubTab === 'D' ? `
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5 items-center text-xs">
+              <div class="bg-slate-50 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800 p-2 space-y-2">
+                <div class="flex gap-2 justify-center">
+                  <button type="button" data-s7-dmode="three" class="px-3 py-1 rounded-lg font-extrabold border ${s7DMode === 'three' ? 'bg-orange-600 border-orange-600 text-white' : 'bg-white dark:bg-slate-800 border-slate-300'}">3等分 (△GBCなど)</button>
+                  <button type="button" data-s7-dmode="six" class="px-3 py-1 rounded-lg font-extrabold border ${s7DMode === 'six' ? 'bg-teal-600 border-teal-600 text-white' : 'bg-white dark:bg-slate-800 border-slate-300'}">6等分 (3本の中線)</button>
+                </div>
+                <svg viewBox="0 0 360 205" class="w-full h-auto select-none">
+                  <polygon points="145,20 35,185 325,185" fill="rgba(251, 146, 60, 0.08)" stroke="#0f766e" stroke-width="2" />
+                  <!-- G=(168.3, 130) -->
+                  <polygon points="168.3,130 35,185 325,185" fill="rgba(251, 146, 60, 0.25)" />
+                  <line x1="168.3" y1="130" x2="145" y2="20" stroke="#c2410c" stroke-width="2.5" />
+                  <line x1="168.3" y1="130" x2="35" y2="185" stroke="#c2410c" stroke-width="2.5" />
+                  <line x1="168.3" y1="130" x2="325" y2="185" stroke="#c2410c" stroke-width="2.5" />
+                  ${s7DMode === 'six' ? `
+                    <line x1="168.3" y1="130" x2="180" y2="185" stroke="#0f766e" stroke-width="2.5" stroke-dasharray="4 2" />
+                    <line x1="168.3" y1="130" x2="235" y2="102.5" stroke="#0f766e" stroke-width="2.5" stroke-dasharray="4 2" />
+                    <line x1="168.3" y1="130" x2="90" y2="102.5" stroke="#0f766e" stroke-width="2.5" stroke-dasharray="4 2" />
+                    <text x="128" y="168" font-size="11" font-weight="900" fill="#0f766e">1/6</text>
+                    <text x="215" y="168" font-size="11" font-weight="900" fill="#0f766e">1/6</text>
+                    <text x="108" y="122" font-size="11" font-weight="900" fill="#0f766e">1/6</text>
+                    <text x="135" y="88" font-size="11" font-weight="900" fill="#0f766e">1/6</text>
+                    <text x="186" y="88" font-size="11" font-weight="900" fill="#0f766e">1/6</text>
+                    <text x="216" y="122" font-size="11" font-weight="900" fill="#0f766e">1/6</text>
+                  ` : `
+                    <text x="180" y="168" text-anchor="middle" font-size="13" font-weight="900" fill="#c2410c">△GBC ＝ 全体の 1/3</text>
+                    <text x="112" y="112" text-anchor="middle" font-size="12" font-weight="900" fill="#0f766e">1/3</text>
+                    <text x="208" y="112" text-anchor="middle" font-size="12" font-weight="900" fill="#0f766e">1/3</text>
+                  `}
+                  <circle cx="168.3" cy="130" r="5" fill="#ef4444" stroke="#fff" stroke-width="1.5" />
+                  <text x="145" y="14" text-anchor="middle" font-size="12" font-weight="800" class="fill-slate-700 dark:fill-slate-200">A</text>
+                  <text x="24" y="190" font-size="12" font-weight="800" class="fill-slate-700 dark:fill-slate-200">B</text>
+                  <text x="332" y="190" font-size="12" font-weight="800" class="fill-slate-700 dark:fill-slate-200">C</text>
+                  <text x="180" y="199" text-anchor="middle" font-size="11" font-weight="800" fill="#0f766e">D</text>
+                </svg>
+              </div>
+              <div class="space-y-3 leading-relaxed">
+                <div class="font-extrabold text-orange-700 dark:text-orange-300 text-sm">課題D：重心 G と 3本の中線は面積をぴったり「6等分」する！</div>
+                <p class="font-bold text-slate-700 dark:text-slate-300">
+                  △GBC は △ABC と底辺 BC が同じで、高さは GD : AD ＝ 1 : 3 なので面積は <strong>1/3</strong>！ さらに中線 GD が底辺を半分に分けるため、△GBD は <strong>1/6</strong> になります。
+                </p>
+                <div class="p-3 rounded-xl bg-orange-50 dark:bg-orange-950/40 border border-orange-200 dark:border-orange-800 space-y-2">
+                  <div class="font-extrabold">✏️ 練習：△ABC の面積が 72 のとき</div>
+                  <div class="flex flex-wrap items-center gap-2">
+                    <label class="font-bold">△GBC = <input type="text" data-input="s7-d1" value="${escapeAttr(s7DInput1)}" class="w-16 px-2 py-1 rounded-lg border border-orange-300 bg-white dark:bg-slate-900 text-center font-mono font-bold"></label>
+                    <label class="font-bold">△GBD = <input type="text" data-input="s7-d2" value="${escapeAttr(s7DInput2)}" class="w-16 px-2 py-1 rounded-lg border border-orange-300 bg-white dark:bg-slate-900 text-center font-mono font-bold"></label>
+                    <button type="button" data-action="s7-check-d" class="px-3 py-1 rounded-lg bg-orange-600 text-white font-extrabold">判定</button>
+                  </div>
+                  ${s7DChecked ? `<div class="font-extrabold ${dOk ? 'text-emerald-700 dark:text-emerald-300' : 'text-rose-700 dark:text-rose-300'}">${dOk ? '⭕ 大正解！ 72 ÷ 3 ＝ 24、72 ÷ 6 ＝ 12 です！' : '💡 72 の 1/3 が △GBC(=24)、さらに半分の 1/6 が △GBD(=12) です！'}</div>` : ''}
+                </div>
+              </div>
+            </div>
+          ` : ''}
+        </div>
+      `;
+    }
+
+    /* =========================================================================
+       STEP 8: 08 出口課題・評価（46〜50分）
+       ========================================================================= */
+    function renderStep8() {
+      const items = [
+        { key: 'q1', label: '① AG の長さ', ans: 12, basis: '中線全体の 2/3（18 ÷ 3 × 2 ＝ 12）' },
+        { key: 'q2', label: '② GD の長さ', ans: 6, basis: '中線全体の 1/3（18 ÷ 3 ＝ 6）' },
+        { key: 'q3', label: '③ PQ の長さ', ans: 10, basis: 'PQ // BC より相似比 2:3（15 × 2/3 ＝ 10）' },
+        { key: 'q4', label: '④ △APQ の面積', ans: 36, basis: '面積比 2²:3² ＝ 4:9（81 × 4/9 ＝ 36）' },
+        { key: 'q5', label: '⑤ 四角形 PBCQ の面積', ans: 45, basis: '全体から上側を引く（81 － 36 ＝ 45）' }
+      ];
+
+      let scoreCount = 0;
+      items.forEach((it) => {
+        if (Math.abs(parseNumInput(s8Ans[it.key]) - it.ans) < 0.01) scoreCount++;
+      });
+
+      return `
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+          <div class="lg:col-span-7 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
+            <div class="border-b border-slate-100 dark:border-slate-800 pb-3">
+              <span class="text-xs font-extrabold text-teal-600 dark:text-teal-400">08（46〜50分）｜出口課題（仕上げチャレンジ）</span>
+              <h2 class="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white">ヒントなしで5問すべて解いてみよう！</h2>
+            </div>
+
+            <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs sm:text-sm font-bold leading-relaxed">
+              △ABC の重心 G、辺 BC の中点 D、G を通り BC に平行な線分 PQ がある。<br>
+              <span class="text-teal-700 dark:text-teal-300">AD ＝ 18、BC ＝ 15、△ABC の面積 ＝ 81</span> のとき、次の値を求めよ。
+            </div>
+
+            <div class="space-y-2.5 text-xs">
+              ${items.map((it) => {
+                const isOk = Math.abs(parseNumInput(s8Ans[it.key]) - it.ans) < 0.01;
+                return `
+                  <div class="flex flex-wrap items-center justify-between gap-2 p-3 rounded-xl border ${s8Submitted ? (isOk ? 'border-emerald-400 bg-emerald-50/50 dark:bg-emerald-950/30' : 'border-rose-400 bg-rose-50/50 dark:bg-rose-950/30') : 'border-slate-200 dark:border-slate-700'}">
+                    <span class="font-extrabold text-slate-800 dark:text-slate-100">${it.label}</span>
+                    <div class="flex items-center gap-2">
+                      <input type="text" data-s8-input="${it.key}" value="${escapeAttr(s8Ans[it.key])}" placeholder="答え" class="w-20 px-2.5 py-1.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-center font-mono font-extrabold">
+                      ${s8Submitted ? `<span class="font-extrabold ${isOk ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}">${isOk ? '⭕ 正解' : `❌ 正解: ${it.ans}`}</span>` : ''}
+                    </div>
+                    ${s8Submitted ? `<div class="w-full text-[11px] font-bold text-slate-600 dark:text-slate-300 pt-1 border-t border-slate-200/70 dark:border-slate-700">📌 根拠：${it.basis}</div>` : ''}
+                  </div>
+                `;
+              }).join('')}
+
+              <div class="space-y-1 pt-1">
+                <label class="font-extrabold text-slate-800 dark:text-slate-200 block">✍️ ③または④で使った性質を一言で書こう：</label>
+                <input type="text" data-s8-input="reason" value="${escapeAttr(s8Ans.reason)}" placeholder="例：PQ // BC より △APQ ∽ △ABC で相似比 2:3 なので面積比は 4:9" class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-950 text-xs font-bold">
+              </div>
+
+              <button type="button" data-action="s8-submit" class="w-full py-3 rounded-xl bg-teal-600 hover:bg-teal-500 text-white text-sm font-extrabold shadow-md transition">
+                ✅ 採点して根拠・到達レベルを確認する！
+              </button>
+            </div>
+          </div>
+
+          <!-- 右：到達フィードバック＆自己評価チェック -->
+          <div class="lg:col-span-5 space-y-4 text-xs">
+            ${s8Submitted ? `
+              <div class="bg-white dark:bg-slate-900 border-2 ${scoreCount === 5 ? 'border-emerald-500' : 'border-teal-400'} rounded-2xl p-5 shadow-sm space-y-2.5">
+                <div class="text-base font-extrabold text-teal-700 dark:text-teal-300">🏆 結果：${scoreCount} / 5 問正解！</div>
+                <p class="font-bold text-slate-700 dark:text-slate-200 leading-relaxed">
+                  ${scoreCount === 5
+                    ? '🎉 <strong>完全マスター（発展到達）！</strong> 重心の 2:1 から相似比 2:3、面積比 4:9、引き算 4:5 まで完璧に使いこなせています！'
+                    : scoreCount >= 3
+                    ? '👍 <strong>標準到達！</strong> 間違えた箇所の「根拠」を読み直し、2:3 と 4:9 の切り替えをもう一度確かめよう！'
+                    : '💪 <strong>基礎固めのチャンス！</strong> Step 05 の「3個分バー」と Step 06 の「9個分解」に戻って復習すると一気に解けるようになります！'}
+                </p>
+              </div>
+            ` : ''}
+
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-3">
+              <div class="font-extrabold text-indigo-700 dark:text-indigo-300 text-sm">📋 授業の振り返り（できたものにチェック！）</div>
+              ${[
+                { k: 'draw', text: '図に分かっている長さや中点の情報を書き込めた' },
+                { k: 'sim', text: '平行線から相似な三角形ペアと相似比 2:3 を選べた' },
+                { k: 'area', text: '面積比が 4:9（上下 4:5）になる理由を説明できた' }
+              ].map((ck) => `
+                <button type="button" data-s8-self="${ck.k}" class="w-full p-3 rounded-xl border-2 text-left font-bold flex items-center gap-2 transition ${s8SelfChecks[ck.k] ? 'border-teal-500 bg-teal-50 dark:bg-teal-950/50 text-teal-900 dark:text-teal-200' : 'border-slate-200 dark:border-slate-700'}">
+                  <span>${s8SelfChecks[ck.k] ? '☑️' : '⬜'}</span>
+                  <span>${ck.text}</span>
+                </button>
+              `).join('')}
+
+              <div class="p-3.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-amber-950 dark:text-amber-200 leading-relaxed font-bold">
+                🌟 <strong>今日の本質まとめ：</strong><br>
+                ①「面積が同じだけではつり合いを保証しない（距離も必要）」<br>
+                ②「細い帯の中央を結んだら中線になり、交点が重心 G」<br>
+                ③「重心は中線を 2:1 に分け、相似比 2:3・面積比 4:9 へとつながる！」
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    /* =========================================================================
+       イベント委譲（構文エラーのないクリーンなイベント処理）
+       ========================================================================= */
+    window.addEventListener('DOMContentLoaded', () => {
+      document.addEventListener('click', (e) => {
+        if (e.target.closest('#studyGuideToggleBtn')) {
+          toggleStudyGuide();
+          return;
+        }
+        const themeBtn = e.target.closest('[data-theme]');
+        if (themeBtn) {
+          setTheme(themeBtn.dataset.theme);
+          return;
+        }
+        const stepTab = e.target.closest('[data-step]');
+        if (stepTab) {
+          goStep(parseInt(stepTab.dataset.step, 10));
+          return;
+        }
+        if (e.target.closest('#prevStepBtn')) {
+          goStep(currentStep - 1);
+          return;
+        }
+        if (e.target.closest('#nextStepBtn')) {
+          goStep(currentStep + 1);
+          return;
+        }
+
+        // Step 1
+        const s1ShapeBtn = e.target.closest('[data-s1-shape]');
+        if (s1ShapeBtn) {
+          s1Shape = s1ShapeBtn.dataset.s1Shape;
+          s1LegPos = 'none';
+          renderCurrentStep();
+          return;
+        }
+        const s1LegBtn = e.target.closest('[data-s1-leg]');
+        if (s1LegBtn) {
+          s1LegPos = s1LegBtn.dataset.s1Leg;
+          renderCurrentStep();
+          return;
+        }
+        const s1PizzaBtn = e.target.closest('[data-s1-pizza]');
+        if (s1PizzaBtn) {
+          s1PizzaSlices = parseInt(s1PizzaBtn.dataset.s1Pizza, 10);
+          renderCurrentStep();
+          return;
+        }
+        const s1Q1Btn = e.target.closest('[data-s1-q1]');
+        if (s1Q1Btn) {
+          s1Quiz1 = s1Q1Btn.dataset.s1Q1;
+          renderCurrentStep();
+          return;
+        }
+        const s1Q2Btn = e.target.closest('[data-s1-q2]');
+        if (s1Q2Btn) {
+          s1Quiz2 = s1Q2Btn.dataset.s1Q2;
+          renderCurrentStep();
+          return;
+        }
+
+        // Step 2
+        const s2ModeBtn = e.target.closest('[data-s2-mode]');
+        if (s2ModeBtn) {
+          s2Mode = s2ModeBtn.dataset.s2Mode;
+          if (s2Mode === 'adult') {
+            s2DistLeft = 2.0;
+            s2DistRight = 2.0;
+          } else {
+            s2DistLeft = 2.0;
+            s2DistRight = 1.5;
+          }
+          renderCurrentStep();
+          return;
+        }
+
+        // Step 3（7段階探究ストーリー＆演習＆3つの線の区別）
+        const s3StoryBtn = e.target.closest('[data-s3-story]');
+        if (s3StoryBtn) {
+          if (s3AnimFrame) { cancelAnimationFrame(s3AnimFrame); s3AnimFrame = null; }
+          s3StoryStage = parseInt(s3StoryBtn.dataset.s3Story, 10);
+          s3ShowMidLine1 = false;
+          renderCurrentStep();
+          return;
+        }
+        const s3MorphPreset = e.target.closest('[data-s3-morph-preset]');
+        if (s3MorphPreset) {
+          if (s3AnimFrame) { cancelAnimationFrame(s3AnimFrame); s3AnimFrame = null; }
+          s3MorphT = parseInt(s3MorphPreset.dataset.s3MorphPreset, 10);
+          renderCurrentStep();
+          return;
+        }
+        const s3WhyBtn = e.target.closest('[data-s3-why]');
+        if (s3WhyBtn) { s3WhyQuiz = s3WhyBtn.dataset.s3Why; renderCurrentStep(); return; }
+        const s3CandBtn = e.target.closest('[data-s3-cand]');
+        if (s3CandBtn) {
+          const cid = parseInt(s3CandBtn.dataset.s3Cand, 10);
+          s3Candidate = cid;
+          s3Predict90 = cid === 1 ? 30 : (cid === 2 ? 45 : 60);
+          renderCurrentStep();
+          return;
+        }
+        const s3ViewBtn = e.target.closest('[data-s3-view]');
+        if (s3ViewBtn) { s3ViewMode = s3ViewBtn.dataset.s3View; renderCurrentStep(); return; }
+        const s3RTabBtn = e.target.closest('[data-s3-rtab]');
+        if (s3RTabBtn) { s3RightTab = s3RTabBtn.dataset.s3Rtab; renderCurrentStep(); return; }
+        const s3DrillCard = e.target.closest('[data-s3-drill]');
+        if (s3DrillCard) {
+          const did = parseInt(s3DrillCard.dataset.s3Drill, 10);
+          s3DrillRevealed[did] = !s3DrillRevealed[did];
+          renderCurrentStep();
+          return;
+        }
+        const s3LineBtn = e.target.closest('[data-s3-line]');
+        if (s3LineBtn) { s3CompareLine = s3LineBtn.dataset.s3Line; renderCurrentStep(); return; }
+
+        // Step 4
+        const s4PhaseBtn = e.target.closest('[data-s4-phase]');
+        if (s4PhaseBtn) {
+          s4ProofPhase = parseInt(s4PhaseBtn.dataset.s4Phase, 10);
+          s4MorphProgress = 0;
+          renderCurrentStep();
+          return;
+        }
+
+        // Step 5
+        const s5CheckBtn = e.target.closest('[data-s5-check]');
+        if (s5CheckBtn) {
+          s5Checked[parseInt(s5CheckBtn.dataset.s5Check, 10)] = true;
+          renderCurrentStep();
+          return;
+        }
+        const s5BridgeBtn = e.target.closest('[data-s5-bridge]');
+        if (s5BridgeBtn) { s5BridgeQuiz = s5BridgeBtn.dataset.s5Bridge; renderCurrentStep(); return; }
+
+        // Step 6
+        const s6PhaseBtn = e.target.closest('[data-s6-phase]');
+        if (s6PhaseBtn) { s6Phase = parseInt(s6PhaseBtn.dataset.s6Phase, 10); renderCurrentStep(); return; }
+        const s6GuessBtn = e.target.closest('[data-s6-guess]');
+        if (s6GuessBtn) { s6AreaGuess = s6GuessBtn.dataset.s6Guess; renderCurrentStep(); return; }
+
+        // Step 7
+        const s7TabBtn = e.target.closest('[data-s7-tab]');
+        if (s7TabBtn) { s7SubTab = s7TabBtn.dataset.s7Tab; renderCurrentStep(); return; }
+        const s7AGuessBtn = e.target.closest('[data-s7-aguess]');
+        if (s7AGuessBtn) { s7AGuess = s7AGuessBtn.dataset.s7Aguess; renderCurrentStep(); return; }
+        const s7CBtn = e.target.closest('[data-s7-c]');
+        if (s7CBtn) { s7CStage = parseInt(s7CBtn.dataset.s7C, 10); renderCurrentStep(); return; }
+        const s7DBtn = e.target.closest('[data-s7-dmode]');
+        if (s7DBtn) { s7DMode = s7DBtn.dataset.s7Dmode; renderCurrentStep(); return; }
+
+        // Step 8
+        const s8SelfBtn = e.target.closest('[data-s8-self]');
+        if (s8SelfBtn) {
+          const k = s8SelfBtn.dataset.s8Self;
+          s8SelfChecks[k] = !s8SelfChecks[k];
+          renderCurrentStep();
+          return;
+        }
+
+        // 汎用アクションボタン
+        const actionBtn = e.target.closest('[data-action]');
+        if (actionBtn) {
+          const act = actionBtn.dataset.action;
+          if (act === 's2-toggle-split') { s2TileSplitShown = !s2TileSplitShown; renderCurrentStep(); }
+          else if (act === 's3-toggle-midline1') { s3ShowMidLine1 = !s3ShowMidLine1; renderCurrentStep(); }
+          else if (act === 's3-play-morph') { playS3MorphAnimation(); }
+          else if (act === 's3-add-tridot') {
+            s3TriDotCount = s3TriDotCount < 5 ? s3TriDotCount + 1 : 0;
+            if (s3TriDotCount === 0) s3TriLineDrawn = false;
+            renderCurrentStep();
+          }
+          else if (act === 's3-draw-triline') {
+            if (s3TriDotCount < 5) s3TriDotCount = 5;
+            s3TriLineDrawn = !s3TriLineDrawn;
+            renderCurrentStep();
+          }
+          else if (act === 's4-play-morph') { playMorphAnimation(); }
+          else if (act === 's6-toggle-grid') { s6ShowGrid = !s6ShowGrid; renderCurrentStep(); }
+          else if (act === 's7-toggle-moment') { s7AShowMoment = !s7AShowMoment; renderCurrentStep(); }
+          else if (act === 's7-check-b') { s7BChecked = true; renderCurrentStep(); }
+          else if (act === 's7-check-d') { s7DChecked = true; renderCurrentStep(); }
+          else if (act === 's8-submit') { s8Submitted = true; renderCurrentStep(); }
+        }
+      });
+
+      document.addEventListener('input', (e) => {
+        const inp = e.target.dataset.input;
+        if (inp === 's1-pizza') { s1PizzaSlices = parseInt(e.target.value, 10); renderCurrentStep(); return; }
+        if (inp === 's2-left') { s2DistLeft = parseFloat(e.target.value); renderCurrentStep(); return; }
+        if (inp === 's2-right') { s2DistRight = parseFloat(e.target.value); renderCurrentStep(); return; }
+        if (inp === 's3-morph') { s3MorphT = parseFloat(e.target.value); renderCurrentStep(); return; }
+        if (inp === 's4-morph') { s4MorphProgress = parseFloat(e.target.value); renderCurrentStep(); return; }
+        if (inp === 's7-b') { s7BInput = e.target.value; return; }
+        if (inp === 's7-d1') { s7DInput1 = e.target.value; return; }
+        if (inp === 's7-d2') { s7DInput2 = e.target.value; return; }
+
+        const s5Inp = e.target.dataset.s5Input;
+        if (s5Inp) {
+          const [pid, field] = s5Inp.split('-');
+          s5Inputs[parseInt(pid, 10)][field === '1' ? 'v1' : 'v2'] = e.target.value;
+          return;
+        }
+
+        const s8Inp = e.target.dataset.s8Input;
+        if (s8Inp) {
+          s8Ans[s8Inp] = e.target.value;
+        }
+      });
+
+      setTheme('light');
+      goStep(1);
+    });
+  </script>
+</body>
+</html>

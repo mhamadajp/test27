@@ -1,0 +1,1980 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>余弦定理マスター道場｜図と符号で完全攻略</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Meiryo', 'sans-serif'],
+            mono: ['JetBrains Mono', 'Consolas', 'monospace']
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    /* 数式組版（正確なMathMLルート・分数・変数表記） */
+    .math-var {
+      font-family: 'Times New Roman', serif;
+      font-style: italic;
+      font-weight: 700;
+      padding: 0 1.5px;
+    }
+    .math-frac {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      vertical-align: middle;
+      margin: 0 0.18em;
+      font-family: 'Times New Roman', serif;
+      line-height: 1.05;
+      font-size: 0.92em;
+    }
+    .math-frac > .num {
+      border-bottom: 1.5px solid currentColor;
+      padding: 0 0.25em 0.08em;
+    }
+    .math-frac > .den {
+      padding: 0.08em 0.25em 0;
+    }
+    math {
+      font-family: 'Times New Roman', serif;
+      font-size: 1.08em;
+      vertical-align: baseline;
+    }
+    input[type="range"] {
+      accent-color: #2563eb;
+    }
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    @keyframes popBadge {
+      0% { transform: scale(0.85); opacity: 0; }
+      70% { transform: scale(1.05); opacity: 1; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .animate-pop {
+      animation: popBadge 0.35s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-screen flex flex-col transition-colors duration-200">
+
+  <!-- トップヘッダー -->
+  <header class="bg-white/95 dark:bg-slate-900/95 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-40 backdrop-blur px-4 py-3 shadow-sm">
+    <div class="max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white font-serif font-extrabold text-lg shadow-md">
+          cos
+        </div>
+        <div>
+          <h1 class="text-base sm:text-lg font-extrabold tracking-tight text-slate-900 dark:text-white flex items-center gap-2 flex-wrap">
+            余弦定理マスター道場
+            <span class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-950 text-blue-800 dark:text-blue-300 border border-blue-300 dark:border-blue-700">数学Ⅰ｜全21問</span>
+          </h1>
+          <p class="text-xs text-slate-500 dark:text-slate-400">図で開き方を見て、符号を予想し、根拠を持って辺の長さを求めよう</p>
+        </div>
+      </div>
+
+      <!-- ステータス（XP・コンボ・段位）＋補助ボタン -->
+      <div class="flex items-center flex-wrap gap-2">
+        <div class="flex items-center gap-2 bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-extrabold">
+          <span class="text-amber-600 dark:text-amber-400">⭐ <span id="xpDisplay" class="font-mono">0</span> XP</span>
+          <span class="text-slate-300 dark:text-slate-600">|</span>
+          <span class="text-rose-600 dark:text-rose-400">🔥 <span id="comboDisplay" class="font-mono">0</span>連勝</span>
+          <span class="text-slate-300 dark:text-slate-600">|</span>
+          <span id="rankDisplay" class="text-indigo-600 dark:text-indigo-400">🥉 見習い</span>
+        </div>
+
+        <button type="button" id="cosTableBtn" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-500 text-white shadow-sm transition">
+          📖 cos早見表
+        </button>
+
+        <div class="flex items-center bg-slate-200/80 dark:bg-slate-800 p-0.5 rounded-xl border border-slate-300 dark:border-slate-700 text-[11px] font-bold">
+          <button type="button" id="themeLightBtn" data-theme="light" class="px-2 py-1 rounded-lg transition">☀️ ライト</button>
+          <button type="button" id="themeDarkBtn" data-theme="dark" class="px-2 py-1 rounded-lg transition">🌙 ダーク</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- 学習ステップナビゲーション -->
+  <nav class="bg-slate-100 dark:bg-slate-900/80 border-b border-slate-200 dark:border-slate-800 px-4 py-2.5">
+    <div class="max-w-6xl mx-auto flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
+      <button type="button" data-tab="intro" id="nav-intro" class="nav-tab shrink-0 px-3.5 py-2 rounded-xl text-xs font-bold transition text-left">
+        <div class="text-[10px] opacity-80">STEP 1｜導入</div>
+        <div>① 2辺の開きと符号</div>
+      </button>
+      <button type="button" data-tab="steps" id="nav-steps" class="nav-tab shrink-0 px-3.5 py-2 rounded-xl text-xs font-bold transition text-left">
+        <div class="text-[10px] opacity-80">STEP 2｜手順</div>
+        <div>② 公式を選ぶ5ステップ</div>
+      </button>
+      <button type="button" data-tab="examples" id="nav-examples" class="nav-tab shrink-0 px-3.5 py-2 rounded-xl text-xs font-bold transition text-left">
+        <div class="text-[10px] opacity-80">STEP 3｜例題</div>
+        <div>③ 例題1・2と重要発問</div>
+      </button>
+      <button type="button" data-tab="drill" id="nav-drill" class="nav-tab shrink-0 px-3.5 py-2 rounded-xl text-xs font-bold transition text-left">
+        <div class="text-[10px] opacity-80">STEP 4｜個別演習</div>
+        <div>④ 演習道場 (問1〜21) <span id="navClearedCount" class="ml-1 px-1.5 py-0.5 rounded-full bg-white/25 text-[10px]">0/21</span></div>
+      </button>
+      <button type="button" data-tab="exit" id="nav-exit" class="nav-tab shrink-0 px-3.5 py-2 rounded-xl text-xs font-bold transition text-left">
+        <div class="text-[10px] opacity-80">STEP 5｜振り返り</div>
+        <div>⑤ 比較(問19・20)＆出口課題</div>
+      </button>
+    </div>
+  </nav>
+
+  <!-- メインコンテンツ -->
+  <main class="flex-1 max-w-6xl w-full mx-auto p-4">
+    <div id="mainContent"></div>
+  </main>
+
+  <!-- cos 値＆公式の早見表モーダル -->
+  <div id="cosModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 max-w-2xl w-full rounded-2xl p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+        <h3 class="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white">📖 余弦定理 ＆ cos 値 早見表（いつでも確認OK）</h3>
+        <button type="button" id="closeCosModalBtn" class="text-slate-400 hover:text-slate-700 dark:hover:text-white text-xl font-bold px-2">&times;</button>
+      </div>
+
+      <div class="space-y-4 text-xs sm:text-sm">
+        <div class="p-4 rounded-xl bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800 space-y-2">
+          <div class="font-extrabold text-blue-900 dark:text-blue-200 text-center">【丸暗記しない！余弦定理のことば公式】</div>
+          <div class="text-center text-sm sm:text-base font-extrabold text-slate-900 dark:text-white">
+            （求める辺）<sup>2</sup> ＝（残り2辺の平方の和）－ 2 &times;（残り2辺の積）&times; cos（向かいの角）
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-2 text-center font-bold text-xs">
+            <div class="p-2 rounded-lg bg-white dark:bg-slate-900 border border-blue-200 dark:border-blue-800">
+              <span class="math-var">a</span><sup>2</sup> = <span class="math-var">b</span><sup>2</sup> + <span class="math-var">c</span><sup>2</sup> &minus; 2<span class="math-var">bc</span> cos <span class="math-var">A</span>
+            </div>
+            <div class="p-2 rounded-lg bg-white dark:bg-slate-900 border border-blue-200 dark:border-blue-800">
+              <span class="math-var">b</span><sup>2</sup> = <span class="math-var">c</span><sup>2</sup> + <span class="math-var">a</span><sup>2</sup> &minus; 2<span class="math-var">ca</span> cos <span class="math-var">B</span>
+            </div>
+            <div class="p-2 rounded-lg bg-white dark:bg-slate-900 border border-blue-200 dark:border-blue-800">
+              <span class="math-var">c</span><sup>2</sup> = <span class="math-var">a</span><sup>2</sup> + <span class="math-var">b</span><sup>2</sup> &minus; 2<span class="math-var">ab</span> cos <span class="math-var">C</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-center border-collapse border border-slate-200 dark:border-slate-700 text-xs font-bold">
+            <thead>
+              <tr class="bg-slate-100 dark:bg-slate-800">
+                <th class="border border-slate-200 dark:border-slate-700 p-2">角度 &theta;</th>
+                <th class="border border-slate-200 dark:border-slate-700 p-2 text-blue-700 dark:text-blue-300">30°</th>
+                <th class="border border-slate-200 dark:border-slate-700 p-2 text-blue-700 dark:text-blue-300">45°</th>
+                <th class="border border-slate-200 dark:border-slate-700 p-2 text-blue-700 dark:text-blue-300">60°</th>
+                <th class="border border-slate-200 dark:border-slate-700 p-2 text-emerald-700 dark:text-emerald-300">90°</th>
+                <th class="border border-slate-200 dark:border-slate-700 p-2 text-rose-700 dark:text-rose-300">120°</th>
+                <th class="border border-slate-200 dark:border-slate-700 p-2 text-rose-700 dark:text-rose-300">135°</th>
+                <th class="border border-slate-200 dark:border-slate-700 p-2 text-rose-700 dark:text-rose-300">150°</th>
+              </tr>
+            </thead>
+            <tbody id="cosTableBody">
+              <tr class="bg-white dark:bg-slate-900">
+                <td class="border border-slate-200 dark:border-slate-700 p-2">cos &theta;</td>
+                <td class="border border-slate-200 dark:border-slate-700 p-2 text-blue-700 dark:text-blue-300"><span class="math-frac"><span class="num">&radic;3</span><span class="den">2</span></span></td>
+                <td class="border border-slate-200 dark:border-slate-700 p-2 text-blue-700 dark:text-blue-300"><span class="math-frac"><span class="num">&radic;2</span><span class="den">2</span></span></td>
+                <td class="border border-slate-200 dark:border-slate-700 p-2 text-blue-700 dark:text-blue-300"><span class="math-frac"><span class="num">1</span><span class="den">2</span></span></td>
+                <td class="border border-slate-200 dark:border-slate-700 p-2 text-emerald-700 dark:text-emerald-300 text-base">0</td>
+                <td class="border border-slate-200 dark:border-slate-700 p-2 text-rose-700 dark:text-rose-300">&minus;<span class="math-frac"><span class="num">1</span><span class="den">2</span></span></td>
+                <td class="border border-slate-200 dark:border-slate-700 p-2 text-rose-700 dark:text-rose-300">&minus;<span class="math-frac"><span class="num">&radic;2</span><span class="den">2</span></span></td>
+                <td class="border border-slate-200 dark:border-slate-700 p-2 text-rose-700 dark:text-rose-300">&minus;<span class="math-frac"><span class="num">&radic;3</span><span class="den">2</span></span></td>
+              </tr>
+              <tr class="bg-slate-50 dark:bg-slate-800/60">
+                <td class="border border-slate-200 dark:border-slate-700 p-2">補正の向き</td>
+                <td colspan="3" class="border border-slate-200 dark:border-slate-700 p-2 text-blue-700 dark:text-blue-300">鋭角：平方の和から<strong>引く（短くなる）</strong></td>
+                <td class="border border-slate-200 dark:border-slate-700 p-2 text-emerald-700 dark:text-emerald-300">補正 <strong>0</strong><br>(三平方)</td>
+                <td colspan="3" class="border border-slate-200 dark:border-slate-700 p-2 text-rose-700 dark:text-rose-300">鈍角：マイナスを引くので<strong>足す（長くなる）</strong></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="text-right pt-2 border-t border-slate-200 dark:border-slate-800">
+        <button type="button" id="closeCosModalBtn2" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold">閉じる</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* =========================================================================
+       数式オブジェクト（MathML）フォーマッタ
+       ========================================================================= */
+    function formatMathRoots(str) {
+      if (!str) return '';
+      // 二重根号 √(13 - 6√3) などに対応
+      let s = String(str);
+      s = s.replace(/√\(([^)]+)\)/g, (_, inner) => {
+        const innerMath = inner
+          .replace(/(\d+)√(\d+)/g, '<mn>$1</mn><msqrt><mn>$2</mn></msqrt>')
+          .replace(/√(\d+)/g, '<msqrt><mn>$1</mn></msqrt>')
+          .replace(/\s*-\s*/g, '<mo>&minus;</mo>')
+          .replace(/\s*\+\s*/g, '<mo>+</mo>')
+          .replace(/^(\d+)/, '<mn>$1</mn>');
+        return `<math display="inline"><msqrt>${innerMath}</msqrt></math>`;
+      });
+      // 通常のルート &radic;数字 または √数字 を <math><msqrt><mn>...</mn></msqrt></math> へ
+      s = s.replace(/(?:&radic;|√)(\d+)/g, '<math display="inline"><msqrt><mn>$1</mn></msqrt></math>');
+      return s;
+    }
+
+    // 角度に対する cos の正確情報
+    const COS_INFO = {
+      30:  { frac: '<span class="math-frac"><span class="num">&radic;3</span><span class="den">2</span></span>', signType: 'sub', signText: '鋭角 → 引く', val: Math.sqrt(3) / 2 },
+      45:  { frac: '<span class="math-frac"><span class="num">&radic;2</span><span class="den">2</span></span>', signType: 'sub', signText: '鋭角 → 引く', val: Math.SQRT2 / 2 },
+      60:  { frac: '<span class="math-frac"><span class="num">1</span><span class="den">2</span></span>', signType: 'sub', signText: '鋭角 → 引く', val: 0.5 },
+      90:  { frac: '0', signType: 'zero', signText: '直角 → 補正なし (0)', val: 0 },
+      120: { frac: '(&minus;<span class="math-frac"><span class="num">1</span><span class="den">2</span></span>)', signType: 'add', signText: '鈍角 → 足す', val: -0.5 },
+      135: { frac: '(&minus;<span class="math-frac"><span class="num">&radic;2</span><span class="den">2</span></span>)', signType: 'add', signText: '鈍角 → 足す', val: -Math.SQRT2 / 2 },
+      150: { frac: '(&minus;<span class="math-frac"><span class="num">&radic;3</span><span class="den">2</span></span>)', signType: 'add', signText: '鈍角 → 足す', val: -Math.sqrt(3) / 2 }
+    };
+
+    /* =========================================================================
+       全21問の個別演習データベース（指導案PDFの演習A〜D完全収録）
+       ========================================================================= */
+    const DRILL_PROBLEMS = [
+      // --- 演習 A｜基本 (問1〜6) ---
+      {
+        id: 1, group: 'A', groupName: '演習 A｜基本',
+        target: 'c', angleName: 'C', angleDeg: 90,
+        s1Name: 'a', s1Label: '3', s1Val: 3, s1Sq: 9,
+        s2Name: 'b', s2Label: '4', s2Val: 4, s2Sq: 16,
+        corrRaw: '0', corrOp: '0', sqExpr: '25', ansLabel: '5',
+        simplifyNote: '2乗して 25 になる正の数は 5 です（3 : 4 : 5 の直角三角形！）。',
+        choices: [
+          { text: '5', ok: true },
+          { text: '25', ok: false, diag: '【平方根の取り忘れ！】<br>25 は <strong>c²（2乗した値）</strong>です！辺の長さ c を求めるには正の平方根 √25 ＝ 5 を取りましょう。' },
+          { text: '7', ok: false, diag: '【2乗せずに足してしまったミス】<br>3 + 4 = 7 ではなく、平方の和 3² + 4² = 9 + 16 = 25 から √25 = 5 を求めます。' },
+          { text: '√13', ok: false, diag: '【cos 90° の値ミス】<br>90°（直角）のとき cos 90° = 0 なので、補正項は 0（引き算も足し算もしない）になります！' }
+        ]
+      },
+      {
+        id: 2, group: 'A', groupName: '演習 A｜基本',
+        target: 'a', angleName: 'A', angleDeg: 60,
+        s1Name: 'b', s1Label: '5', s1Val: 5, s1Sq: 25,
+        s2Name: 'c', s2Label: '5', s2Val: 5, s2Sq: 25,
+        corrRaw: '25', corrOp: '- 25', sqExpr: '25', ansLabel: '5',
+        simplifyNote: '2辺が5と5で間の角が60°なので、実は正三角形になります！だから答えもぴったり5！',
+        choices: [
+          { text: '5', ok: true },
+          { text: '5√3', ok: false, diag: '【符号の逆転ミス！】<br>60°は<strong>鋭角</strong>なので、補正項 25 を足す（50+25=75）のではなく<strong>引きます</strong>（50-25=25）！' },
+          { text: '25', ok: false, diag: '【平方根の取り忘れ！】<br>a² = 25 で止めてしまいました。長さ a は正の平方根を取って a = 5 です。' },
+          { text: '5√2', ok: false, diag: '【補正項の忘れ（直角と混同）】<br>5² + 5² = 50 だけ計算して補正項 −25 を引き忘れていませんか？' }
+        ]
+      },
+      {
+        id: 3, group: 'A', groupName: '演習 A｜基本',
+        target: 'b', angleName: 'B', angleDeg: 60,
+        s1Name: 'c', s1Label: '6', s1Val: 6, s1Sq: 36,
+        s2Name: 'a', s2Label: '4', s2Val: 4, s2Sq: 16,
+        corrRaw: '24', corrOp: '- 24', sqExpr: '28', ansLabel: '2√7',
+        simplifyNote: '28 = 4 × 7 なので、√28 = √(4×7) = 2√7 とルートの外に 2 を出しましょう！',
+        choices: [
+          { text: '2√7', ok: true },
+          { text: '2√19', ok: false, diag: '【符号の逆転ミス！】<br>60°は<strong>鋭角</strong>（cos 60° = +1/2）なので、52 に 24 を足す（76）のではなく<strong>引きます</strong>（52 - 24 = 28）！' },
+          { text: '28', ok: false, diag: '【平方根の取り忘れ！】<br>28 は b² の値です。正の平方根を取って √28 = 2√7 にしましょう。' },
+          { text: '2√10', ok: false, diag: '【補正項の「2」掛け忘れ！】<br>2 × 6 × 4 × (1/2) = 24 を引きます。2を掛け忘れて 12 を引くと 52 - 12 = 40 になってしまいます！' }
+        ]
+      },
+      {
+        id: 4, group: 'A', groupName: '演習 A｜基本',
+        target: 'c', angleName: 'C', angleDeg: 120,
+        s1Name: 'a', s1Label: '4', s1Val: 4, s1Sq: 16,
+        s2Name: 'b', s2Label: '4', s2Val: 4, s2Sq: 16,
+        corrRaw: '-16', corrOp: '+ 16', sqExpr: '48', ansLabel: '4√3',
+        simplifyNote: '48 = 16 × 3 なので、√48 = 4√3 です（120°の二等辺三角形の比 1 : 1 : √3 とも一致！）。',
+        choices: [
+          { text: '4√3', ok: true },
+          { text: '4', ok: false, diag: '【符号の逆転ミス！】<br>120°は<strong>鈍角</strong>（cos 120° = −1/2）です！マイナスを引くので 32 − (−16) = <strong>32 + 16 = 48</strong> と足し算になります！' },
+          { text: '48', ok: false, diag: '【平方根の取り忘れ！】<br>c² = 48 なので、最後に √48 = 4√3 と平方根を取りましょう。' },
+          { text: '4√2', ok: false, diag: '【補正項の忘れ】<br>32 で止めて √32 = 4√2 にしてしまいました。120°は90°より開いているのでさらに +16 して 48 になります！' }
+        ]
+      },
+      {
+        id: 5, group: 'A', groupName: '演習 A｜基本',
+        target: 'a', angleName: 'A', angleDeg: 60,
+        s1Name: 'b', s1Label: '7', s1Val: 7, s1Sq: 49,
+        s2Name: 'c', s2Label: '3', s2Val: 3, s2Sq: 9,
+        corrRaw: '21', corrOp: '- 21', sqExpr: '37', ansLabel: '√37',
+        simplifyNote: '37 は素数なのでこれ以上簡単になりません。よって a = √37 がそのまま答えです。',
+        choices: [
+          { text: '√37', ok: true },
+          { text: '√79', ok: false, diag: '【符号の逆転ミス！】<br>60°は<strong>鋭角</strong>なので、58 に 21 を足すのではなく<strong>引きます</strong>（58 - 21 = 37）！' },
+          { text: '37', ok: false, diag: '【平方根の取り忘れ！】<br>a² = 37 なので、ルートをかぶせて a = √37 にしましょう！' },
+          { text: '4', ok: false, diag: '【補正項の 1/2 掛け忘れ！】<br>2 × 7 × 3 × (1/2) = 21 です。cos 60° = 1/2 を掛け忘れると 58 - 42 = 16 になってしまいます。' }
+        ]
+      },
+      {
+        id: 6, group: 'A', groupName: '演習 A｜基本',
+        target: 'b', angleName: 'B', angleDeg: 90,
+        s1Name: 'c', s1Label: '8', s1Val: 8, s1Sq: 64,
+        s2Name: 'a', s2Label: '6', s2Val: 6, s2Sq: 36,
+        corrRaw: '0', corrOp: '0', sqExpr: '100', ansLabel: '10',
+        simplifyNote: 'cos 90° = 0 なので三平方の定理そのまま！ b² = 64 + 36 = 100 → b = 10 です。',
+        choices: [
+          { text: '10', ok: true },
+          { text: '100', ok: false, diag: '【平方根の取り忘れ！】<br>b² = 100 なので、正の平方根を取って b = 10 と答えましょう。' },
+          { text: '2√7', ok: false, diag: '【足し算と引き算のミス】<br>90°の向かいの辺（斜辺）を求めるので、64 + 36 = 100 です（64 - 36 ではありません）。' },
+          { text: '14', ok: false, diag: '【2乗し忘れ】<br>8 + 6 = 14 ではなく、8² + 6² = 100 から √100 = 10 を求めます。' }
+        ]
+      },
+
+      // --- 演習 B｜例題と同じ形式 (問7〜12) ---
+      {
+        id: 7, group: 'B', groupName: '演習 B｜例題と同形式',
+        target: 'c', angleName: 'C', angleDeg: 120,
+        s1Name: 'a', s1Label: '6', s1Val: 6, s1Sq: 36,
+        s2Name: 'b', s2Label: '4', s2Val: 4, s2Sq: 16,
+        corrRaw: '-24', corrOp: '+ 24', sqExpr: '76', ansLabel: '2√19',
+        simplifyNote: '76 = 4 × 19 なので、√76 = 2√19 となります（例題2と同じ計算感覚です！）。',
+        choices: [
+          { text: '2√19', ok: true },
+          { text: '2√7', ok: false, diag: '【符号の逆転ミス！】<br>120°は<strong>鈍角</strong>なので、52 から 24 を引くのではなく<strong>足します</strong>（52 + 24 = 76）！' },
+          { text: '76', ok: false, diag: '【平方根の取り忘れ！】<br>c² = 76 なので、正の平方根を取って √76 = 2√19 にしましょう！' },
+          { text: '10', ok: false, diag: '【cos 120° の 1/2 を掛け忘れ】<br>2 × 6 × 4 × (-1/2) = -24 なので 52 + 24 = 76 です（+48 にすると 100 → 10 になってしまいます）。' }
+        ]
+      },
+      {
+        id: 8, group: 'B', groupName: '演習 B｜例題と同形式',
+        target: 'a', angleName: 'A', angleDeg: 45,
+        s1Name: 'b', s1Label: '9', s1Val: 9, s1Sq: 81,
+        s2Name: 'c', s2Label: '2√2', s2Val: 2 * Math.SQRT2, s2Sq: 8,
+        corrRaw: '36', corrOp: '- 36', sqExpr: '53', ansLabel: '√53',
+        simplifyNote: '(2√2)² = 4 × 2 = 8、補正項は 2 × 9 × 2√2 × (√2/2) = 18 × 2 = 36！ √2 × √2 = 2 でルートがきれいに消えます。',
+        choices: [
+          { text: '√53', ok: true },
+          { text: '5√5', ok: false, diag: '【符号の逆転ミス！】<br>45°は<strong>鋭角</strong>なので、89 から 36 を<strong>引きます</strong>（89 + 36 = 125 にしてしまいました）！' },
+          { text: '√71', ok: false, diag: '【√2 × √2 の計算ミス】<br>2 × 9 × 2√2 × (√2/2) では、分母の 2 と前の 2 が約分され、9 × 2 × (√2×√2) = 18 × 2 = 36 を引きます！' },
+          { text: '53', ok: false, diag: '【平方根の取り忘れ！】<br>a² = 53 なので、最後にルートをつけて a = √53 にしましょう！' }
+        ]
+      },
+      {
+        id: 9, group: 'B', groupName: '演習 B｜例題と同形式',
+        target: 'b', angleName: 'B', angleDeg: 30,
+        s1Name: 'c', s1Label: '4', s1Val: 4, s1Sq: 16,
+        s2Name: 'a', s2Label: '2√3', s2Val: 2 * Math.sqrt(3), s2Sq: 12,
+        corrRaw: '24', corrOp: '- 24', sqExpr: '4', ansLabel: '2',
+        simplifyNote: '(2√3)² = 12、補正項は 2 × 4 × 2√3 × (√3/2) = 8 × 3 = 24。28 - 24 = 4 → b = 2！',
+        choices: [
+          { text: '2', ok: true },
+          { text: '2√13', ok: false, diag: '【符号の逆転ミス！】<br>30°は<strong>鋭角</strong>なので、28 から 24 を<strong>引きます</strong>（28 + 24 = 52 ではありません）！' },
+          { text: '4', ok: false, diag: '【平方根の取り忘れ！】<br>b² = 4 なので、正の平方根を取って b = 2 になります！' },
+          { text: '2√5', ok: false, diag: '【補正項の √3 × √3 ミス】<br>2√3 × √3 = 2 × 3 = 6 です。4 × 6 = 24 を引くので 28 - 24 = 4 になります。' }
+        ]
+      },
+      {
+        id: 10, group: 'B', groupName: '演習 B｜例題と同形式',
+        target: 'c', angleName: 'C', angleDeg: 45,
+        s1Name: 'a', s1Label: '5', s1Val: 5, s1Sq: 25,
+        s2Name: 'b', s2Label: '2√2', s2Val: 2 * Math.SQRT2, s2Sq: 8,
+        corrRaw: '20', corrOp: '- 20', sqExpr: '13', ansLabel: '√13',
+        simplifyNote: '5² + (2√2)² = 25 + 8 = 33。補正項は 2 × 5 × 2√2 × (√2/2) = 20。33 - 20 = 13 → c = √13！',
+        choices: [
+          { text: '√13', ok: true },
+          { text: '√53', ok: false, diag: '【符号の逆転ミス！】<br>45°は<strong>鋭角</strong>なので、33 から 20 を<strong>引きます</strong>（33 + 20 = 53 にしてしまいました）！' },
+          { text: '√23', ok: false, diag: '【2の掛け忘れ】<br>補正項は 2 × 5 × 2√2 × (√2/2) = 20 です。10 を引いて 23 にしてしまいました。' },
+          { text: '13', ok: false, diag: '【平方根の取り忘れ！】<br>c² = 13 なので、答えは c = √13 です。' }
+        ]
+      },
+      {
+        id: 11, group: 'B', groupName: '演習 B｜例題と同形式',
+        target: 'a', angleName: 'A', angleDeg: 150,
+        s1Name: 'b', s1Label: '6', s1Val: 6, s1Sq: 36,
+        s2Name: 'c', s2Label: '2√3', s2Val: 2 * Math.sqrt(3), s2Sq: 12,
+        corrRaw: '-36', corrOp: '+ 36', sqExpr: '84', ansLabel: '2√21',
+        simplifyNote: 'cos 150° = −√3/2（鈍角なので足す！）。48 + 36 = 84 = 4 × 21 より a = 2√21！',
+        choices: [
+          { text: '2√21', ok: true },
+          { text: '2√3', ok: false, diag: '【符号の逆転ミス！】<br>150°は<strong>鈍角</strong>（cos 150° = −√3/2）なので、48 から 36 を引く（12）のではなく<strong>足します</strong>（48 + 36 = 84）！' },
+          { text: '84', ok: false, diag: '【平方根の取り忘れ！】<br>a² = 84 なので、√84 = √(4×21) = 2√21 としましょう！' },
+          { text: '√66', ok: false, diag: '【補正項の計算ミス】<br>2 × 6 × 2√3 × (-√3/2) = -6 × 2 × 3 = -36 なので、48 + 36 = 84 です。' }
+        ]
+      },
+      {
+        id: 12, group: 'B', groupName: '演習 B｜例題と同形式',
+        target: 'b', angleName: 'B', angleDeg: 45,
+        s1Name: 'c', s1Label: '3', s1Val: 3, s1Sq: 9,
+        s2Name: 'a', s2Label: '3√2', s2Val: 3 * Math.SQRT2, s2Sq: 18,
+        corrRaw: '18', corrOp: '- 18', sqExpr: '9', ansLabel: '3',
+        simplifyNote: '(3√2)² = 9 × 2 = 18。9 + 18 - 18 = 9 → b = 3！（実は 3, 3, 3√2 の直角二等辺三角形です！）',
+        choices: [
+          { text: '3', ok: true },
+          { text: '3√5', ok: false, diag: '【符号の逆転ミス！】<br>45°は<strong>鋭角</strong>なので、27 から 18 を<strong>引きます</strong>（27 + 18 = 45 ではありません）！' },
+          { text: '9', ok: false, diag: '【平方根の取り忘れ！】<br>b² = 9 なので、正の平方根を取って b = 3 です！' },
+          { text: '3√2', ok: false, diag: '【補正項の2倍ミス】<br>補正項は 2 × 3 × 3√2 × (√2/2) = 18 です。27 - 18 = 9 → b = 3 となります。' }
+        ]
+      },
+
+      // --- 演習 C｜反復・定着 (問13〜18) ---
+      {
+        id: 13, group: 'C', groupName: '演習 C｜反復・定着',
+        target: 'c', angleName: 'C', angleDeg: 120,
+        s1Name: 'a', s1Label: '7', s1Val: 7, s1Sq: 49,
+        s2Name: 'b', s2Label: '4', s2Val: 4, s2Sq: 16,
+        corrRaw: '-28', corrOp: '+ 28', sqExpr: '93', ansLabel: '√93',
+        simplifyNote: '49 + 16 = 65。120°は鈍角なので +28 して c² = 93。93 = 3 × 31 なので c = √93！',
+        choices: [
+          { text: '√93', ok: true },
+          { text: '√37', ok: false, diag: '【符号の逆転ミス！】<br>120°は<strong>鈍角</strong>（cos 120° = −1/2）なので、65 から 28 を引くのではなく<strong>足します</strong>（65 + 28 = 93）！' },
+          { text: '93', ok: false, diag: '【平方根の取り忘れ！】<br>c² = 93 なので、答えは √93 です！' },
+          { text: '11', ok: false, diag: '【cos 120° の 1/2 掛け忘れ】<br>2 × 7 × 4 × (-1/2) = -28 なので 65 + 28 = 93 です（+56 にすると 121 → 11 になってしまいます）。' }
+        ]
+      },
+      {
+        id: 14, group: 'C', groupName: '演習 C｜反復・定着',
+        target: 'a', angleName: 'A', angleDeg: 135,
+        s1Name: 'b', s1Label: '8', s1Val: 8, s1Sq: 64,
+        s2Name: 'c', s2Label: '2√2', s2Val: 2 * Math.SQRT2, s2Sq: 8,
+        corrRaw: '-32', corrOp: '+ 32', sqExpr: '104', ansLabel: '2√26',
+        simplifyNote: 'cos 135° = −√2/2。72 + 32 = 104 = 4 × 26 なので、a = 2√26 となります！',
+        choices: [
+          { text: '2√26', ok: true },
+          { text: '2√10', ok: false, diag: '【符号の逆転ミス！】<br>135°は<strong>鈍角</strong>なので、72 に 32 を<strong>足します</strong>（72 - 32 = 40 ではありません）！' },
+          { text: '104', ok: false, diag: '【平方根の取り忘れ！】<br>a² = 104 なので、√104 = 2√26 にしましょう！' },
+          { text: '2√22', ok: false, diag: '【√2 × √2 の計算ミス】<br>2 × 8 × 2√2 × (-√2/2) = -8 × 2 × 2 = -32 です（-16 ではありません）。' }
+        ]
+      },
+      {
+        id: 15, group: 'C', groupName: '演習 C｜反復・定着',
+        target: 'b', angleName: 'B', angleDeg: 30,
+        s1Name: 'c', s1Label: '5', s1Val: 5, s1Sq: 25,
+        s2Name: 'a', s2Label: '3√3', s2Val: 3 * Math.sqrt(3), s2Sq: 27,
+        corrRaw: '45', corrOp: '- 45', sqExpr: '7', ansLabel: '√7',
+        simplifyNote: '(3√3)² = 9 × 3 = 27。補正項は 2 × 5 × 3√3 × (√3/2) = 15 × 3 = 45。52 - 45 = 7 → b = √7！',
+        choices: [
+          { text: '√7', ok: true },
+          { text: '√97', ok: false, diag: '【符号の逆転ミス！】<br>30°は<strong>鋭角</strong>なので、52 から 45 を<strong>引きます</strong>（52 + 45 = 97 ではありません）！' },
+          { text: '7', ok: false, diag: '【平方根の取り忘れ！】<br>b² = 7 なので、ルートをつけて b = √7 としましょう！' },
+          { text: '√37', ok: false, diag: '【√3 × √3 の掛け忘れ】<br>5 × 3√3 × √3 = 15 × 3 = 45 です（15 を引いて 37 にしてしまいました）。' }
+        ]
+      },
+      {
+        id: 16, group: 'C', groupName: '演習 C｜反復・定着',
+        target: 'c', angleName: 'C', angleDeg: 45,
+        s1Name: 'a', s1Label: '2√2', s1Val: 2 * Math.SQRT2, s1Sq: 8,
+        s2Name: 'b', s2Label: '4', s2Val: 4, s2Sq: 16,
+        corrRaw: '16', corrOp: '- 16', sqExpr: '8', ansLabel: '2√2',
+        simplifyNote: '8 + 16 - 16 = 8 → c = √8 = 2√2！（a = c = 2√2 の直角二等辺三角形です！）',
+        choices: [
+          { text: '2√2', ok: true },
+          { text: '2√10', ok: false, diag: '【符号の逆転ミス！】<br>45°は<strong>鋭角</strong>なので、24 から 16 を<strong>引きます</strong>（24 + 16 = 40 ではありません）！' },
+          { text: '8', ok: false, diag: '【平方根の取り忘れ！】<br>c² = 8 なので、√8 = 2√2 と平方根を取って簡単化しましょう！' },
+          { text: '4', ok: false, diag: '【補正項の √2 × √2 ミス】<br>2 × 2√2 × 4 × (√2/2) = 8 × 2 = 16 です。24 - 16 = 8 → 2√2 となります。' }
+        ]
+      },
+      {
+        id: 17, group: 'C', groupName: '演習 C｜反復・定着',
+        target: 'a', angleName: 'A', angleDeg: 150,
+        s1Name: 'b', s1Label: '4√3', s1Val: 4 * Math.sqrt(3), s1Sq: 48,
+        s2Name: 'c', s2Label: '5', s2Val: 5, s2Sq: 25,
+        corrRaw: '-60', corrOp: '+ 60', sqExpr: '133', ansLabel: '√133',
+        simplifyNote: '(4√3)² = 16 × 3 = 48。150°は鈍角なので +60 して 73 + 60 = 133。133 = 7 × 19 なので a = √133！',
+        choices: [
+          { text: '√133', ok: true },
+          { text: '√13', ok: false, diag: '【符号の逆転ミス！】<br>150°は<strong>鈍角</strong>（cos 150° = −√3/2）なので、73 に 60 を<strong>足します</strong>（73 - 60 = 13 ではありません）！' },
+          { text: '133', ok: false, diag: '【平方根の取り忘れ！】<br>a² = 133 なので、答えは √133 です！' },
+          { text: '√93', ok: false, diag: '【√3 × √3 の掛け忘れ】<br>2 × 4√3 × 5 × (-√3/2) = -20 × 3 = -60 です（-20 ではありません）。' }
+        ]
+      },
+      {
+        id: 18, group: 'C', groupName: '演習 C｜反復・定着',
+        target: 'b', angleName: 'B', angleDeg: 135,
+        s1Name: 'c', s1Label: '3√2', s1Val: 3 * Math.SQRT2, s1Sq: 18,
+        s2Name: 'a', s2Label: '5', s2Val: 5, s2Sq: 25,
+        corrRaw: '-30', corrOp: '+ 30', sqExpr: '73', ansLabel: '√73',
+        simplifyNote: '(3√2)² = 18。135°は鈍角なので +30 して 43 + 30 = 73 → b = √73！',
+        choices: [
+          { text: '√73', ok: true },
+          { text: '√13', ok: false, diag: '【符号の逆転ミス！】<br>135°は<strong>鈍角</strong>（cos 135° = −√2/2）なので、43 に 30 を<strong>足します</strong>（43 - 30 = 13 ではありません）！' },
+          { text: '73', ok: false, diag: '【平方根の取り忘れ！】<br>b² = 73 なので、最後にルートをつけて √73 としましょう！' },
+          { text: '√58', ok: false, diag: '【√2 × √2 の計算ミス】<br>2 × 3√2 × 5 × (-√2/2) = -15 × 2 = -30 なので 43 + 30 = 73 です。' }
+        ]
+      },
+
+      // --- 演習 D｜比較と出口課題 (問19〜21) ---
+      {
+        id: 19, group: 'D', groupName: '演習 D｜比較と出口課題',
+        target: 'c', angleName: 'C', angleDeg: 30,
+        s1Name: 'a', s1Label: '6', s1Val: 6, s1Sq: 36,
+        s2Name: 'b', s2Label: '4', s2Val: 4, s2Sq: 16,
+        corrRaw: '24√3', corrOp: '- 24√3', sqExpr: '52 - 24√3', ansLabel: '2√(13 - 6√3)',
+        simplifyNote: '52 - 24√3 = 4(13 - 6√3) なので、4をルートの外に出すと 2√(13 - 6√3)（約 3.23）になります！（※二重根号を外すと 3√3 − 1 ≒ 4.20 ではなく、√(52-41.57)=√10.43 ≒ 3.23）',
+        choices: [
+          { text: '2√(13 - 6√3)', ok: true },
+          { text: '2√(13 + 6√3)', ok: false, diag: '【符号の逆転ミス！】<br>30°は<strong>鋭角</strong>なので、52 から 24√3 を<strong>引きます</strong>！（足すのは 150° の問20です！）' },
+          { text: '52 - 24√3', ok: false, diag: '【平方根の取り忘れ！】<br>52 - 24√3 は c² の値です。最後に正の平方根を取って 2√(13 - 6√3) にしましょう！' },
+          { text: '2√7', ok: false, diag: '【cos 30° と cos 60° の取り違え】<br>cos 30° = √3/2 なので、補正項には √3 が残って 24√3 になります！' }
+        ]
+      },
+      {
+        id: 20, group: 'D', groupName: '演習 D｜比較と出口課題',
+        target: 'a', angleName: 'A', angleDeg: 150,
+        s1Name: 'b', s1Label: '6', s1Val: 6, s1Sq: 36,
+        s2Name: 'c', s2Label: '4', s2Val: 4, s2Sq: 16,
+        corrRaw: '-24√3', corrOp: '+ 24√3', sqExpr: '52 + 24√3', ansLabel: '2√(13 + 6√3)',
+        simplifyNote: '150°は鈍角なので +24√3 になり、52 + 24√3 = 4(13 + 6√3) → 2√(13 + 6√3)（約 9.67）！ 問19（約3.23）より圧倒的に長くなります！',
+        choices: [
+          { text: '2√(13 + 6√3)', ok: true },
+          { text: '2√(13 - 6√3)', ok: false, diag: '【符号の逆転ミス！】<br>150°は<strong>鈍角</strong>（cos 150° = −√3/2）なので、52 に 24√3 を<strong>足します</strong>！' },
+          { text: '52 + 24√3', ok: false, diag: '【平方根の取り忘れ！】<br>これは a² の値です。正の平方根を取って 2√(13 + 6√3) にしましょう！' },
+          { text: '2√19', ok: false, diag: '【cos 150° と cos 120° の取り違え】<br>cos 150° = −√3/2 なので補正項は −24√3、よって 52 + 24√3 になります！' }
+        ]
+      },
+      {
+        id: 21, group: 'D', groupName: '演習 D｜比較と出口課題',
+        target: 'b', angleName: 'B', angleDeg: 120,
+        s1Name: 'c', s1Label: '8', s1Val: 8, s1Sq: 64,
+        s2Name: 'a', s2Label: '4', s2Val: 4, s2Sq: 16,
+        corrRaw: '-32', corrOp: '+ 32', sqExpr: '112', ansLabel: '4√7',
+        simplifyNote: '112 = 16 × 7 なので、√112 = 4√7！ 出口課題タブでも「直角との比較理由」まで確認しよう！',
+        choices: [
+          { text: '4√7', ok: true },
+          { text: '4√3', ok: false, diag: '【符号の逆転ミス！】<br>120°は<strong>鈍角</strong>なので、80 から 32 を引く（48 → 4√3）のではなく<strong>足します</strong>（80 + 32 = 112 → 4√7）！' },
+          { text: '112', ok: false, diag: '【平方根の取り忘れ！】<br>112 は b² の値です。√112 = 4√7 にしましょう！' },
+          { text: '4√5', ok: false, diag: '【補正項の忘れ】<br>80 で止めて √80 = 4√5 にしてしまいました。120°は鈍角なので +32 を足します！' }
+        ]
+      }
+    ];
+
+    /* =========================================================================
+       グローバル状態管理
+       ========================================================================= */
+    let activeTab = 'intro'; // 'intro', 'steps', 'examples', 'drill', 'exit'
+    let xp = 0;
+    let combo = 0;
+    let clearedIds = new Set();
+
+    // 導入タブ状態
+    let introAngle = 60; // 15°〜165°
+    let introShowRightRef = true; // 90°基準線の重ね表示
+    let introQuizDone = null;
+
+    // 手順タブ（5ステップトレーナー）状態
+    let stepTargetSide = 'c'; // 'a', 'b', 'c'
+    let stepAngleTest = 120; // 30, 45, 60, 90, 120, 135, 150
+    let stepOrderProgress = 0; // 0〜5 ステップめくり
+
+    // 例題タブ状態
+    let ex1Line = 1; // 1〜4
+    let ex2Line = 1; // 1〜4
+    let exQ1 = null; // なぜ76ではない？
+    let exQ2 = null; // なぜ負を選ばない？
+
+    // 演習道場タブ状態
+    let activeGroup = 'A'; // 'A', 'B', 'C', 'D'
+    let currentProbId = 1;
+    let drillShowRightRef = true;
+    let drillSignGuessed = null; // 'sub', 'zero', 'add'
+    let drillSignCorrect = false;
+    let drillSelectedChoiceIdx = null;
+    let drillShuffledChoices = [];
+
+    // 出口課題タブ状態
+    let exitCompGuess = null; // '19' or '20'
+    let exitAnsSq = '';
+    let exitAnsLen = '';
+    let exitCompareRight = ''; // 'longer' or 'shorter'
+    let exitReasonText = '';
+    let exitChecked = false;
+
+    // 生成した PNG Blob URL のキャッシュと解放管理
+    const activeBlobUrls = [];
+
+    function revokeAllPngUrls() {
+      while (activeBlobUrls.length > 0) {
+        URL.revokeObjectURL(activeBlobUrls.pop());
+      }
+    }
+
+    /* =========================================================================
+       高精細図形生成エンジン（Canvas → 画像描画）
+       実際の辺比・角度・90°比較ガイド・正確なルート記号・自動衝突回避を搭載
+       ========================================================================= */
+    function measureBadgeSize(ctx, text, fontSize = 24) {
+      ctx.save();
+      const str = String(text);
+      const m = str.match(/^(\d*)√(\d+)$/);
+      let textW = 0;
+      if (m) {
+        ctx.font = `800 ${fontSize}px "Times New Roman", serif`;
+        const coeffW = m[1] ? ctx.measureText(m[1]).width + 2 : 0;
+        const radW = ctx.measureText(m[2]).width;
+        const symW = fontSize * 0.58;
+        textW = coeffW + symW + radW + 6;
+      } else {
+        ctx.font = `800 ${fontSize}px Inter, "Hiragino Sans", sans-serif`;
+        textW = ctx.measureText(str).width;
+      }
+      ctx.restore();
+      return {
+        w: Math.max(78, Math.ceil(textW) + 34),
+        h: fontSize + 18
+      };
+    }
+
+    function drawRootTextOnCanvas(ctx, text, cx, cy, color, fontSize) {
+      ctx.save();
+      ctx.fillStyle = color;
+      ctx.strokeStyle = color;
+      ctx.textBaseline = 'middle';
+
+      const str = String(text);
+      const m = str.match(/^(\d*)√(\d+)$/);
+      if (!m) {
+        ctx.font = `800 ${fontSize}px Inter, "Hiragino Sans", sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.fillText(str, cx, cy);
+        ctx.restore();
+        return;
+      }
+
+      // 係数 + 正確な屋根付きルートを手描き描画
+      const coeff = m[1];
+      const rad = m[2];
+      ctx.font = `800 ${fontSize}px "Times New Roman", serif`;
+      ctx.textAlign = 'left';
+      const coeffW = coeff ? ctx.measureText(coeff).width + 2 : 0;
+      const radW = ctx.measureText(rad).width;
+      const symW = fontSize * 0.58;
+      const totalW = coeffW + symW + radW + 4;
+      let x = cx - totalW / 2;
+
+      if (coeff) {
+        ctx.fillText(coeff, x, cy + 1);
+        x += coeffW;
+      }
+      // ルート記号（チェック＋屋根線）
+      const topY = cy - fontSize * 0.52;
+      const botY = cy + fontSize * 0.42;
+      ctx.lineWidth = Math.max(2, fontSize * 0.09);
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.beginPath();
+      ctx.moveTo(x, cy + fontSize * 0.05);
+      ctx.lineTo(x + symW * 0.28, cy + fontSize * 0.02);
+      ctx.lineTo(x + symW * 0.52, botY);
+      ctx.lineTo(x + symW, topY);
+      ctx.lineTo(x + symW + radW + 4, topY);
+      ctx.stroke();
+
+      ctx.fillText(rad, x + symW + 2, cy + 2);
+      ctx.restore();
+    }
+
+    function drawPillBadge(ctx, x, y, text, bgColor, borderColor, textColor, fontSize = 24) {
+      ctx.save();
+      const { w, h } = measureBadgeSize(ctx, text, fontSize);
+      const rx = x - w / 2;
+      const ry = y - h / 2;
+
+      // 影付き丸角ボックス
+      ctx.shadowColor = 'rgba(15, 23, 42, 0.14)';
+      ctx.shadowBlur = 8;
+      ctx.shadowOffsetY = 3;
+      ctx.fillStyle = bgColor;
+      ctx.strokeStyle = borderColor;
+      ctx.lineWidth = 3.5;
+      ctx.beginPath();
+      ctx.roundRect(rx, ry, w, h, 14);
+      ctx.fill();
+      ctx.shadowColor = 'transparent';
+      ctx.stroke();
+
+      drawRootTextOnCanvas(ctx, text, x, y, textColor, fontSize);
+      ctx.restore();
+    }
+
+    function generateTrianglePng(imgElId, opts) {
+      const imgEl = document.getElementById(imgElId);
+      if (!imgEl) return;
+
+      const isDark = document.documentElement.classList.contains('dark');
+      const W = 840;
+      const H = 500;
+      const canvas = document.createElement('canvas');
+      canvas.width = W;
+      canvas.height = H;
+      const ctx = canvas.getContext('2d');
+
+      // 背景と薄い方眼グリッド
+      ctx.fillStyle = isDark ? '#0f172a' : '#f8fafc';
+      ctx.fillRect(0, 0, W, H);
+      ctx.strokeStyle = isDark ? 'rgba(148,163,184,0.08)' : 'rgba(148,163,184,0.18)';
+      ctx.lineWidth = 1.5;
+      for (let gx = 40; gx < W; gx += 40) {
+        ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, H); ctx.stroke();
+      }
+      for (let gy = 40; gy < H; gy += 40) {
+        ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(W, gy); ctx.stroke();
+      }
+
+      // 幾何座標の計算（角のある頂点を原点 O とし、辺1を水平右方向、辺2を angleDeg 方向へ配置）
+      const rad = (opts.angleDeg * Math.PI) / 180;
+      const v1 = opts.s1Val;
+      const v2 = opts.s2Val;
+
+      const rawPts = [
+        { x: 0, y: 0 },
+        { x: v1, y: 0 },
+        { x: v2 * Math.cos(rad), y: -v2 * Math.sin(rad) }
+      ];
+      if (opts.showRightRef) {
+        rawPts.push({ x: 0, y: -v2 });
+      }
+
+      const minX = Math.min(...rawPts.map(p => p.x));
+      const maxX = Math.max(...rawPts.map(p => p.x));
+      const minY = Math.min(...rawPts.map(p => p.y));
+      const maxY = Math.max(...rawPts.map(p => p.y));
+
+      const spanX = Math.max(maxX - minX, 1);
+      const spanY = Math.max(maxY - minY, 1);
+      const padX = 165;
+      const padTop = 104;
+      const padBot = 112;
+      const scale = Math.min((W - padX * 2) / spanX, (H - padTop - padBot) / spanY);
+
+      const offsetX = (W - spanX * scale) / 2 - minX * scale;
+      const offsetY = padTop + (H - padTop - padBot - spanY * scale) / 2 - minY * scale;
+
+      const O = { x: offsetX, y: offsetY };
+      const P1 = { x: offsetX + v1 * scale, y: offsetY };
+      const P2 = { x: offsetX + v2 * Math.cos(rad) * scale, y: offsetY - v2 * Math.sin(rad) * scale };
+      const P90 = { x: offsetX, y: offsetY - v2 * scale };
+
+      // 頂点 O から対辺 (P1-P2) までの垂直距離 hO（鈍角・鋭角での窮屈さ判定に使用）
+      const oppLen = Math.hypot(P2.x - P1.x, P2.y - P1.y) || 1;
+      const hO = Math.abs((P2.x - P1.x) * (P1.y - O.y) - (P1.x - O.x) * (P2.y - P1.y)) / oppLen;
+
+      // 1. 直角(90°)比較ガイド（ONのとき）
+      let p90LabelBox = null;
+      if (opts.showRightRef && opts.angleDeg !== 90) {
+        ctx.save();
+        ctx.strokeStyle = isDark ? 'rgba(168, 85, 247, 0.55)' : 'rgba(124, 58, 237, 0.42)';
+        ctx.lineWidth = 3;
+        ctx.setLineDash([10, 8]);
+        ctx.beginPath();
+        ctx.moveTo(O.x, O.y);
+        ctx.lineTo(P90.x, P90.y);
+        ctx.lineTo(P1.x, P1.y);
+        ctx.stroke();
+
+        ctx.strokeStyle = isDark ? 'rgba(148, 163, 184, 0.35)' : 'rgba(100, 116, 139, 0.28)';
+        ctx.lineWidth = 2.5;
+        ctx.setLineDash([6, 6]);
+        ctx.beginPath();
+        const startA = -Math.PI / 2;
+        const endA = -rad;
+        ctx.arc(O.x, O.y, v2 * scale, Math.min(startA, endA), Math.max(startA, endA));
+        ctx.stroke();
+
+        ctx.setLineDash([]);
+        ctx.fillStyle = isDark ? '#c084fc' : '#6d28d9';
+        ctx.font = '800 18px Inter, "Hiragino Sans", sans-serif';
+        ctx.textAlign = 'center';
+        const p90Y = Math.max(76, P90.y - 16);
+        ctx.fillText('90°のとき', P90.x, p90Y);
+        p90LabelBox = { x: P90.x, y: p90Y - 4, w: 100, h: 26 };
+        ctx.restore();
+      }
+
+      // 2. 三角形の塗りつぶし
+      ctx.save();
+      ctx.fillStyle = opts.angleDeg < 90
+        ? (isDark ? 'rgba(59, 130, 246, 0.14)' : 'rgba(59, 130, 246, 0.09)')
+        : opts.angleDeg === 90
+          ? (isDark ? 'rgba(16, 185, 129, 0.14)' : 'rgba(16, 185, 129, 0.09)')
+          : (isDark ? 'rgba(244, 63, 94, 0.14)' : 'rgba(244, 63, 94, 0.09)');
+      ctx.beginPath();
+      ctx.moveTo(O.x, O.y);
+      ctx.lineTo(P1.x, P1.y);
+      ctx.lineTo(P2.x, P2.y);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+
+      // 3. 角度の扇形 or 直角マーク（対辺を突き抜けないよう hO で制限）
+      ctx.save();
+      const arcR = Math.min(54, v1 * scale * 0.30, v2 * scale * 0.30, Math.max(24, hO * 0.62));
+      const angCol = opts.angleDeg < 90 ? '#2563eb' : (opts.angleDeg === 90 ? '#10b981' : '#e11d48');
+      const angFill = opts.angleDeg < 90 ? 'rgba(37, 99, 235, 0.22)' : (opts.angleDeg === 90 ? 'rgba(16, 185, 129, 0.24)' : 'rgba(225, 29, 72, 0.22)');
+      if (opts.angleDeg === 90) {
+        const s = 24;
+        ctx.fillStyle = angFill;
+        ctx.fillRect(O.x, O.y - s, s, s);
+        ctx.strokeStyle = angCol;
+        ctx.lineWidth = 3.5;
+        ctx.strokeRect(O.x, O.y - s, s, s);
+      } else {
+        ctx.fillStyle = angFill;
+        ctx.beginPath();
+        ctx.moveTo(O.x, O.y);
+        ctx.arc(O.x, O.y, arcR, -rad, 0);
+        ctx.closePath();
+        ctx.fill();
+        ctx.strokeStyle = angCol;
+        ctx.lineWidth = 3.5;
+        ctx.beginPath();
+        ctx.arc(O.x, O.y, arcR, -rad, 0);
+        ctx.stroke();
+      }
+      ctx.restore();
+
+      // 4. 既知の2辺（青い太線）と求める辺（オレンジ破線）
+      ctx.save();
+      ctx.lineCap = 'round';
+      ctx.strokeStyle = '#2563eb';
+      ctx.lineWidth = 8;
+      ctx.beginPath(); ctx.moveTo(O.x, O.y); ctx.lineTo(P1.x, P1.y); ctx.stroke();
+
+      ctx.strokeStyle = '#3b82f6';
+      ctx.lineWidth = 8;
+      ctx.beginPath(); ctx.moveTo(O.x, O.y); ctx.lineTo(P2.x, P2.y); ctx.stroke();
+
+      ctx.strokeStyle = '#f97316';
+      ctx.lineWidth = 7;
+      ctx.setLineDash([14, 10]);
+      ctx.beginPath(); ctx.moveTo(P1.x, P1.y); ctx.lineTo(P2.x, P2.y); ctx.stroke();
+      ctx.setLineDash([]);
+
+      const drawDot = (pt, col, r = 10) => {
+        ctx.fillStyle = col;
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 3.5;
+        ctx.beginPath();
+        ctx.arc(pt.x, pt.y, r, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+      };
+      drawDot(O, angCol, 11);
+      drawDot(P1, '#f97316', 9);
+      drawDot(P2, '#f97316', 9);
+      ctx.restore();
+
+      // 5. 各頂点名（A, B, C）の自動外向き配置
+      const G = { x: (O.x + P1.x + P2.x) / 3, y: (O.y + P1.y + P2.y) / 3 };
+      const pushOut = (pt, d) => {
+        const dx = pt.x - G.x, dy = pt.y - G.y;
+        const l = Math.hypot(dx, dy) || 1;
+        return { x: pt.x + (dx / l) * d, y: pt.y + (dy / l) * d };
+      };
+      const vO = opts.angleName;
+      const vP2 = opts.s1Name.toUpperCase();
+      const vP1 = opts.s2Name.toUpperCase();
+
+      const pOLab = pushOut(O, 34);
+      const p1Lab = pushOut(P1, 32);
+      const p2Lab = pushOut(P2, 32);
+
+      ctx.save();
+      ctx.fillStyle = isDark ? '#f1f5f9' : '#0f172a';
+      ctx.font = '900 28px "Times New Roman", serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(vO, pOLab.x, pOLab.y);
+      ctx.fillText(vP1, p1Lab.x, p1Lab.y);
+      ctx.fillText(vP2, p2Lab.x, p2Lab.y);
+      ctx.restore();
+
+      // 6. 辺と角のバッジ描画（矩形サイズ計測＋自動衝突回避ソルバーで重なりゼロを実現）
+      const edgeOutInfo = (a, b, dist) => {
+        const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
+        const dx = b.x - a.x, dy = b.y - a.y;
+        const l = Math.hypot(dx, dy) || 1;
+        let nx = -dy / l, ny = dx / l;
+        if (nx * (mx - G.x) + ny * (my - G.y) < 0) { nx = -nx; ny = -ny; }
+        return { x: mx + nx * dist, y: my + ny * dist, nx, ny };
+      };
+
+      const side1Init = edgeOutInfo(O, P1, 46);
+      const side2Init = edgeOutInfo(O, P2, 50);
+      // 鈍角で対辺が近い場合は、求める辺バッジをさらに外向きへ配置
+      const targetDist = hO < 90 ? 58 : 48;
+      const targetInit = edgeOutInfo(P1, P2, targetDist);
+
+      // 角度バッジの初期座標：
+      // 対辺との隙間 hO が狭い鈍角・極小鋭角の場合は、対辺と干渉しないよう頂点 O の外向き（下側）へ引き出し線付きで配置
+      let angInit;
+      let angUseLeader = false;
+      if (hO < 92) {
+        // 頂点 O の二等分線の反対側（外側・下側）に配置し、頂点名 vO とも重ならないように少しずらす
+        const outRad = rad / 2 + Math.PI;
+        angInit = {
+          x: O.x + 70 * Math.cos(outRad) + (opts.angleDeg > 90 ? 34 : -24),
+          y: O.y - 70 * Math.sin(outRad) + 14
+        };
+        angUseLeader = true;
+      } else {
+        const angLabelDist = Math.min(arcR + 30, hO * 0.48);
+        angInit = {
+          x: O.x + angLabelDist * Math.cos(rad / 2),
+          y: O.y - angLabelDist * Math.sin(rad / 2)
+        };
+      }
+
+      const blueBg = isDark ? '#1e3a8a' : '#eff6ff';
+      const blueTxt = isDark ? '#bfdbfe' : '#1d4ed8';
+      const orgBg = isDark ? '#7c2d12' : '#fff7ed';
+      const orgTxt = isDark ? '#fed7aa' : '#c2410c';
+      const angBg = opts.angleDeg < 90
+        ? (isDark ? '#1e3a8a' : '#dbeafe')
+        : opts.angleDeg === 90
+          ? (isDark ? '#064e3b' : '#d1fae5')
+          : (isDark ? '#881337' : '#ffe4e6');
+
+      const s1Text = `${opts.s1Name} = ${opts.s1Label}`;
+      const s2Text = `${opts.s2Name} = ${opts.s2Label}`;
+      const tText = opts.targetDisplay || `${opts.target} = ?`;
+      const aText = `${opts.angleDeg}°`;
+
+      const badges = [
+        { id: 's1', text: s1Text, x: side1Init.x, y: side1Init.y, nx: side1Init.nx, ny: side1Init.ny, bg: blueBg, border: '#2563eb', color: blueTxt, size: 23, ...measureBadgeSize(ctx, s1Text, 23) },
+        { id: 's2', text: s2Text, x: side2Init.x, y: side2Init.y, nx: side2Init.nx, ny: side2Init.ny, bg: blueBg, border: '#3b82f6', color: blueTxt, size: 23, ...measureBadgeSize(ctx, s2Text, 23) },
+        { id: 'target', text: tText, x: targetInit.x, y: targetInit.y, nx: targetInit.nx, ny: targetInit.ny, bg: orgBg, border: '#f97316', color: orgTxt, size: 23, ...measureBadgeSize(ctx, tText, 23) },
+        { id: 'ang', text: aText, x: angInit.x, y: angInit.y, nx: 0, ny: 1, bg: angBg, border: angCol, color: isDark ? '#ffffff' : angCol, size: 22, ...measureBadgeSize(ctx, aText, 22) }
+      ];
+
+      // 固定障害物（左上のステータス枠・各頂点ドット・頂点名・90°ラベル）
+      const fixedObstacles = [
+        { x: 198, y: 35, w: 372, h: 48 }, // 左上ステータスバー
+        { x: O.x, y: O.y, w: 32, h: 32 },
+        { x: P1.x, y: P1.y, w: 28, h: 28 },
+        { x: P2.x, y: P2.y, w: 28, h: 28 },
+        { x: pOLab.x, y: pOLab.y, w: 36, h: 36 },
+        { x: p1Lab.x, y: p1Lab.y, w: 36, h: 36 },
+        { x: p2Lab.x, y: p2Lab.y, w: 36, h: 36 }
+      ];
+      if (p90LabelBox) fixedObstacles.push(p90LabelBox);
+
+      // 45回の反発イテレーションで全バッジ同士＆固定障害物との重なりを完全解消
+      const padGap = 12;
+      for (let iter = 0; iter < 45; iter++) {
+        // 1) バッジ同士の衝突解消
+        for (let i = 0; i < badges.length; i++) {
+          for (let j = i + 1; j < badges.length; j++) {
+            const b1 = badges[i], b2 = badges[j];
+            const ox = (b1.w + b2.w) / 2 + padGap - Math.abs(b1.x - b2.x);
+            const oy = (b1.h + b2.h) / 2 + padGap - Math.abs(b1.y - b2.y);
+            if (ox > 0 && oy > 0) {
+              if (ox < oy) {
+                const dir = b1.x >= b2.x ? 1 : -1;
+                b1.x += dir * (ox / 2 + 1);
+                b2.x -= dir * (ox / 2 + 1);
+              } else {
+                const dir = b1.y >= b2.y ? 1 : -1;
+                b1.y += dir * (oy / 2 + 1);
+                b2.y -= dir * (oy / 2 + 1);
+              }
+            }
+          }
+        }
+        // 2) 固定障害物との衝突解消 + キャンバス内クランプ
+        for (const b of badges) {
+          for (const obs of fixedObstacles) {
+            const ox = (b.w + obs.w) / 2 + 6 - Math.abs(b.x - obs.x);
+            const oy = (b.h + obs.h) / 2 + 6 - Math.abs(b.y - obs.y);
+            if (ox > 0 && oy > 0) {
+              if (ox < oy) {
+                const dir = b.x >= obs.x ? 1 : -1;
+                b.x += dir * (ox + 1);
+              } else {
+                const dir = b.y >= obs.y ? 1 : -1;
+                b.y += dir * (oy + 1);
+              }
+            }
+          }
+          b.x = Math.max(b.w / 2 + 14, Math.min(W - b.w / 2 - 14, b.x));
+          b.y = Math.max(b.h / 2 + 16, Math.min(H - b.h / 2 - 14, b.y));
+        }
+      }
+
+      // 角度バッジが外側に退避した場合は、扇形の中央へ薄いガイド線を結んで視認性を高める
+      const angBadge = badges.find(b => b.id === 'ang');
+      if (angUseLeader && angBadge) {
+        const arcMidX = O.x + (arcR * 0.65) * Math.cos(rad / 2);
+        const arcMidY = O.y - (arcR * 0.65) * Math.sin(rad / 2);
+        ctx.save();
+        ctx.strokeStyle = angCol;
+        ctx.lineWidth = 2;
+        ctx.setLineDash([4, 4]);
+        ctx.beginPath();
+        ctx.moveTo(arcMidX, arcMidY);
+        ctx.lineTo(angBadge.x, angBadge.y);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      // 衝突解消済みの全バッジを描画
+      for (const b of badges) {
+        drawPillBadge(ctx, b.x, b.y, b.text, b.bg, b.border, b.color, b.size);
+      }
+
+      // 7. 左上にステータスバッジ（鋭角/直角/鈍角）を描画
+      const statusStr = opts.angleDeg < 90
+        ? '鋭角 (90°より小) → 直角より短い！'
+        : opts.angleDeg === 90
+          ? '直角 (90°) → 三平方の定理！'
+          : '鈍角 (90°より大) → 直角より長い！';
+      ctx.save();
+      ctx.fillStyle = angBg;
+      ctx.strokeStyle = angCol;
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.roundRect(18, 16, 360, 38, 10);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = isDark ? '#ffffff' : angCol;
+      ctx.font = '800 18px Inter, "Hiragino Sans", sans-serif';
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(statusStr, 32, 35);
+      ctx.restore();
+
+      // Canvas を画像化して <img> へ反映
+      canvas.toBlob((blob) => {
+        if (!blob) return;
+        const url = URL.createObjectURL(blob);
+        activeBlobUrls.push(url);
+        const targetImg = document.getElementById(imgElId);
+        if (targetImg) {
+          targetImg.src = url;
+        }
+      }, 'image/png');
+    }
+
+    /* =========================================================================
+       ステータス更新（XP・コンボ・段位・達成率）
+       ========================================================================= */
+    function updateHeaderStats() {
+      document.getElementById('xpDisplay').textContent = xp;
+      document.getElementById('comboDisplay').textContent = combo;
+      document.getElementById('navClearedCount').textContent = `${clearedIds.size}/21`;
+
+      let rank = '🥉 見習い';
+      if (clearedIds.size >= 18 || xp >= 2200) rank = '👑 余弦マスター';
+      else if (clearedIds.size >= 12 || xp >= 1400) rank = '🥇 達人';
+      else if (clearedIds.size >= 6 || xp >= 700) rank = '🥈 初段';
+      document.getElementById('rankDisplay').textContent = rank;
+    }
+
+    function setTheme(mode) {
+      const root = document.documentElement;
+      if (mode === 'dark') root.classList.add('dark');
+      else root.classList.remove('dark');
+
+      const activeCls = 'px-2 py-1 rounded-lg transition bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 shadow-sm';
+      const inactiveCls = 'px-2 py-1 rounded-lg transition text-slate-600 dark:text-slate-400';
+      document.getElementById('themeLightBtn').className = mode === 'light' ? activeCls : inactiveCls;
+      document.getElementById('themeDarkBtn').className = mode === 'dark' ? activeCls : inactiveCls;
+      renderApp();
+    }
+
+    function selectTab(tab) {
+      activeTab = tab;
+      document.querySelectorAll('.nav-tab').forEach(btn => {
+        if (btn.dataset.tab === tab) {
+          btn.className = 'nav-tab shrink-0 px-3.5 py-2 rounded-xl text-xs font-bold transition text-left bg-blue-600 text-white shadow-md';
+        } else {
+          btn.className = 'nav-tab shrink-0 px-3.5 py-2 rounded-xl text-xs font-bold transition text-left bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-50';
+        }
+      });
+      renderApp();
+    }
+
+    function loadDrillProblem(probId) {
+      currentProbId = probId;
+      const prob = DRILL_PROBLEMS.find(p => p.id === probId) || DRILL_PROBLEMS[0];
+      activeGroup = prob.group;
+      drillSignGuessed = null;
+      drillSignCorrect = false;
+      drillSelectedChoiceIdx = null;
+      drillShuffledChoices = [...prob.choices].sort(() => Math.random() - 0.5);
+      renderApp();
+    }
+
+    /* =========================================================================
+       メイン画面レンダリング＆図形生成トリガー
+       ========================================================================= */
+    function renderApp() {
+      revokeAllPngUrls();
+      const container = document.getElementById('mainContent');
+
+      if (activeTab === 'intro') {
+        container.innerHTML = renderIntroTab();
+        const rad = (introAngle * Math.PI) / 180;
+        const cSq = 36 + 16 - 48 * Math.cos(rad);
+        const cVal = Math.sqrt(cSq);
+        generateTrianglePng('introPngImg', {
+          angleName: 'C', angleDeg: introAngle,
+          s1Name: 'a', s1Label: '6', s1Val: 6,
+          s2Name: 'b', s2Label: '4', s2Val: 4,
+          target: 'c', targetDisplay: `c ≒ ${cVal.toFixed(2)}`,
+          showRightRef: introShowRightRef
+        });
+      } else if (activeTab === 'steps') {
+        container.innerHTML = renderStepsTab();
+        const map = {
+          a: { angleName: 'A', s1Name: 'b', s2Name: 'c', target: 'a' },
+          b: { angleName: 'B', s1Name: 'c', s2Name: 'a', target: 'b' },
+          c: { angleName: 'C', s1Name: 'a', s2Name: 'b', target: 'c' }
+        };
+        const cfg = map[stepTargetSide];
+        generateTrianglePng('stepsPngImg', {
+          angleName: cfg.angleName, angleDeg: stepAngleTest,
+          s1Name: cfg.s1Name, s1Label: '6', s1Val: 6,
+          s2Name: cfg.s2Name, s2Label: '4', s2Val: 4,
+          target: cfg.target, targetDisplay: `${cfg.target} = ? (丸で囲む)`,
+          showRightRef: true
+        });
+      } else if (activeTab === 'examples') {
+        container.innerHTML = renderExamplesTab();
+        generateTrianglePng('ex1PngImg', {
+          angleName: 'C', angleDeg: 45,
+          s1Name: 'a', s1Label: '9', s1Val: 9,
+          s2Name: 'b', s2Label: '2√2', s2Val: 2 * Math.SQRT2,
+          target: 'c', targetDisplay: ex1Line >= 4 ? 'c = √53' : 'c = ?',
+          showRightRef: true
+        });
+        generateTrianglePng('ex2PngImg', {
+          angleName: 'A', angleDeg: 120,
+          s1Name: 'b', s1Label: '6', s1Val: 6,
+          s2Name: 'c', s2Label: '4', s2Val: 4,
+          target: 'a', targetDisplay: ex2Line >= 4 ? 'a = 2√19' : 'a = ?',
+          showRightRef: true
+        });
+      } else if (activeTab === 'drill') {
+        container.innerHTML = renderDrillTab();
+        const prob = DRILL_PROBLEMS.find(p => p.id === currentProbId) || DRILL_PROBLEMS[0];
+        const solved = drillSelectedChoiceIdx !== null;
+        generateTrianglePng('drillPngImg', {
+          angleName: prob.angleName, angleDeg: prob.angleDeg,
+          s1Name: prob.s1Name, s1Label: prob.s1Label, s1Val: prob.s1Val,
+          s2Name: prob.s2Name, s2Label: prob.s2Label, s2Val: prob.s2Val,
+          target: prob.target,
+          targetDisplay: solved ? `${prob.target} = ${prob.ansLabel}` : `${prob.target} = ?`,
+          showRightRef: drillShowRightRef
+        });
+      } else if (activeTab === 'exit') {
+        container.innerHTML = renderExitTab();
+        generateTrianglePng('exitQ19Png', {
+          angleName: 'C', angleDeg: 30,
+          s1Name: 'a', s1Label: '6', s1Val: 6,
+          s2Name: 'b', s2Label: '4', s2Val: 4,
+          target: 'c', targetDisplay: 'c ≒ 3.23 (短い!)',
+          showRightRef: true
+        });
+        generateTrianglePng('exitQ20Png', {
+          angleName: 'A', angleDeg: 150,
+          s1Name: 'b', s1Label: '6', s1Val: 6,
+          s2Name: 'c', s2Label: '4', s2Val: 4,
+          target: 'a', targetDisplay: 'a ≒ 9.67 (長い!)',
+          showRightRef: true
+        });
+        generateTrianglePng('exitQ21Png', {
+          angleName: 'B', angleDeg: 120,
+          s1Name: 'c', s1Label: '8', s1Val: 8,
+          s2Name: 'a', s2Label: '4', s2Val: 4,
+          target: 'b', targetDisplay: exitChecked ? 'b = 4√7' : 'b = ?',
+          showRightRef: true
+        });
+      }
+      updateHeaderStats();
+    }
+
+    /* =========================================================================
+       ① 導入タブ：同じ2辺（6と4）なのに角が開くと長さが変わる！
+       ========================================================================= */
+    function renderIntroTab() {
+      const rad = (introAngle * Math.PI) / 180;
+      const cosVal = Math.cos(rad);
+      const sumSq = 36 + 16; // 52
+      const corrVal = -48 * cosVal;
+      const cSq = sumSq + corrVal;
+      const cLen = Math.sqrt(cSq);
+      const rightLen = Math.sqrt(52); // 7.21
+
+      let signBadge = '';
+      if (introAngle < 90) {
+        signBadge = `<span class="px-2.5 py-1 rounded-lg bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 font-extrabold">鋭角：平方の和 52 から引く（&minus;${Math.abs(corrVal).toFixed(1)}）</span>`;
+      } else if (introAngle === 90) {
+        signBadge = `<span class="px-2.5 py-1 rounded-lg bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 font-extrabold">直角：補正 0（三平方の定理そのまま！）</span>`;
+      } else {
+        signBadge = `<span class="px-2.5 py-1 rounded-lg bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300 font-extrabold">鈍角：平方の和 52 に足す（＋${Math.abs(corrVal).toFixed(1)}）</span>`;
+      }
+
+      return `
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+          <!-- 左：リアルタイム図解＆角度コントローラ -->
+          <div class="lg:col-span-7 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
+            <div class="flex items-center justify-between flex-wrap gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
+              <div>
+                <span class="text-xs font-extrabold text-blue-600 dark:text-blue-400">導入実験：長さ 6 と 4 の定規を開こう</span>
+                <h2 class="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white">同じ2辺でも、角が開くと向かいの辺はどう変わる？</h2>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <button type="button" data-action="intro-toggle-ref" class="px-2.5 py-1 rounded-lg text-xs font-bold border transition ${introShowRightRef ? 'bg-purple-600 border-purple-600 text-white' : 'bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-600'}">
+                  📐 90°基準線: ${introShowRightRef ? 'ON' : 'OFF'}
+                </button>
+              </div>
+            </div>
+
+            <!-- 図形表示フレーム -->
+            <div class="rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-950">
+              <img id="introPngImg" alt="定規2本（長さ6と4）の開きと向かいの辺の図" class="w-full h-auto block">
+            </div>
+
+            <!-- スライダー＆指導案プリセット（30°・90°・120°） -->
+            <div class="bg-blue-50/70 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-xl p-4 space-y-3">
+              <div class="flex items-center justify-between flex-wrap gap-2">
+                <label class="text-xs sm:text-sm font-extrabold text-slate-900 dark:text-white">
+                  🎛️ 間の角 C を動かす：<span class="text-lg font-mono text-blue-600 dark:text-blue-400">${introAngle}°</span>
+                </label>
+                <div class="flex flex-wrap gap-1.5">
+                  ${[30, 60, 90, 120, 150].map(deg => `
+                    <button type="button" data-intro-deg="${deg}" class="px-2.5 py-1 rounded-lg text-xs font-extrabold border transition ${introAngle === deg ? 'bg-blue-600 border-blue-600 text-white shadow' : 'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600'}">${deg}°${deg === 90 ? ' (直角)' : ''}</button>
+                  `).join('')}
+                </div>
+              </div>
+              <input type="range" min="15" max="165" step="5" value="${introAngle}" data-input="intro-angle" class="w-full cursor-pointer">
+            </div>
+
+            <!-- 三平方の定理からの補正の見える化 -->
+            <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-2 text-xs sm:text-sm">
+              <div class="flex items-center justify-between flex-wrap gap-2">
+                <span class="font-extrabold text-slate-700 dark:text-slate-300">余弦定理での計算の仕組み：</span>
+                ${signBadge}
+              </div>
+              <div class="font-mono font-extrabold text-sm sm:text-base text-slate-900 dark:text-white">
+                c² ＝ (6² ＋ 4²) ${corrVal >= 0 ? '＋' : '－'} ${Math.abs(corrVal).toFixed(1)} ＝ <strong>${cSq.toFixed(1)}</strong>　→　c ≒ <strong>${cLen.toFixed(2)}</strong>
+              </div>
+              <div class="text-xs text-slate-500 dark:text-slate-400">
+                ※ 90°（三平方の定理）のときは c² = 36 + 16 = 52（c ≒ ${rightLen.toFixed(2)}）がちょうど基準になります！
+              </div>
+            </div>
+          </div>
+
+          <!-- 右：指導案の核心解説＆理解チェック -->
+          <div class="lg:col-span-5 space-y-4">
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-3 text-xs sm:text-sm">
+              <div class="font-extrabold text-indigo-600 dark:text-indigo-400 text-sm">💡 余弦定理の正体：「三平方の定理 ＋ 角度の補正」</div>
+              <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-center font-extrabold text-base sm:text-lg">
+                <span class="math-var">c</span><sup>2</sup> ＝ <span class="text-blue-600 dark:text-blue-400"><span class="math-var">a</span><sup>2</sup> ＋ <span class="math-var">b</span><sup>2</sup></span> <span class="text-rose-600 dark:text-rose-400">&minus; 2<span class="math-var">ab</span> cos <span class="math-var">C</span></span>
+              </div>
+              <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                後ろの <strong class="text-rose-600 dark:text-rose-400">&minus;2ab cos C</strong> は、角の開き方に応じて長さを調整する<strong>「補正項」</strong>です！
+              </p>
+              <div class="space-y-2 text-xs font-bold">
+                <div class="p-2.5 rounded-xl bg-blue-50 dark:bg-blue-950/50 border border-blue-200 dark:border-blue-800 text-blue-900 dark:text-blue-200">
+                  🔹 <strong>鋭角（90°未満）</strong>：cos がプラス → 平方の和から<strong>引く</strong>（直角より短くなる）
+                </div>
+                <div class="p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 text-emerald-900 dark:text-emerald-200">
+                  🟢 <strong>直角（ちょうど90°）</strong>：cos 90° = 0 → <strong>補正 0</strong>（三平方の定理に一致！）
+                </div>
+                <div class="p-2.5 rounded-xl bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-800 text-rose-900 dark:text-rose-200">
+                  🔺 <strong>鈍角（90°超）</strong>：cos がマイナス → マイナスを引くので<strong>足す</strong>（直角より長くなる）
+                </div>
+              </div>
+            </div>
+
+            <!-- 導入確認ミニクイズ -->
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-3 text-xs">
+              <div class="font-extrabold text-amber-600 dark:text-amber-400">❓ 導入ミニクイズ（+50 XP）</div>
+              <p class="font-bold text-slate-800 dark:text-slate-100 leading-relaxed">
+                2辺が 6 と 4 で、間の角が <strong>120°（鈍角）</strong>のとき、向かいの辺の2乗 c² は、直角のときの 52（= 6² + 4²）より大きくなる？小さくなる？
+              </p>
+              <div class="grid grid-cols-2 gap-2">
+                <button type="button" data-intro-quiz="big" class="py-2.5 px-3 rounded-xl border-2 font-extrabold transition ${introQuizDone === 'big' ? 'border-emerald-500 bg-emerald-500/15 text-emerald-700 dark:text-emerald-300' : 'border-slate-200 dark:border-slate-700 hover:border-blue-400'}">
+                  大きくなる（足す！）
+                </button>
+                <button type="button" data-intro-quiz="small" class="py-2.5 px-3 rounded-xl border-2 font-extrabold transition ${introQuizDone === 'small' ? 'border-rose-500 bg-rose-500/15 text-rose-700 dark:text-rose-300' : 'border-slate-200 dark:border-slate-700 hover:border-blue-400'}">
+                  小さくなる（引く！）
+                </button>
+              </div>
+              ${introQuizDone ? `
+                <div class="p-3 rounded-xl font-bold leading-relaxed ${introQuizDone === 'big' ? 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-200' : 'bg-rose-50 dark:bg-rose-950/50 text-rose-800 dark:text-rose-200'}">
+                  ${introQuizDone === 'big'
+                    ? '⭕ 大正解！左の図で「120°」を押してみよう！90°の点線より外側に大きく開くので、マイナスを引く（＝足す）計算になり、52より大きくなります！'
+                    : '❌ 左の図で「120°」ボタンを押して「90°基準線」と見比べてみよう！90°より広く開いているので、先端同士の距離は必ず<strong>大きく（足し算に）</strong>なります！'}
+                </div>
+              ` : ''}
+
+              <button type="button" data-tab="steps" class="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-extrabold shadow transition">
+                ② 公式を選ぶ5ステップへ進む &rarr;
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    /* =========================================================================
+       ② 公式を選ぶ5ステップタブ
+       ========================================================================= */
+    function renderStepsTab() {
+      const cfgMap = {
+        a: { target: 'a', angle: 'A', s1: 'b', s2: 'c', formula: '<span class="math-var">a</span><sup>2</sup> ＝ <span class="math-var">b</span><sup>2</sup> ＋ <span class="math-var">c</span><sup>2</sup> &minus; 2<span class="math-var">bc</span> cos <span class="math-var">A</span>' },
+        b: { target: 'b', angle: 'B', s1: 'c', s2: 'a', formula: '<span class="math-var">b</span><sup>2</sup> ＝ <span class="math-var">c</span><sup>2</sup> ＋ <span class="math-var">a</span><sup>2</sup> &minus; 2<span class="math-var">ca</span> cos <span class="math-var">B</span>' },
+        c: { target: 'c', angle: 'C', s1: 'a', s2: 'b', formula: '<span class="math-var">c</span><sup>2</sup> ＝ <span class="math-var">a</span><sup>2</sup> ＋ <span class="math-var">b</span><sup>2</sup> &minus; 2<span class="math-var">ab</span> cos <span class="math-var">C</span>' }
+      };
+      const cfg = cfgMap[stepTargetSide];
+      const ci = COS_INFO[stepAngleTest];
+
+      const fiveSteps = [
+        { num: 1, title: `① 求める辺（${cfg.target}）を丸で囲む`, desc: `今回は辺 <strong>${cfg.target}</strong> を求めたいので、式の左辺は「<strong>${cfg.target}² ＝</strong>」からスタートします！` },
+        { num: 2, title: `② その向かいの角（${cfg.angle} = ${stepAngleTest}°）を確認する`, desc: `求める辺 ${cfg.target} の正面にある角は <strong>${cfg.angle}</strong>！だから一番後ろに付くのは「<strong>cos ${cfg.angle}</strong>」です（向かい合っていないと使えません！）。` },
+        { num: 3, title: `③ 残りの2辺（${cfg.s1}, ${cfg.s2}）を確認する`, desc: `角 ${cfg.angle} をはさむ残りの2辺は <strong>${cfg.s1}</strong> と <strong>${cfg.s2}</strong>。右辺に「<strong>${cfg.s1}² ＋ ${cfg.s2}² − 2${cfg.s1}${cfg.s2}</strong>」を書きます！` },
+        { num: 4, title: `④ 余弦の符号を予想する（${ci.signText}）`, desc: `角 ${cfg.angle} = ${stepAngleTest}° なので cos ${stepAngleTest}° = ${formatMathRoots(ci.frac)}。計算する前から「<strong>${ci.signText}</strong>」と必ず予想しよう！` },
+        { num: 5, title: `⑤ 代入して ${cfg.target}² を計算 → 最後に正の平方根を取る！`, desc: `出てきた数値は「2乗（${cfg.target}²）」のまま！辺の長さは正（${cfg.target} ＞ 0）なので、最後に必ず <strong>√ を取って簡単化</strong>してゴール！` }
+      ];
+
+      return `
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+          <!-- 左：文字を入れ替えても構造は同じ！図＋切替 -->
+          <div class="lg:col-span-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
+            <div class="border-b border-slate-100 dark:border-slate-800 pb-3 space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-extrabold text-blue-600 dark:text-blue-400">文字を丸暗記しない！</span>
+              </div>
+              <h2 class="text-base font-extrabold text-slate-900 dark:text-white">求める辺を変えて、式の変化を目で確認しよう</h2>
+            </div>
+
+            <div class="grid grid-cols-3 gap-2 text-xs font-extrabold">
+              <button type="button" data-step-target="a" class="py-2 rounded-xl border-2 transition ${stepTargetSide === 'a' ? 'bg-orange-500 border-orange-500 text-white shadow' : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700'}">辺 a を求める</button>
+              <button type="button" data-step-target="b" class="py-2 rounded-xl border-2 transition ${stepTargetSide === 'b' ? 'bg-orange-500 border-orange-500 text-white shadow' : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700'}">辺 b を求める</button>
+              <button type="button" data-step-target="c" class="py-2 rounded-xl border-2 transition ${stepTargetSide === 'c' ? 'bg-orange-500 border-orange-500 text-white shadow' : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700'}">辺 c を求める</button>
+            </div>
+
+            <div class="flex flex-wrap gap-1.5 text-[11px] font-bold items-center">
+              <span class="text-slate-500">間の角:</span>
+              ${[30, 45, 60, 90, 120, 135, 150].map(d => `
+                <button type="button" data-step-angle="${d}" class="px-2 py-1 rounded-lg border transition ${stepAngleTest === d ? 'bg-blue-600 border-blue-600 text-white' : 'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600'}">${d}°</button>
+              `).join('')}
+            </div>
+
+            <div class="rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-950">
+              <img id="stepsPngImg" alt="余弦定理の辺と角の対応図" class="w-full h-auto block">
+            </div>
+
+            <div class="p-4 rounded-xl bg-indigo-50 dark:bg-indigo-950/50 border-2 border-indigo-300 dark:border-indigo-700 text-center space-y-1">
+              <div class="text-xs font-extrabold text-indigo-700 dark:text-indigo-300">選択中の公式（声に出して読もう！）</div>
+              <div class="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white">${cfg.formula}</div>
+              <div class="text-xs text-slate-600 dark:text-slate-300">「求める辺の平方 ＝ 残り2辺の平方の和 − 補正項」</div>
+            </div>
+          </div>
+
+          <!-- 右：5ステップのチェックリスト -->
+          <div class="lg:col-span-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+              <h3 class="text-base font-extrabold text-slate-900 dark:text-white">📋 迷わない！公式を選ぶ5ステップ手順</h3>
+              <button type="button" data-action="step-reveal-all" class="px-3 py-1 rounded-lg text-xs font-bold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200">
+                ${stepOrderProgress >= 5 ? 'リセット' : 'すべて開く'}
+              </button>
+            </div>
+
+            <div class="space-y-2.5">
+              ${fiveSteps.map(st => {
+                const open = st.num <= Math.max(1, stepOrderProgress);
+                return `
+                  <div data-step-open="${st.num}" class="cursor-pointer p-3.5 rounded-xl border-2 transition ${open ? 'border-blue-400 bg-blue-50/50 dark:bg-blue-950/30' : 'border-dashed border-slate-300 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900'}">
+                    <div class="font-extrabold text-xs sm:text-sm ${open ? 'text-blue-800 dark:text-blue-200' : 'text-slate-500'}">${st.title}</div>
+                    ${open ? `<div class="mt-1.5 text-xs text-slate-700 dark:text-slate-300 leading-relaxed">${st.desc}</div>` : `<div class="mt-1 text-[11px] text-slate-400">クリックして手順を確認</div>`}
+                  </div>
+                `;
+              }).join('')}
+            </div>
+
+            <button type="button" data-tab="examples" class="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs sm:text-sm font-extrabold shadow transition">
+              ③ 例題1・2で実践してみる &rarr;
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    /* =========================================================================
+       ③ 例題1・2と重要発問タブ
+       ========================================================================= */
+    function renderExamplesTab() {
+      const ex1Steps = [
+        { s: 1, label: '① 予想と立式（45°は鋭角 → 平方の和より小さくなる！）', expr: '<span class="math-var">c</span><sup>2</sup> ＝ 9<sup>2</sup> ＋ (2√2)<sup>2</sup> &minus; 2 &times; 9 &times; 2√2 &times; <span class="math-frac"><span class="num">√2</span><span class="den">2</span></span>' },
+        { s: 2, label: '② 平方と補正項を計算（(2√2)² = 8、√2×√2 = 2 に注目！）', expr: '<span class="math-var">c</span><sup>2</sup> ＝ 81 ＋ 8 &minus; 36' },
+        { s: 3, label: '③ 足し算・引き算をまとめる', expr: '<span class="math-var">c</span><sup>2</sup> ＝ <strong>53</strong>　（直角のときの 89 よりちゃんと小さくなった！）' },
+        { s: 4, label: '④ c ＞ 0 より正の平方根を取る', expr: '<span class="math-var">c</span> ＝ <strong>√53</strong>' }
+      ];
+
+      const ex2Steps = [
+        { s: 1, label: '① 予想と立式（120°は鈍角 → 負の余弦を引くので足し算に！）', expr: '<span class="math-var">a</span><sup>2</sup> ＝ 6<sup>2</sup> ＋ 4<sup>2</sup> &minus; 2 &times; 6 &times; 4 &times; (&minus;<span class="math-frac"><span class="num">1</span><span class="den">2</span></span>)' },
+        { s: 2, label: '② マイナス×マイナス＝プラス（加算になる瞬間！）', expr: '<span class="math-var">a</span><sup>2</sup> ＝ 36 ＋ 16 ＋ 24' },
+        { s: 3, label: '③ 合計を出す', expr: '<span class="math-var">a</span><sup>2</sup> ＝ <strong>76</strong>　（直角のときの 52 よりちゃんと大きくなった！）' },
+        { s: 4, label: '④ a ＞ 0 より正の平方根を取り、76 = 4 × 19 を簡単化', expr: '<span class="math-var">a</span> ＝ √76 ＝ <strong>2√19</strong>' }
+      ];
+
+      return `
+        <div class="space-y-5">
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+            <!-- 例題1 -->
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
+              <div class="flex items-center justify-between flex-wrap gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
+                <div>
+                  <span class="text-xs font-extrabold text-blue-600 dark:text-blue-400">例題 1（鋭角・ルートを含む辺）</span>
+                  <h2 class="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white">${formatMathRoots('a = 9, b = 2√2, C = 45° のとき c を求めよ')}</h2>
+                </div>
+                <div class="flex gap-1.5">
+                  <button type="button" data-ex-next="1" class="px-3 py-1 rounded-lg text-xs font-extrabold bg-blue-600 hover:bg-blue-500 text-white shadow">${ex1Line >= 4 ? '🔄 最初から' : '次の行へ &darr;'}</button>
+                </div>
+              </div>
+              <div class="rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800">
+                <img id="ex1PngImg" alt="例題1の図" class="w-full h-auto block">
+              </div>
+              <div class="space-y-2 text-xs">
+                ${ex1Steps.map(st => st.s <= ex1Line ? `
+                  <div class="p-3 rounded-xl border ${st.s === 4 ? 'border-emerald-400 bg-emerald-50/70 dark:bg-emerald-950/40' : 'border-blue-200 dark:border-blue-800 bg-slate-50 dark:bg-slate-950'}">
+                    <div class="font-bold text-blue-700 dark:text-blue-300">${st.label}</div>
+                    <div class="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white mt-1">${formatMathRoots(st.expr)}</div>
+                  </div>
+                ` : `
+                  <div data-ex-jump="1-${st.s}" class="cursor-pointer p-2.5 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 text-center text-slate-400 font-bold hover:border-blue-400">
+                    🔒 ${st.label}（タップで表示）
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+
+            <!-- 例題2 -->
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
+              <div class="flex items-center justify-between flex-wrap gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
+                <div>
+                  <span class="text-xs font-extrabold text-rose-600 dark:text-rose-400">例題 2（鈍角・加算になるパターン）</span>
+                  <h2 class="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white">b = 6, c = 4, A = 120° のとき a を求めよ</h2>
+                </div>
+                <div class="flex gap-1.5">
+                  <button type="button" data-ex-next="2" class="px-3 py-1 rounded-lg text-xs font-extrabold bg-rose-600 hover:bg-rose-500 text-white shadow">${ex2Line >= 4 ? '🔄 最初から' : '次の行へ &darr;'}</button>
+                </div>
+              </div>
+              <div class="rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800">
+                <img id="ex2PngImg" alt="例題2の図" class="w-full h-auto block">
+              </div>
+              <div class="space-y-2 text-xs">
+                ${ex2Steps.map(st => st.s <= ex2Line ? `
+                  <div class="p-3 rounded-xl border ${st.s === 4 ? 'border-emerald-400 bg-emerald-50/70 dark:bg-emerald-950/40' : 'border-rose-200 dark:border-rose-800 bg-slate-50 dark:bg-slate-950'}">
+                    <div class="font-bold text-rose-700 dark:text-rose-300">${st.label}</div>
+                    <div class="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white mt-1">${formatMathRoots(st.expr)}</div>
+                  </div>
+                ` : `
+                  <div data-ex-jump="2-${st.s}" class="cursor-pointer p-2.5 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 text-center text-slate-400 font-bold hover:border-rose-400">
+                    🔒 ${st.label}（タップで表示）
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          </div>
+
+          <!-- 指導案の重要発問2連チェック -->
+          <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
+            <div class="font-extrabold text-amber-600 dark:text-amber-400 text-sm">🗣️ 演習に進む前の超重要チェック！（ミス防止の2つの問い）</div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+              <div class="p-4 rounded-xl bg-amber-50/60 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 space-y-2">
+                <div class="font-extrabold text-slate-900 dark:text-white">Q1. 例題2で、なぜ答えは「76」ではないのでしょうか？</div>
+                <div class="grid grid-cols-2 gap-2">
+                  <button type="button" data-ex-q1="sq" class="p-2 rounded-lg border-2 font-bold ${exQ1 === 'sq' ? 'border-emerald-500 bg-emerald-500/15 text-emerald-700 dark:text-emerald-300' : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700'}">76は a²（2乗）の値だから</button>
+                  <button type="button" data-ex-q1="big" class="p-2 rounded-lg border-2 font-bold ${exQ1 === 'big' ? 'border-rose-500 bg-rose-500/15 text-rose-700 dark:text-rose-300' : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700'}">計算が途中だから</button>
+                </div>
+                ${exQ1 ? `<div class="font-bold ${exQ1 === 'sq' ? 'text-emerald-700 dark:text-emerald-300' : 'text-rose-700 dark:text-rose-300'}">${exQ1 === 'sq' ? '⭕ その通り！余弦定理で求まるのは辺の2乗（a²）なので、最後に必ず平方根を取ります！' : '💡 76 は「a の 2乗（a²）」です！辺の長さ a に戻すため最後にルートを取ります。'}</div>` : ''}
+              </div>
+
+              <div class="p-4 rounded-xl bg-amber-50/60 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 space-y-2">
+                <div class="font-extrabold text-slate-900 dark:text-white">${formatMathRoots('Q2. a² = 76 のとき、なぜ −2√19（負の平方根）は選ばない？')}</div>
+                <div class="grid grid-cols-2 gap-2">
+                  <button type="button" data-ex-q2="pos" class="p-2 rounded-lg border-2 font-bold ${exQ2 === 'pos' ? 'border-emerald-500 bg-emerald-500/15 text-emerald-700 dark:text-emerald-300' : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700'}">辺の長さは必ず正（＞0）だから</button>
+                  <button type="button" data-ex-q2="angle" class="p-2 rounded-lg border-2 font-bold ${exQ2 === 'angle' ? 'border-rose-500 bg-rose-500/15 text-rose-700 dark:text-rose-300' : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700'}">120°が鈍角だから</button>
+                </div>
+                ${exQ2 ? `<div class="font-bold ${exQ2 === 'pos' ? 'text-emerald-700 dark:text-emerald-300' : 'text-rose-700 dark:text-rose-300'}">${exQ2 === 'pos' ? '⭕ 完璧！答案にも「a ＞ 0 より」と一言添えられると満点です！' : '💡 角度に関係なく「辺の長さは必ず正（a ＞ 0）」なので、正の平方根だけを選びます！'}</div>` : ''}
+              </div>
+            </div>
+
+            <button type="button" data-tab="drill" class="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-sm font-extrabold shadow-md transition">
+              🔥 準備OK！個別演習道場（全21問）に挑戦する &rarr;
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    /* =========================================================================
+       ④ 個別演習道場タブ（問1〜21：2段階ミッション＋PNG図＋つまずき診断）
+       ========================================================================= */
+    function renderDrillTab() {
+      const prob = DRILL_PROBLEMS.find(p => p.id === currentProbId) || DRILL_PROBLEMS[0];
+      const ci = COS_INFO[prob.angleDeg];
+      const groupProbs = DRILL_PROBLEMS.filter(p => p.group === activeGroup);
+
+      // 初回ロード時に選択肢シャッフルが空なら初期化
+      if (drillShuffledChoices.length === 0) {
+        drillShuffledChoices = [...prob.choices].sort(() => Math.random() - 0.5);
+      }
+
+      const answered = drillSelectedChoiceIdx !== null;
+      const chosenObj = answered ? drillShuffledChoices[drillSelectedChoiceIdx] : null;
+      const isRight = chosenObj ? chosenObj.ok : false;
+
+      // 途中式の丁寧な生成
+      const s1Disp = prob.s1Label.includes('√') ? `(${prob.s1Label})<sup>2</sup>` : `${prob.s1Label}<sup>2</sup>`;
+      const s2Disp = prob.s2Label.includes('√') ? `(${prob.s2Label})<sup>2</sup>` : `${prob.s2Label}<sup>2</sup>`;
+      const line1 = `<span class="math-var">${prob.target}</span><sup>2</sup> ＝ ${s1Disp} ＋ ${s2Disp} &minus; 2 &times; ${prob.s1Label} &times; ${prob.s2Label} &times; ${ci.frac}`;
+      const line2 = `<span class="math-var">${prob.target}</span><sup>2</sup> ＝ ${prob.s1Sq} ＋ ${prob.s2Sq} &minus; (${prob.corrRaw}) ＝ ${prob.s1Sq + prob.s2Sq} ${prob.corrOp === '0' ? '' : prob.corrOp} ＝ <strong>${prob.sqExpr}</strong>`;
+      const line3 = `<span class="math-var">${prob.target}</span> ＞ 0 より、<span class="math-var">${prob.target}</span> ＝ <strong>${prob.ansLabel}</strong>`;
+
+      const nextProbId = prob.id < 21 ? prob.id + 1 : 1;
+
+      return `
+        <div class="space-y-4">
+          <!-- 演習グループ選択（A〜D）＆問題番号マップ -->
+          <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm space-y-3">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <div class="flex flex-wrap gap-1.5 text-xs font-extrabold">
+                ${[
+                  { g: 'A', label: '演習 A｜基本 (問1〜6)' },
+                  { g: 'B', label: '演習 B｜例題と同形式 (問7〜12)' },
+                  { g: 'C', label: '演習 C｜反復・定着 (問13〜18)' },
+                  { g: 'D', label: '演習 D｜比較＆出口 (問19〜21)' }
+                ].map(item => `
+                  <button type="button" data-drill-group="${item.g}" class="px-3 py-1.5 rounded-xl border transition ${activeGroup === item.g ? 'bg-blue-600 border-blue-600 text-white shadow' : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300'}">
+                    ${item.label}
+                  </button>
+                `).join('')}
+              </div>
+              <div class="text-xs font-bold text-emerald-600 dark:text-emerald-400">
+                クリア済み：${clearedIds.size} / 21問
+              </div>
+            </div>
+
+            <!-- グループ内の問題番号ボタン -->
+            <div class="flex flex-wrap gap-2">
+              ${groupProbs.map(p => {
+                const isCur = p.id === prob.id;
+                const isClr = clearedIds.has(p.id);
+                return `
+                  <button type="button" data-drill-prob="${p.id}" class="px-3 py-1.5 rounded-xl text-xs font-extrabold border-2 transition flex items-center gap-1 ${isCur ? 'border-orange-500 bg-orange-500 text-white shadow' : isClr ? 'border-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300' : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800'}">
+                    <span>問${p.id}</span>
+                    ${isClr ? '<span>✅</span>' : ''}
+                  </button>
+                `;
+              }).join('')}
+            </div>
+          </div>
+
+          <!-- 問題メインエリア（左：PNG図、右：2段階ミッション＋詳細解説） -->
+          <!-- 問題メインエリア（左：図、右：2段階ミッション＋詳細解説） -->
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+            <!-- 左：図形パネル -->
+            <div class="lg:col-span-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm space-y-3">
+              <div class="flex items-center justify-between gap-2">
+                <span class="text-xs font-extrabold text-slate-700 dark:text-slate-200">📐 問${prob.id} の図</span>
+                <div class="flex gap-1.5">
+                  <button type="button" data-action="drill-toggle-ref" class="px-2 py-1 rounded-lg text-[11px] font-bold border ${drillShowRightRef ? 'bg-purple-600 border-purple-600 text-white' : 'bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-600'}">
+                    90°比較: ${drillShowRightRef ? 'ON' : 'OFF'}
+                  </button>
+                </div>
+              </div>
+
+              <div class="rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-950">
+                <img id="drillPngImg" alt="問${prob.id}の三角形の図" class="w-full h-auto block">
+              </div>
+
+              <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                <strong>👀 図の見方ヒント：</strong><br>
+                青い2辺（<strong>${prob.s1Name} = ${formatMathRoots(prob.s1Label)}</strong>, <strong>${prob.s2Name} = ${formatMathRoots(prob.s2Label)}</strong>）にはさまれた角 <strong>${prob.angleName} = ${prob.angleDeg}°</strong> を見て、90°の点線より短いか長いか確認しよう！
+              </div>
+            </div>
+
+            <!-- 右：問題文・2ステップ回答・診断・解説 -->
+            <div class="lg:col-span-7 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
+              <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                <span class="px-2.5 py-1 rounded-lg bg-blue-500/10 text-blue-700 dark:text-blue-300 text-xs font-extrabold border border-blue-500/20">
+                  ${prob.groupName}｜問 ${prob.id}
+                </span>
+                <span class="text-xs font-bold text-slate-400">確認：鋭角→引く ／ 直角→0 ／ 鈍角→足す</span>
+              </div>
+
+              <!-- 問題文 -->
+              <div class="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white leading-relaxed">
+                ${formatMathRoots(`<span class="math-var">${prob.s1Name}</span> = ${prob.s1Label} ,　<span class="math-var">${prob.s2Name}</span> = ${prob.s2Label} ,　<span class="math-var">${prob.angleName}</span> = ${prob.angleDeg}°`)}
+                <span class="text-orange-600 dark:text-orange-400 ml-2">&rarr;　<span class="math-var">${prob.target}</span> ＝ ?</span>
+              </div>
+
+              <!-- Mission 1: 計算前の符号予想 -->
+              <div class="p-3.5 rounded-xl bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 space-y-2.5">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-extrabold text-amber-900 dark:text-amber-200">⚡ Mission 1（計算前の予想）：平方の和に対する補正はどれ？</span>
+                  <span class="text-[11px] font-bold text-amber-700 dark:text-amber-300">+30 XP</span>
+                </div>
+                <div class="grid grid-cols-3 gap-2 text-xs font-extrabold">
+                  ${[
+                    { k: 'sub', label: '➖ 引く（鋭角）' },
+                    { k: 'zero', label: '⭕ 補正なし（直角）' },
+                    { k: 'add', label: '➕ 足す（鈍角）' }
+                  ].map(opt => {
+                    let cls = 'py-2 px-2 rounded-xl border-2 transition ';
+                    if (drillSignGuessed === opt.k) {
+                      cls += opt.k === ci.signType
+                        ? 'border-emerald-500 bg-emerald-500 text-white shadow'
+                        : 'border-rose-500 bg-rose-500 text-white';
+                    } else {
+                      cls += 'border-amber-200 dark:border-amber-700 bg-white dark:bg-slate-900 hover:border-blue-400';
+                    }
+                    return `<button type="button" data-drill-sign="${opt.k}" class="${cls}">${opt.label}</button>`;
+                  }).join('')}
+                </div>
+                ${drillSignGuessed ? `
+                  <div class="text-xs font-bold ${drillSignCorrect ? 'text-emerald-700 dark:text-emerald-300' : 'text-rose-700 dark:text-rose-300'}">
+                    ${drillSignCorrect
+                      ? `⭕ ナイス予想！ ${prob.angleDeg}° なので「${ci.signText}」で正解！（+30 XP）では計算して答えを選ぼう！`
+                      : `💡 惜しい！間の角は ${prob.angleDeg}° なので、正解は「<strong>${ci.signText}</strong>」です！左の図でも確認してみよう！`}
+                  </div>
+                ` : ''}
+              </div>
+
+              <!-- Mission 2: 答えの4択 -->
+              <div class="space-y-2">
+                <div class="text-xs font-extrabold text-slate-700 dark:text-slate-300">🎯 Mission 2：辺 <span class="math-var">${prob.target}</span> の長さを選ぼう（+100 XP）</div>
+                <div class="grid grid-cols-2 gap-3">
+                  ${drillShuffledChoices.map((ch, idx) => {
+                    let cls = 'p-3.5 rounded-xl border-2 font-extrabold text-sm sm:text-base transition flex items-center gap-3 text-left ';
+                    if (!answered) {
+                      cls += 'border-slate-200 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-800/60 hover:border-blue-500 hover:bg-blue-50/40';
+                    } else if (idx === drillSelectedChoiceIdx) {
+                      cls += ch.ok
+                        ? 'border-emerald-500 bg-emerald-500/15 text-emerald-800 dark:text-emerald-200'
+                        : 'border-rose-500 bg-rose-500/15 text-rose-800 dark:text-rose-200';
+                    } else if (ch.ok) {
+                      cls += 'border-emerald-400 bg-emerald-50/50 dark:bg-emerald-950/30';
+                    } else {
+                      cls += 'border-slate-200 dark:border-slate-800 opacity-50';
+                    }
+                    return `
+                      <button type="button" data-drill-choice="${idx}" ${answered ? 'disabled' : ''} class="${cls}">
+                        <span class="w-6 h-6 rounded-lg bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 flex items-center justify-center text-xs font-mono text-slate-500 shrink-0">${idx + 1}</span>
+                        <span>${formatMathRoots(ch.text)}</span>
+                      </button>
+                    `;
+                  }).join('')}
+                </div>
+              </div>
+
+              <!-- 解答後の詳細診断＆1行ずつの途中式解説 -->
+              ${answered ? `
+                <div class="rounded-2xl border-2 p-4 space-y-3 animate-pop ${isRight ? 'border-emerald-400 bg-emerald-50/50 dark:bg-emerald-950/30' : 'border-rose-400 bg-rose-50/50 dark:bg-rose-950/30'}">
+                  <div class="flex items-center justify-between flex-wrap gap-2">
+                    <div class="font-extrabold text-sm sm:text-base ${isRight ? 'text-emerald-700 dark:text-emerald-300' : 'text-rose-700 dark:text-rose-300'}">
+                      ${isRight ? '⭕ 大正解！完璧な計算です！' : '❌ 惜しい！つまずいた原因を今すぐ解消しよう'}
+                    </div>
+                    <div class="flex gap-2">
+                      ${!isRight ? `<button type="button" data-drill-prob="${prob.id}" class="px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-extrabold">🔁 もう一度解く</button>` : ''}
+                      <button type="button" data-drill-prob="${nextProbId}" class="px-4 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-extrabold shadow">
+                        ${prob.id < 21 ? `次の問題（問${nextProbId}）へ &rarr;` : '問1へ戻る'}
+                      </button>
+                    </div>
+                  </div>
+
+                  ${!isRight && chosenObj.diag ? `
+                    <div class="p-3 rounded-xl bg-rose-500/10 border border-rose-400/50 text-xs sm:text-sm text-rose-900 dark:text-rose-200 font-bold leading-relaxed">
+                      ${formatMathRoots(chosenObj.diag)}
+                    </div>
+                  ` : ''}
+
+                  <!-- 途中式の詳細解説 -->
+                  <div class="p-3.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 space-y-2 text-xs sm:text-sm">
+                    <div class="font-extrabold text-blue-700 dark:text-blue-300 text-xs">📖 途中式と詳しい解説（ノートに写せる形）</div>
+                    <div class="space-y-1.5 font-bold text-slate-800 dark:text-slate-100 leading-relaxed">
+                      <div>① 立式：${formatMathRoots(line1)}</div>
+                      <div>② 計算：${formatMathRoots(line2)}</div>
+                      <div>③ 答え：${formatMathRoots(line3)}</div>
+                    </div>
+                    <div class="pt-2 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-600 dark:text-slate-300">
+                      💡 <strong>ポイント：</strong>${formatMathRoots(prob.simplifyNote)}
+                    </div>
+                  </div>
+                </div>
+              ` : ''}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    /* =========================================================================
+       ⑤ 振り返り＆出口課題タブ（問19・20並列比較 ＋ 問21出口課題）
+       ========================================================================= */
+    function renderExitTab() {
+      const sqOk = exitAnsSq.trim().replace(/[０-９]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0)) === '112';
+      const lenNorm = exitAnsLen.trim().replace(/\s+/g, '').replace(/[０-９]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0));
+      const lenOk = lenNorm === '4√7' || lenNorm === '4*sqrt(7)';
+      const compOk = exitCompareRight === 'longer';
+
+      return `
+        <div class="space-y-6">
+          <!-- 上段：問19 と 問20 の並列比較 -->
+          <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
+            <div class="border-b border-slate-100 dark:border-slate-800 pb-3">
+              <span class="text-xs font-extrabold text-indigo-600 dark:text-indigo-400">比較ミッション（問19 vs 問20）</span>
+              <h2 class="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white">同じ2辺（6 と 4）なのに、30° と 150° でこんなに違う！</h2>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="rounded-xl border border-blue-200 dark:border-blue-800 p-3 bg-blue-50/30 dark:bg-blue-950/20 space-y-2">
+                <div class="flex items-center justify-between text-xs font-extrabold text-blue-700 dark:text-blue-300">
+                  <span>問19：a = 6, b = 4, C = 30°（鋭角）</span>
+                </div>
+                <img id="exitQ19Png" alt="問19の図" class="w-full h-auto rounded-lg border border-slate-200 dark:border-slate-800">
+                <div class="text-xs font-bold text-slate-700 dark:text-slate-200">
+                  ${formatMathRoots('c² = 52 − 24√3 ≒ 10.43　→　c = 2√(13 - 6√3) ≒ <strong>3.23</strong>')}
+                </div>
+              </div>
+
+              <div class="rounded-xl border border-rose-200 dark:border-rose-800 p-3 bg-rose-50/30 dark:bg-rose-950/20 space-y-2">
+                <div class="flex items-center justify-between text-xs font-extrabold text-rose-700 dark:text-rose-300">
+                  <span>問20：b = 6, c = 4, A = 150°（鈍角）</span>
+                </div>
+                <img id="exitQ20Png" alt="問20の図" class="w-full h-auto rounded-lg border border-slate-200 dark:border-slate-800">
+                <div class="text-xs font-bold text-slate-700 dark:text-slate-200">
+                  ${formatMathRoots('a² = 52 + 24√3 ≒ 93.57　→　a = 2√(13 + 6√3) ≒ <strong>9.67</strong>')}
+                </div>
+              </div>
+            </div>
+
+            <div class="p-3.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/50 border border-indigo-200 dark:border-indigo-800 text-xs font-bold text-indigo-950 dark:text-indigo-200 leading-relaxed">
+              💡 <strong>目で見て分かる本質：</strong>2辺の平方の和はどちらも <strong>52</strong>（直角なら約 7.21）です。しかし 30° では 24√3 を<strong>引く</strong>ので約 3.23 まで縮み、150° では 24√3 を<strong>足す</strong>ので約 9.67 まで伸びます！
+            </div>
+          </div>
+
+          <!-- 下段：出口課題（問21） -->
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+            <div class="lg:col-span-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-extrabold text-rose-600 dark:text-rose-400">🏁 出口課題（問21）の図</span>
+              </div>
+              <img id="exitQ21Png" alt="出口課題 問21の図" class="w-full h-auto rounded-xl border border-slate-200 dark:border-slate-800">
+            </div>
+
+            <div class="lg:col-span-7 bg-white dark:bg-slate-900 border-2 border-blue-400 dark:border-blue-700 rounded-2xl p-5 shadow-sm space-y-4 text-xs sm:text-sm">
+              <div class="border-b border-slate-100 dark:border-slate-800 pb-3">
+                <span class="text-xs font-extrabold text-blue-600 dark:text-blue-400">出口課題（提出チェック）</span>
+                <h3 class="text-base font-extrabold text-slate-900 dark:text-white">問21：c = 8, a = 4, B = 120° のとき、辺 b を求め、直角の場合と比べて理由を説明しよう！</h3>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                <div>
+                  <label class="font-extrabold block mb-1">① 途中計算の b² の値は？</label>
+                  <input type="text" data-input="exit-sq" value="${exitAnsSq.replace(/"/g, '&quot;')}" placeholder="例: 112" class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-950 font-mono font-bold">
+                </div>
+                <div>
+                  <label class="font-extrabold block mb-1">② 辺 b の長さは？（例: 4√7）</label>
+                  <input type="text" data-input="exit-len" value="${exitAnsLen.replace(/"/g, '&quot;')}" placeholder="例: 4√7" class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-950 font-mono font-bold">
+                </div>
+              </div>
+
+              <div class="space-y-1.5 text-xs">
+                <div class="font-extrabold">③ 同じ2辺（8 と 4）で間が「直角（90°）」のときより、長くなる？短くなる？</div>
+                <div class="grid grid-cols-2 gap-2">
+                  <button type="button" data-exit-comp="longer" class="py-2.5 rounded-xl border-2 font-extrabold transition ${exitCompareRight === 'longer' ? 'border-rose-500 bg-rose-500/15 text-rose-700 dark:text-rose-300' : 'border-slate-200 dark:border-slate-700'}">直角の場合より「長い」</button>
+                  <button type="button" data-exit-comp="shorter" class="py-2.5 rounded-xl border-2 font-extrabold transition ${exitCompareRight === 'shorter' ? 'border-blue-500 bg-blue-500/15 text-blue-700 dark:text-blue-300' : 'border-slate-200 dark:border-slate-700'}">直角の場合より「短い」</button>
+                </div>
+              </div>
+
+              <div class="space-y-1.5 text-xs">
+                <label class="font-extrabold block">④ その理由を自分の言葉で書こう（符号の理由を含めてみよう！）</label>
+                <input type="text" data-input="exit-reason" value="${exitReasonText.replace(/"/g, '&quot;')}" placeholder="例：120°は鈍角で cos120° がマイナスなので、補正項が足し算になるから。" class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-950 font-bold">
+              </div>
+
+              <button type="button" data-action="exit-check" class="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-extrabold shadow-md transition">
+                ✅ 出口課題を採点して模範解答を確認する！
+              </button>
+
+              ${exitChecked ? `
+                <div class="p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 border-2 border-emerald-400 dark:border-emerald-700 space-y-2 text-xs leading-relaxed">
+                  <div class="font-extrabold text-emerald-800 dark:text-emerald-300 text-sm">🎉 出口課題の答え合わせ＆模範解答</div>
+                  <div>① b²：${sqOk ? '⭕ 正解！' : '👉 正解は'} <strong>112</strong>（64 + 16 − (−32) = 80 + 32 = 112）</div>
+                  <div>② 辺 b：${lenOk ? '⭕ 正解！' : '👉 正解は'} <strong>${formatMathRoots('4√7')}</strong>（b ＞ 0 より √112 = √(16×7) = ${formatMathRoots('4√7')}）</div>
+                  <div>③ 直角との比較：${compOk ? '⭕ 正解！' : '👉 正解は'} <strong>直角の場合（b² = 80）より長い！</strong></div>
+                  <div class="pt-1 border-t border-emerald-200 dark:border-emerald-800 font-bold">
+                    📌 <strong>理由の模範例：</strong>「間の角 B = 120° は鈍角であり、cos 120° = −1/2（負）を引くことで補正項が＋32の加算になるため、直角のときの平方の和 80 より大きくなり、辺 b も長くなる。」
+                  </div>
+                </div>
+              ` : ''}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    /* =========================================================================
+       一括イベント委譲（構文エラーのないクリーンな操作ハンドリング）
+       ========================================================================= */
+    window.addEventListener('DOMContentLoaded', () => {
+      // 早見表のルートも MathML 化
+      const cosTableBody = document.getElementById('cosTableBody');
+      if (cosTableBody) {
+        cosTableBody.innerHTML = formatMathRoots(cosTableBody.innerHTML);
+      }
+
+      document.addEventListener('click', (e) => {
+        // 早見表モーダル
+        if (e.target.closest('#cosTableBtn')) {
+          document.getElementById('cosModal').classList.remove('hidden');
+          return;
+        }
+        if (e.target.closest('#closeCosModalBtn') || e.target.closest('#closeCosModalBtn2')) {
+          document.getElementById('cosModal').classList.add('hidden');
+          return;
+        }
+
+        // テーマ切替
+        const themeBtn = e.target.closest('[data-theme]');
+        if (themeBtn) { setTheme(themeBtn.dataset.theme); return; }
+
+        // メインタブ切替
+        const tabBtn = e.target.closest('[data-tab]');
+        if (tabBtn) { selectTab(tabBtn.dataset.tab); return; }
+
+        // 導入タブ
+        const introDegBtn = e.target.closest('[data-intro-deg]');
+        if (introDegBtn) {
+          introAngle = parseInt(introDegBtn.dataset.introDeg, 10);
+          renderApp();
+          return;
+        }
+        const introQuizBtn = e.target.closest('[data-intro-quiz]');
+        if (introQuizBtn) {
+          const val = introQuizBtn.dataset.introQuiz;
+          if (!introQuizDone && val === 'big') { xp += 50; }
+          introQuizDone = val;
+          introAngle = 120;
+          renderApp();
+          return;
+        }
+
+        // 手順タブ
+        const stepTargetBtn = e.target.closest('[data-step-target]');
+        if (stepTargetBtn) { stepTargetSide = stepTargetBtn.dataset.stepTarget; renderApp(); return; }
+        const stepAngleBtn = e.target.closest('[data-step-angle]');
+        if (stepAngleBtn) { stepAngleTest = parseInt(stepAngleBtn.dataset.stepAngle, 10); renderApp(); return; }
+        const stepOpenCard = e.target.closest('[data-step-open]');
+        if (stepOpenCard) {
+          const num = parseInt(stepOpenCard.dataset.stepOpen, 10);
+          stepOrderProgress = Math.max(stepOrderProgress, num);
+          renderApp();
+          return;
+        }
+
+        // 例題タブ
+        const exNextBtn = e.target.closest('[data-ex-next]');
+        if (exNextBtn) {
+          if (exNextBtn.dataset.exNext === '1') ex1Line = ex1Line >= 4 ? 1 : ex1Line + 1;
+          else ex2Line = ex2Line >= 4 ? 1 : ex2Line + 1;
+          renderApp();
+          return;
+        }
+        const exJumpCard = e.target.closest('[data-ex-jump]');
+        if (exJumpCard) {
+          const [which, line] = exJumpCard.dataset.exJump.split('-');
+          if (which === '1') ex1Line = parseInt(line, 10);
+          else ex2Line = parseInt(line, 10);
+          renderApp();
+          return;
+        }
+        const exQ1Btn = e.target.closest('[data-ex-q1]');
+        if (exQ1Btn) { exQ1 = exQ1Btn.dataset.exQ1; renderApp(); return; }
+        const exQ2Btn = e.target.closest('[data-ex-q2]');
+        if (exQ2Btn) { exQ2 = exQ2Btn.dataset.exQ2; renderApp(); return; }
+
+        // 演習道場タブ
+        const drillGroupBtn = e.target.closest('[data-drill-group]');
+        if (drillGroupBtn) {
+          activeGroup = drillGroupBtn.dataset.drillGroup;
+          const firstInGroup = DRILL_PROBLEMS.find(p => p.group === activeGroup);
+          if (firstInGroup) loadDrillProblem(firstInGroup.id);
+          return;
+        }
+        const drillProbBtn = e.target.closest('[data-drill-prob]');
+        if (drillProbBtn) {
+          loadDrillProblem(parseInt(drillProbBtn.dataset.drillProb, 10));
+          return;
+        }
+        const drillSignBtn = e.target.closest('[data-drill-sign]');
+        if (drillSignBtn) {
+          const prob = DRILL_PROBLEMS.find(p => p.id === currentProbId);
+          const guess = drillSignBtn.dataset.drillSign;
+          const ok = guess === COS_INFO[prob.angleDeg].signType;
+          if (!drillSignGuessed && ok) xp += 30;
+          drillSignGuessed = guess;
+          drillSignCorrect = ok;
+          renderApp();
+          return;
+        }
+        const drillChoiceBtn = e.target.closest('[data-drill-choice]');
+        if (drillChoiceBtn && drillSelectedChoiceIdx === null) {
+          const idx = parseInt(drillChoiceBtn.dataset.drillChoice, 10);
+          drillSelectedChoiceIdx = idx;
+          const picked = drillShuffledChoices[idx];
+          if (picked && picked.ok) {
+            combo += 1;
+            xp += 100 + Math.min(50, (combo - 1) * 10);
+            clearedIds.add(currentProbId);
+          } else {
+            combo = 0;
+          }
+          renderApp();
+          return;
+        }
+
+        // 出口課題タブ
+        const exitCompBtn = e.target.closest('[data-exit-comp]');
+        if (exitCompBtn) { exitCompareRight = exitCompBtn.dataset.exitComp; renderApp(); return; }
+
+        // 汎用アクション
+        const actBtn = e.target.closest('[data-action]');
+        if (actBtn) {
+          const act = actBtn.dataset.action;
+          if (act === 'intro-toggle-ref') { introShowRightRef = !introShowRightRef; renderApp(); }
+          else if (act === 'step-reveal-all') { stepOrderProgress = stepOrderProgress >= 5 ? 1 : 5; renderApp(); }
+          else if (act === 'drill-toggle-ref') { drillShowRightRef = !drillShowRightRef; renderApp(); }
+          else if (act === 'exit-check') {
+            if (!exitChecked) xp += 150;
+            exitChecked = true;
+            renderApp();
+          }
+        }
+      });
+
+      document.addEventListener('input', (e) => {
+        const inp = e.target.dataset.input;
+        if (inp === 'intro-angle') {
+          introAngle = parseInt(e.target.value, 10);
+          renderApp();
+        } else if (inp === 'exit-sq') {
+          exitAnsSq = e.target.value;
+        } else if (inp === 'exit-len') {
+          exitAnsLen = e.target.value;
+        } else if (inp === 'exit-reason') {
+          exitReasonText = e.target.value;
+        }
+      });
+
+      setTheme('light');
+      selectTab('intro');
+    });
+  </script>
+</body>
+</html>

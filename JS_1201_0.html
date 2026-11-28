@@ -1,0 +1,1802 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>整数問題 II マスターラボ｜不等式・整数条件・実現確認の完全攻略</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Meiryo', 'sans-serif'],
+            mono: ['JetBrains Mono', 'Consolas', 'monospace']
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    /* 正確な数式オブジェクト（MathML）の組版調整 */
+    math {
+      font-family: 'Cambria Math', 'STIX Two Math', 'Times New Roman', serif;
+      font-size: 1.08em;
+      vertical-align: middle;
+      margin: 0 0.08em;
+    }
+    math mfrac {
+      font-size: 1.02em;
+    }
+    .math-var {
+      font-family: 'Times New Roman', serif;
+      font-style: italic;
+      font-weight: 700;
+      padding: 0 1px;
+    }
+    input[type="range"] {
+      accent-color: #2563eb;
+    }
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    @keyframes popIn {
+      0% { transform: scale(0.92); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .animate-pop {
+      animation: popIn 0.28s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-screen flex flex-col transition-colors duration-200">
+
+  <!-- トップヘッダー -->
+  <header class="bg-white/95 dark:bg-slate-900/95 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-40 backdrop-blur px-4 py-3 shadow-sm">
+    <div class="max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white font-serif font-extrabold text-lg shadow-md">
+          &Zopf;
+        </div>
+        <div>
+          <h1 class="text-base sm:text-lg font-extrabold tracking-tight text-slate-900 dark:text-white flex items-center gap-2 flex-wrap">
+            整数問題 II マスターラボ
+            <span class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-950 text-blue-800 dark:text-blue-300 border border-blue-300 dark:border-blue-700">ワークシート 問1〜12 ＋ 入試応用</span>
+          </h1>
+          <p class="text-xs text-slate-500 dark:text-slate-400">不等式で候補を絞り、整数条件と実現確認によって最大・最小や全解を証明する</p>
+        </div>
+      </div>
+
+      <!-- 進捗・公式チートシート・テーマ切替 -->
+      <div class="flex items-center flex-wrap gap-2">
+        <div class="flex items-center gap-2 bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-extrabold">
+          <span class="text-amber-600 dark:text-amber-400">⭐ <span id="xpDisplay" class="font-mono">0</span> XP</span>
+          <span class="text-slate-300 dark:text-slate-600">|</span>
+          <span class="text-emerald-600 dark:text-emerald-400">✅ 攻略: <span id="clearedDisplay" class="font-mono">0/15</span></span>
+        </div>
+
+        <button type="button" id="openCheatBtn" class="px-3 py-1.5 rounded-xl text-xs font-extrabold bg-indigo-600 hover:bg-indigo-500 text-white shadow-sm transition">
+          📖 5大武器まとめ
+        </button>
+
+        <div class="flex items-center bg-slate-200/80 dark:bg-slate-800 p-0.5 rounded-xl border border-slate-300 dark:border-slate-700 text-[11px] font-bold">
+          <button type="button" id="themeLightBtn" data-theme="light" class="px-2 py-1 rounded-lg transition">☀️ ライト</button>
+          <button type="button" id="themeDarkBtn" data-theme="dark" class="px-2 py-1 rounded-lg transition">🌙 ダーク</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- メインナビゲーション（基礎理論＋ワークシート1〜6＋応用） -->
+  <nav class="bg-slate-100 dark:bg-slate-900/80 border-b border-slate-200 dark:border-slate-800 px-4 py-2.5">
+    <div class="max-w-6xl mx-auto flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
+      <button type="button" data-tab="theory" id="nav-theory" class="nav-tab shrink-0 px-3 py-2 rounded-xl text-xs font-bold transition text-left">
+        <div class="text-[10px] opacity-80">まずここから</div>
+        <div>📚 基礎理論・5大武器</div>
+      </button>
+      <button type="button" data-tab="sec12" id="nav-sec12" class="nav-tab shrink-0 px-3 py-2 rounded-xl text-xs font-bold transition text-left">
+        <div class="text-[10px] opacity-80">セクション 1・2</div>
+        <div>① 積の上限＆相加相乗 (問1〜4)</div>
+      </button>
+      <button type="button" data-tab="sec3" id="nav-sec3" class="nav-tab shrink-0 px-3 py-2 rounded-xl text-xs font-bold transition text-left">
+        <div class="text-[10px] opacity-80">セクション 3</div>
+        <div>② 不等式×約数・差の平方 (問5・6)</div>
+      </button>
+      <button type="button" data-tab="sec4" id="nav-sec4" class="nav-tab shrink-0 px-3 py-2 rounded-xl text-xs font-bold transition text-left">
+        <div class="text-[10px] opacity-80">セクション 4</div>
+        <div>③ 平方数・因数分解 (問7・8)</div>
+      </button>
+      <button type="button" data-tab="sec5" id="nav-sec5" class="nav-tab shrink-0 px-3 py-2 rounded-xl text-xs font-bold transition text-left">
+        <div class="text-[10px] opacity-80">セクション 5</div>
+        <div>④ 入試型・手法選択 (問9・10)</div>
+      </button>
+      <button type="button" data-tab="sec6" id="nav-sec6" class="nav-tab shrink-0 px-3 py-2 rounded-xl text-xs font-bold transition text-left">
+        <div class="text-[10px] opacity-80">セクション 6 ＋ 応用</div>
+        <div>🚀 発展・出口＆応用道場 (問11・12＋3問)</div>
+      </button>
+    </div>
+  </nav>
+
+  <!-- 共通：証明の3本柱ステータスバー -->
+  <div class="bg-white dark:bg-slate-900/60 border-b border-slate-200/80 dark:border-slate-800 px-4 py-2">
+    <div class="max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-2 text-xs">
+      <div class="flex items-center flex-wrap gap-1.5 font-extrabold">
+        <span class="text-slate-400">整数証明の3本柱：</span>
+        <span class="px-2 py-0.5 rounded-md bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">① 不等式で限界を絞る</span>
+        <span class="text-slate-400">&rarr;</span>
+        <span class="px-2 py-0.5 rounded-md bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800">② 整数条件・約数で検証</span>
+        <span class="text-slate-400">&rarr;</span>
+        <span class="px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">③ 具体的な組で実現を確認！</span>
+      </div>
+      <span class="text-[11px] font-bold text-slate-500 dark:text-slate-400">💡 ワークシート②欄「なぜそれで全部（最大・最小）といえるか」まで書ける力を育てよう</span>
+    </div>
+  </div>
+
+  <!-- メインコンテンツ -->
+  <main class="flex-1 max-w-6xl w-full mx-auto p-4">
+    <div id="mainContent"></div>
+  </main>
+
+  <!-- 5大武器まとめモーダル -->
+  <div id="cheatModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 max-w-3xl w-full rounded-2xl p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+        <h3 class="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white">📖 整数問題 II を完全制覇する「5大武器」クイックリファレンス</h3>
+        <button type="button" id="closeCheatBtn" class="text-slate-400 hover:text-slate-700 dark:hover:text-white text-2xl font-bold px-2">&times;</button>
+      </div>
+      <div id="cheatBody" class="space-y-3 text-xs sm:text-sm leading-relaxed">
+        <div class="p-3.5 rounded-xl bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800">
+          <div class="font-extrabold text-blue-800 dark:text-blue-200">武器① 大小関係と平方根の上限（約数ペアの全列挙）</div>
+          <p class="mt-1 font-bold">正の整数 a ≦ b で ab ＝ N のとき、a² ≦ ab ＝ N より <strong>a ≦ √N</strong>。小さい方 a は √N 以下の整数だけ調べれば、漏れなくすべて見つかる！</p>
+        </div>
+        <div class="p-3.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800">
+          <div class="font-extrabold text-indigo-800 dark:text-indigo-200">武器② 相加相乗平均の不等式（和と積の限界）</div>
+          <p class="mt-1 font-bold">正の実数 a, b に対して <strong>(a+b)/2 ≧ √(ab)</strong>（等号は a ＝ b）。<br>・和 S 固定 ⇒ 積 P ≦ S²/4（上限）　・積 P 固定 ⇒ 和 S ≧ 2√P（下限）<br>★ <strong>整数問題では「実数の等号が整数で実現しない」ことが多い！</strong>必ず整数に丸めてから「実現できる具体例」を確認する。</p>
+        </div>
+        <div class="p-3.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800">
+          <div class="font-extrabold text-amber-900 dark:text-amber-200">武器③ 和 S と積 P から「差の平方」を作る公式</div>
+          <p class="mt-1 font-bold">x ＋ y ＝ S、xy ＝ P のとき、<strong>(y − x)² ＝ S² − 4P</strong>。<br>整数解 (x, y) が存在するための必須条件：<strong>① S² − 4P が平方数（0, 1, 4, 9, …）になること</strong>、② y − x ＝ d とおいて x ＝ (S − d)/2, y ＝ (S ＋ d)/2 が整数になること（S と d の偶奇が一致すれば自動成立！）。</p>
+        </div>
+        <div class="p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800">
+          <div class="font-extrabold text-emerald-800 dark:text-emerald-200">武器④ 「積 ＝ 定数」を作る因数分解の3大パターン</div>
+          <ul class="mt-1 list-disc list-inside font-bold space-y-1">
+            <li><strong>平方の差：</strong> √(4n²＋105) ＝ m ⇒ m² − 4n² ＝ 105 ⇒ (m − 2n)(m ＋ 2n) ＝ 105</li>
+            <li><strong>1次式×1次式：</strong> xy ＋ x ＋ y ＝ 59 ⇒ 両辺に＋1 ⇒ (x ＋ 1)(y ＋ 1) ＝ 60（範囲 2 ≦ x＋1 に注意！）</li>
+            <li><strong>単位分数型：</strong> 1/x ＋ 1/y ＝ 1/6 ⇒ (x − 6)(y − 6) ＝ 36 または不等式 1/6 ≦ 2/x ⇒ x ≦ 12 で絞る！</li>
+          </ul>
+        </div>
+        <div class="p-3.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800">
+          <div class="font-extrabold text-rose-800 dark:text-rose-200">武器⑤ 減点ゼロの証明3ステップ（上限・整数条件・実現）</div>
+          <p class="mt-1 font-bold">「最大値 M」を言い切るには <strong>(1) すべての場合で M 以下（不等式＋整数条件）</strong>と <strong>(2) 実際に M をとる具体的な整数の組が存在する（実現確認）</strong>の2つが両方そろって初めて完全証明になる！</p>
+        </div>
+      </div>
+      <div class="text-right pt-2 border-t border-slate-200 dark:border-slate-800">
+        <button type="button" id="closeCheatBtn2" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-extrabold">閉じる</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* =========================================================================
+       標準 MathML 数式フォーマッタ（分数・平方根・累乗を漏れなく正確に描画）
+       ========================================================================= */
+    function buildMmlAtom(expr) {
+      let s = String(expr).trim();
+      if (s.startsWith('(') && s.endsWith(')')) {
+        s = s.slice(1, -1).trim();
+      }
+      if (/^√\(([^)]+)\)$/.test(s)) {
+        const inner = s.match(/^√\(([^)]+)\)$/)[1];
+        return `<msqrt>${buildMmlInline(inner)}</msqrt>`;
+      }
+      if (/^√(\d+|[a-zA-Z])$/.test(s)) {
+        const inner = s.slice(1);
+        return /^\d+$/.test(inner) ? `<msqrt><mn>${inner}</mn></msqrt>` : `<msqrt><mi>${inner}</mi></msqrt>`;
+      }
+      return buildMmlInline(s);
+    }
+
+    function buildMmlInline(str) {
+      const s = String(str).trim();
+      // トークン分解してクリーンな MathML を組み立て
+      let out = '<mrow>';
+      let i = 0;
+      while (i < s.length) {
+        const rest = s.slice(i);
+        // 平方根 √(...)
+        let m = rest.match(/^√\(([^)]+)\)/);
+        if (m) {
+          out += `<msqrt>${buildMmlInline(m[1])}</msqrt>`;
+          i += m[0].length;
+          continue;
+        }
+        // 平方根 √数字 or √文字
+        m = rest.match(/^√(\d+|[a-zA-Z]+)/);
+        if (m) {
+          const val = m[1];
+          out += /^\d+$/.test(val) ? `<msqrt><mn>${val}</mn></msqrt>` : `<msqrt><mrow>${val.split('').map(c => `<mi>${c}</mi>`).join('')}</mrow></msqrt>`;
+          i += m[0].length;
+          continue;
+        }
+        // 2乗（文字² または 数字²）
+        m = rest.match(/^(\d+|[a-zA-Z])²/);
+        if (m) {
+          const base = /^\d+$/.test(m[1]) ? `<mn>${m[1]}</mn>` : `<mi>${m[1]}</mi>`;
+          out += `<msup>${base}<mn>2</mn></msup>`;
+          i += m[0].length;
+          continue;
+        }
+        // 数字列
+        m = rest.match(/^\d+(?:\.\d+)?/);
+        if (m) {
+          out += `<mn>${m[0]}</mn>`;
+          i += m[0].length;
+          continue;
+        }
+        // 英字
+        m = rest.match(/^[a-zA-Z]/);
+        if (m) {
+          out += `<mi>${m[0]}</mi>`;
+          i += 1;
+          continue;
+        }
+        // 演算子・記号
+        const ch = s[i];
+        if (ch === ' ') {
+          i += 1;
+          continue;
+        } else if (ch === '+' || ch === '＋') {
+          out += '<mo>+</mo>';
+        } else if (ch === '-' || ch === '−' || ch === '－') {
+          out += '<mo>&minus;</mo>';
+        } else if (ch === '=' || ch === '＝') {
+          out += '<mo>=</mo>';
+        } else if (ch === '×' || ch === '·') {
+          out += `<mo>${ch === '×' ? '&times;' : '&middot;'}</mo>`;
+        } else if (ch === '(' || ch === ')') {
+          out += `<mo>${ch}</mo>`;
+        } else {
+          out += `<mo>${ch}</mo>`;
+        }
+        i += 1;
+      }
+      out += '</mrow>';
+      return out;
+    }
+
+    function formatMathPlainText(txt) {
+      let s = txt;
+
+      // 1. 括弧付き分数 (a+b)/2, (S−d)/2, (S+d)/2, 6x/(x-6), S²/4 など
+      s = s.replace(/(\([^)]+\)|\d*[a-zA-Z]²?|\d+)\/(\([^)]+\)|\d*[a-zA-Z]|\d+)/g, (_, num, den) => {
+        return `<math display="inline"><mfrac>${buildMmlAtom(num)}${buildMmlAtom(den)}</mfrac></math>`;
+      });
+
+      // 2. 括弧付き平方根 √(ab), √(4n²+105), √(x·y) など
+      s = s.replace(/√\(([^)]+)\)/g, (_, inner) => {
+        return `<math display="inline"><msqrt>${buildMmlInline(inner)}</msqrt></math>`;
+      });
+
+      // 3. 単独の平方根 √48, √72, √N, √a, √b, √P
+      s = s.replace(/√(\d+|[a-zA-Z]+)/g, (_, inner) => {
+        const body = /^\d+$/.test(inner) ? `<mn>${inner}</mn>` : `<mrow>${inner.split('').map(c => `<mi>${c}</mi>`).join('')}</mrow>`;
+        return `<math display="inline"><msqrt>${body}</msqrt></math>`;
+      });
+
+      // 4. 累乗表現 (y−x)², (√a−√b)² や x², S², a², n²
+      s = s.replace(/(\d+|[a-zA-Z])²/g, (_, base) => {
+        return /^\d+$/.test(base)
+          ? `<math display="inline"><msup><mn>${base}</mn><mn>2</mn></msup></math>`
+          : `<math display="inline"><msup><mi>${base}</mi><mn>2</mn></msup></math>`;
+      });
+
+      return s;
+    }
+
+    // HTMLタグ・既存の<math>・SVG内<text>を破壊せず、テキスト部だけ高精度MathML化
+    function formatMath(htmlStr) {
+      if (!htmlStr) return '';
+      return String(htmlStr).replace(/(<math[\s\S]*?<\/math>|<text\b[\s\S]*?<\/text>|<input\b[^>]*>|<[^>]+>)|([^<]+)/g, (m, prot, txt) => {
+        if (prot) return prot;
+        return formatMathPlainText(txt);
+      });
+    }
+
+    function escapeAttr(str) {
+      return String(str || '').replace(/"/g, '&quot;');
+    }
+
+    function normNum(str) {
+      return String(str || '')
+        .trim()
+        .replace(/[０-９]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0))
+        .replace(/．/g, '.')
+        .replace(/−/g, '-');
+    }
+
+    /* =========================================================================
+       グローバル状態管理
+       ========================================================================= */
+    let activeTab = 'theory';
+    let xp = 0;
+    const clearedSet = new Set(); // 'q1'..'q12', 'app1'..'app3'
+
+    // 📚 基礎理論ラボ状態
+    let theorySub = 1; // 1〜5
+    let t1N = 48; // 48, 60, 72
+    let t1PickedA = 4;
+    let t2Sum = 13; // 13, 14, 17
+    let t2X = 6;
+    let t3S = 17;
+    let t3P = 72;
+    let t4Pattern = 'sqdiff'; // 'sqdiff', 'plus1', 'unitfrac'
+    let t4Step = 1; // 1〜3
+    let t5Quiz = null; // 'ok' or 'ng'
+
+    // セクション1・2（問1〜4）状態
+    let q1Selected = new Set(); // 選んだaの値
+    let q1Checked = false;
+    let q2X = 3; // スライダー実験用
+    let q2Ans = null;
+    let q3Step = 1; // 1〜4 証明ステップ
+    let q3EqQuiz = null;
+    let q4Step = 1; // 1〜3
+    let q4Ans = null;
+
+    // セクション3（問5・6）状態
+    let q5CheckS = { 17: false, 18: false, 19: false };
+    let q5Ans = null;
+    let q6ShowTrap = false;
+    let q6Ans = null;
+
+    // セクション4（問7・8）状態
+    let q7Revealed = { 1: false, 3: false, 5: false, 7: false };
+    let q7Ans = null;
+    let q8AddVal = null; // 両辺に足す数クイズ
+    let q8ShowPairs = false;
+    let q8Ans = null;
+
+    // セクション5（問9・10）状態
+    let q9Method = 'A'; // 'A'(不等式絞り) or 'B'(因数分解)
+    let q9Ans = null;
+    let q10CheckS = { 22: false, 23: false };
+    let q10Ans = null;
+
+    // セクション6（問11・12＋応用3問＋振り返り）状態
+    let q11HoverN = 5;
+    let q11Ans = null;
+    let q12InMax = '';
+    let q12InPair = '';
+    let q12Reason = '';
+    let q12Checked = false;
+    let appQuiz = { 1: null, 2: null, 3: null };
+    let reflectChecks = { bound: false, intCond: false, realize: false };
+
+    function awardClear(key, pts) {
+      if (!clearedSet.has(key)) {
+        clearedSet.add(key);
+        xp += pts;
+      }
+    }
+
+    /* =========================================================================
+       テーマ・タブ・ヘッダー更新
+       ========================================================================= */
+    function updateHeaderStats() {
+      document.getElementById('xpDisplay').textContent = xp;
+      document.getElementById('clearedDisplay').textContent = `${clearedSet.size}/15`;
+    }
+
+    function setTheme(mode) {
+      const root = document.documentElement;
+      if (mode === 'dark') root.classList.add('dark');
+      else root.classList.remove('dark');
+      const activeCls = 'px-2 py-1 rounded-lg transition bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 shadow-sm';
+      const inactiveCls = 'px-2 py-1 rounded-lg transition text-slate-600 dark:text-slate-400';
+      document.getElementById('themeLightBtn').className = mode === 'light' ? activeCls : inactiveCls;
+      document.getElementById('themeDarkBtn').className = mode === 'dark' ? activeCls : inactiveCls;
+      renderApp();
+    }
+
+    function selectTab(tab) {
+      activeTab = tab;
+      document.querySelectorAll('.nav-tab').forEach(btn => {
+        if (btn.dataset.tab === tab) {
+          btn.className = 'nav-tab shrink-0 px-3 py-2 rounded-xl text-xs font-bold transition text-left bg-blue-600 text-white shadow-md';
+        } else {
+          btn.className = 'nav-tab shrink-0 px-3 py-2 rounded-xl text-xs font-bold transition text-left bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-50';
+        }
+      });
+      renderApp();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function renderApp() {
+      const el = document.getElementById('mainContent');
+      let html = '';
+      if (activeTab === 'theory') html = renderTheoryLab();
+      else if (activeTab === 'sec12') html = renderSec12();
+      else if (activeTab === 'sec3') html = renderSec3();
+      else if (activeTab === 'sec4') html = renderSec4();
+      else if (activeTab === 'sec5') html = renderSec5();
+      else if (activeTab === 'sec6') html = renderSec6();
+
+      el.innerHTML = formatMath(html);
+      updateHeaderStats();
+    }
+
+    /* =========================================================================
+       TAB 0：📚 基礎理論・5大武器ラボ（詳細解説＋インタラクティブ実験）
+       ========================================================================= */
+    function renderTheoryLab() {
+      const subs = [
+        { id: 1, title: '武器① 対称性と √N の壁', tag: '問1・7・8' },
+        { id: 2, title: '武器② 相加相乗と整数の壁', tag: '問2〜6・11・12' },
+        { id: 3, title: '武器③ 差の平方 S²−4P', tag: '問5・6・10' },
+        { id: 4, title: '武器④ 因数分解3パターン', tag: '問7・8・9' },
+        { id: 5, title: '武器⑤ 証明の3本柱ルール', tag: '全問共通' }
+      ];
+
+      let bodyHtml = '';
+
+      if (theorySub === 1) {
+        // 武器①：ab = N で a ≦ b ならなぜ a ≦ √N まで調べれば全部なのか？
+        const sqrtN = Math.sqrt(t1N);
+        const maxA = Math.floor(sqrtN);
+        const divisors = [];
+        for (let i = 1; i <= t1N; i++) {
+          if (t1N % i === 0) divisors.push({ a: i, b: t1N / i, ok: i <= t1N / i });
+        }
+        const curPair = divisors.find(d => d.a === t1PickedA) || divisors[0];
+        // 長方形描画スケール（ラベルが重ならず余白内に収まるよう調整）
+        const maxSide = Math.max(curPair.a, curPair.b, sqrtN);
+        const boxScale = Math.min(13.5, 195 / maxSide);
+        const rw = curPair.b * boxScale;
+        const rh = curPair.a * boxScale;
+        const sqS = sqrtN * boxScale;
+        const baseX = 54;
+        const baseY = 178;
+
+        bodyHtml = `
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+            <div class="lg:col-span-7 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
+              <div class="flex items-center justify-between flex-wrap gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
+                <div>
+                  <span class="text-xs font-extrabold text-blue-600 dark:text-blue-400">武器① の本質｜なぜ √N まで調べれば「全部」と言い切れる？</span>
+                  <h3 class="text-base font-extrabold text-slate-900 dark:text-white">面積一定（ab ＝ ${t1N}）の長方形を動かして「折り返し地点」を見よう</h3>
+                </div>
+                <div class="flex gap-1 text-xs font-extrabold">
+                  ${[48, 60, 72].map(n => `
+                    <button type="button" data-t1-n="${n}" class="px-2.5 py-1 rounded-lg border transition ${t1N === n ? 'bg-blue-600 border-blue-600 text-white' : 'bg-slate-50 dark:bg-slate-800 border-slate-300 dark:border-slate-700'}">N = ${n}</button>
+                  `).join('')}
+                </div>
+              </div>
+
+              <!-- 長方形面積ビジュアライザ SVG（ルートも正確なMathML数式オブジェクトで描画） -->
+              <div class="bg-slate-50 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800 p-3">
+                <svg viewBox="0 0 432 210" class="w-full h-auto max-h-[215px] select-none">
+                  <!-- 基準の正方形 (√N × √N) -->
+                  <rect x="${baseX}" y="${(baseY - sqS).toFixed(1)}" width="${sqS.toFixed(1)}" height="${sqS.toFixed(1)}" fill="none" stroke="#8b5cf6" stroke-width="2" stroke-dasharray="5 4" />
+                  <foreignObject x="${baseX}" y="${Math.max(6, baseY - sqS - 28).toFixed(1)}" width="160" height="26">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:11px;font-weight:800;color:#7c3aed;display:flex;align-items:center;height:100%;white-space:nowrap;">
+                      正方形&nbsp;<math display="inline"><msqrt><mn>${t1N}</mn></msqrt></math>&nbsp;≒ ${sqrtN.toFixed(2)}
+                    </div>
+                  </foreignObject>
+
+                  <!-- 現在の長方形 (b × a) -->
+                  <rect x="${baseX}" y="${(baseY - rh).toFixed(1)}" width="${rw.toFixed(1)}" height="${rh.toFixed(1)}" rx="4" fill="${curPair.ok ? 'rgba(37, 99, 235, 0.22)' : 'rgba(244, 63, 94, 0.22)'}" stroke="${curPair.ok ? '#2563eb' : '#e11d48'}" stroke-width="3" />
+                  <text x="${(baseX + rw / 2).toFixed(1)}" y="${(baseY - rh / 2 + 4).toFixed(1)}" text-anchor="middle" font-size="13" font-weight="900" fill="${curPair.ok ? '#1d4ed8' : '#be123c'}">面積 ${t1N}</text>
+                  <text x="${(baseX + rw / 2).toFixed(1)}" y="198" text-anchor="middle" font-size="12" font-weight="800" fill="#0f766e">横 b = ${curPair.b}</text>
+                  <text x="26" y="${(baseY - rh / 2 + 4).toFixed(1)}" text-anchor="middle" font-size="12" font-weight="800" fill="${curPair.ok ? '#1d4ed8' : '#be123c'}">a=${curPair.a}</text>
+
+                  <!-- 状態メッセージ（MathML数式オブジェクト対応） -->
+                  <rect x="218" y="10" width="204" height="52" rx="10" fill="${curPair.ok ? '#ecfdf5' : '#fff1f2'}" stroke="${curPair.ok ? '#10b981' : '#f43f5e'}" stroke-width="1.8" />
+                  <foreignObject x="222" y="13" width="196" height="46">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;line-height:1.3;">
+                      <div style="font-size:11px;font-weight:900;color:${curPair.ok ? '#047857' : '#be123c'};">
+                        ${curPair.ok ? '⭕ a ≦ b を満たす！（採用）' : '❌ a ＞ b に逆転！（重複）'}
+                      </div>
+                      <div style="font-size:10.5px;font-weight:700;color:#475569;margin-top:2px;">
+                        ${curPair.ok
+                          ? `a = ${curPair.a} ≦ <math display="inline"><msqrt><mn>${t1N}</mn></msqrt></math> ≒ ${sqrtN.toFixed(2)}`
+                          : `(${curPair.b}, ${curPair.a}) を90°回転しただけ！`}
+                      </div>
+                    </div>
+                  </foreignObject>
+                </svg>
+              </div>
+
+              <!-- 全約数ペアボタン（折り返しを体感） -->
+              <div class="space-y-1.5">
+                <div class="text-xs font-extrabold text-slate-700 dark:text-slate-300">👇 約数ペア (a, b) をクリックして「正方形 √${t1N} を超えた瞬間」を見比べよう：</div>
+                <div class="flex flex-wrap gap-1.5 text-xs font-bold">
+                  ${divisors.map(d => `
+                    <button type="button" data-t1-a="${d.a}" class="px-2.5 py-1.5 rounded-lg border-2 transition ${curPair.a === d.a ? (d.ok ? 'border-blue-600 bg-blue-600 text-white shadow' : 'border-rose-500 bg-rose-500 text-white shadow') : d.ok ? 'border-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-200' : 'border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-slate-400 line-through'}">
+                      (${d.a}, ${d.b})
+                    </button>
+                  `).join('')}
+                </div>
+              </div>
+            </div>
+
+            <div class="lg:col-span-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-3 text-xs sm:text-sm leading-relaxed">
+              <div class="font-extrabold text-blue-700 dark:text-blue-300 text-sm">🧠 理論の証明（ノートに書くべき1行！）</div>
+              <div class="p-3.5 rounded-xl bg-blue-50 dark:bg-blue-950/50 border border-blue-200 dark:border-blue-800 space-y-1.5 font-bold">
+                <div>1 ≦ a ≦ b かつ ab ＝ ${t1N} のとき、両辺に正の数 a を掛けると：</div>
+                <div class="text-center text-base text-blue-800 dark:text-blue-200 py-1">a² ≦ ab ＝ ${t1N}</div>
+                <div>a ＞ 0 より、<strong>a ≦ √${t1N}</strong>（${maxA}² ＝ ${maxA * maxA} ≦ ${t1N} ＜ ${(maxA + 1) * (maxA + 1)} ＝ ${maxA + 1}²）</div>
+                <div>よって、小さい方 a は <strong>1 ≦ a ≦ ${maxA}</strong> の整数だけ調べれば完全網羅！</div>
+              </div>
+              <div class="p-3.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-xs font-bold text-amber-950 dark:text-amber-200">
+                💡 <strong>「なぜそれで全部といえるか？」の最強フレーズ：</strong><br>
+                「a ≦ b より a² ≦ ab ＝ ${t1N}、すなわち a ≦ ${maxA} となるので、1 から ${maxA} までの自然数をすべて調べ尽くしたから、これ以外に解はない。」
+              </div>
+            </div>
+          </div>
+        `;
+      } else if (theorySub === 2) {
+        // 武器②：相加相乗平均と「整数の壁」（和 S 固定での積 P のグラフ視覚化）
+        const realMaxP = (t2Sum * t2Sum) / 4;
+        const intMaxP = Math.floor(realMaxP);
+        const curY = t2Sum - t2X;
+        const curP = t2X * curY;
+        const isEven = t2Sum % 2 === 0;
+
+        // 放物線グラフ SVG
+        const W = 440, H = 225, padL = 46, padB = 34, padT = 26, plotW = 370, plotH = 160;
+        const maxPlotP = Math.max(realMaxP * 1.12, 50);
+        const mapX = (x) => padL + (x / t2Sum) * plotW;
+        const mapY = (p) => (H - padB) - (p / maxPlotP) * plotH;
+
+        let curveD = '';
+        for (let i = 0; i <= 80; i++) {
+          const x = (i / 80) * t2Sum;
+          const p = x * (t2Sum - x);
+          curveD += (i === 0 ? `M ${mapX(x).toFixed(1)},${mapY(p).toFixed(1)}` : ` L ${mapX(x).toFixed(1)},${mapY(p).toFixed(1)}`);
+        }
+
+        let dotsSvg = '';
+        for (let x = 1; x <= Math.floor(t2Sum / 2); x++) {
+          const p = x * (t2Sum - x);
+          const isCur = x === t2X;
+          const isMaxInt = p === intMaxP;
+          dotsSvg += `
+            <circle cx="${mapX(x).toFixed(1)}" cy="${mapY(p).toFixed(1)}" r="${isCur ? 7 : 4.5}" fill="${isCur ? '#ea580c' : (isMaxInt ? '#10b981' : '#3b82f6')}" stroke="#fff" stroke-width="1.8" />
+          `;
+        }
+
+        bodyHtml = `
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+            <div class="lg:col-span-7 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
+              <div class="flex items-center justify-between flex-wrap gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
+                <div>
+                  <span class="text-xs font-extrabold text-indigo-600 dark:text-indigo-400">武器② の本質｜「実数の限界」と「整数の壁」を見抜く！</span>
+                  <h3 class="text-base font-extrabold text-slate-900 dark:text-white">和 x ＋ y ＝ ${t2Sum} のとき、積 xy の動きを目で見よう</h3>
+                </div>
+                <div class="flex gap-1 text-xs font-extrabold">
+                  ${[14, 13, 17].map(s => `
+                    <button type="button" data-t2-sum="${s}" class="px-2.5 py-1 rounded-lg border transition ${t2Sum === s ? 'bg-indigo-600 border-indigo-600 text-white' : 'bg-slate-50 dark:bg-slate-800 border-slate-300 dark:border-slate-700'}">S=${s}${s % 2 === 1 ? '(奇数!)' : '(偶数)'}</button>
+                  `).join('')}
+                </div>
+              </div>
+
+              <!-- 放物線 vs 整数ドット SVG -->
+              <div class="bg-slate-50 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800 p-2">
+                <svg viewBox="0 0 ${W} ${H}" class="w-full h-auto select-none">
+                  <!-- 軸 -->
+                  <line x1="${padL}" y1="${H - padB}" x2="${W - 14}" y2="${H - padB}" stroke="#94a3b8" stroke-width="1.5" />
+                  <line x1="${padL}" y1="${padT}" x2="${padL}" y2="${H - padB}" stroke="#94a3b8" stroke-width="1.5" />
+                  <!-- 実数上限ライン S²/4 -->
+                  <line x1="${padL}" y1="${mapY(realMaxP).toFixed(1)}" x2="${W - 20}" y2="${mapY(realMaxP).toFixed(1)}" stroke="#e11d48" stroke-width="1.8" stroke-dasharray="5 4" />
+                  <text x="${W - 22}" y="${(mapY(realMaxP) - 6).toFixed(1)}" text-anchor="end" font-size="11" font-weight="900" fill="#e11d48">相加相乗の上限 = ${realMaxP} (${isEven ? '整数で到達!' : '小数! 整数はここまで届かない'})</text>
+
+                  <!-- 放物線（実数） -->
+                  <path d="${curveD}" fill="none" stroke="#94a3b8" stroke-width="2" stroke-dasharray="4 3" />
+                  <!-- 頂点（実数 x = S/2） -->
+                  <circle cx="${mapX(t2Sum / 2).toFixed(1)}" cy="${mapY(realMaxP).toFixed(1)}" r="5" fill="none" stroke="#e11d48" stroke-width="2.5" />
+
+                  <!-- 整数点 (x ≦ y) -->
+                  ${dotsSvg}
+
+                  <!-- 現在の点ラベル -->
+                  <text x="${mapX(t2X).toFixed(1)}" y="${H - 12}" text-anchor="middle" font-size="11" font-weight="900" fill="#ea580c">x=${t2X}</text>
+                  <rect x="${Math.min(W - 168, Math.max(padL + 6, mapX(t2X) - 75)).toFixed(1)}" y="${(mapY(curP) + 12).toFixed(1)}" width="150" height="24" rx="7" fill="#fff7ed" stroke="#ea580c" stroke-width="1.8" />
+                  <text x="${Math.min(W - 93, Math.max(padL + 81, mapX(t2X))).toFixed(1)}" y="${(mapY(curP) + 28).toFixed(1)}" text-anchor="middle" font-size="11.5" font-weight="900" fill="#c2410c">(${t2X}, ${curY}) → xy = ${curP}</text>
+                </svg>
+              </div>
+
+              <div class="bg-indigo-50/70 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-800 rounded-xl p-3 space-y-2">
+                <div class="flex items-center justify-between text-xs font-extrabold">
+                  <span>🎛️ 整数 x（1 ≦ x ≦ ${Math.floor(t2Sum / 2)}）を動かそう：<strong>x ＝ ${t2X}, y ＝ ${curY}</strong></span>
+                  <span class="text-orange-600 dark:text-orange-400">積 xy ＝ ${curP}</span>
+                </div>
+                <input type="range" min="1" max="${Math.floor(t2Sum / 2)}" value="${t2X}" data-input="t2-x" class="w-full cursor-pointer">
+              </div>
+            </div>
+
+            <div class="lg:col-span-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-3 text-xs leading-relaxed">
+              <div class="font-extrabold text-indigo-700 dark:text-indigo-300 text-sm">📘 なぜ「奇数 S ＝ 13」では 42.25 をそのまま答えられない？</div>
+              <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-2 font-bold">
+                <div>① 相加相乗平均より：√(xy) ≦ (x+y)/2 ＝ ${t2Sum}/2</div>
+                <div>② 両辺2乗して：xy ≦ ${t2Sum * t2Sum}/4 ＝ <strong>${realMaxP}</strong>（これが実数としての限界！）</div>
+                ${isEven
+                  ? `<div class="text-emerald-700 dark:text-emerald-300">③ 今回は S＝${t2Sum}（偶数）なので、x ＝ y ＝ ${t2Sum / 2} という<strong>整数で等号が実現！</strong>最大値 ${realMaxP}！</div>`
+                  : `<div class="text-rose-700 dark:text-rose-300">③ 今回は S＝${t2Sum}（奇数）！等号は x ＝ y ＝ ${t2Sum / 2} で<strong>整数ではない</strong>！<br>④ そこで<strong>「xy は整数だから xy ≦ ${intMaxP}」</strong>と上限を整数に引き下げる！<br>⑤ 実際に (${Math.floor(t2Sum / 2)}, ${Math.ceil(t2Sum / 2)}) で積 ${intMaxP} が<strong>実現</strong>するので最大値 ${intMaxP}！</div>`
+                }
+              </div>
+              <div class="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 font-bold text-amber-950 dark:text-amber-200">
+                ⚡ <strong>超重要：</strong>和が一定なら「2つの数が近いほど（差 |y−x| が小さいほど）積が大きくなる」！これは <strong>xy ＝ (S² − (y−x)²)/4</strong> からも一目で分かります！
+              </div>
+            </div>
+          </div>
+        `;
+      } else if (theorySub === 3) {
+        // 武器③：差の平方 S² - 4P 判定ラボ
+        const disc = t3S * t3S - 4 * t3P;
+        const sqrtD = disc >= 0 ? Math.round(Math.sqrt(disc)) : -1;
+        const isSq = disc >= 0 && sqrtD * sqrtD === disc;
+        const xSol = isSq ? (t3S - sqrtD) / 2 : null;
+        const ySol = isSq ? (t3S + sqrtD) / 2 : null;
+        const isIntSol = isSq && Number.isInteger(xSol) && Number.isInteger(ySol) && xSol > 0;
+
+        const presets = [
+          { label: '問5: P=72, S=17 (実現!)', s: 17, p: 72 },
+          { label: '問5: P=72, S=18 (実現!)', s: 18, p: 72 },
+          { label: '問5: P=72, S=19 (非平方×)', s: 19, p: 72 },
+          { label: '問6: P=60, S=16 (実現!)', s: 16, p: 60 },
+          { label: '問10: P=120, S=22 (実現!)', s: 22, p: 120 },
+          { label: '応用: P=44, S=14 (直上×!)', s: 14, p: 44 },
+          { label: '応用: P=44, S=15 (実現!)', s: 15, p: 44 }
+        ];
+
+        bodyHtml = `
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+            <div class="lg:col-span-7 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
+              <div class="border-b border-slate-100 dark:border-slate-800 pb-3">
+                <span class="text-xs font-extrabold text-amber-600 dark:text-amber-400">武器③ の本質｜「差の平方 S² − 4P」で整数の存在を一瞬で見抜く！</span>
+                <h3 class="text-base font-extrabold text-slate-900 dark:text-white">和 S と 積 P から、整数解 (x, y) が実在するか実験しよう</h3>
+              </div>
+
+              <!-- プリセットボタン -->
+              <div class="flex flex-wrap gap-1.5 text-[11px] font-extrabold">
+                ${presets.map(pr => `
+                  <button type="button" data-t3-preset="${pr.s}:${pr.p}" class="px-2.5 py-1.5 rounded-lg border transition ${t3S === pr.s && t3P === pr.p ? 'bg-amber-500 border-amber-500 text-white shadow' : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:border-amber-400'}">${pr.label}</button>
+                `).join('')}
+              </div>
+
+              <!-- 判定マシン結果パネル -->
+              <div class="p-4 rounded-2xl border-2 space-y-3 ${isIntSol ? 'border-emerald-400 bg-emerald-50/50 dark:bg-emerald-950/30' : 'border-rose-400 bg-rose-50/50 dark:bg-rose-950/30'}">
+                <div class="grid grid-cols-2 gap-3 text-center text-xs font-extrabold">
+                  <div class="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
+                    和 S ＝ x ＋ y ＝ <span class="text-lg text-blue-600 dark:text-blue-400">${t3S}</span>
+                  </div>
+                  <div class="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
+                    積 P ＝ xy ＝ <span class="text-lg text-indigo-600 dark:text-indigo-400">${t3P}</span>
+                  </div>
+                </div>
+
+                <div class="p-3.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm font-extrabold text-center space-y-1">
+                  <div>(y − x)² ＝ S² − 4P ＝ ${t3S}² − 4 × ${t3P} ＝ ${t3S * t3S} − ${4 * t3P} ＝ <span class="text-xl ${isIntSol ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}">${disc}</span></div>
+                  <div class="text-xs font-bold">
+                    ${disc < 0
+                      ? '❌ 負の数になった！相加相乗平均の下限を下回っているため実数解すら存在しない！'
+                      : isIntSol
+                        ? `⭕ <strong>${disc} ＝ ${sqrtD}²（平方数！）</strong><br>よって y − x ＝ ${sqrtD}。これと x ＋ y ＝ ${t3S} を連立して：<br><span class="text-base text-emerald-700 dark:text-emerald-300">x ＝ (${t3S} − ${sqrtD})/2 ＝ ${xSol}、 y ＝ (${t3S} ＋ ${sqrtD})/2 ＝ ${ySol}</span>（整数で実現！）`
+                        : `❌ <strong>${disc} は整数の2乗（平方数）ではない！</strong><br>だから差 y − x が整数にならず、和が ${t3S} になる整数ペアは存在しない！`
+                    }
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="lg:col-span-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-3 text-xs leading-relaxed">
+              <div class="font-extrabold text-amber-700 dark:text-amber-300 text-sm">📐 なぜ (y − x)² ＝ S² − 4P が成り立つの？</div>
+              <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-1.5 font-bold">
+                <div>展開すると一瞬で証明できる！</div>
+                <div>(x ＋ y)² ＝ x² ＋ 2xy ＋ y²</div>
+                <div>(y − x)² ＝ x² − 2xy ＋ y²</div>
+                <div class="text-blue-700 dark:text-blue-300 pt-1 border-t border-slate-200 dark:border-slate-700">
+                  差をとるとちょうど 4xy だけ違うので：<br>
+                  <strong>(y − x)² ＝ (x ＋ y)² − 4xy ＝ S² − 4P</strong>
+                </div>
+              </div>
+              <div class="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 font-bold text-emerald-950 dark:text-emerald-200">
+                🌟 <strong>うれしいおまけ（偶奇の自動一致）：</strong><br>
+                S² − 4P ＝ d² となるとき、4P は偶数なので <strong>S² と d² の偶奇は必ず一致</strong>（＝ S と d の偶奇も一致）！だから S² − 4P が平方数なら、<strong>(S−d)/2 と (S+d)/2 は必ず整数になる</strong>のです！
+              </div>
+            </div>
+          </div>
+        `;
+      } else if (theorySub === 4) {
+        // 武器④：因数分解の3大パターン
+        const pats = {
+          sqdiff: {
+            title: 'パターンA：平方の差（問7で活用！）',
+            orig: '√(4n² ＋ 105) ＝ m（自然数）',
+            steps: [
+              '① 両辺を2乗して根号を外す：4n² ＋ 105 ＝ m²',
+              '② 文字の項を左辺へ集めて「2乗 − 2乗」を作る：m² − (2n)² ＝ 105',
+              '③ 因数分解して「積 ＝ 定数」へ：<strong>(m − 2n)(m ＋ 2n) ＝ 105</strong>！（0 ＜ m − 2n ＜ m ＋ 2n で約数を絞る）'
+            ],
+            note: '2つの因数の差は (m＋2n) − (m−2n) ＝ 4n（4の倍数）になる点に注目しよう！'
+          },
+          plus1: {
+            title: 'パターンB：定数を両辺に足して因数分解（問8・応用②で活用！）',
+            orig: 'xy ＋ x ＋ y ＝ 59',
+            steps: [
+              '① x でくくれる部分を見る：x(y ＋ 1) ＋ y ＝ 59',
+              '② 後ろの y にも「(y ＋ 1)」のカタマリを作るため、両辺に <strong>＋1</strong> を足す：x(y ＋ 1) ＋ (y ＋ 1) ＝ 60',
+              '③ 共通因数 (y ＋ 1) でくくる：<strong>(x ＋ 1)(y ＋ 1) ＝ 60</strong>！（x ≧ 1 より 2 ≦ x＋1 ≦ y＋1 に注意！）'
+            ],
+            note: '一般形 xy ＋ ax ＋ by ＝ c なら、両辺に ab を足すと (x ＋ b)(y ＋ a) ＝ c ＋ ab と必ず因数分解できる最強ワザ！'
+          },
+          unitfrac: {
+            title: 'パターンC：単位分数型 1/x ＋ 1/y ＝ 1/k（問9・応用③で活用！）',
+            orig: '1/x ＋ 1/y ＝ 1/6　(x ≦ y)',
+            steps: [
+              '① 分母を払う（両辺に 6xy を掛ける）：6y ＋ 6x ＝ xy',
+              '② 移項してパターンBと同じ形に：xy − 6x − 6y ＝ 0',
+              '③ 両辺に (−6)×(−6) ＝ <strong>＋36</strong> を足す：<strong>(x − 6)(y − 6) ＝ 36</strong>！（1 ≦ x−6 ≦ y−6）'
+            ],
+            note: '別解として「x ≦ y より 1/6 ＝ 1/x ＋ 1/y ≦ 2/x ⇒ x ≦ 12」と不等式で 7 ≦ x ≦ 12 に直接絞る方法も超強力！'
+          }
+        };
+        const curP = pats[t4Pattern];
+
+        bodyHtml = `
+          <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
+            <div class="flex items-center justify-between flex-wrap gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
+              <div>
+                <span class="text-xs font-extrabold text-emerald-600 dark:text-emerald-400">武器④ の本質｜「（整数）×（整数）＝（定数）」に変形できれば勝ち！</span>
+                <h3 class="text-base font-extrabold text-slate-900 dark:text-white">入試で頻出する3大因数分解パターンをステップ確認</h3>
+              </div>
+              <div class="flex flex-wrap gap-1.5 text-xs font-extrabold">
+                <button type="button" data-t4-pat="sqdiff" class="px-3 py-1.5 rounded-xl border transition ${t4Pattern === 'sqdiff' ? 'bg-emerald-600 border-emerald-600 text-white' : 'bg-slate-50 dark:bg-slate-800 border-slate-300 dark:border-slate-700'}">A. 平方の差 (問7)</button>
+                <button type="button" data-t4-pat="plus1" class="px-3 py-1.5 rounded-xl border transition ${t4Pattern === 'plus1' ? 'bg-blue-600 border-blue-600 text-white' : 'bg-slate-50 dark:bg-slate-800 border-slate-300 dark:border-slate-700'}">B. 両辺＋定数 (問8)</button>
+                <button type="button" data-t4-pat="unitfrac" class="px-3 py-1.5 rounded-xl border transition ${t4Pattern === 'unitfrac' ? 'bg-indigo-600 border-indigo-600 text-white' : 'bg-slate-50 dark:bg-slate-800 border-slate-300 dark:border-slate-700'}">C. 単位分数型 (問9)</button>
+              </div>
+            </div>
+
+            <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex items-center justify-between flex-wrap gap-2">
+              <div>
+                <div class="text-xs font-extrabold text-slate-500">${curP.title}</div>
+                <div class="text-lg font-extrabold text-slate-900 dark:text-white mt-0.5">${curP.orig}</div>
+              </div>
+              <button type="button" data-action="t4-next" class="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-extrabold shadow">
+                ${t4Step >= 3 ? '🔄 最初から' : '次の変形へ &darr;'}
+              </button>
+            </div>
+
+            <div class="space-y-2.5 text-xs sm:text-sm">
+              ${curP.steps.map((st, idx) => (idx + 1) <= t4Step ? `
+                <div class="p-3.5 rounded-xl border-2 font-bold animate-pop ${idx === 2 ? 'border-emerald-400 bg-emerald-50/70 dark:bg-emerald-950/40' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900'}">
+                  ${st}
+                </div>
+              ` : `
+                <div data-t4-step="${idx + 1}" class="cursor-pointer p-3 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 text-center text-xs text-slate-400 font-bold hover:border-emerald-400">
+                  🔒 Step ${idx + 1}（タップで変形を見る）
+                </div>
+              `).join('')}
+            </div>
+
+            <div class="p-3.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-700 text-xs font-bold text-amber-950 dark:text-amber-200">
+              💡 <strong>応用力のポイント：</strong>${curP.note}
+            </div>
+          </div>
+        `;
+      } else {
+        // 武器⑤：証明の3本柱ルール（減点される答案 vs 満点答案クイズ）
+        bodyHtml = `
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+            <div class="lg:col-span-7 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4 text-xs sm:text-sm">
+              <div class="border-b border-slate-100 dark:border-slate-800 pb-3">
+                <span class="text-xs font-extrabold text-rose-600 dark:text-rose-400">武器⑤｜記述テストで一番減点されやすいポイント！</span>
+                <h3 class="text-base font-extrabold text-slate-900 dark:text-white">「不等式を出しただけ」では最大・最小の証明にならない！</h3>
+              </div>
+
+              <div class="p-4 rounded-xl bg-rose-50/70 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-800 space-y-2 text-xs">
+                <div class="font-extrabold text-rose-800 dark:text-rose-300">❌ 減点されてしまう答案の例（正の整数 xy ＝ 44 のとき x ＋ y の最小値）</div>
+                <p class="font-bold text-slate-700 dark:text-slate-200 leading-relaxed">
+                  「相加相乗平均より x ＋ y ≧ 2√44 ≒ 13.27。x ＋ y は整数なので、最小値は 14 である。」
+                </p>
+              </div>
+
+              <div class="font-extrabold text-slate-900 dark:text-white text-xs">❓ 上の答案はどこが決定的に間違っているでしょう？</div>
+              <div class="grid grid-cols-1 gap-2 text-xs font-bold">
+                <button type="button" data-t5-quiz="ok" class="p-3 rounded-xl border-2 text-left transition ${t5Quiz === 'ok' ? 'border-emerald-500 bg-emerald-500/15 text-emerald-800 dark:text-emerald-200' : 'border-slate-200 dark:border-slate-700 hover:border-blue-400'}">
+                  A. 「x ＋ y ＝ 14 を実際に満たす整数の組 (x, y) が存在するか（実現確認）」をしていない！実は44の約数に和が14になる組はなく、本当の最小値は15！
+                </button>
+                <button type="button" data-t5-quiz="ng" class="p-3 rounded-xl border-2 text-left transition ${t5Quiz === 'ng' ? 'border-rose-500 bg-rose-500/15 text-rose-800 dark:text-rose-200' : 'border-slate-200 dark:border-slate-700 hover:border-blue-400'}">
+                  B. 相加相乗平均の計算 2√44 ≒ 13.27 が間違っている！
+                </button>
+              </div>
+
+              ${t5Quiz ? `
+                <div class="p-3.5 rounded-xl text-xs font-bold leading-relaxed ${t5Quiz === 'ok' ? 'bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-400 text-emerald-900 dark:text-emerald-200' : 'bg-rose-50 dark:bg-rose-950/50 border border-rose-400 text-rose-900 dark:text-rose-200'}">
+                  ${t5Quiz === 'ok'
+                    ? '⭕ <strong>大正解！！これが今日の授業の最大の核心です！</strong><br>14 は「下限（これより小さくはなれない壁）」ではあっても、実際に (x, y) が取れない値かもしれません（44 = 1×44, 2×22, 4×11 → 和は45, 24, 15！14は不可能！）。だから必ず<strong>「不等式（壁）＋ 整数条件 ＋ 実現する具体的な組」</strong>の3点セットを書きます！'
+                    : '❌ 2√44 ≒ 13.27 の計算は合っています！問題は<strong>「本当に和が14になる整数の組が存在するかを確かめていないこと」</strong>です。実際、44の約数ペア (1,44), (2,22), (4,11) の和は 45, 24, 15 なので 14 は実現せず、最小値は 15 になります！'}
+                </div>
+              ` : ''}
+            </div>
+
+            <div class="lg:col-span-5 bg-gradient-to-br from-blue-600 to-indigo-700 text-white rounded-2xl p-5 shadow-md space-y-3 text-xs">
+              <div class="font-extrabold text-sm">🏆 満点答案の黄金テンプレート</div>
+              <div class="space-y-2.5 leading-relaxed font-bold">
+                <div class="p-3 rounded-xl bg-white/15">
+                  <strong>【STEP 1：不等式（上限・下限）】</strong><br>
+                  相加相乗平均や大小関係で「これ以上大きく（小さく）なれない壁」を作る。
+                </div>
+                <div class="p-3 rounded-xl bg-white/15">
+                  <strong>【STEP 2：整数条件で候補を絞る】</strong><br>
+                  「整数だから〜以下（以上）」「約数だから〜のどれか」「差の平方 S²−4P が平方数」で有限個に絞る。
+                </div>
+                <div class="p-3 rounded-xl bg-white/15">
+                  <strong>【STEP 3：実現確認（具体例）】</strong><br>
+                  「実際に (x, y) ＝ (○, △) のとき成り立つ」と具体的な1組（または全組）を示して証明完了！
+                </div>
+              </div>
+              <button type="button" data-tab="sec12" class="w-full py-2.5 rounded-xl bg-white text-blue-700 hover:bg-blue-50 font-extrabold shadow transition">
+                武器をそろえた！ワークシート 問1〜4へ挑戦 &rarr;
+              </button>
+            </div>
+          </div>
+        `;
+      }
+
+      return `
+        <div class="space-y-5 animate-pop">
+          <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm space-y-3">
+            <div class="flex items-center justify-between flex-wrap gap-2">
+              <div>
+                <div class="text-xs font-extrabold text-blue-600 dark:text-blue-400">基礎知識・理論マスター</div>
+                <h2 class="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white">問1〜問12を解くために必要な「5つの武器」を体感しよう</h2>
+              </div>
+            </div>
+            <div class="flex flex-wrap gap-1.5">
+              ${subs.map(s => `
+                <button type="button" data-theory-sub="${s.id}" class="px-3 py-2 rounded-xl text-xs font-extrabold border-2 transition text-left ${theorySub === s.id ? 'border-blue-600 bg-blue-600 text-white shadow' : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:border-blue-400'}">
+                  <div>${s.title}</div>
+                  <div class="text-[10px] opacity-80">${s.tag}</div>
+                </button>
+              `).join('')}
+            </div>
+          </div>
+
+          ${bodyHtml}
+        </div>
+      `;
+    }
+
+    /* =========================================================================
+       TAB 1：セクション 1・2（問1・問2・問3・問4）
+       ========================================================================= */
+    function renderSec12() {
+      // 問1の検証
+      const q1CorrectSet = [1, 2, 3, 4, 6];
+      const q1Ok = q1Selected.size === q1CorrectSet.length && q1CorrectSet.every(v => q1Selected.has(v));
+
+      // 問3の証明ステップ
+      const q3Steps = [
+        { s: 1, title: '① 「左辺 − 右辺 ≧ 0」を示す方針を立てる', body: 'a ＋ b − 2√(ab) ≧ 0 を示せばよい！' },
+        { s: 2, title: '② a ＝ (√a)²、b ＝ (√b)² と見抜く（a ＞ 0, b ＞ 0 だからできる！）', body: 'a ＋ b − 2√(ab) ＝ (√a)² − 2√a√b ＋ (√b)²' },
+        { s: 3, title: '③ 因数分解して「実数の2乗 ≧ 0」の形にする！', body: '＝ (√a − √b)² ≧ 0　（実数の平方は負にならない！）' },
+        { s: 4, title: '④ 結論と等号成立条件を明記する', body: 'よって a ＋ b ≧ 2√(ab)。等号成立は √a − √b ＝ 0、すなわち <strong>a ＝ b</strong> のとき！' }
+      ];
+
+      return `
+        <div class="space-y-6 animate-pop">
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+            <!-- 問1 -->
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
+              <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2.5">
+                <span class="px-2.5 py-0.5 rounded-lg bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 text-xs font-extrabold">1｜前回の武器を使う｜問1</span>
+                ${clearedSet.has('q1') ? '<span class="text-xs font-extrabold text-emerald-600">✅ クリア済</span>' : ''}
+              </div>
+              <div class="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white">
+                自然数 a ≦ b について ab ＝ 48 を満たす組をすべて求めよ。
+              </div>
+              <div class="p-3 rounded-xl bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 text-xs font-bold text-amber-950 dark:text-amber-200">
+                💡 ヒント：a ≦ b より a² ≦ 48。6² ＝ 36 ＜ 48 ＜ 49 ＝ 7² なので、小さい方 a は <strong>1〜6 の中から 48 の約数</strong>をすべて選ぼう！
+              </div>
+
+              <div class="space-y-2 text-xs">
+                <div class="font-extrabold">👇 条件を満たす小さい方の数 a をすべてタップしよう：</div>
+                <div class="grid grid-cols-4 sm:grid-cols-8 gap-1.5 font-mono font-extrabold">
+                  ${[1, 2, 3, 4, 5, 6, 7, 8].map(n => {
+                    const sel = q1Selected.has(n);
+                    return `
+                      <button type="button" data-q1-pick="${n}" class="py-2 rounded-xl border-2 transition ${sel ? 'border-blue-600 bg-blue-600 text-white shadow' : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800'}">${n}</button>
+                    `;
+                  }).join('')}
+                </div>
+                <button type="button" data-action="q1-check" class="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-extrabold shadow">答え合わせ＆完全解説を見る</button>
+              </div>
+
+              ${q1Checked ? `
+                <div class="p-3.5 rounded-xl border-2 text-xs space-y-2 leading-relaxed ${q1Ok ? 'border-emerald-400 bg-emerald-50/60 dark:bg-emerald-950/40 text-emerald-950 dark:text-emerald-200' : 'border-rose-400 bg-rose-50/60 dark:bg-rose-950/40 text-rose-950 dark:text-rose-200'}">
+                  <div class="font-extrabold">${q1Ok ? '⭕ 完璧！5組すべて見つけました！（+50 XP）' : '❌ 惜しい！48の約数かつ a ≦ 6 となるのは 1, 2, 3, 4, 6 の5つです（5は割り切れない、8は 8 ＞ 6 で a ≦ b に反する！）'}</div>
+                  <div class="p-2.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 font-bold">
+                    <div><strong>① 答え：</strong>(a, b) ＝ <strong>(1, 48), (2, 24), (3, 16), (4, 12), (6, 8)</strong></div>
+                    <div class="mt-1"><strong>② なぜ全部といえるか：</strong>a ≦ b より a² ≦ ab ＝ 48 ＜ 49 ＝ 7²、すなわち 1 ≦ a ≦ 6。この6個の自然数をすべて調べたため、これ以外に解は存在しない。</div>
+                  </div>
+                </div>
+              ` : ''}
+            </div>
+
+            <!-- 問2 -->
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
+              <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2.5">
+                <span class="px-2.5 py-0.5 rounded-lg bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 text-xs font-extrabold">1｜前回の武器を使う｜問2</span>
+                ${clearedSet.has('q2') ? '<span class="text-xs font-extrabold text-emerald-600">✅ クリア済</span>' : ''}
+              </div>
+              <div class="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white">
+                正の整数 x ≦ y について x ＋ y ＝ 14。積 xy が最大となる組と最大値を求めよ。
+              </div>
+
+              <!-- ミニ実験バー -->
+              <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-2 text-xs">
+                <div class="flex justify-between font-extrabold">
+                  <span>実験：x ＝ ${q2X}, y ＝ ${14 - q2X}</span>
+                  <span class="text-blue-600 dark:text-blue-400 text-sm">積 xy ＝ ${q2X * (14 - q2X)}</span>
+                </div>
+                <input type="range" min="1" max="7" value="${q2X}" data-input="q2-x" class="w-full cursor-pointer">
+                <div class="text-[11px] text-slate-500 font-bold">(1,13)→13、(2,12)→24、(3,11)→33… 2数が近づくほど積はどう変化する？</div>
+              </div>
+
+              <div class="grid grid-cols-3 gap-2 text-xs font-extrabold">
+                ${[
+                  { id: 'ok', label: '(7, 7) 最大値 49' },
+                  { id: 'w1', label: '(6, 8) 最大値 48' },
+                  { id: 'w2', label: '(1, 13) 最大値 13' }
+                ].map(o => `
+                  <button type="button" data-q2-ans="${o.id}" class="py-2.5 px-2 rounded-xl border-2 transition ${q2Ans === o.id ? (o.id === 'ok' ? 'border-emerald-500 bg-emerald-500/15 text-emerald-700 dark:text-emerald-300' : 'border-rose-500 bg-rose-500/15 text-rose-700 dark:text-rose-300') : 'border-slate-200 dark:border-slate-700'}">${o.label}</button>
+                `).join('')}
+              </div>
+
+              ${q2Ans ? `
+                <div class="p-3.5 rounded-xl border text-xs space-y-1.5 leading-relaxed font-bold ${q2Ans === 'ok' ? 'border-emerald-400 bg-emerald-50/60 dark:bg-emerald-950/40 text-emerald-950 dark:text-emerald-200' : 'border-rose-400 bg-rose-50/60 dark:bg-rose-950/40 text-rose-950 dark:text-rose-200'}">
+                  <div>${q2Ans === 'ok' ? '⭕ 大正解！（+50 XP）' : '❌ 惜しい！x ≦ y は「等しい（x ＝ y）」も含むので (7, 7) が選べます！'}</div>
+                  <div class="p-2.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100">
+                    <div><strong>① 途中式（平方完成 or 相加相乗）：</strong>xy ＝ x(14 − x) ＝ −(x − 7)² ＋ 49 ≦ 49</div>
+                    <div class="mt-1"><strong>② 最大といえる理由：</strong>すべての x で xy ≦ 49 が成り立ち、実際に整数 (x, y) ＝ (7, 7) で 49 が実現するから最大値は 49！</div>
+                  </div>
+                </div>
+              ` : ''}
+            </div>
+
+            <!-- 問3 -->
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
+              <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2.5">
+                <span class="px-2.5 py-0.5 rounded-lg bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 text-xs font-extrabold">2｜相加相乗平均｜問3（基本証明）</span>
+                <button type="button" data-action="q3-next" class="px-3 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-extrabold shadow">${q3Step >= 4 ? '🔄 最初から' : '次の1行へ &darr;'}</button>
+              </div>
+              <div class="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white">
+                正の実数 a, b について a ＋ b ≧ 2√(ab) を証明し、等号条件を述べよ。
+              </div>
+
+              <div class="space-y-2 text-xs">
+                ${q3Steps.map(st => st.s <= q3Step ? `
+                  <div class="p-3 rounded-xl border ${st.s === 4 ? 'border-emerald-400 bg-emerald-50/60 dark:bg-emerald-950/40' : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950'}">
+                    <div class="font-extrabold text-indigo-700 dark:text-indigo-300">${st.title}</div>
+                    <div class="font-bold text-slate-800 dark:text-slate-100 mt-1">${st.body}</div>
+                  </div>
+                ` : `
+                  <div data-q3-set="${st.s}" class="cursor-pointer p-2.5 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 text-center text-slate-400 font-bold hover:border-indigo-400">
+                    🔒 ${st.title}（タップで表示）
+                  </div>
+                `).join('')}
+              </div>
+
+              <div class="p-3 rounded-xl bg-indigo-50/60 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800 space-y-2 text-xs">
+                <div class="font-extrabold text-indigo-800 dark:text-indigo-200">❓ 確認クイズ：なぜ条件に「正の実数 a, b」と書いてあるの？</div>
+                <div class="grid grid-cols-2 gap-2 font-bold">
+                  <button type="button" data-q3-quiz="ok" class="p-2 rounded-lg border-2 ${q3EqQuiz === 'ok' ? 'border-emerald-500 bg-emerald-500/15 text-emerald-700 dark:text-emerald-300' : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700'}">√a, √b を実数として使うため！</button>
+                  <button type="button" data-q3-quiz="ng" class="p-2 rounded-lg border-2 ${q3EqQuiz === 'ng' ? 'border-rose-500 bg-rose-500/15 text-rose-700 dark:text-rose-300' : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700'}">ただの習慣で意味はない</button>
+                </div>
+                ${q3EqQuiz ? `<div class="font-bold ${q3EqQuiz === 'ok' ? 'text-emerald-700 dark:text-emerald-300' : 'text-rose-700 dark:text-rose-300'}">${q3EqQuiz === 'ok' ? '⭕ 大正解！負の数だと √a が実数にならず、(√a−√b)² ≧ 0 が使えないからです！（+50 XP）' : '❌ 負の数（例: a=−1, b=−1）を入れると左辺は −2、右辺は +2 で不等式が壊れてしまいます！正の数だからこそ使えます！'}</div>` : ''}
+              </div>
+            </div>
+
+            <!-- 問4 -->
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
+              <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2.5">
+                <span class="px-2.5 py-0.5 rounded-lg bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 text-xs font-extrabold">2｜相加相乗平均｜問4（整数の壁！）</span>
+                ${clearedSet.has('q4') ? '<span class="text-xs font-extrabold text-emerald-600">✅ クリア済</span>' : ''}
+              </div>
+              <div class="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white">
+                正の整数 x ≦ y について x ＋ y ＝ 13。xy の最大値とその組を求めよ。
+              </div>
+
+              <div class="p-3 rounded-xl bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 text-xs font-bold leading-relaxed text-amber-950 dark:text-amber-200">
+                🔍 相加相乗平均より：√(xy) ≦ (x+y)/2 ＝ 13/2 ⇒ <strong>xy ≦ 169/4 ＝ 42.25</strong>。<br>
+                しかし xy は整数！では最大値と組はどれ？
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs font-extrabold">
+                ${[
+                  { id: 'ok', label: '最大値 42、(6, 7)' },
+                  { id: 'w1', label: '最大値 42.25、(6.5, 6.5)' },
+                  { id: 'w2', label: '最大値 40、(5, 8)' }
+                ].map(o => `
+                  <button type="button" data-q4-ans="${o.id}" class="py-2.5 px-2 rounded-xl border-2 transition ${q4Ans === o.id ? (o.id === 'ok' ? 'border-emerald-500 bg-emerald-500/15 text-emerald-700 dark:text-emerald-300' : 'border-rose-500 bg-rose-500/15 text-rose-700 dark:text-rose-300') : 'border-slate-200 dark:border-slate-700'}">${o.label}</button>
+                `).join('')}
+              </div>
+
+              ${q4Ans ? `
+                <div class="p-3.5 rounded-xl border-2 text-xs space-y-2 leading-relaxed font-bold ${q4Ans === 'ok' ? 'border-emerald-400 bg-emerald-50/60 dark:bg-emerald-950/40 text-emerald-950 dark:text-emerald-200' : 'border-rose-400 bg-rose-50/60 dark:bg-rose-950/40 text-rose-950 dark:text-rose-200'}">
+                  <div>${q4Ans === 'ok' ? '⭕ 大正解！3段階の論理がバッチリです！（+60 XP）' : q4Ans === 'w1' ? '❌ x, y は「正の整数」なので 6.5 は使えません！xy も整数なので 42.25 以下の最大整数「42」が実現できるか確認しよう！' : '❌ 40 よりさらに大きい 6 × 7 ＝ 42 が実現できます！'}</div>
+                  <div class="p-2.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100">
+                    <div><strong>① 上限と整数条件：</strong>xy ≦ 169/4 ＝ 42.25。xy は整数より <strong>xy ≦ 42</strong>。</div>
+                    <div class="mt-1"><strong>② 実現確認：</strong>(x, y) ＝ (6, 7) のとき 6＋7＝13、6×7＝42 となり実現する！よって最大値 <strong>42</strong>、組 <strong>(6, 7)</strong>。</div>
+                  </div>
+                </div>
+              ` : ''}
+            </div>
+          </div>
+
+          <div class="text-right">
+            <button type="button" data-tab="sec3" class="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs sm:text-sm font-extrabold shadow-md transition">
+              次へ：セクション 3（不等式と約数・差の平方：問5・問6） &rarr;
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    /* =========================================================================
+       TAB 2：セクション 3（問5・問6）
+       ========================================================================= */
+    function renderSec3() {
+      const q5Candidates = [
+        { s: 17, sq: 289, diffSq: 1, isSq: true, d: 1, pair: '(8, 9)' },
+        { s: 18, sq: 324, diffSq: 36, isSq: true, d: 6, pair: '(6, 12)' },
+        { s: 19, sq: 361, diffSq: 73, isSq: false, d: null, pair: '解なし（8²＜73＜9²）' }
+      ];
+
+      return `
+        <div class="space-y-6 animate-pop">
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+            <!-- 問5 -->
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
+              <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2.5">
+                <span class="px-2.5 py-0.5 rounded-lg bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 text-xs font-extrabold">3｜不等式と約数｜問5</span>
+                ${clearedSet.has('q5') ? '<span class="text-xs font-extrabold text-emerald-600">✅ クリア済</span>' : ''}
+              </div>
+              <div class="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white">
+                正の整数 x ≦ y について xy ＝ 72 かつ x ＋ y ≦ 19 を満たすすべての組を求めよ。
+              </div>
+
+              <!-- Step 1: 和の絞り込み -->
+              <div class="p-3.5 rounded-xl bg-blue-50/70 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 text-xs font-bold leading-relaxed space-y-1">
+                <div class="text-blue-800 dark:text-blue-200">Step ① 相加相乗平均で「和 S ＝ x ＋ y の下限」を作る！</div>
+                <div>x ＋ y ≧ 2√72 ＝ √288。ここで 16² ＝ 256 ＜ 288 ＜ 289 ＝ 17² より x ＋ y ＞ 16。</div>
+                <div>x ＋ y は整数かつ x ＋ y ≦ 19 なので、候補は <strong>S ＝ 17, 18, 19 の3つだけ！</strong></div>
+              </div>
+
+              <!-- Step 2: 差の平方インタラクティブ検査テーブル -->
+              <div class="space-y-2 text-xs">
+                <div class="font-extrabold text-amber-700 dark:text-amber-300">Step ② 3つの候補をタップして「差の平方 S² − 4×72 ＝ S² − 288」を検証しよう！</div>
+                ${q5Candidates.map(c => {
+                  const open = q5CheckS[c.s];
+                  return `
+                    <div data-q5-s="${c.s}" class="cursor-pointer p-3 rounded-xl border-2 transition ${open ? (c.isSq ? 'border-emerald-400 bg-emerald-50/50 dark:bg-emerald-950/30' : 'border-rose-400 bg-rose-50/50 dark:bg-rose-950/30') : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:border-amber-400'}">
+                      <div class="flex items-center justify-between font-extrabold">
+                        <span>S ＝ ${c.s} のとき</span>
+                        <span class="text-[11px] ${open ? (c.isSq ? 'text-emerald-700 dark:text-emerald-300' : 'text-rose-700 dark:text-rose-300') : 'text-slate-400'}">${open ? (c.isSq ? `⭕ 実現！ ${c.pair}` : '❌ 平方数でない') : 'タップして計算'}</span>
+                      </div>
+                      ${open ? `
+                        <div class="mt-1.5 font-bold text-slate-700 dark:text-slate-200">
+                          (y − x)² ＝ ${c.s}² − 288 ＝ ${c.sq} − 288 ＝ <strong>${c.diffSq}</strong>
+                          ${c.isSq ? `＝ ${c.d}² ⇒ y − x ＝ ${c.d} ⇒ <strong>(x, y) ＝ ${c.pair}</strong>` : ' → 平方数にならないので不適！'}
+                        </div>
+                      ` : ''}
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+
+              <!-- 問5 最終選択 -->
+              <div class="space-y-2 text-xs">
+                <div class="font-extrabold">🎯 最終確認：条件を満たすすべての組はどれ？</div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 font-extrabold">
+                  <button type="button" data-q5-ans="ok" class="p-2.5 rounded-xl border-2 ${q5Ans === 'ok' ? 'border-emerald-500 bg-emerald-500/15 text-emerald-700 dark:text-emerald-300' : 'border-slate-200 dark:border-slate-700'}">(6, 12), (8, 9) の2組</button>
+                  <button type="button" data-q5-ans="w1" class="p-2.5 rounded-xl border-2 ${q5Ans === 'w1' ? 'border-rose-500 bg-rose-500/15 text-rose-700 dark:text-rose-300' : 'border-slate-200 dark:border-slate-700'}">(4, 18), (6, 12), (8, 9) の3組</button>
+                </div>
+                ${q5Ans ? `
+                  <div class="p-3 rounded-xl font-bold leading-relaxed ${q5Ans === 'ok' ? 'bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-400 text-emerald-900 dark:text-emerald-200' : 'bg-rose-50 dark:bg-rose-950/50 border border-rose-400 text-rose-900 dark:text-rose-200'}">
+                    ${q5Ans === 'ok'
+                      ? '⭕ <strong>大正解！（+70 XP）</strong><br><strong>② 全部といえる理由：</strong>相加相乗平均より 17 ≦ x＋y ≦ 19 の3通りしかなく、そのすべてを差の平方で検証したため、(6, 12), (8, 9) が全解！'
+                      : '❌ (4, 18) は 4＋18 ＝ 22 となり「x＋y ≦ 19」を超えてしまいます！正解は (6, 12) と (8, 9) の2組です！'}
+                  </div>
+                ` : ''}
+              </div>
+            </div>
+
+            <!-- 問6 -->
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
+              <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2.5">
+                <span class="px-2.5 py-0.5 rounded-lg bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 text-xs font-extrabold">3｜不等式と約数｜問6</span>
+                ${clearedSet.has('q6') ? '<span class="text-xs font-extrabold text-emerald-600">✅ クリア済</span>' : ''}
+              </div>
+              <div class="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white">
+                正の整数 x ≦ y について xy ＝ 60。x ＋ y の最小値とその組を求めよ。
+              </div>
+
+              <div class="p-3.5 rounded-xl bg-indigo-50/70 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800 text-xs font-bold leading-relaxed space-y-1">
+                <div class="text-indigo-800 dark:text-indigo-200">Step ① 相加相乗平均で下限をつかむ</div>
+                <div>x ＋ y ≧ 2√60 ＝ √240。</div>
+                <div>15² ＝ 225 ＜ 240 ＜ 256 ＝ 16² より、x ＋ y ＞ 15。整数なので <strong>x ＋ y ≧ 16</strong>！</div>
+                <div class="text-emerald-700 dark:text-emerald-300 pt-1">Step ② 下限の直上整数 S ＝ 16 が実現するか「差の平方」でチェック！</div>
+                <div>16² − 4×60 ＝ 256 − 240 ＝ <strong>16 ＝ 4²</strong>（平方数だ！）</div>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs font-extrabold">
+                ${[
+                  { id: 'ok', label: '最小値 16、(6, 10)' },
+                  { id: 'w1', label: '最小値 17、(5, 12)' },
+                  { id: 'w2', label: '最小値 15、(5, 10)' }
+                ].map(o => `
+                  <button type="button" data-q6-ans="${o.id}" class="py-2.5 px-2 rounded-xl border-2 transition ${q6Ans === o.id ? (o.id === 'ok' ? 'border-emerald-500 bg-emerald-500/15 text-emerald-700 dark:text-emerald-300' : 'border-rose-500 bg-rose-500/15 text-rose-700 dark:text-rose-300') : 'border-slate-200 dark:border-slate-700'}">${o.label}</button>
+                `).join('')}
+              </div>
+
+              ${q6Ans ? `
+                <div class="p-3.5 rounded-xl border-2 text-xs space-y-2 leading-relaxed font-bold ${q6Ans === 'ok' ? 'border-emerald-400 bg-emerald-50/60 dark:bg-emerald-950/40 text-emerald-950 dark:text-emerald-200' : 'border-rose-400 bg-rose-50/60 dark:bg-rose-950/40 text-rose-950 dark:text-rose-200'}">
+                  <div>${q6Ans === 'ok' ? '⭕ 大正解！（+70 XP）' : q6Ans === 'w2' ? '❌ 5 × 10 ＝ 50 で 60 になりません！' : '❌ 5＋12＝17 よりさらに小さい 6＋10＝16 が実現します！'}</div>
+                  <div class="p-2.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100">
+                    <strong>② 最小といえる理由：</strong>相加相乗平均と整数条件から x＋y ≧ 16 であり、実際に (x, y) ＝ (6, 10) のとき 6×10＝60 かつ 6＋10＝16 が実現するため、最小値は 16！
+                  </div>
+                </div>
+              ` : ''}
+
+              <!-- ワークシートのヒント補足：直上が実現しないケースも確認 -->
+              <button type="button" data-action="q6-toggle-trap" class="w-full py-2 rounded-xl bg-amber-100 dark:bg-amber-950/60 hover:bg-amber-200 border border-amber-300 dark:border-amber-700 text-amber-900 dark:text-amber-200 text-xs font-extrabold transition">
+                ⚠️ ヒント解説：「下限の直上の整数が実現しない場合」の例を見る
+              </button>
+              ${q6ShowTrap ? `
+                <div class="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-300 text-xs font-bold leading-relaxed text-amber-950 dark:text-amber-200 animate-pop">
+                  例えば <strong>xy ＝ 44</strong> なら、x＋y ≧ 2√44 ＝ √176 ＞ 13 なので直上整数は <strong>14</strong>。<br>
+                  しかし 14² − 4×44 ＝ 20（平方数でない！×）なので 14 は不可能！次の <strong>15</strong> で 15² − 176 ＝ 49 ＝ 7² ⇒ (4, 11) が最小になります。<br>
+                  だから問6でも「16で終わらずに (6, 10) を明記する」のが超重要なのです！
+                </div>
+              ` : ''}
+            </div>
+          </div>
+
+          <div class="text-right">
+            <button type="button" data-tab="sec4" class="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs sm:text-sm font-extrabold shadow-md transition">
+              次へ：セクション 4（平方数・因数分解：問7・問8） &rarr;
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    /* =========================================================================
+       TAB 3：セクション 4（問7・問8）
+       ========================================================================= */
+    function renderSec4() {
+      const q7Pairs = [
+        { a: 1, b: 105, diff: 104, n: 26, m: 53 },
+        { a: 3, b: 35, diff: 32, n: 8, m: 19 },
+        { a: 5, b: 21, diff: 16, n: 4, m: 13 },
+        { a: 7, b: 15, diff: 8, n: 2, m: 11 }
+      ];
+
+      return `
+        <div class="space-y-6 animate-pop">
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+            <!-- 問7 -->
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
+              <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2.5">
+                <span class="px-2.5 py-0.5 rounded-lg bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 text-xs font-extrabold">4｜平方数・因数分解｜問7</span>
+                ${clearedSet.has('q7') ? '<span class="text-xs font-extrabold text-emerald-600">✅ クリア済</span>' : ''}
+              </div>
+              <div class="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white">
+                自然数 n について √(4n² ＋ 105) が自然数となる n をすべて求めよ。
+              </div>
+
+              <div class="p-3.5 rounded-xl bg-emerald-50/70 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-xs font-bold space-y-1 leading-relaxed">
+                <div><strong>① 自然数 m を置く：</strong>√(4n² ＋ 105) ＝ m ⇒ m² − 4n² ＝ 105</div>
+                <div><strong>② 因数分解：</strong>(m − 2n)(m ＋ 2n) ＝ 105（＝ 3 × 5 × 7）</div>
+                <div><strong>③ 絞り込み条件：</strong>m, n は自然数なので <strong>0 ＜ m − 2n ＜ m ＋ 2n</strong>。しかも <strong>(大きい方) − (小さい方) ＝ 4n</strong>！</div>
+              </div>
+
+              <div class="space-y-2 text-xs">
+                <div class="font-extrabold text-emerald-700 dark:text-emerald-300">👇 105 の約数ペア（全4組）をタップして n を計算しよう！</div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  ${q7Pairs.map(p => {
+                    const open = q7Revealed[p.a];
+                    return `
+                      <div data-q7-pair="${p.a}" class="cursor-pointer p-3 rounded-xl border-2 transition ${open ? 'border-emerald-400 bg-emerald-50/50 dark:bg-emerald-950/30' : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:border-emerald-400'}">
+                        <div class="font-extrabold">(${p.a}, ${p.b}) ${open ? `→ n = ${p.n}` : ''}</div>
+                        ${open
+                          ? `<div class="text-[11px] font-bold text-slate-700 dark:text-slate-300 mt-1">差 4n ＝ ${p.b}−${p.a} ＝ ${p.diff} ⇒ <strong>n ＝ ${p.n}</strong> (m＝${p.m})</div>`
+                          : `<div class="text-[11px] text-slate-400 mt-0.5">タップして 4n を計算</div>`
+                        }
+                      </div>
+                    `;
+                  }).join('')}
+                </div>
+              </div>
+
+              <div class="grid grid-cols-2 gap-2 text-xs font-extrabold">
+                <button type="button" data-q7-ans="ok" class="py-2.5 rounded-xl border-2 ${q7Ans === 'ok' ? 'border-emerald-500 bg-emerald-500/15 text-emerald-700 dark:text-emerald-300' : 'border-slate-200 dark:border-slate-700'}">n ＝ 2, 4, 8, 26（4個）</button>
+                <button type="button" data-q7-ans="w1" class="py-2.5 rounded-xl border-2 ${q7Ans === 'w1' ? 'border-rose-500 bg-rose-500/15 text-rose-700 dark:text-rose-300' : 'border-slate-200 dark:border-slate-700'}">n ＝ 2, 4, 8（3個）</button>
+              </div>
+              ${q7Ans ? `
+                <div class="p-3 rounded-xl font-bold text-xs leading-relaxed ${q7Ans === 'ok' ? 'bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-400 text-emerald-900 dark:text-emerald-200' : 'bg-rose-50 dark:bg-rose-950/50 border border-rose-400 text-rose-900 dark:text-rose-200'}">
+                  ${q7Ans === 'ok'
+                    ? '⭕ <strong>大正解！（+80 XP）</strong><br><strong>② 全部といえる理由：</strong>105 ＝ 3×5×7 の正の約数は 8個（大小のペアは4組）。0 ＜ m−2n ＜ m＋2n の4組すべてを調べ尽くしたから n ＝ 2, 4, 8, 26 が全解！'
+                    : '❌ (1, 105) のペアを忘れていませんか？ 105 − 1 ＝ 104 ＝ 4 × 26 なので n ＝ 26 も立派な解です！'}
+                </div>
+              ` : ''}
+            </div>
+
+            <!-- 問8 -->
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
+              <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2.5">
+                <span class="px-2.5 py-0.5 rounded-lg bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 text-xs font-extrabold">4｜平方数・因数分解｜問8</span>
+                ${clearedSet.has('q8') ? '<span class="text-xs font-extrabold text-emerald-600">✅ クリア済</span>' : ''}
+              </div>
+              <div class="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white">
+                正の整数 x ≦ y について xy ＋ x ＋ y ＝ 59 を満たすすべての組を求めよ。
+              </div>
+
+              <!-- Step 1: 両辺に何を足す？ -->
+              <div class="p-3.5 rounded-xl bg-blue-50/70 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 space-y-2 text-xs">
+                <div class="font-extrabold text-blue-800 dark:text-blue-200">Step ① 積の形 (x ＋ 1)(y ＋ 1) を作るために、両辺にいくつを足す？</div>
+                <div class="grid grid-cols-3 gap-2 font-extrabold">
+                  ${[1, 2, 59].map(v => `
+                    <button type="button" data-q8-add="${v}" class="py-2 rounded-xl border-2 ${q8AddVal === v ? (v === 1 ? 'border-emerald-500 bg-emerald-500 text-white' : 'border-rose-500 bg-rose-500 text-white') : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700'}">＋ ${v}</button>
+                  `).join('')}
+                </div>
+                ${q8AddVal !== null ? `
+                  <div class="font-bold ${q8AddVal === 1 ? 'text-emerald-700 dark:text-emerald-300' : 'text-rose-700 dark:text-rose-300'}">
+                    ${q8AddVal === 1
+                      ? '⭕ 正解！両辺に <strong>＋1</strong> すると <strong>(x ＋ 1)(y ＋ 1) ＝ 60</strong>（積が 60 で固定！）になります！'
+                      : '❌ (x ＋ 1)(y ＋ 1) を展開すると xy ＋ x ＋ y ＋ 1 なので、足りないのは <strong>＋1</strong> です！'}
+                  </div>
+                ` : ''}
+              </div>
+
+              <!-- Step 2: 2 ≦ x+1 ≦ y+1 の罠に注意！ -->
+              <div class="p-3.5 rounded-xl bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 text-xs font-bold leading-relaxed space-y-1.5">
+                <div class="text-amber-900 dark:text-amber-200">⚠️ 超重要チェック：x, y は「正の整数（1以上）」！</div>
+                <div>だから <strong>2 ≦ x ＋ 1 ≦ y ＋ 1</strong> になります！</div>
+                <div>60 の約数ペアのうち <strong>(1, 60) は x ＋ 1 ＝ 1 ⇒ x ＝ 0 となり不適（除外！）</strong>。</div>
+                <button type="button" data-action="q8-toggle-pairs" class="mt-1 px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-500 text-white font-extrabold shadow-sm">
+                  ${q8ShowPairs ? '📋 全5組の対応表を隠す' : '📋 除外後の全5組をすべて展開して確認する'}
+                </button>
+                ${q8ShowPairs ? `
+                  <div class="mt-2 p-2.5 rounded-lg bg-white dark:bg-slate-900 border border-amber-300 text-slate-800 dark:text-slate-100 space-y-1 font-mono text-[11px]">
+                    <div>(x+1, y+1) ＝ (2, 30) → <strong>(x, y) ＝ (1, 29)</strong></div>
+                    <div>(x+1, y+1) ＝ (3, 20) → <strong>(x, y) ＝ (2, 19)</strong></div>
+                    <div>(x+1, y+1) ＝ (4, 15) → <strong>(x, y) ＝ (3, 14)</strong></div>
+                    <div>(x+1, y+1) ＝ (5, 12) → <strong>(x, y) ＝ (4, 11)</strong></div>
+                    <div>(x+1, y+1) ＝ (6, 10) → <strong>(x, y) ＝ (5, 9)</strong></div>
+                  </div>
+                ` : ''}
+              </div>
+
+              <div class="grid grid-cols-2 gap-2 text-xs font-extrabold">
+                <button type="button" data-q8-ans="ok" class="py-2.5 rounded-xl border-2 ${q8Ans === 'ok' ? 'border-emerald-500 bg-emerald-500/15 text-emerald-700 dark:text-emerald-300' : 'border-slate-200 dark:border-slate-700'}">全 5 組（(1,29)〜(5,9)）</button>
+                <button type="button" data-q8-ans="w1" class="py-2.5 rounded-xl border-2 ${q8Ans === 'w1' ? 'border-rose-500 bg-rose-500/15 text-rose-700 dark:text-rose-300' : 'border-slate-200 dark:border-slate-700'}">全 6 組（(0,59)も含む）</button>
+              </div>
+              ${q8Ans ? `
+                <div class="p-3 rounded-xl font-bold text-xs ${q8Ans === 'ok' ? 'bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-400 text-emerald-900 dark:text-emerald-200' : 'bg-rose-50 dark:bg-rose-950/50 border border-rose-400 text-rose-900 dark:text-rose-200'}">
+                  ${q8Ans === 'ok'
+                    ? '⭕ <strong>大正解！（+80 XP）</strong> 範囲の下限「2 ≦ x＋1」を正確に押さえたので満点です！'
+                    : '❌ 「正の整数」は 1 以上なので 0 は含まれません！x＋1 ＝ 1 のペアは必ず除外して 5組とします！'}
+                </div>
+              ` : ''}
+            </div>
+          </div>
+
+          <div class="text-right">
+            <button type="button" data-tab="sec5" class="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs sm:text-sm font-extrabold shadow-md transition">
+              次へ：セクション 5（入試型：手法を自分で選ぶ：問9・問10） &rarr;
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    /* =========================================================================
+       TAB 4：セクション 5（問9・問10）
+       ========================================================================= */
+    function renderSec5() {
+      const q10List = [
+        { s: 22, sq: 484, diffSq: 4, d: 2, pair: '(10, 12)' },
+        { s: 23, sq: 529, diffSq: 49, d: 7, pair: '(8, 15)' }
+      ];
+
+      return `
+        <div class="space-y-6 animate-pop">
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+            <!-- 問9（2手法切替ビュー！） -->
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
+              <div class="flex items-center justify-between flex-wrap gap-2 border-b border-slate-100 dark:border-slate-800 pb-2.5">
+                <span class="px-2.5 py-0.5 rounded-lg bg-purple-100 dark:bg-purple-950 text-purple-800 dark:text-purple-300 text-xs font-extrabold">5｜入試型：手法選択｜問9</span>
+                <div class="flex gap-1 text-[11px] font-extrabold">
+                  <button type="button" data-q9-method="A" class="px-2.5 py-1 rounded-lg border transition ${q9Method === 'A' ? 'bg-purple-600 border-purple-600 text-white' : 'bg-slate-50 dark:bg-slate-800 border-slate-300 dark:border-slate-700'}">手法A：不等式で絞る</button>
+                  <button type="button" data-q9-method="B" class="px-2.5 py-1 rounded-lg border transition ${q9Method === 'B' ? 'bg-indigo-600 border-indigo-600 text-white' : 'bg-slate-50 dark:bg-slate-800 border-slate-300 dark:border-slate-700'}">手法B：積の形に変形</button>
+                </div>
+              </div>
+
+              <div class="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white">
+                正の整数 x ≦ y について 1/x ＋ 1/y ＝ 1/6 を満たすすべての組を求めよ。
+              </div>
+
+              ${q9Method === 'A' ? `
+                <div class="p-4 rounded-xl bg-purple-50/70 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800 text-xs space-y-2 leading-relaxed font-bold">
+                  <div class="font-extrabold text-purple-800 dark:text-purple-200">⚔️ 手法A：小さい分母 x の範囲を不等式で一気に挟み込む！</div>
+                  <div>① 1/y ＞ 0 より 1/x ＜ 1/6 ⇒ <strong>x ＞ 6</strong>（すなわち <strong>x ≧ 7</strong>）</div>
+                  <div>② x ≦ y より 1/y ≦ 1/x。よって 1/6 ＝ 1/x ＋ 1/y ≦ 2/x ⇒ <strong>x ≦ 12</strong></div>
+                  <div>③ つまり <strong>7 ≦ x ≦ 12</strong> のたった6個を y ＝ 6x/(x−6) に入れるだけ！</div>
+                  <div class="p-2.5 rounded-lg bg-white dark:bg-slate-900 border border-purple-200 dark:border-purple-800 font-mono text-[11px] space-y-0.5">
+                    <div>x = 7  → y = 42/1 = 42 ⭕ (7, 42)</div>
+                    <div>x = 8  → y = 48/2 = 24 ⭕ (8, 24)</div>
+                    <div>x = 9  → y = 54/3 = 18 ⭕ (9, 18)</div>
+                    <div>x = 10 → y = 60/4 = 15 ⭕ (10, 15)</div>
+                    <div class="text-rose-600 dark:text-rose-400">x = 11 → y = 66/5（整数でない ❌）</div>
+                    <div>x = 12 → y = 72/6 = 12 ⭕ (12, 12)</div>
+                  </div>
+                </div>
+              ` : `
+                <div class="p-4 rounded-xl bg-indigo-50/70 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-800 text-xs space-y-2 leading-relaxed font-bold">
+                  <div class="font-extrabold text-indigo-800 dark:text-indigo-200">⚔️ 手法B：分母を払って「積 ＝ 定数」に因数分解する！</div>
+                  <div>① 両辺に 6xy を掛ける：6y ＋ 6x ＝ xy ⇒ xy − 6x − 6y ＝ 0</div>
+                  <div>② 両辺に 36 を足して因数分解：<strong>(x − 6)(y − 6) ＝ 36</strong></div>
+                  <div>③ 1/x ＜ 1/6 より x ＞ 6 なので、<strong>1 ≦ x − 6 ≦ y − 6</strong></div>
+                  <div class="p-2.5 rounded-lg bg-white dark:bg-slate-900 border border-indigo-200 dark:border-indigo-800 font-mono text-[11px] space-y-0.5">
+                    <div>(x−6, y−6) = (1, 36) → <strong>(7, 42)</strong></div>
+                    <div>(x−6, y−6) = (2, 18) → <strong>(8, 24)</strong></div>
+                    <div>(x−6, y−6) = (3, 12) → <strong>(9, 18)</strong></div>
+                    <div>(x−6, y−6) = (4, 9)  → <strong>(10, 15)</strong></div>
+                    <div>(x−6, y−6) = (6, 6)  → <strong>(12, 12)</strong></div>
+                  </div>
+                </div>
+              `}
+
+              <div class="grid grid-cols-2 gap-2 text-xs font-extrabold">
+                <button type="button" data-q9-ans="ok" class="py-2.5 rounded-xl border-2 ${q9Ans === 'ok' ? 'border-emerald-500 bg-emerald-500/15 text-emerald-700 dark:text-emerald-300' : 'border-slate-200 dark:border-slate-700'}">全 5 組（(12,12)も含む）</button>
+                <button type="button" data-q9-ans="w1" class="py-2.5 rounded-xl border-2 ${q9Ans === 'w1' ? 'border-rose-500 bg-rose-500/15 text-rose-700 dark:text-rose-300' : 'border-slate-200 dark:border-slate-700'}">全 4 組（x ＜ y だけ）</button>
+              </div>
+              ${q9Ans ? `
+                <div class="p-3 rounded-xl font-bold text-xs ${q9Ans === 'ok' ? 'bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-400 text-emerald-900 dark:text-emerald-200' : 'bg-rose-50 dark:bg-rose-950/50 border border-rose-400 text-rose-900 dark:text-rose-200'}">
+                  ${q9Ans === 'ok'
+                    ? '⭕ <strong>完璧！（+90 XP）</strong> 手法Aと手法Bのどちらでも同じ 5組 になることをボタン切替で確かめておこう！3変数 1/x+1/y+1/z=1 のような難問では手法A（不等式絞り）が最強になります！'
+                    : '❌ 条件は x ≦ y（等号含む）なので、(12, 12) も大事な正解です！全部で 5組になります！'}
+                </div>
+              ` : ''}
+            </div>
+
+            <!-- 問10 -->
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
+              <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2.5">
+                <span class="px-2.5 py-0.5 rounded-lg bg-purple-100 dark:bg-purple-950 text-purple-800 dark:text-purple-300 text-xs font-extrabold">5｜入試型：手法選択｜問10</span>
+                ${clearedSet.has('q10') ? '<span class="text-xs font-extrabold text-emerald-600">✅ クリア済</span>' : ''}
+              </div>
+              <div class="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white">
+                正の整数 x ≦ y について xy ＝ 120 かつ x ＋ y ≦ 23 を満たすすべての組を求めよ。
+              </div>
+
+              <div class="p-3.5 rounded-xl bg-blue-50/70 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 text-xs font-bold leading-relaxed space-y-1">
+                <div><strong>① 相加相乗平均で和を絞る：</strong>x ＋ y ≧ 2√120 ＝ √480</div>
+                <div>21² ＝ 441 ＜ 480 ＜ 484 ＝ 22² より、x ＋ y ＞ 21！</div>
+                <div>よって整数 S ＝ x ＋ y の候補は <strong>22 と 23 のたった2通りだけ！</strong></div>
+              </div>
+
+              <div class="space-y-2 text-xs">
+                <div class="font-extrabold text-indigo-700 dark:text-indigo-300">② 2つの候補をタップして「差の平方 S² − 4×120 ＝ S² − 480」を計算しよう！</div>
+                ${q10List.map(c => {
+                  const open = q10CheckS[c.s];
+                  return `
+                    <div data-q10-s="${c.s}" class="cursor-pointer p-3 rounded-xl border-2 transition ${open ? 'border-emerald-400 bg-emerald-50/50 dark:bg-emerald-950/30' : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:border-indigo-400'}">
+                      <div class="flex justify-between font-extrabold">
+                        <span>S ＝ ${c.s} のとき</span>
+                        <span class="${open ? 'text-emerald-700 dark:text-emerald-300' : 'text-slate-400'}">${open ? `⭕ 実現！ ${c.pair}` : 'タップして計算'}</span>
+                      </div>
+                      ${open ? `<div class="mt-1 font-bold">(y − x)² ＝ ${c.sq} − 480 ＝ <strong>${c.diffSq} ＝ ${c.d}²</strong> ⇒ y − x ＝ ${c.d} ⇒ <strong>${c.pair}</strong></div>` : ''}
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+
+              <div class="grid grid-cols-2 gap-2 text-xs font-extrabold">
+                <button type="button" data-q10-ans="ok" class="py-2.5 rounded-xl border-2 ${q10Ans === 'ok' ? 'border-emerald-500 bg-emerald-500/15 text-emerald-700 dark:text-emerald-300' : 'border-slate-200 dark:border-slate-700'}">(8, 15) と (10, 12)</button>
+                <button type="button" data-q10-ans="w1" class="py-2.5 rounded-xl border-2 ${q10Ans === 'w1' ? 'border-rose-500 bg-rose-500/15 text-rose-700 dark:text-rose-300' : 'border-slate-200 dark:border-slate-700'}">(6, 20), (8, 15), (10, 12)</button>
+              </div>
+              ${q10Ans ? `
+                <div class="p-3 rounded-xl font-bold text-xs ${q10Ans === 'ok' ? 'bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-400 text-emerald-900 dark:text-emerald-200' : 'bg-rose-50 dark:bg-rose-950/50 border border-rose-400 text-rose-900 dark:text-rose-200'}">
+                  ${q10Ans === 'ok'
+                    ? '⭕ <strong>大正解！（+90 XP）</strong> 120 の約数を全部（16個）調べなくても、相加相乗平均で S ＝ 22, 23 に絞れば一瞬で完全証明できます！'
+                    : '❌ (6, 20) は 6＋20 ＝ 26 ＞ 23 なので条件オーバーです！正解は (8, 15) と (10, 12) の2組！'}
+                </div>
+              ` : ''}
+            </div>
+          </div>
+
+          <div class="text-right">
+            <button type="button" data-tab="sec6" class="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs sm:text-sm font-extrabold shadow-md transition">
+              最後へ：セクション 6（問11・問12）＆ 入試応用道場 &rarr;
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    /* =========================================================================
+       TAB 5：セクション 6（問11・問12）＋ 初見入試応用チャレンジ3問＋振り返り
+       ========================================================================= */
+    function renderSec6() {
+      // 問11：y = n + 50/n の連続グラフ＋50の約数ドット（1,2,5,10,25,50）
+      const divs50 = [1, 2, 5, 10, 25, 50];
+      const W = 400, H = 200, padL = 42, padB = 34, padT = 24, plotW = 340, plotH = 136;
+      // 視覚的に見やすくするため対数スケールに近い x 配置（1〜50）
+      const mapLogX = (n) => padL + (Math.log(n) / Math.log(50)) * plotW;
+      const mapValY = (v) => (H - padB) - ((v - 10) / 45) * plotH;
+
+      let curveD = '';
+      for (let i = 0; i <= 80; i++) {
+        const n = Math.exp((i / 80) * Math.log(50));
+        const val = n + 50 / n;
+        curveD += (i === 0 ? `M ${mapLogX(n).toFixed(1)},${mapValY(val).toFixed(1)}` : ` L ${mapLogX(n).toFixed(1)},${mapValY(val).toFixed(1)}`);
+      }
+      const minRealY = mapValY(2 * Math.sqrt(50));
+      const curVal11 = q11HoverN + 50 / q11HoverN;
+
+      // 問12 判定
+      const m12Ok = normNum(q12InMax) === '72';
+      const p12Norm = normNum(q12InPair).replace(/\s+/g, '').replace(/[()（）]/g, '');
+      const p12Ok = p12Norm === '8,9' || p12Norm === '8、9';
+
+      // 応用チャレンジ3問データ
+      const appProblems = [
+        {
+          id: 1,
+          title: '応用①【直上整数が実現しない罠！】正の整数 x ≦ y について xy ＝ 44 のとき、x ＋ y の最小値と組は？',
+          hint: '相加相乗平均より x＋y ≧ 2√44 ＝ √176 ＞ 13 ⇒ x＋y ≧ 14。でも 14 が本当に実現するか 14² − 4×44 を計算して確かめよう！',
+          choices: [
+            { k: 'ok', label: '最小値 15、(4, 11)' },
+            { k: 'w1', label: '最小値 14、(4, 10)' },
+            { k: 'w2', label: '最小値 24、(2, 22)' }
+          ],
+          explain: '14² − 176 ＝ 20（平方数でない！×）なので和 14 は不可能！次の 15 で 15² − 176 ＝ 49 ＝ 7² ⇒ <strong>(4, 11)</strong> が実現し最小値 <strong>15</strong>！'
+        },
+        {
+          id: 2,
+          title: '応用②【係数つきの因数分解】正の整数 x ≦ y について xy − 2x − 2y ＝ 14 を満たす組は全部で何組？',
+          hint: '両辺に (−2)×(−2) ＝ ＋4 を足して (x − 2)(y − 2) ＝ 18 を作ろう！正の整数なので x − 2 ≧ −1 だが、両方負のケース (-1)×(-1)=1≠18 は不適。',
+          choices: [
+            { k: 'ok', label: '3組：(3, 20), (4, 11), (5, 8)' },
+            { k: 'w1', label: '4組：(1, −16)も含む' },
+            { k: 'w2', label: '2組：(4, 11), (5, 8)' }
+          ],
+          explain: '(x−2)(y−2) ＝ 18、1 ≦ x−2 ≦ y−2 より (x−2, y−2) ＝ (1, 18), (2, 9), (3, 6) ⇒ 各々＋2して <strong>(3, 20), (4, 11), (5, 8) の3組</strong>！'
+        },
+        {
+          id: 3,
+          title: '応用③【単位分数型を自力で！】正の整数 x ≦ y について 1/x ＋ 1/y ＝ 1/4 を満たすすべての組は？',
+          hint: '(x − 4)(y − 4) ＝ 16（または 5 ≦ x ≦ 8 で絞る）！どちらの手法でもOK！',
+          choices: [
+            { k: 'ok', label: '(5, 20), (6, 12), (8, 8) の3組' },
+            { k: 'w1', label: '(5, 20), (6, 12) の2組' },
+            { k: 'w2', label: '(5, 20), (6, 12), (7, 10), (8, 8) の4組' }
+          ],
+          explain: '(x−4)(y−4) ＝ 16、1 ≦ x−4 ≦ y−4 より (1, 16), (2, 8), (4, 4) ⇒ <strong>(5, 20), (6, 12), (8, 8) の3組</strong>！'
+        }
+      ];
+
+      return `
+        <div class="space-y-6 animate-pop">
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+            <!-- 問11（発展） -->
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
+              <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2.5">
+                <span class="px-2.5 py-0.5 rounded-lg bg-rose-100 dark:bg-rose-950 text-rose-800 dark:text-rose-300 text-xs font-extrabold">6｜発展｜問11</span>
+                ${clearedSet.has('q11') ? '<span class="text-xs font-extrabold text-emerald-600">✅ クリア済</span>' : ''}
+              </div>
+              <div class="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white">
+                正の整数 n に対して n ＋ 50/n が整数となるとき、その最小値とそのときの n をすべて求めよ。
+              </div>
+
+              <!-- グラフ視覚化（連続曲線 vs 50の約数ドット） -->
+              <div class="bg-slate-50 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800 p-2">
+                <svg viewBox="0 0 ${W} ${H}" class="w-full h-auto select-none">
+                  <line x1="${padL}" y1="${H - padB}" x2="${W - 14}" y2="${H - padB}" stroke="#94a3b8" stroke-width="1.5" />
+                  <line x1="${padL}" y1="${padT}" x2="${padL}" y2="${H - padB}" stroke="#94a3b8" stroke-width="1.5" />
+                  <!-- 相加相乗下限 2√50 ≒ 14.14（正確なMathML数式オブジェクトで描画） -->
+                  <line x1="${padL}" y1="${minRealY.toFixed(1)}" x2="${W - 16}" y2="${minRealY.toFixed(1)}" stroke="#e11d48" stroke-width="1.6" stroke-dasharray="4 3" />
+                  <foreignObject x="${padL + 4}" y="${(minRealY - 25).toFixed(1)}" width="${W - padL - 20}" height="24">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="width:100%;height:100%;display:flex;align-items:center;justify-content:flex-end;font-size:10px;font-weight:900;color:#e11d48;white-space:nowrap;">
+                      実数下限&nbsp;<math display="inline"><mn>2</mn><msqrt><mn>50</mn></msqrt></math>&nbsp;≒ 14.14 (整数なので ≧ 15!)
+                    </div>
+                  </foreignObject>
+                  <path d="${curveD}" fill="none" stroke="#64748b" stroke-width="2" stroke-dasharray="4 3" />
+                  ${divs50.map(d => {
+                    const v = d + 50 / d;
+                    const isMin = v === 15;
+                    const isCur = d === q11HoverN;
+                    return `
+                      <g data-q11-n="${d}" class="cursor-pointer">
+                        <circle cx="${mapLogX(d).toFixed(1)}" cy="${mapValY(v).toFixed(1)}" r="${isCur ? 7.5 : 5.5}" fill="${isMin ? '#10b981' : '#3b82f6'}" stroke="#fff" stroke-width="2" />
+                        <text x="${mapLogX(d).toFixed(1)}" y="${H - 12}" text-anchor="middle" font-size="10.5" font-weight="800" fill="${isMin ? '#059669' : '#475569'}">${d}</text>
+                      </g>
+                    `;
+                  }).join('')}
+                  <rect x="115" y="10" width="180" height="24" rx="7" fill="#ecfdf5" stroke="#10b981" stroke-width="1.6" />
+                  <text x="205" y="26" text-anchor="middle" font-size="11" font-weight="900" fill="#047857">n = ${q11HoverN} のとき 値 = ${curVal11}</text>
+                </svg>
+              </div>
+
+              <div class="flex flex-wrap gap-1.5 text-[11px] font-extrabold items-center">
+                <span class="text-slate-500">50の約数 n を試す:</span>
+                ${divs50.map(d => `
+                  <button type="button" data-q11-n="${d}" class="px-2.5 py-1 rounded-lg border ${q11HoverN === d ? 'bg-emerald-600 border-emerald-600 text-white' : 'bg-slate-50 dark:bg-slate-800 border-slate-300 dark:border-slate-700'}">n=${d} (${d + 50 / d})</button>
+                `).join('')}
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs font-extrabold">
+                <button type="button" data-q11-ans="ok" class="py-2.5 px-2 rounded-xl border-2 ${q11Ans === 'ok' ? 'border-emerald-500 bg-emerald-500/15 text-emerald-700 dark:text-emerald-300' : 'border-slate-200 dark:border-slate-700'}">最小値 15（n ＝ 5, 10 の2つ!）</button>
+                <button type="button" data-q11-ans="w1" class="py-2.5 px-2 rounded-xl border-2 ${q11Ans === 'w1' ? 'border-rose-500 bg-rose-500/15 text-rose-700 dark:text-rose-300' : 'border-slate-200 dark:border-slate-700'}">最小値 15（n ＝ 5 のみ）</button>
+              </div>
+              ${q11Ans ? `
+                <div class="p-3 rounded-xl font-bold text-xs leading-relaxed ${q11Ans === 'ok' ? 'bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-400 text-emerald-900 dark:text-emerald-200' : 'bg-rose-50 dark:bg-rose-950/50 border border-rose-400 text-rose-900 dark:text-rose-200'}">
+                  ${q11Ans === 'ok'
+                    ? '⭕ <strong>見事！！（+100 XP）</strong> n ＝ 5 と n ＝ 10 の<strong>両方が 15 をとる</strong>（対称ペア n と 50/n！）のが超重要ポイントです！<br>① 整数条件より n は 50 の約数。② 相加相乗平均より n＋50/n ≧ 2√50 ＝ √200 ＞ 14、整数なので ≧ 15。③ n＋50/n ＝ 15 ⇒ (n−5)(n−10) ＝ 0 ⇒ n ＝ 5, 10 で実現！'
+                    : '❌ 「すべて求めよ」に注意！ n ＝ 5 の相棒 50/5 ＝ 10 を入れても 10 ＋ 50/10 ＝ 15 になります！答えは <strong>n ＝ 5, 10</strong> の2つです！'}
+                </div>
+              ` : ''}
+            </div>
+
+            <!-- 問12（出口チケット） -->
+            <div class="bg-white dark:bg-slate-900 border-2 border-blue-400 dark:border-blue-700 rounded-2xl p-5 shadow-sm space-y-4">
+              <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2.5">
+                <span class="px-2.5 py-0.5 rounded-lg bg-blue-600 text-white text-xs font-extrabold">6｜出口チケット｜問12</span>
+                ${clearedSet.has('q12') ? '<span class="text-xs font-extrabold text-emerald-600">✅ クリア済</span>' : ''}
+              </div>
+              <div class="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white">
+                正の整数 a ≦ b、a ＋ b ＝ 17 のとき、ab の最大値と組を求めよ。上限と実現の両方を説明せよ。
+              </div>
+
+              <div class="grid grid-cols-2 gap-3 text-xs">
+                <div>
+                  <label class="font-extrabold block mb-1">① ab の最大値 ＝</label>
+                  <input type="text" data-input="q12-max" value="${escapeAttr(q12InMax)}" placeholder="例: 72" class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-950 font-mono font-extrabold">
+                </div>
+                <div>
+                  <label class="font-extrabold block mb-1">② そのときの組 (a, b) ＝</label>
+                  <input type="text" data-input="q12-pair" value="${escapeAttr(q12InPair)}" placeholder="例: (8, 9)" class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-950 font-mono font-extrabold">
+                </div>
+              </div>
+
+              <div class="text-xs">
+                <label class="font-extrabold block mb-1">③ 上限（整数条件）と実現の説明メモ：</label>
+                <input type="text" data-input="q12-reason" value="${escapeAttr(q12Reason)}" placeholder="例：相加相乗より ab ≦ 72.25。整数なので ab ≦ 72。(8,9)で実現。" class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-950 font-bold">
+              </div>
+
+              <button type="button" data-action="q12-check" class="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs sm:text-sm font-extrabold shadow-md transition">
+                ✅ 出口チケットを採点して満点答案を確認！
+              </button>
+
+              ${q12Checked ? `
+                <div class="p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 border-2 border-emerald-400 text-xs space-y-1.5 font-bold leading-relaxed">
+                  <div class="font-extrabold text-emerald-800 dark:text-emerald-300 text-sm">🎉 出口チケット採点結果＆満点記述モデル</div>
+                  <div>① 最大値：${m12Ok ? '⭕ 正解！' : '👉 正解は'} <strong>72</strong>　／　② 組：${p12Ok ? '⭕ 正解！' : '👉 正解は'} <strong>(8, 9)</strong></div>
+                  <div class="p-2.5 rounded-lg bg-white dark:bg-slate-900 border border-emerald-300 text-slate-800 dark:text-slate-100">
+                    <strong>【満点記述】</strong>相加相乗平均より √(ab) ≦ (a+b)/2 ＝ 17/2、両辺2乗して ab ≦ 289/4 ＝ 72.25。ab は整数より <strong>ab ≦ 72</strong>（上限）。実際に (a, b) ＝ (8, 9) のとき 8＋9＝17, 8×9＝72 が成り立つ（実現）。また (b−a)² ＝ 17²−4×72 ＝ 1 より組は (8, 9) のみ。よって最大値 <strong>72</strong>、組 <strong>(8, 9)</strong>。
+                  </div>
+                </div>
+              ` : ''}
+            </div>
+          </div>
+
+          <!-- 🚀 入試応用道場（初見3問チャレンジ） -->
+          <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
+            <div class="border-b border-slate-100 dark:border-slate-800 pb-3">
+              <span class="text-xs font-extrabold text-indigo-600 dark:text-indigo-400">🚀 応用力を鍛える！初見・入試類題チャレンジ（全3問）</span>
+              <h2 class="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white">今日身につけた5大武器を組み合わせて、初見の問題を攻略しよう！</h2>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 text-xs">
+              ${appProblems.map(ap => {
+                const picked = appQuiz[ap.id];
+                return `
+                  <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex flex-col justify-between gap-3">
+                    <div class="space-y-2">
+                      <div class="font-extrabold text-slate-900 dark:text-white leading-relaxed">${ap.title}</div>
+                      <div class="p-2.5 rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-[11px] font-bold text-amber-900 dark:text-amber-200">💡 ${ap.hint}</div>
+                    </div>
+                    <div class="space-y-1.5 font-extrabold">
+                      ${ap.choices.map(ch => `
+                        <button type="button" data-app-pick="${ap.id}:${ch.k}" class="w-full p-2.5 rounded-xl border-2 text-left transition ${picked === ch.k ? (ch.k === 'ok' ? 'border-emerald-500 bg-emerald-500/15 text-emerald-700 dark:text-emerald-300' : 'border-rose-500 bg-rose-500/15 text-rose-700 dark:text-rose-300') : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 hover:border-indigo-400'}">${ch.label}</button>
+                      `).join('')}
+                    </div>
+                    ${picked ? `
+                      <div class="p-2.5 rounded-xl font-bold leading-relaxed ${picked === 'ok' ? 'bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-400 text-emerald-900 dark:text-emerald-200' : 'bg-rose-50 dark:bg-rose-950/50 border border-rose-400 text-rose-900 dark:text-rose-200'}">
+                        ${picked === 'ok' ? '⭕ 大正解！(+100 XP) ' : '💡 解説：'}${ap.explain}
+                      </div>
+                    ` : ''}
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+
+          <!-- ワークシート末尾の振り返りチェック -->
+          <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-3 text-xs">
+            <div class="font-extrabold text-slate-900 dark:text-white text-sm">📋 ワークシート振り返りセルフチェック</div>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 font-extrabold">
+              ${[
+                { k: 'bound', text: '上限・下限を不等式で出せた' },
+                { k: 'intCond', text: '整数条件（約数・平方数・範囲）を確認した' },
+                { k: 'realize', text: '具体的な組で実現を示せた' }
+              ].map(ck => `
+                <button type="button" data-reflect="${ck.k}" class="p-3 rounded-xl border-2 text-left flex items-center gap-2 transition ${reflectChecks[ck.k] ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-200' : 'border-slate-200 dark:border-slate-700'}">
+                  <span>${reflectChecks[ck.k] ? '☑️' : '⬜'}</span>
+                  <span>${ck.text}</span>
+                </button>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    /* =========================================================================
+       一括イベント委譲（エラーゼロ設計）
+       ========================================================================= */
+    window.addEventListener('DOMContentLoaded', () => {
+      // モーダル内の数式も初期化時に MathML 化
+      const cheatBody = document.getElementById('cheatBody');
+      if (cheatBody) cheatBody.innerHTML = formatMath(cheatBody.innerHTML);
+
+      document.addEventListener('click', (e) => {
+        // 5大武器モーダル
+        if (e.target.closest('#openCheatBtn')) {
+          document.getElementById('cheatModal').classList.remove('hidden');
+          return;
+        }
+        if (e.target.closest('#closeCheatBtn') || e.target.closest('#closeCheatBtn2') || e.target === document.getElementById('cheatModal')) {
+          document.getElementById('cheatModal').classList.add('hidden');
+          return;
+        }
+
+        // テーマ切替
+        const themeBtn = e.target.closest('[data-theme]');
+        if (themeBtn) { setTheme(themeBtn.dataset.theme); return; }
+
+        // タブ切替
+        const tabBtn = e.target.closest('[data-tab]');
+        if (tabBtn) { selectTab(tabBtn.dataset.tab); return; }
+
+        // 基礎理論ラボ
+        const tSub = e.target.closest('[data-theory-sub]');
+        if (tSub) { theorySub = parseInt(tSub.dataset.theorySub, 10); renderApp(); return; }
+        const t1NBtn = e.target.closest('[data-t1-n]');
+        if (t1NBtn) { t1N = parseInt(t1NBtn.dataset.t1N, 10); t1PickedA = 1; renderApp(); return; }
+        const t1ABtn = e.target.closest('[data-t1-a]');
+        if (t1ABtn) { t1PickedA = parseInt(t1ABtn.dataset.t1A, 10); renderApp(); return; }
+        const t2SumBtn = e.target.closest('[data-t2-sum]');
+        if (t2SumBtn) { t2Sum = parseInt(t2SumBtn.dataset.t2Sum, 10); t2X = Math.floor(t2Sum / 2); renderApp(); return; }
+        const t3Pre = e.target.closest('[data-t3-preset]');
+        if (t3Pre) {
+          const [s, p] = t3Pre.dataset.t3Preset.split(':').map(Number);
+          t3S = s; t3P = p;
+          renderApp();
+          return;
+        }
+        const t4Pat = e.target.closest('[data-t4-pat]');
+        if (t4Pat) { t4Pattern = t4Pat.dataset.t4Pat; t4Step = 1; renderApp(); return; }
+        const t4St = e.target.closest('[data-t4-step]');
+        if (t4St) { t4Step = parseInt(t4St.dataset.t4Step, 10); renderApp(); return; }
+        const t5Qz = e.target.closest('[data-t5-quiz]');
+        if (t5Qz) { t5Quiz = t5Qz.dataset.t5Quiz; renderApp(); return; }
+
+        // 問1〜4
+        const q1Pick = e.target.closest('[data-q1-pick]');
+        if (q1Pick) {
+          const v = parseInt(q1Pick.dataset.q1Pick, 10);
+          if (q1Selected.has(v)) q1Selected.delete(v);
+          else q1Selected.add(v);
+          renderApp();
+          return;
+        }
+        const q2Btn = e.target.closest('[data-q2-ans]');
+        if (q2Btn) { q2Ans = q2Btn.dataset.q2Ans; if (q2Ans === 'ok') awardClear('q2', 50); renderApp(); return; }
+        const q3Set = e.target.closest('[data-q3-set]');
+        if (q3Set) { q3Step = parseInt(q3Set.dataset.q3Set, 10); renderApp(); return; }
+        const q3Qz = e.target.closest('[data-q3-quiz]');
+        if (q3Qz) { q3EqQuiz = q3Qz.dataset.q3Quiz; if (q3EqQuiz === 'ok') awardClear('q3', 50); renderApp(); return; }
+        const q4Btn = e.target.closest('[data-q4-ans]');
+        if (q4Btn) { q4Ans = q4Btn.dataset.q4Ans; if (q4Ans === 'ok') awardClear('q4', 60); renderApp(); return; }
+
+        // 問5・6
+        const q5S = e.target.closest('[data-q5-s]');
+        if (q5S) { const k = parseInt(q5S.dataset.q5S, 10); q5CheckS[k] = !q5CheckS[k]; renderApp(); return; }
+        const q5Btn = e.target.closest('[data-q5-ans]');
+        if (q5Btn) { q5Ans = q5Btn.dataset.q5Ans; if (q5Ans === 'ok') awardClear('q5', 70); renderApp(); return; }
+        const q6Btn = e.target.closest('[data-q6-ans]');
+        if (q6Btn) { q6Ans = q6Btn.dataset.q6Ans; if (q6Ans === 'ok') awardClear('q6', 70); renderApp(); return; }
+
+        // 問7・8
+        const q7Pr = e.target.closest('[data-q7-pair]');
+        if (q7Pr) { const k = parseInt(q7Pr.dataset.q7Pair, 10); q7Revealed[k] = !q7Revealed[k]; renderApp(); return; }
+        const q7Btn = e.target.closest('[data-q7-ans]');
+        if (q7Btn) { q7Ans = q7Btn.dataset.q7Ans; if (q7Ans === 'ok') awardClear('q7', 80); renderApp(); return; }
+        const q8Add = e.target.closest('[data-q8-add]');
+        if (q8Add) { q8AddVal = parseInt(q8Add.dataset.q8Add, 10); renderApp(); return; }
+        const q8Btn = e.target.closest('[data-q8-ans]');
+        if (q8Btn) { q8Ans = q8Btn.dataset.q8Ans; if (q8Ans === 'ok') awardClear('q8', 80); renderApp(); return; }
+
+        // 問9・10
+        const q9M = e.target.closest('[data-q9-method]');
+        if (q9M) { q9Method = q9M.dataset.q9Method; renderApp(); return; }
+        const q9Btn = e.target.closest('[data-q9-ans]');
+        if (q9Btn) { q9Ans = q9Btn.dataset.q9Ans; if (q9Ans === 'ok') awardClear('q9', 90); renderApp(); return; }
+        const q10S = e.target.closest('[data-q10-s]');
+        if (q10S) { const k = parseInt(q10S.dataset.q10S, 10); q10CheckS[k] = !q10CheckS[k]; renderApp(); return; }
+        const q10Btn = e.target.closest('[data-q10-ans]');
+        if (q10Btn) { q10Ans = q10Btn.dataset.q10Ans; if (q10Ans === 'ok') awardClear('q10', 90); renderApp(); return; }
+
+        // 問11・12・応用・振り返り
+        const q11N = e.target.closest('[data-q11-n]');
+        if (q11N) { q11HoverN = parseInt(q11N.dataset.q11N, 10); renderApp(); return; }
+        const q11Btn = e.target.closest('[data-q11-ans]');
+        if (q11Btn) { q11Ans = q11Btn.dataset.q11Ans; if (q11Ans === 'ok') awardClear('q11', 100); renderApp(); return; }
+        const appPick = e.target.closest('[data-app-pick]');
+        if (appPick) {
+          const [aid, k] = appPick.dataset.appPick.split(':');
+          appQuiz[parseInt(aid, 10)] = k;
+          if (k === 'ok') awardClear(`app${aid}`, 100);
+          renderApp();
+          return;
+        }
+        const refBtn = e.target.closest('[data-reflect]');
+        if (refBtn) { const k = refBtn.dataset.reflect; reflectChecks[k] = !reflectChecks[k]; renderApp(); return; }
+
+        // 汎用アクションボタン
+        const actBtn = e.target.closest('[data-action]');
+        if (actBtn) {
+          const act = actBtn.dataset.action;
+          if (act === 't4-next') { t4Step = t4Step >= 3 ? 1 : t4Step + 1; renderApp(); }
+          else if (act === 'q1-check') {
+            q1Checked = true;
+            const cSet = [1, 2, 3, 4, 6];
+            if (q1Selected.size === cSet.length && cSet.every(v => q1Selected.has(v))) awardClear('q1', 50);
+            renderApp();
+          }
+          else if (act === 'q3-next') { q3Step = q3Step >= 4 ? 1 : q3Step + 1; renderApp(); }
+          else if (act === 'q6-toggle-trap') { q6ShowTrap = !q6ShowTrap; renderApp(); }
+          else if (act === 'q8-toggle-pairs') { q8ShowPairs = !q8ShowPairs; renderApp(); }
+          else if (act === 'q12-check') {
+            q12Checked = true;
+            if (normNum(q12InMax) === '72') awardClear('q12', 100);
+            renderApp();
+          }
+        }
+      });
+
+      document.addEventListener('input', (e) => {
+        const inp = e.target.dataset.input;
+        if (inp === 't2-x') { t2X = parseInt(e.target.value, 10); renderApp(); }
+        else if (inp === 'q2-x') { q2X = parseInt(e.target.value, 10); renderApp(); }
+        else if (inp === 'q12-max') q12InMax = e.target.value;
+        else if (inp === 'q12-pair') q12InPair = e.target.value;
+        else if (inp === 'q12-reason') q12Reason = e.target.value;
+      });
+
+      setTheme('light');
+      selectTab('theory');
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,2052 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>三角関数の合成 マスターラボ｜本質から応用問題まで</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Meiryo', 'sans-serif'],
+            mono: ['JetBrains Mono', 'Consolas', 'monospace']
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    /* 正確な数式組版（MathML平方根・分数・変数） */
+    .math-var {
+      font-family: 'Times New Roman', serif;
+      font-style: italic;
+      font-weight: 700;
+      padding: 0 1.5px;
+    }
+    math {
+      font-family: 'Cambria Math', 'STIX Two Math', 'Times New Roman', serif;
+      font-size: 1.08em;
+      vertical-align: middle;
+      margin: 0 0.08em;
+    }
+    math mfrac {
+      font-size: 1.02em;
+    }
+    input[type="range"] {
+      accent-color: #2563eb;
+    }
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    @keyframes popIn {
+      0% { transform: scale(0.75); opacity: 0; }
+      70% { transform: scale(1.06); opacity: 1; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .animate-pop {
+      transform-box: fill-box;
+      transform-origin: center;
+      animation: popIn 0.35s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+    @keyframes drawPath {
+      from { stroke-dashoffset: 400; }
+      to { stroke-dashoffset: 0; }
+    }
+    .animate-draw {
+      stroke-dasharray: 400;
+      stroke-dashoffset: 0;
+      animation: drawPath 0.6s ease-out forwards;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-screen flex flex-col transition-colors duration-200">
+
+  <!-- トップヘッダー -->
+  <header class="bg-white/95 dark:bg-slate-900/95 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-40 backdrop-blur px-4 py-3 shadow-sm">
+    <div class="max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-violet-600 flex items-center justify-center text-white font-serif font-extrabold text-lg shadow-md">
+          r·sin
+        </div>
+        <div>
+          <h1 class="text-base sm:text-lg font-extrabold tracking-tight text-slate-900 dark:text-white flex items-center gap-2 flex-wrap">
+            三角関数の合成 マスターラボ
+            <span class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-950 text-blue-800 dark:text-blue-300 border border-blue-300 dark:border-blue-700">数学Ⅱ｜ワークシート完全対応＋応用</span>
+          </h1>
+          <p class="text-xs text-slate-500 dark:text-slate-400">2つの項から「展開する前の1つの sin の式」を見抜き、座標図と検算で自在に使いこなそう</p>
+        </div>
+      </div>
+
+      <!-- ステータス・参考カード・テーマ切替 -->
+      <div class="flex items-center flex-wrap gap-2">
+        <div class="flex items-center gap-2 bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-extrabold">
+          <span class="text-amber-600 dark:text-amber-400">⭐ <span id="xpDisplay" class="font-mono">0</span> XP</span>
+          <span class="text-slate-300 dark:text-slate-600">|</span>
+          <span class="text-emerald-600 dark:text-emerald-400">✅ 演習クリア: <span id="clearedDisplay" class="font-mono">0/11</span></span>
+        </div>
+
+        <button type="button" id="openRefBtn" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-500 text-white shadow-sm transition">
+          📖 11 参考カード（基本角）
+        </button>
+
+        <div class="flex items-center bg-slate-200/80 dark:bg-slate-800 p-0.5 rounded-xl border border-slate-300 dark:border-slate-700 text-[11px] font-bold">
+          <button type="button" id="themeLightBtn" data-theme="light" class="px-2 py-1 rounded-lg transition">☀️ ライト</button>
+          <button type="button" id="themeDarkBtn" data-theme="dark" class="px-2 py-1 rounded-lg transition">🌙 ダーク</button>
+        </div>
+  <!-- ワークシート対応ナビゲーション（00〜10＋応用） -->
+  <nav class="bg-slate-100 dark:bg-slate-900/80 border-b border-slate-200 dark:border-slate-800 px-4 py-2.5">
+    <div class="max-w-6xl mx-auto flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
+      <button type="button" data-tab="s00" id="nav-s00" class="nav-tab shrink-0 px-3 py-2 rounded-xl text-xs font-bold transition text-left">
+        <div class="text-[10px] opacity-80">導入 00</div>
+        <div>💡 合成の意味とは？</div>
+      </button>
+      <button type="button" data-tab="s01" id="nav-s01" class="nav-tab shrink-0 px-3 py-2 rounded-xl text-xs font-bold transition text-left">
+        <div class="text-[10px] opacity-80">シート 01</div>
+        <div>展開を逆向きに</div>
+      </button>
+      <button type="button" data-tab="s02" id="nav-s02" class="nav-tab shrink-0 px-3 py-2 rounded-xl text-xs font-bold transition text-left">
+        <div class="text-[10px] opacity-80">シート 02</div>
+        <div>係数の規則発見</div>
+      </button>
+      <button type="button" data-tab="s03" id="nav-s03" class="nav-tab shrink-0 px-3 py-2 rounded-xl text-xs font-bold transition text-left">
+        <div class="text-[10px] opacity-80">シート 03</div>
+        <div>式の中の三角形</div>
+      </button>
+      <button type="button" data-tab="s04" id="nav-s04" class="nav-tab shrink-0 px-3 py-2 rounded-xl text-xs font-bold transition text-left">
+        <div class="text-[10px] opacity-80">シート 04〜06</div>
+        <div>座標図と負角 (4問)</div>
+      </button>
+      <button type="button" data-tab="s07" id="nav-s07" class="nav-tab shrink-0 px-3 py-2 rounded-xl text-xs font-bold transition text-left">
+        <div class="text-[10px] opacity-80">シート 07〜09</div>
+        <div>個人演習 A・B・C (7問)</div>
+      </button>
+      <button type="button" data-tab="s10" id="nav-s10" class="nav-tab shrink-0 px-3 py-2 rounded-xl text-xs font-bold transition text-left">
+        <div class="text-[10px] opacity-80">シート 10</div>
+        <div>出口課題</div>
+      </button>
+      <button type="button" data-tab="app" id="nav-app" class="nav-tab shrink-0 px-3 py-2 rounded-xl text-xs font-bold transition text-left">
+        <div class="text-[10px] opacity-80">発展・入試攻略</div>
+        <div>🚀 応用問題＆波の合体</div>
+      </button>
+    </div>
+  </nav>
+
+  <!-- メインコンテンツ -->
+  <main class="flex-1 max-w-6xl w-full mx-auto p-4">
+    <div id="mainContent"></div>
+  </main>
+
+  <!-- 11 参考カード（基本角と図）モーダル -->
+  <div id="refModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 max-w-2xl w-full rounded-2xl p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+        <h3 class="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white">📖 11 参考カード｜基本角・座標の向き・三平方の定理</h3>
+        <button type="button" id="closeRefBtn" class="text-slate-400 hover:text-slate-700 dark:hover:text-white text-xl font-bold px-2">&times;</button>
+      </div>
+
+      <div class="space-y-4 text-xs sm:text-sm">
+        <div class="overflow-x-auto">
+          <table id="refTable" class="w-full text-center border-collapse border border-slate-200 dark:border-slate-700 text-xs font-bold">
+            <thead>
+              <tr class="bg-slate-100 dark:bg-slate-800">
+                <th class="border border-slate-200 dark:border-slate-700 p-2">角度</th>
+                <th class="border border-slate-200 dark:border-slate-700 p-2">弧度法 (180° = &pi;)</th>
+                <th class="border border-slate-200 dark:border-slate-700 p-2 text-blue-700 dark:text-blue-300">cos &alpha;（横 a/r）</th>
+                <th class="border border-slate-200 dark:border-slate-700 p-2 text-rose-700 dark:text-rose-300">sin &alpha;（縦 b/r）</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td class="border border-slate-200 dark:border-slate-700 p-2">0°</td><td class="border border-slate-200 dark:border-slate-700 p-2">0</td><td class="border border-slate-200 dark:border-slate-700 p-2">1</td><td class="border border-slate-200 dark:border-slate-700 p-2">0</td></tr>
+              <tr class="bg-slate-50/70 dark:bg-slate-800/40"><td class="border border-slate-200 dark:border-slate-700 p-2">30°</td><td class="border border-slate-200 dark:border-slate-700 p-2">π/6</td><td class="border border-slate-200 dark:border-slate-700 p-2">√3/2</td><td class="border border-slate-200 dark:border-slate-700 p-2">1/2</td></tr>
+              <tr><td class="border border-slate-200 dark:border-slate-700 p-2">45°</td><td class="border border-slate-200 dark:border-slate-700 p-2">π/4</td><td class="border border-slate-200 dark:border-slate-700 p-2">√2/2</td><td class="border border-slate-200 dark:border-slate-700 p-2">√2/2</td></tr>
+              <tr class="bg-slate-50/70 dark:bg-slate-800/40"><td class="border border-slate-200 dark:border-slate-700 p-2">60°</td><td class="border border-slate-200 dark:border-slate-700 p-2">π/3</td><td class="border border-slate-200 dark:border-slate-700 p-2">1/2</td><td class="border border-slate-200 dark:border-slate-700 p-2">√3/2</td></tr>
+              <tr><td class="border border-slate-200 dark:border-slate-700 p-2">90°</td><td class="border border-slate-200 dark:border-slate-700 p-2">π/2</td><td class="border border-slate-200 dark:border-slate-700 p-2">0</td><td class="border border-slate-200 dark:border-slate-700 p-2">1</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+          <div class="p-3.5 rounded-xl bg-blue-50 dark:bg-blue-950/50 border border-blue-200 dark:border-blue-800 space-y-1.5">
+            <div class="font-extrabold text-blue-800 dark:text-blue-200">🧭 角度の測り方（範囲：&minus;&pi; ＜ &alpha; ＜ &pi;）</div>
+            <p class="leading-relaxed">正の横軸（右向き）を 0 として、<br>・<strong>反時計回り（上側）が正（＋）</strong><br>・<strong>時計回り（下側）が負（&minus;）</strong></p>
+            <p class="text-[11px] text-slate-600 dark:text-slate-300">※横軸 <span class="math-var">a</span> は <strong>sin&theta; の係数</strong>、縦軸 <span class="math-var">b</span> は <strong>cos&theta; の係数</strong>！</p>
+          </div>
+          <div class="p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 space-y-1.5">
+            <div class="font-extrabold text-emerald-800 dark:text-emerald-200">📐 合成の3ステップ＆三平方の定理</div>
+            <p class="leading-relaxed">① 点 (<span class="math-var">a</span>, <span class="math-var">b</span>) を座標図に打つ<br>② 斜めの長さ <span class="math-var">r</span> ＝ <span id="refSqrtFormula">√(a²+b²)</span><br>③ 正の横軸からの角 <span class="math-var">&alpha;</span> を読み取り、<span class="math-var">r</span> sin(&theta; + &alpha;) へ！</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="text-right pt-2 border-t border-slate-200 dark:border-slate-800">
+        <button type="button" id="closeRefBtn2" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold">閉じる</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* =========================================================================
+       数式フォーマッタ（標準 MathML オブジェクト：分数・平方根・累乗へ完全変換）
+       ========================================================================= */
+    function toMmlAtom(atom) {
+      const s = String(atom).trim();
+      if (/^√(\d+)$/.test(s)) {
+        return `<msqrt><mn>${s.slice(1)}</mn></msqrt>`;
+      }
+      if (/^(\d+)π$/.test(s)) {
+        const m = s.match(/^(\d+)π$/);
+        return `<mrow><mn>${m[1]}</mn><mi>&pi;</mi></mrow>`;
+      }
+      if (s === 'π' || s === '&pi;') return '<mi>&pi;</mi>';
+      if (/^\d+$/.test(s)) return `<mn>${s}</mn>`;
+      return `<mi>${s}</mi>`;
+    }
+
+    function formatMathText(text) {
+      let s = text;
+
+      // 1. 括弧付きの平方根 √(a²+b²) や √((−√6)² + (−√2)²) などを MathML <msqrt> へ変換
+      s = s.replace(/√\(([^)]*(?:\([^)]*\)[^)]*)*)\)/g, (_, inner) => {
+        const mmlInner = inner
+          .replace(/\(√(\d+)\)²/g, '<msup><mrow><mo>(</mo><msqrt><mn>$1</mn></msqrt><mo>)</mo></mrow><mn>2</mn></msup>')
+          .replace(/\([−-]√(\d+)\)²/g, '<msup><mrow><mo>(</mo><mo>&minus;</mo><msqrt><mn>$1</mn></msqrt><mo>)</mo></mrow><mn>2</mn></msup>')
+          .replace(/\([−-](\d+)\)²/g, '<msup><mrow><mo>(</mo><mo>&minus;</mo><mn>$1</mn><mo>)</mo></mrow><mn>2</mn></msup>')
+          .replace(/([a-zA-Z])²/g, '<msup><mi>$1</mi><mn>2</mn></msup>')
+          .replace(/(\d+)²/g, '<msup><mn>$1</mn><mn>2</mn></msup>')
+          .replace(/√(\d+)/g, '<msqrt><mn>$1</mn></msqrt>')
+          .replace(/\+/g, '<mo>+</mo>')
+          .replace(/[-−]/g, '<mo>&minus;</mo>')
+          .replace(/=/g, '<mo>=</mo>')
+          .replace(/(\d+)/g, (m, num, offset, full) => {
+            // 既にタグ内の数字（<mn>...</mn>）は置換しない
+            const before = full.slice(Math.max(0, offset - 4), offset);
+            return before === '<mn>' ? m : `<mn>${num}</mn>`;
+          });
+        return `<math display="inline"><msqrt><mrow>${mmlInner}</mrow></msqrt></math>`;
+      });
+
+      // 2. 分数パターン（例: π/3, 2π/3, 5π/6, 11π/6, 1/2, √3/2, √2/2, 1/√2, a/r, b/r, 1/6）を MathML <mfrac> へ変換
+      s = s.replace(/(√\d+|\d*π|\d+|[ab])\/(√\d+|\d+|r)\b/g, (_, num, den) => {
+        return `<math display="inline"><mfrac>${toMmlAtom(num)}${toMmlAtom(den)}</mfrac></math>`;
+      });
+
+      // 3. 単独の平方根（例: √3, &radic;2）を MathML <msqrt> へ変換
+      s = s.replace(/(?:&radic;|√)(\d+)/g, '<math display="inline"><msqrt><mn>$1</mn></msqrt></math>');
+
+      return s;
+    }
+
+    function formatMath(str) {
+      if (!str) return '';
+      // 既存の <math>...</math>・<text>...</text>（SVGテキスト）・HTMLタグを壊さずテキストノードだけ変換
+      return String(str).replace(/(<math[\s\S]*?<\/math>|<text\b[\s\S]*?<\/text>|<[^>]+>)|([^<]+)/g, (m, protectedPart, txt) => {
+        if (protectedPart) return protectedPart;
+        return formatMathText(txt);
+      });
+    }
+
+    function fracHtml(num, den) {
+      return `<math display="inline"><mfrac>${toMmlAtom(num)}${toMmlAtom(den)}</mfrac></math>`;
+    }
+
+    /* =========================================================================
+       ワークシート 04〜09 全11問のデータベース
+       ========================================================================= */
+    const SYNTH_PROBLEMS = [
+      // --- シート 04〜06（例題4問） ---
+      {
+        id: 'p04_1', section: '04', label: '04 例① (正の係数)',
+        expr: 'sin θ ＋ √3 cos θ',
+        a: 1, b: Math.sqrt(3), aDisp: '1', bDisp: '√3',
+        quad: 'Q1', quadLabel: '第1象限（右・上）',
+        rCalc: '√(1² + (√3)²) = √(1 + 3) = √4 = 2', rDisp: '2', rVal: 2,
+        refDeg: 60, deg: 60, radDisp: fracHtml('π', '3'),
+        dirNote: '基準角 60°（π/3）、反時計回り（正）',
+        finalDisp: `2 sin(θ ＋ ${fracHtml('π', '3')})`,
+        rChoices: ['2', '√2', '4', '2√2'],
+        angChoices: [
+          { disp: `${fracHtml('π', '3')} (60°)`, ok: true },
+          { disp: `${fracHtml('π', '6')} (30°)`, ok: false, diag: '【横と縦の取り違え！】横 a = 1、縦 b = √3 なので、縦長（1 : √3 : 2）の直角三角形です！横が短いので角は 60°（π/3）になります。' },
+          { disp: `&minus;${fracHtml('π', '3')} (&minus;60°)`, ok: false, diag: '【向きのミス】a > 0, b > 0 で第1象限（上側）にあるので、反時計回りの正の角 ＋π/3 です！' },
+          { disp: `${fracHtml('2π', '3')} (120°)`, ok: false, diag: '【象限のミス】a = +1 > 0 なので右側（第1象限）にあります。120°は左側の第2象限です。' }
+        ],
+        verifySteps: [
+          '2 sin(θ ＋ π/3) ＝ 2 (sin θ cos π/3 ＋ cos θ sin π/3)',
+          '＝ 2 (sin θ × 1/2 ＋ cos θ × √3/2)',
+          '＝ <strong>sin θ ＋ √3 cos θ</strong>　✅ 元の式と完全一致！'
+        ],
+        tip: '横 a = 1（短め）、縦 b = √3（長め）だから、1 : 2 : √3 の縦長三角形 → 角度は 60°（π/3）！'
+      },
+      {
+        id: 'p04_2', section: '04', label: '04 例② (係数が逆)',
+        expr: '√3 sin θ ＋ cos θ',
+        a: Math.sqrt(3), b: 1, aDisp: '√3', bDisp: '1',
+        quad: 'Q1', quadLabel: '第1象限（右・上）',
+        rCalc: '√((√3)² + 1²) = √(3 + 1) = √4 = 2', rDisp: '2', rVal: 2,
+        refDeg: 30, deg: 30, radDisp: fracHtml('π', '6'),
+        dirNote: '基準角 30°（π/6）、反時計回り（正）',
+        finalDisp: `2 sin(θ ＋ ${fracHtml('π', '6')})`,
+        rChoices: ['2', '√3', '4', '√2'],
+        angChoices: [
+          { disp: `${fracHtml('π', '6')} (30°)`, ok: true },
+          { disp: `${fracHtml('π', '3')} (60°)`, ok: false, diag: '【係数逆転の違いに注目！】今回は横 a = √3（長い）、縦 b = 1（短い）の横長三角形です！だから角度は低い 30°（π/6）になります。' },
+          { disp: `${fracHtml('π', '4')} (45°)`, ok: false, diag: '【45°になるのは a と b の絶対値が同じとき】√3 と 1 は異なるので 30°（π/6）です。' },
+          { disp: `&minus;${fracHtml('π', '6')} (&minus;30°)`, ok: false, diag: '【向きのミス】b = +1 > 0 なので上向き（正の角）です。' }
+        ],
+        verifySteps: [
+          '2 sin(θ ＋ π/6) ＝ 2 (sin θ cos π/6 ＋ cos θ sin π/6)',
+          '＝ 2 (sin θ × √3/2 ＋ cos θ × 1/2)',
+          '＝ <strong>√3 sin θ ＋ cos θ</strong>　✅ 元の式と完全一致！'
+        ],
+        tip: '04例①と比べると、斜めの長さ r = 2 は変わらないが、係数の順序が逆になると横長になり角度だけが π/3 → π/6 に変わる！'
+      },
+      {
+        id: 'p05_1', section: '05', label: '05 負の係数 (解答21)',
+        expr: '&minus;sin θ ＋ √3 cos θ',
+        a: -1, b: Math.sqrt(3), aDisp: '&minus;1', bDisp: '√3',
+        quad: 'Q2', quadLabel: '第2象限（左・上）',
+        rCalc: '√((−1)² + (√3)²) = √(1 + 3) = 2', rDisp: '2', rVal: 2,
+        refDeg: 60, deg: 120, radDisp: fracHtml('2π', '3'),
+        dirNote: '基準角 60°、第2象限なので 180° − 60° = 120°（2π/3）',
+        finalDisp: `2 sin(θ ＋ ${fracHtml('2', '3')}π)`,
+        rChoices: ['2', '−2', '√2', '4'],
+        angChoices: [
+          { disp: `${fracHtml('2π', '3')} (120°)`, ok: true },
+          { disp: `${fracHtml('π', '3')} (60°)`, ok: false, diag: '【基準角だけで答えてしまったミス！】横の係数 a = −1（左へ1）なので、点は<strong>第2象限</strong>にあります！正の横軸から測ると 180° − 60° ＝ 120°（2π/3）です！' },
+          { disp: `&minus;${fracHtml('π', '3')} (&minus;60°)`, ok: false, diag: '【第4象限との混同】−60°は「右へ1・下へ√3」の点です。今回は「左へ1・上へ√3」の第2象限です！' },
+          { disp: `${fracHtml('5π', '6')} (150°)`, ok: false, diag: '【基準角のミス】横が1・縦が√3なので基準角は 60° です（30°ではありません）。180° − 60° = 120°（2π/3）！' }
+        ],
+        verifySteps: [
+          '2 sin(θ ＋ 2π/3) ＝ 2 (sin θ cos 2π/3 ＋ cos θ sin 2π/3)',
+          '＝ 2 (sin θ × (−1/2) ＋ cos θ × √3/2)',
+          '＝ <strong>−sin θ ＋ √3 cos θ</strong>　✅ 元の式と完全一致！'
+        ],
+        markInfo: 'シート05 解答番号：<strong>21-1 ( 2 )　21-2 ( 2 )　21-3 ( 3 )</strong>　※ 2 sin(θ + 2/3 π)',
+        tip: '04例①と比べると、斜めの長さ r = 2 は変わらないが、a が負になったことで点が左側（第2象限）へ移り、角度が π/3 → 2π/3 に変わる！'
+      },
+      {
+        id: 'p06_1', section: '06', label: '06 根号と負角 (解答22)',
+        expr: '√6 sin θ &minus; √2 cos θ',
+        a: Math.sqrt(6), b: -Math.sqrt(2), aDisp: '√6', bDisp: '&minus;√2',
+        quad: 'Q4', quadLabel: '第4象限（右・下）',
+        rCalc: '√((√6)² + (−√2)²) = √(6 + 2) = √8 = 2√2', rDisp: '2√2', rVal: 2 * Math.SQRT2,
+        refDeg: 30, deg: -30, radDisp: `&minus;${fracHtml('π', '6')}`,
+        dirNote: '比は √6 : √2 ＝ √3 : 1 → 基準角 30°、第4象限（時計回り）なので −π/6',
+        finalDisp: `2√2 sin(θ &minus; ${fracHtml('1', '6')}π)`,
+        rChoices: ['2√2', '√8', '2', '4'],
+        angChoices: [
+          { disp: `&minus;${fracHtml('π', '6')} (&minus;30°)`, ok: true },
+          { disp: `${fracHtml('π', '6')} (+30°)`, ok: false, diag: '【負角の見落とし！】縦の係数 b = −√2（下向き）なので、点は<strong>第4象限</strong>にあります。正の横軸から時計回りに測るので<strong>マイナス（−π/6）</strong>です！' },
+          { disp: `&minus;${fracHtml('π', '3')} (&minus;60°)`, ok: false, diag: '【比の整理ミス】横 √6 と縦 √2 を両方 √2 で割ると、<strong>横 √3 : 縦 1</strong>（横長！）なので基準角は 30°（π/6）です！' },
+          { disp: `${fracHtml('11π', '6')} (330°)`, ok: false, diag: '【角度の範囲 −π ＜ α ＜ π に注意！】330°（11π/6）は π を超えています。下側は時計回りの負角 −π/6 で表します！' }
+        ],
+        verifySteps: [
+          '2√2 sin(θ − π/6) ＝ 2√2 (sin θ cos π/6 − cos θ sin π/6)',
+          '＝ 2√2 (sin θ × √3/2 − cos θ × 1/2)',
+          '＝ <strong>√6 sin θ − √2 cos θ</strong>　✅ 元の式と完全一致！'
+        ],
+        markInfo: 'シート06 解答番号（マイナス印刷済み）：<strong>22-1 ( 2 )　22-2 ( 2 )　22-3 ( 1 )　22-4 ( 6 )</strong>　※ 2√2 sin(θ − 1/6 π)',
+        tip: '係数が √6 と √2 のように両方ルートでも、共通の √2 で割れば「√3 : 1」のおなじみの三角形が見える！さらに √8 は必ず 2√2 に整理しよう。'
+      },
+
+      // --- シート 07 個人演習 A（2問） ---
+      {
+        id: 'p07_1', section: '07A', label: '07 演習A-1',
+        expr: 'sin θ ＋ cos θ',
+        a: 1, b: 1, aDisp: '1', bDisp: '1',
+        quad: 'Q1', quadLabel: '第1象限（右・上）',
+        rCalc: '√(1² + 1²) = √2', rDisp: '√2', rVal: Math.SQRT2,
+        refDeg: 45, deg: 45, radDisp: fracHtml('π', '4'),
+        dirNote: '1 : 1 : √2 の直角二等辺三角形 → 基準角 45°（π/4）、反時計回り',
+        finalDisp: `√2 sin(θ ＋ ${fracHtml('π', '4')})`,
+        rChoices: ['√2', '2', '1', '2√2'],
+        angChoices: [
+          { disp: `${fracHtml('π', '4')} (45°)`, ok: true },
+          { disp: `${fracHtml('π', '3')} (60°)`, ok: false, diag: '【直角二等辺三角形！】横 1・縦 1 で長さが等しいので角度はちょうど真ん中の 45°（π/4）です！' },
+          { disp: `${fracHtml('π', '6')} (30°)`, ok: false, diag: '【角度のミス】1 : 1 : √2 の直角三角形の角は 45°（π/4）です。' },
+          { disp: `&minus;${fracHtml('π', '4')} (&minus;45°)`, ok: false, diag: '【符号のミス】a = 1 > 0, b = 1 > 0 の第1象限なので正の角 ＋π/4 です。' }
+        ],
+        verifySteps: [
+          '√2 sin(θ ＋ π/4) ＝ √2 (sin θ × √2/2 ＋ cos θ × √2/2)',
+          '＝ <strong>sin θ ＋ cos θ</strong>　✅ 完全一致！'
+        ],
+        tip: '超定番の合成！係数が書かれていないときは「1」が隠れている（a = 1, b = 1）。'
+      },
+      {
+        id: 'p07_2', section: '07A', label: '07 演習A-2',
+        expr: '√3 sin θ &minus; cos θ',
+        a: Math.sqrt(3), b: -1, aDisp: '√3', bDisp: '&minus;1',
+        quad: 'Q4', quadLabel: '第4象限（右・下）',
+        rCalc: '√((√3)² + (−1)²) = √(3 + 1) = 2', rDisp: '2', rVal: 2,
+        refDeg: 30, deg: -30, radDisp: `&minus;${fracHtml('π', '6')}`,
+        dirNote: '横 √3・縦 −1 → 基準角 30°、第4象限（時計回り）なので −π/6',
+        finalDisp: `2 sin(θ &minus; ${fracHtml('π', '6')})`,
+        rChoices: ['2', '√2', '√3', '4'],
+        angChoices: [
+          { disp: `&minus;${fracHtml('π', '6')} (&minus;30°)`, ok: true },
+          { disp: `${fracHtml('π', '6')} (+30°)`, ok: false, diag: '【マイナスを忘れ！】b = −1 < 0 なので下向き（第4象限）です。時計回りなので −π/6！' },
+          { disp: `&minus;${fracHtml('π', '3')} (&minus;60°)`, ok: false, diag: '【横と縦のミス】横が √3（長い）・縦が 1（短い）なので基準角は 30°（π/6）です。' },
+          { disp: `&minus;${fracHtml('5π', '6')} (&minus;150°)`, ok: false, diag: '【象限のミス】a = +√3 > 0 なので右側（第4象限）です。' }
+        ],
+        verifySteps: [
+          '2 sin(θ − π/6) ＝ 2 (sin θ × √3/2 − cos θ × 1/2)',
+          '＝ <strong>√3 sin θ − cos θ</strong>　✅ 完全一致！'
+        ],
+        tip: '01問4で最初に展開した式「2 sin(θ − 30°)」の逆たどりになっています！'
+      },
+
+      // --- シート 08 個人演習 B（3問） ---
+      {
+        id: 'p08_1', section: '08B', label: '08 演習B-1',
+        expr: '&minus;√3 sin θ ＋ cos θ',
+        a: -Math.sqrt(3), b: 1, aDisp: '&minus;√3', bDisp: '1',
+        quad: 'Q2', quadLabel: '第2象限（左・上）',
+        rCalc: '√((−√3)² + 1²) = √4 = 2', rDisp: '2', rVal: 2,
+        refDeg: 30, deg: 150, radDisp: fracHtml('5π', '6'),
+        dirNote: '基準角 30°、第2象限なので 180° − 30° = 150°（5π/6）',
+        finalDisp: `2 sin(θ ＋ ${fracHtml('5π', '6')})`,
+        rChoices: ['2', '−2', '√2', '4'],
+        angChoices: [
+          { disp: `${fracHtml('5π', '6')} (150°)`, ok: true },
+          { disp: `${fracHtml('π', '6')} (30°)`, ok: false, diag: '【基準角だけで答えたミス！】a = −√3 < 0 なので第2象限です。π − π/6 ＝ 5π/6 になります！' },
+          { disp: `${fracHtml('2π', '3')} (120°)`, ok: false, diag: '【30°と60°の混同】横が √3（長い）・縦が 1（短い）なので、負の横軸からの上がり幅（基準角）は 30°（π/6）。180° − 30° = 150°（5π/6）です！' },
+          { disp: `&minus;${fracHtml('5π', '6')} (&minus;150°)`, ok: false, diag: '【上下のミス】b = +1 > 0 なので上側（第2象限・反時計回りの＋）です！' }
+        ],
+        verifySteps: [
+          '2 sin(θ ＋ 5π/6) ＝ 2 (sin θ × (−√3/2) ＋ cos θ × 1/2)',
+          '＝ <strong>−√3 sin θ ＋ cos θ</strong>　✅ 完全一致！'
+        ],
+        tip: '第2象限の角は必ず「π −（基準角）」で求めよう！ π − π/6 ＝ 5π/6。'
+      },
+      {
+        id: 'p08_2', section: '08B', label: '08 演習B-2',
+        expr: '&minus;sin θ &minus; √3 cos θ',
+        a: -1, b: -Math.sqrt(3), aDisp: '&minus;1', bDisp: '&minus;√3',
+        quad: 'Q3', quadLabel: '第3象限（左・下）',
+        rCalc: '√((−1)² + (−√3)²) = √4 = 2', rDisp: '2', rVal: 2,
+        refDeg: 60, deg: -120, radDisp: `&minus;${fracHtml('2π', '3')}`,
+        dirNote: '基準角 60°、第3象限（時計回り）なので −(180° − 60°) = −120°（−2π/3）',
+        finalDisp: `2 sin(θ &minus; ${fracHtml('2π', '3')})`,
+        rChoices: ['2', '−2', '√3', '4'],
+        angChoices: [
+          { disp: `&minus;${fracHtml('2π', '3')} (&minus;120°)`, ok: true },
+          { disp: `&minus;${fracHtml('π', '3')} (&minus;60°)`, ok: false, diag: '【第4象限との混同！】a = −1（左）, b = −√3（下）の<strong>第3象限</strong>です！正の横軸から時計回りに −120°（−2π/3）進みます！' },
+          { disp: `&minus;${fracHtml('5π', '6')} (&minus;150°)`, ok: false, diag: '【基準角のミス】横 1・縦 √3 なので基準角は 60°（π/3）。−π ＋ π/3 ＝ −2π/3 です！' },
+          { disp: `${fracHtml('2π', '3')} (+120°)`, ok: false, diag: '【上下のミス】b = −√3 < 0 なので下側（負の角）です！' }
+        ],
+        verifySteps: [
+          '2 sin(θ − 2π/3) ＝ 2 (sin θ × (−1/2) ＋ cos θ × (−√3/2))',
+          '＝ <strong>−sin θ − √3 cos θ</strong>　✅ 完全一致！'
+        ],
+        tip: '第3象限の角（−π ＜ α ＜ π）は「−π ＋（基準角）」！※もし範囲が 0 ≦ α ＜ 2π なら 4π/3 と書きます。'
+      },
+      {
+        id: 'p08_3', section: '08B', label: '08 演習B-3',
+        expr: '√2 sin θ ＋ √6 cos θ',
+        a: Math.sqrt(2), b: Math.sqrt(6), aDisp: '√2', bDisp: '√6',
+        quad: 'Q1', quadLabel: '第1象限（右・上）',
+        rCalc: '√((√2)² + (√6)²) = √(2 + 6) = √8 = 2√2', rDisp: '2√2', rVal: 2 * Math.SQRT2,
+        refDeg: 60, deg: 60, radDisp: fracHtml('π', '3'),
+        dirNote: '比は √2 : √6 ＝ 1 : √3 → 基準角 60°（π/3）、第1象限（正）',
+        finalDisp: `2√2 sin(θ ＋ ${fracHtml('π', '3')})`,
+        rChoices: ['2√2', '√8', '2√3', '4'],
+        angChoices: [
+          { disp: `${fracHtml('π', '3')} (60°)`, ok: true },
+          { disp: `${fracHtml('π', '6')} (30°)`, ok: false, diag: '【横と縦の比に注意】√2 : √6 ＝ 1 : √3（縦長！）なので角度は 60°（π/3）です！' },
+          { disp: `${fracHtml('π', '4')} (45°)`, ok: false, diag: '【比の確認】√2 と √6 は等しくないので 45° ではありません。' },
+          { disp: `${fracHtml('2π', '3')} (120°)`, ok: false, diag: '【象限ミス】どちらも正（＋）なので第1象限（60°）です。' }
+        ],
+        verifySteps: [
+          '2√2 sin(θ ＋ π/3) ＝ 2√2 (sin θ × 1/2 ＋ cos θ × √3/2)',
+          '＝ <strong>√2 sin θ ＋ √6 cos θ</strong>　✅ 完全一致！'
+        ],
+        tip: '√2 と √6 は両方 √2 で割れる → 1 : √3 の縦長三角形だから角度は π/3！'
+      },
+
+      // --- シート 09 個人演習 C（2問） ---
+      {
+        id: 'p09_1', section: '09C', label: '09 演習C-1 (根号・第3象限)',
+        expr: '&minus;√6 sin θ &minus; √2 cos θ',
+        a: -Math.sqrt(6), b: -Math.sqrt(2), aDisp: '&minus;√6', bDisp: '&minus;√2',
+        quad: 'Q3', quadLabel: '第3象限（左・下）',
+        rCalc: '√((−√6)² + (−√2)²) = √8 = 2√2', rDisp: '2√2', rVal: 2 * Math.SQRT2,
+        refDeg: 30, deg: -150, radDisp: `&minus;${fracHtml('5π', '6')}`,
+        dirNote: '比 √6 : √2 ＝ √3 : 1 → 基準角 30°、第3象限なので −π ＋ π/6 ＝ −5π/6',
+        finalDisp: `2√2 sin(θ &minus; ${fracHtml('5π', '6')})`,
+        rChoices: ['2√2', '−2√2', '4', '2√3'],
+        angChoices: [
+          { disp: `&minus;${fracHtml('5π', '6')} (&minus;150°)`, ok: true },
+          { disp: `&minus;${fracHtml('π', '6')} (&minus;30°)`, ok: false, diag: '【第4象限との混同！】a = −√6（左）なので第3象限です！−π ＋ π/6 ＝ −5π/6 です。' },
+          { disp: `&minus;${fracHtml('2π', '3')} (&minus;120°)`, ok: false, diag: '【基準角ミス】横 √6（長い）：縦 √2（短い）＝ √3 : 1 なので基準角は 30°（π/6）。よって −180° + 30° = −150°（−5π/6）です！' },
+          { disp: `${fracHtml('5π', '6')} (+150°)`, ok: false, diag: '【上下のミス】b = −√2 < 0 なので下側（時計回りのマイナス）です！' }
+        ],
+        verifySteps: [
+          '2√2 sin(θ − 5π/6) ＝ 2√2 (sin θ × (−√3/2) ＋ cos θ × (−1/2))',
+          '＝ <strong>−√6 sin θ − √2 cos θ</strong>　✅ 完全一致！'
+        ],
+        tip: 'シート06の「√6 sinθ − √2 cosθ」の符号が両方マイナスになった形。原点対称に反対側（第3象限）へ移動する！'
+      },
+      {
+        id: 'p09_2', section: '09C', label: '09 演習C-2 (係数が0!)',
+        expr: '2 cos θ　（＝ 0·sin θ ＋ 2 cos θ）',
+        a: 0, b: 2, aDisp: '0', bDisp: '2',
+        quad: 'AY+', quadLabel: '正の縦軸上（真上！）',
+        rCalc: '√(0² + 2²) = √4 = 2', rDisp: '2', rVal: 2,
+        refDeg: 90, deg: 90, radDisp: fracHtml('π', '2'),
+        dirNote: '点 (0, 2) は真上（正の縦軸上）なので、正の横軸からちょうど 90°（π/2）！',
+        finalDisp: `2 sin(θ ＋ ${fracHtml('π', '2')})`,
+        rChoices: ['2', '√2', '0', '4'],
+        angChoices: [
+          { disp: `${fracHtml('π', '2')} (90°)`, ok: true },
+          { disp: '0 (0°)', ok: false, diag: '【横と縦の逆転！】点 (2, 0) なら 2 sin θ ですが、今回は sin θ の係数が 0 で cos θ の係数が 2、つまり点 (0, 2)＝真上（90°＝π/2）です！' },
+          { disp: `&minus;${fracHtml('π', '2')} (&minus;90°)`, ok: false, diag: '【上下のミス】b = +2 > 0 なので真上（＋π/2）です！' },
+          { disp: 'π (180°)', ok: false, diag: '【軸のミス】π は左向き（−2 sin θ）になります。真上は π/2 です。' }
+        ],
+        verifySteps: [
+          '2 sin(θ ＋ π/2) ＝ 2 (sin θ cos π/2 ＋ cos θ sin π/2)',
+          '＝ 2 (sin θ × 0 ＋ cos θ × 1) ＝ <strong>2 cos θ</strong>　✅ 完全一致！'
+        ],
+        tip: 'sin θ が見えないときは「a = 0」と読めばOK！実は有名な公式 sin(θ + π/2) = cos θ も合成の特別な場合なのです！'
+      }
+    ];
+
+    /* =========================================================================
+       グローバル状態管理
+       ========================================================================= */
+    let activeTab = 's00';
+    let xp = 0;
+    let clearedSet = new Set();
+
+    // 導入 00（合成の意味）状態
+    let s00ThetaDeg = 90; // 0°〜360°
+    let s00MaxQuiz = null; // 'add' or 'less'
+    let s00ShowSynth = false;
+
+    // シート 01 状態
+    let s01Q1 = null;
+    let s01Q2Step = 1; // 1〜4
+    let s01Q3Ans = null;
+    let s01Q4Step = 1; // 1〜3
+
+    // シート 02 状態
+    let s02TableRevealed = { r1: false, r2: false, r3: false };
+    let s02RuleTry = null; // 'add', 'mul', 'sqsum'
+    let s02Q3Input = '';
+    let s02Q3Checked = false;
+
+    // シート 03 状態
+    let s03Step = 1; // 1〜3
+    let s03WhyQuiz = null;
+
+    // シート 04〜06 & 07〜09 共通インタラクティブ演習状態
+    let curId04 = 'p04_1';
+    let curId07 = 'p07_1';
+    // 問題IDごとの進行状態 { quadPicked, quadOk, rPicked, angPicked, verified }
+    const probProgress = {};
+    function getProg(id) {
+      if (!probProgress[id]) {
+        probProgress[id] = { quadPicked: null, quadOk: false, rPicked: null, rOk: false, angPicked: null, angOk: false, verified: false };
+      }
+      return probProgress[id];
+    }
+
+    // シート 10 出口課題状態
+    let s10Quad = null;
+    let s10R = '';
+    let s10Ang = '';
+    let s10WhyHoriz = '';
+    let s10Recall = '';
+    let s10Checked = false;
+
+    // 応用問題＆波の合体タブ状態
+    let appSubTab = 'wave'; // 'wave', 'maxmin', 'eq'
+    let waveA = 1;
+    let waveB = 1.732; // √3
+    let wavePreset = '1_sqrt3';
+    let appMaxMinStep = 1; // 1〜4
+    let appMaxMinQuiz = null;
+    let appEqStep = 1; // 1〜4
+    let appEqQuiz = null;
+
+    /* =========================================================================
+       座標図 (a, b) の高精度 SVG 生成（重なりゼロ設計）
+       ========================================================================= */
+    function renderCoordSvg(prob, showVector, interactiveQuadPick, pickedQuad) {
+      const isDark = document.documentElement.classList.contains('dark');
+      const cx = 180, cy = 148;
+      const axisLen = 112;
+      const vecLen = 84; // 視覚的に見やすい一定の長さで方向を正確に表現
+
+      const rad = (prob.deg * Math.PI) / 180;
+      const px = cx + vecLen * Math.cos(rad);
+      const py = cy - vecLen * Math.sin(rad);
+
+      const gridStroke = isDark ? 'rgba(148,163,184,0.12)' : 'rgba(148,163,184,0.22)';
+      const axisStroke = isDark ? '#94a3b8' : '#334155';
+      const txtMain = isDark ? '#f1f5f9' : '#0f172a';
+
+      // 象限クリック領域（点打ちミッション中）
+      let quadZones = '';
+      if (interactiveQuadPick && !showVector) {
+        const zones = [
+          { q: 'Q1', x: cx + 6, y: cy - axisLen + 6, w: axisLen - 12, h: axisLen - 12, tx: cx + 58, ty: cy - 54, label: '第1象限\n(右・上)' },
+          { q: 'Q2', x: cx - axisLen + 6, y: cy - axisLen + 6, w: axisLen - 12, h: axisLen - 12, tx: cx - 58, ty: cy - 54, label: '第2象限\n(左・上)' },
+          { q: 'Q3', x: cx - axisLen + 6, y: cy + 6, w: axisLen - 12, h: axisLen - 12, tx: cx - 58, ty: cy + 56, label: '第3象限\n(左・下)' },
+          { q: 'Q4', x: cx + 6, y: cy + 6, w: axisLen - 12, h: axisLen - 12, tx: cx + 58, ty: cy + 56, label: '第4象限\n(右・下)' }
+        ];
+        zones.forEach(z => {
+          const isBad = pickedQuad === z.q && z.q !== prob.quad;
+          const fill = isBad ? 'rgba(244,63,94,0.18)' : 'rgba(59,130,246,0.06)';
+          const stroke = isBad ? '#f43f5e' : '#93c5fd';
+          const lines = z.label.split('\n');
+          quadZones += `
+            <g data-pick-quad="${z.q}" class="cursor-pointer group">
+              <rect x="${z.x}" y="${z.y}" width="${z.w}" height="${z.h}" rx="12" fill="${fill}" stroke="${stroke}" stroke-width="1.8" stroke-dasharray="5 3" class="hover:fill-blue-500/15 transition" />
+              <text x="${z.tx}" y="${z.ty - 6}" text-anchor="middle" font-size="11.5" font-weight="800" fill="${isBad ? '#e11d48' : (isDark ? '#93c5fd' : '#1d4ed8')}">${lines[0]}</text>
+              <text x="${z.tx}" y="${z.ty + 10}" text-anchor="middle" font-size="10.5" font-weight="700" fill="${isBad ? '#e11d48' : (isDark ? '#cbd5e1' : '#475569')}">${lines[1]}</text>
+            </g>
+          `;
+        });
+        // 軸上ボタン（09 C-2のような軸上の点のため）
+        if (prob.quad === 'AY+') {
+          quadZones += `
+            <g data-pick-quad="AY+" class="cursor-pointer">
+              <rect x="${cx - 46}" y="${cy - axisLen + 2}" width="92" height="30" rx="8" fill="rgba(16,185,129,0.16)" stroke="#10b981" stroke-width="2" />
+              <text x="${cx}" y="${cy - axisLen + 21}" text-anchor="middle" font-size="11" font-weight="900" fill="#047857">正の縦軸上 (真上)</text>
+            </g>
+          `;
+        }
+      }
+
+      // 点・線分・直角三角形・角度アークの描画（点打ち成功後または解答表示時）
+      let vectorSvg = '';
+      if (showVector) {
+        const isNeg = prob.deg < 0;
+        const arcR = 30;
+        const arcEndX = cx + arcR * Math.cos(rad);
+        const arcEndY = cy - arcR * Math.sin(rad);
+        const sweepFlag = isNeg ? 1 : 0; // SVG座標ではy下向きなので反時計回り(正)が0、時計回り(負)が1
+        const largeArc = Math.abs(prob.deg) > 180 ? 1 : 0;
+        const angCol = isNeg ? '#e11d48' : '#2563eb';
+        const angFill = isNeg ? 'rgba(225,29,72,0.18)' : 'rgba(37,99,235,0.18)';
+
+        // 角度ラベル位置（アークの中央角方向で軸と重ならない位置）
+        const midRad = rad / 2;
+        const angLabDist = Math.abs(prob.deg) >= 120 ? 44 : 48;
+        let angLx = cx + angLabDist * Math.cos(midRad);
+        let angLy = cy - angLabDist * Math.sin(midRad);
+        if (prob.deg === 90) { angLx = cx + 42; angLy = cy - 34; }
+
+        // 横・縦の補助線（軸上でなければ直角三角形を表示）
+        let triHelper = '';
+        if (prob.a !== 0 && prob.b !== 0) {
+          const rightSignX = prob.a > 0 ? -10 : 10;
+          const rightSignY = prob.b > 0 ? -10 : 10;
+          // 横ラベル a は横軸の反対側（三角形の外側）へ
+          const aLabX = (cx + px) / 2;
+          const aLabY = prob.b > 0 ? cy + 20 : cy - 20;
+          // 縦ラベル b は垂線の外側へ
+          const bLabX = prob.a > 0 ? px + 34 : px - 34;
+          const bLabY = (cy + py) / 2;
+
+          triHelper = `
+            <polygon points="${cx},${cy} ${px.toFixed(1)},${cy} ${px.toFixed(1)},${py.toFixed(1)}" fill="rgba(59,130,246,0.10)" />
+            <line x1="${cx}" y1="${cy}" x2="${px.toFixed(1)}" y2="${cy}" stroke="#2563eb" stroke-width="3.5" />
+            <line x1="${px.toFixed(1)}" y1="${cy}" x2="${px.toFixed(1)}" y2="${py.toFixed(1)}" stroke="#e11d48" stroke-width="3" stroke-dasharray="5 3" />
+            <polyline points="${(px + rightSignX).toFixed(1)},${cy} ${(px + rightSignX).toFixed(1)},${(cy + rightSignY).toFixed(1)} ${px.toFixed(1)},${(cy + rightSignY).toFixed(1)}" fill="none" stroke="#64748b" stroke-width="1.6" />
+            <foreignObject x="${(aLabX - 30).toFixed(1)}" y="${(aLabY - 13).toFixed(1)}" width="60" height="26">
+              <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;justify-content:center;align-items:center;height:100%;">
+                <span style="padding:1px 6px;border-radius:6px;background:${isDark ? '#1e3a8a' : '#eff6ff'};border:1.5px solid #2563eb;color:${isDark ? '#bfdbfe' : '#1d4ed8'};font-weight:800;font-size:11.5px;white-space:nowrap;">${formatMath(prob.aDisp)}</span>
+              </div>
+            </foreignObject>
+            <foreignObject x="${(bLabX - 30).toFixed(1)}" y="${(bLabY - 13).toFixed(1)}" width="60" height="26">
+              <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;justify-content:center;align-items:center;height:100%;">
+                <span style="padding:1px 6px;border-radius:6px;background:${isDark ? '#881337' : '#fff1f2'};border:1.5px solid #e11d48;color:${isDark ? '#fecdd3' : '#be123c'};font-weight:800;font-size:11.5px;white-space:nowrap;">${formatMath(prob.bDisp)}</span>
+              </div>
+            </foreignObject>
+          `;
+        }
+
+        // 点 (a, b) の座標バッジ（原点から外向きに延長して重なりを回避）
+        const ptLabX = cx + (vecLen + 36) * Math.cos(rad);
+        const ptLabY = cy - (vecLen + 26) * Math.sin(rad);
+        const clampedPtX = Math.max(58, Math.min(302, ptLabX));
+        const clampedPtY = Math.max(20, Math.min(272, ptLabY));
+
+        // 斜辺 r ラベル（斜辺の中点から垂直方向・三角形の外側へ）
+        const midVx = (cx + px) / 2, midVy = (cy + py) / 2;
+        let nx = -(py - cy), ny = (px - cx);
+        const nl = Math.hypot(nx, ny) || 1;
+        nx /= nl; ny /= nl;
+        // 三角形の内側（垂線の足 (px, cy)）から離れる向きを選ぶ
+        if (nx * (px - midVx) + ny * (cy - midVy) > 0) { nx = -nx; ny = -ny; }
+        const rLabX = prob.a === 0 ? cx - 34 : midVx + nx * 24;
+        const rLabY = prob.a === 0 ? (cy + py) / 2 : midVy + ny * 24;
+
+        vectorSvg = `
+          ${triHelper}
+          <!-- 角度の扇形アーク -->
+          <path d="M ${cx},${cy} L ${cx + arcR},${cy} A ${arcR},${arcR} 0 ${largeArc},${sweepFlag} ${arcEndX.toFixed(1)},${arcEndY.toFixed(1)} Z" fill="${angFill}" stroke="${angCol}" stroke-width="2" />
+          <!-- 斜辺ベクトル -->
+          <line x1="${cx}" y1="${cy}" x2="${px.toFixed(1)}" y2="${py.toFixed(1)}" stroke="#059669" stroke-width="3.8" stroke-linecap="round" class="animate-draw" />
+          <circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="6" fill="#059669" stroke="#ffffff" stroke-width="2" class="animate-pop" />
+
+          <!-- 斜辺の長さ r バッジ -->
+          <foreignObject x="${(rLabX - 36).toFixed(1)}" y="${(rLabY - 14).toFixed(1)}" width="72" height="28">
+            <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;justify-content:center;align-items:center;height:100%;">
+              <span style="padding:1px 7px;border-radius:7px;background:${isDark ? '#064e3b' : '#ecfdf5'};border:1.8px solid #059669;color:${isDark ? '#6ee7b7' : '#047857'};font-weight:800;font-size:11.5px;white-space:nowrap;">r = ${formatMath(prob.rDisp)}</span>
+            </div>
+          </foreignObject>
+
+          <!-- 角度 α バッジ -->
+          <foreignObject x="${(angLx - 36).toFixed(1)}" y="${(angLy - 16).toFixed(1)}" width="72" height="32">
+            <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;justify-content:center;align-items:center;height:100%;">
+              <span style="padding:1px 6px;border-radius:7px;background:${isDark ? '#1e293b' : '#ffffff'};border:1.8px solid ${angCol};color:${angCol};font-weight:900;font-size:11px;white-space:nowrap;">${formatMath(prob.radDisp)}</span>
+            </div>
+          </foreignObject>
+
+          <!-- 点の座標 (a, b) バッジ -->
+          <foreignObject x="${(clampedPtX - 54).toFixed(1)}" y="${(clampedPtY - 14).toFixed(1)}" width="108" height="28">
+            <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;justify-content:center;align-items:center;height:100%;">
+              <span style="padding:1px 7px;border-radius:8px;background:${isDark ? '#0f172a' : '#f8fafc'};border:1.5px solid #475569;color:${txtMain};font-weight:800;font-size:11px;white-space:nowrap;">(${formatMath(prob.aDisp)}, ${formatMath(prob.bDisp)})</span>
+            </div>
+          </foreignObject>
+        `;
+      }
+
+      return `
+        <svg viewBox="0 0 360 296" class="w-full h-auto max-h-[296px] select-none bg-slate-50 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800">
+          <!-- 背景グリッド -->
+          <circle cx="${cx}" cy="${cy}" r="${vecLen}" fill="none" stroke="${gridStroke}" stroke-width="1.2" stroke-dasharray="4 4" />
+          <!-- 横軸 a -->
+          <line x1="${cx - axisLen - 16}" y1="${cy}" x2="${cx + axisLen + 18}" y2="${cy}" stroke="${axisStroke}" stroke-width="2" />
+          <polygon points="${cx + axisLen + 22},${cy} ${cx + axisLen + 12},${cy - 5} ${cx + axisLen + 12},${cy + 5}" fill="${axisStroke}" />
+          <text x="${cx + axisLen + 26}" y="${cy + 5}" font-size="14" font-weight="900" font-style="italic" font-family="Times New Roman, serif" fill="#2563eb">a</text>
+          <text x="${cx + axisLen + 4}" y="${cy + 18}" text-anchor="end" font-size="9.5" font-weight="700" fill="#2563eb">(sinθ係数)</text>
+
+          <!-- 縦軸 b -->
+          <line x1="${cx}" y1="${cy + axisLen + 12}" x2="${cx}" y2="${cy - axisLen - 14}" stroke="${axisStroke}" stroke-width="2" />
+          <polygon points="${cx},${cy - axisLen - 20} ${cx - 5},${cy - axisLen - 10} ${cx + 5},${cy - axisLen - 10}" fill="${axisStroke}" />
+          <text x="${cx + 12}" y="${cy - axisLen - 8}" font-size="14" font-weight="900" font-style="italic" font-family="Times New Roman, serif" fill="#e11d48">b</text>
+          <text x="${cx + 26}" y="${cy - axisLen - 9}" font-size="9.5" font-weight="700" fill="#e11d48">(cosθ係数)</text>
+
+          <!-- 原点 O -->
+          <text x="${cx - 14}" y="${cy + 15}" font-size="12" font-weight="800" fill="${axisStroke}">O</text>
+
+          ${quadZones}
+          ${vectorSvg}
+        </svg>
+      `;
+    }
+
+    /* =========================================================================
+       テーマ・タブ・ヘッダー更新
+       ========================================================================= */
+    function updateHeaderStats() {
+      document.getElementById('xpDisplay').textContent = xp;
+      document.getElementById('clearedDisplay').textContent = `${clearedSet.size}/11`;
+    }
+
+    function setTheme(mode) {
+      const root = document.documentElement;
+      if (mode === 'dark') root.classList.add('dark');
+      else root.classList.remove('dark');
+      const activeCls = 'px-2 py-1 rounded-lg transition bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 shadow-sm';
+      const inactiveCls = 'px-2 py-1 rounded-lg transition text-slate-600 dark:text-slate-400';
+      document.getElementById('themeLightBtn').className = mode === 'light' ? activeCls : inactiveCls;
+      document.getElementById('themeDarkBtn').className = mode === 'dark' ? activeCls : inactiveCls;
+      renderApp();
+    }
+
+    function selectTab(tab) {
+      activeTab = tab;
+      document.querySelectorAll('.nav-tab').forEach(btn => {
+        if (btn.dataset.tab === tab) {
+          btn.className = 'nav-tab shrink-0 px-3 py-2 rounded-xl text-xs font-bold transition text-left bg-blue-600 text-white shadow-md';
+        } else {
+          btn.className = 'nav-tab shrink-0 px-3 py-2 rounded-xl text-xs font-bold transition text-left bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-50';
+        }
+      });
+      renderApp();
+    }
+
+    function renderApp() {
+      const el = document.getElementById('mainContent');
+      let html = '';
+      if (activeTab === 's00') html = renderSheet00();
+      else if (activeTab === 's01') html = renderSheet01();
+      else if (activeTab === 's02') html = renderSheet02();
+      else if (activeTab === 's03') html = renderSheet03();
+      else if (activeTab === 's04') html = renderWorkshop('04', curId04);
+      else if (activeTab === 's07') html = renderWorkshop('07', curId07);
+      else if (activeTab === 's10') html = renderSheet10();
+      else if (activeTab === 'app') html = renderAppliedTab();
+      // 画面全体のテキスト内の分数・平方根を漏れなく標準 MathML 数式オブジェクトへ自動変換
+      el.innerHTML = formatMath(html);
+      updateHeaderStats();
+    }
+
+    /* =========================================================================
+       導入 00：そもそも「三角関数の合成」ってどういう意味？なぜ必要なの？
+       ========================================================================= */
+    function renderSheet00() {
+      const rad = (s00ThetaDeg * Math.PI) / 180;
+      const sinV = Math.sin(rad);
+      const cosTermV = Math.sqrt(3) * Math.cos(rad);
+      const sumV = sinV + cosTermV; // = 2 sin(θ + 60°)
+
+      // 波形SVG座標計算
+      const W = 500, H = 205, midY = 102, padL = 38, plotW = 440, scaleY = 36;
+      const buildPath = (fn) => {
+        let d = '';
+        for (let i = 0; i <= 120; i++) {
+          const t = (i / 120) * Math.PI * 2;
+          const x = padL + (i / 120) * plotW;
+          const y = midY - fn(t) * scaleY;
+          d += (i === 0 ? `M ${x.toFixed(1)},${y.toFixed(1)}` : ` L ${x.toFixed(1)},${y.toFixed(1)}`);
+        }
+        return d;
+      };
+      const pSin = buildPath(t => Math.sin(t));
+      const pCos = buildPath(t => Math.sqrt(3) * Math.cos(t));
+      const pSum = buildPath(t => Math.sin(t) + Math.sqrt(3) * Math.cos(t));
+
+      const curX = padL + (s00ThetaDeg / 360) * plotW;
+      const curSinY = midY - sinV * scaleY;
+      const curCosY = midY - cosTermV * scaleY;
+      const curSumY = midY - sumV * scaleY;
+
+      // ピーク位置（θ = 30° で最大 2.00）
+      const peakX = padL + (30 / 360) * plotW;
+      const peakY = midY - 2 * scaleY;
+
+      // ゲージ高さ計算（-2.2〜+2.2 を視覚化）
+      const toBarPct = (v) => Math.min(100, Math.abs(v) / 2.2 * 100);
+
+      return `
+        <div class="space-y-5">
+          <!-- 冒頭フックバナー -->
+          <div class="bg-gradient-to-r from-indigo-600 via-blue-600 to-teal-600 text-white rounded-2xl p-5 shadow-md space-y-1.5">
+            <div class="text-xs font-extrabold text-blue-100">導入 00｜まずは「合成する意味」を体感しよう！</div>
+            <h2 class="text-base sm:text-xl font-extrabold">なぜ、わざわざ sin θ と cos θ を「1つの sin」にまとめるの？</h2>
+            <p class="text-xs sm:text-sm text-blue-50 leading-relaxed">
+              ひとことで言うと、<strong>「バラバラに動く2つの関数を1か所にまとめて、最大値・最小値や波の正体を一目でわかるようにするため」</strong>です！
+            </p>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+            <!-- 左：ピークがズレる体感実験＆合成オーバーレイ -->
+            <div class="lg:col-span-7 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
+              <div class="flex items-center justify-between flex-wrap gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
+                <div>
+                  <span class="text-xs font-extrabold text-blue-600 dark:text-blue-400">実験：y ＝ sin θ ＋ √3 cos θ の最大値を探せ！</span>
+                  <h3 class="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white">角度 θ を動かして、2つの項の「タイミングのズレ」を見よう</h3>
+                </div>
+                <button type="button" data-action="s00-toggle-synth" class="px-3 py-1.5 rounded-xl text-xs font-extrabold shadow-sm transition ${s00ShowSynth ? 'bg-emerald-600 text-white' : 'bg-indigo-600 hover:bg-indigo-500 text-white'}">
+                  ${s00ShowSynth ? '✅ 合成後の1つの波を表示中' : '✨ 合成して1つの波にする！'}
+                </button>
+              </div>
+
+              <!-- リアルタイム波形グラフ＋現在位置カーソル -->
+              <div class="bg-slate-50 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800 p-2">
+                <svg viewBox="0 0 ${W} ${H}" class="w-full h-auto select-none">
+                  <!-- 最大値 +2 / 最小値 -2 のガイド線（合成表示時） -->
+                  ${s00ShowSynth ? `
+                    <line x1="${padL}" y1="${(midY - 2 * scaleY).toFixed(1)}" x2="${padL + plotW}" y2="${(midY - 2 * scaleY).toFixed(1)}" stroke="#059669" stroke-width="1.6" stroke-dasharray="5 4" />
+                    <line x1="${padL}" y1="${(midY + 2 * scaleY).toFixed(1)}" x2="${padL + plotW}" y2="${(midY + 2 * scaleY).toFixed(1)}" stroke="#059669" stroke-width="1.6" stroke-dasharray="5 4" />
+                    <text x="6" y="${(midY - 2 * scaleY + 4).toFixed(1)}" font-size="11" font-weight="900" fill="#059669">+2</text>
+                    <text x="6" y="${(midY + 2 * scaleY + 4).toFixed(1)}" font-size="11" font-weight="900" fill="#059669">-2</text>
+                    <circle cx="${peakX.toFixed(1)}" cy="${peakY.toFixed(1)}" r="6" fill="#059669" stroke="#fff" stroke-width="2" />
+                    <rect x="${(peakX + 8).toFixed(1)}" y="${(peakY - 14).toFixed(1)}" width="150" height="22" rx="6" fill="#ecfdf5" stroke="#059669" stroke-width="1.5" />
+                    <text x="${(peakX + 83).toFixed(1)}" y="${(peakY + 1).toFixed(1)}" text-anchor="middle" font-size="10.5" font-weight="900" fill="#047857">最大値 r = 2 (θ = 30°)</text>
+                  ` : ''}
+
+                  <!-- 軸 -->
+                  <line x1="${padL}" y1="${midY}" x2="${padL + plotW + 10}" y2="${midY}" stroke="#94a3b8" stroke-width="1.5" />
+                  <line x1="${padL}" y1="12" x2="${padL}" y2="${H - 12}" stroke="#94a3b8" stroke-width="1.5" />
+                  <text x="${padL + plotW * 0.25}" y="${midY + 15}" text-anchor="middle" font-size="10" font-weight="bold" fill="#64748b">90°</text>
+                  <text x="${padL + plotW * 0.5}" y="${midY + 15}" text-anchor="middle" font-size="10" font-weight="bold" fill="#64748b">180°</text>
+                  <text x="${padL + plotW * 0.75}" y="${midY + 15}" text-anchor="middle" font-size="10" font-weight="bold" fill="#64748b">270°</text>
+                  <text x="${padL + plotW}" y="${midY + 15}" text-anchor="middle" font-size="10" font-weight="bold" fill="#64748b">360°</text>
+
+                  <!-- 青波 sinθ と 赤波 √3 cosθ -->
+                  <path d="${pSin}" fill="none" stroke="#3b82f6" stroke-width="2.2" stroke-dasharray="5 3" opacity="0.8" />
+                  <path d="${pCos}" fill="none" stroke="#f43f5e" stroke-width="2.2" stroke-dasharray="5 3" opacity="0.8" />
+
+                  <!-- 合体した波（常に表示し、合成ボタンONでさらに強調） -->
+                  <path d="${pSum}" fill="none" stroke="#059669" stroke-width="${s00ShowSynth ? 4.2 : 2.8}" opacity="${s00ShowSynth ? 1 : 0.75}" stroke-linecap="round" />
+
+                  <!-- 現在の角度 θ の縦カーソル線 -->
+                  <line x1="${curX.toFixed(1)}" y1="16" x2="${curX.toFixed(1)}" y2="${H - 16}" stroke="#f59e0b" stroke-width="2" stroke-dasharray="3 3" />
+                  <circle cx="${curX.toFixed(1)}" cy="${curSinY.toFixed(1)}" r="4.5" fill="#3b82f6" stroke="#fff" stroke-width="1.5" />
+                  <circle cx="${curX.toFixed(1)}" cy="${curCosY.toFixed(1)}" r="4.5" fill="#f43f5e" stroke="#fff" stroke-width="1.5" />
+                  <circle cx="${curX.toFixed(1)}" cy="${curSumY.toFixed(1)}" r="6" fill="#059669" stroke="#fff" stroke-width="2" />
+                </svg>
+              </div>
+
+              <!-- 現在の θ における3つの値メーター -->
+              <div class="grid grid-cols-3 gap-2 text-center text-xs font-extrabold">
+                <div class="p-2.5 rounded-xl bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800">
+                  <div class="text-blue-700 dark:text-blue-300">青：sin ${s00ThetaDeg}°</div>
+                  <div class="text-base font-mono mt-0.5 text-slate-900 dark:text-white">${sinV >= 0 ? '+' : ''}${sinV.toFixed(2)}</div>
+                  <div class="text-[10px] text-slate-500 mt-0.5">${s00ThetaDeg === 90 ? '★ ここが最大 (1.00)' : '最大 1.00 (90°)'}</div>
+                </div>
+                <div class="p-2.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800">
+                  <div class="text-rose-700 dark:text-rose-300">赤：√3 cos ${s00ThetaDeg}°</div>
+                  <div class="text-base font-mono mt-0.5 text-slate-900 dark:text-white">${cosTermV >= 0 ? '+' : ''}${cosTermV.toFixed(2)}</div>
+                  <div class="text-[10px] text-slate-500 mt-0.5">${s00ThetaDeg === 0 || s00ThetaDeg === 360 ? '★ ここが最大 (1.73)' : '最大 1.73 (0°)'}</div>
+                </div>
+                <div class="p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border-2 border-emerald-400 dark:border-emerald-700">
+                  <div class="text-emerald-700 dark:text-emerald-300">緑：2つの合計 y</div>
+                  <div class="text-base font-mono mt-0.5 text-emerald-700 dark:text-emerald-300">${sumV >= 0 ? '+' : ''}${sumV.toFixed(2)}</div>
+                  <div class="text-[10px] text-emerald-700 dark:text-emerald-400 mt-0.5">${s00ThetaDeg === 30 ? '🎉 真の最大値 2.00!' : '真の最大は 2.00!'}</div>
+                </div>
+              </div>
+
+              <!-- θスライダー＆体感プリセットボタン -->
+              <div class="bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-3.5 space-y-2.5">
+                <div class="flex items-center justify-between flex-wrap gap-2">
+                  <label class="text-xs font-extrabold text-amber-900 dark:text-amber-200">🎛️ 角度 θ を動かす：<span class="text-base font-mono text-amber-700 dark:text-amber-300">${s00ThetaDeg}°</span></label>
+                  <div class="flex flex-wrap gap-1.5 text-[11px] font-extrabold">
+                    <button type="button" data-s00-deg="0" class="px-2.5 py-1 rounded-lg border transition ${s00ThetaDeg === 0 ? 'bg-rose-600 border-rose-600 text-white' : 'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600'}">0° (cos最大)</button>
+                    <button type="button" data-s00-deg="90" class="px-2.5 py-1 rounded-lg border transition ${s00ThetaDeg === 90 ? 'bg-blue-600 border-blue-600 text-white' : 'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600'}">90° (sin最大)</button>
+                    <button type="button" data-s00-deg="30" class="px-2.5 py-1 rounded-lg border transition ${s00ThetaDeg === 30 ? 'bg-emerald-600 border-emerald-600 text-white shadow' : 'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600'}">30° (合計が最大!)</button>
+                  </div>
+                </div>
+                <input type="range" min="0" max="360" step="5" value="${s00ThetaDeg}" data-input="s00-theta" class="w-full cursor-pointer">
+              </div>
+
+              ${s00ShowSynth ? `
+                <div class="p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 border-2 border-emerald-400 text-xs sm:text-sm font-bold text-emerald-950 dark:text-emerald-200 space-y-1.5 animate-pop">
+                  <div class="text-center text-base sm:text-lg font-extrabold text-slate-900 dark:text-white">
+                    sin θ ＋ √3 cos θ　＝　<span class="text-emerald-600 dark:text-emerald-400">2</span> sin(θ ＋ <span class="text-indigo-600 dark:text-indigo-400">π/3</span>)
+                  </div>
+                  <p class="text-xs leading-relaxed">
+                    ✨ <strong>これが合成の威力！</strong> 1つの sin にまとめた瞬間、<strong>「前の数字 2 ＝ 波の最大値（高さ）」「後ろの ＋π/3 ＝ 波の横ズレ（60°左へズレる）」</strong>が一目でわかるようになります！
+                  </p>
+                </div>
+              ` : ''}
+            </div>
+
+            <!-- 右：直感クイズ＆「合成の3つの意味」解説 -->
+            <div class="lg:col-span-5 space-y-4">
+              <!-- クイズ：そのまま足せる？ -->
+              <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-3 text-xs">
+                <div class="font-extrabold text-rose-600 dark:text-rose-400 text-sm">🤔 まずは予想してみよう！（よくある勘違い）</div>
+                <p class="font-bold text-slate-800 dark:text-slate-100 leading-relaxed">
+                  sin θ の最大値は <strong>1</strong>、√3 cos θ の最大値は <strong>√3（≒1.73）</strong>です。<br>
+                  では、足した式 <strong>sin θ ＋ √3 cos θ</strong> の最大値は <strong>1 ＋ √3（≒2.73）</strong>になるでしょうか？
+                </p>
+                <div class="grid grid-cols-1 gap-2 font-extrabold">
+                  <button type="button" data-s00-quiz="add" class="p-3 rounded-xl border-2 text-left transition ${s00MaxQuiz === 'add' ? 'border-rose-500 bg-rose-500/15 text-rose-800 dark:text-rose-200' : 'border-slate-200 dark:border-slate-700 hover:border-blue-400'}">
+                    A. それぞれ最大になるから、合計の最大値も 1 ＋ √3（≒2.73）になる！
+                  </button>
+                  <button type="button" data-s00-quiz="less" class="p-3 rounded-xl border-2 text-left transition ${s00MaxQuiz === 'less' ? 'border-emerald-500 bg-emerald-500/15 text-emerald-800 dark:text-emerald-200' : 'border-slate-200 dark:border-slate-700 hover:border-blue-400'}">
+                    B. ならない！2つが同時に最大になる角度がないから、もっと小さくなる！
+                  </button>
+                </div>
+                ${s00MaxQuiz ? `
+                  <div class="p-3 rounded-xl font-bold leading-relaxed ${s00MaxQuiz === 'less' ? 'bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-300 text-emerald-900 dark:text-emerald-200' : 'bg-rose-50 dark:bg-rose-950/50 border border-rose-300 text-rose-900 dark:text-rose-200'}">
+                    ${s00MaxQuiz === 'less'
+                      ? '⭕ <strong>大正解！！核心をつかみました！</strong><br>sin θ が最大になる 90° では cos 90° = 0。逆に cos θ が最大になる 0° では sin 0° = 0。<strong>2つがバラバラに動くせいで、元の式のままでは最大値すら計算できない</strong>のです！だから「1つの sin に合体（合成）」させる必要があります！'
+                      : '❌ 左のボタンで「0°」「90°」を押してみよう！ sin が最大（1）のときは cos が 0、cos が最大（1.73）のときは sin が 0 になり、<strong>2つが同時に最大になる瞬間はありません</strong>！本当の最大値は 2.00（30°のとき）です！'}
+                  </div>
+                ` : ''}
+              </div>
+
+              <!-- 合成の3つの意味カード -->
+              <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-3 text-xs">
+                <div class="font-extrabold text-indigo-700 dark:text-indigo-300 text-sm">📌 納得！「三角関数の合成」の3つの意味</div>
+                <div class="space-y-2 leading-relaxed">
+                  <div class="p-3 rounded-xl bg-blue-50/70 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800">
+                    <div class="font-extrabold text-blue-800 dark:text-blue-300">① 計算の意味：変数を1か所にまとめる（平方完成と同じ！）</div>
+                    <p class="mt-0.5 text-slate-700 dark:text-slate-300">2次関数 x²+4x を (x+2)²−4 にまとめて頂点を見るように、sin と cos を <strong>r sin(θ+α) の1か所</strong>にまとめることで、最大・最小や方程式が解けるようになります。</p>
+                  </div>
+                  <div class="p-3 rounded-xl bg-emerald-50/70 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800">
+                    <div class="font-extrabold text-emerald-800 dark:text-emerald-300">② 波（物理・音・電気）の意味：波の重ね合わせ</div>
+                    <p class="mt-0.5 text-slate-700 dark:text-slate-300">同じリズムの2つの波（sin と cos）を重ねても、結局は<strong>1つのきれいなサイン波</strong>になります。合成の <strong>r が「波の高さ（音量・振幅）」</strong>、<strong>α が「タイミングのズレ」</strong>です。</p>
+                  </div>
+                  <div class="p-3 rounded-xl bg-amber-50/70 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800">
+                    <div class="font-extrabold text-amber-800 dark:text-amber-300">③ 仕組みの意味：加法定理の「逆たどり」</div>
+                    <p class="mt-0.5 text-slate-700 dark:text-slate-300">では、どうやって r と α を見つければよいのか？それが次の<strong>シート 01〜03</strong>で解き明かす「加法定理の逆向き」と「直角三角形」の秘密です！</p>
+                  </div>
+                </div>
+
+                <button type="button" data-tab="s01" class="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-sm font-extrabold shadow-md transition">
+                  意味がわかった！シート 01（展開を逆向きに考える）へ進む &rarr;
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    /* =========================================================================
+       シート 01：展開を逆向きに考える
+       ========================================================================= */
+    function renderSheet01() {
+      const q2Lines = [
+        { s: 1, title: '① 加法定理で括弧を開く', expr: `2 sin(θ ＋ ${fracHtml('π', '3')}) ＝ 2 ( sin θ cos ${fracHtml('π', '3')} ＋ cos θ sin ${fracHtml('π', '3')} )` },
+        { s: 2, title: '② 基本角の値を代入（cos π/3 = 1/2, sin π/3 = √3/2）', expr: `＝ 2 ( sin θ × ${fracHtml('1', '2')} ＋ cos θ × ${fracHtml('√3', '2')} )` },
+        { s: 3, title: '③ 括弧の前の 2 を掛けて係数を整理', expr: `＝ <strong>sin θ ＋ ${formatMath('√3')} cos θ</strong>` }
+      ];
+
+      const q4Lines = [
+        { s: 1, title: '① 加法定理（マイナス版）で開く', expr: `2 sin(θ &minus; 30°) ＝ 2 ( sin θ cos 30° &minus; cos θ sin 30° )` },
+        { s: 2, title: '② cos 30° = √3/2, sin 30° = 1/2 を代入', expr: `＝ 2 ( sin θ × ${fracHtml('√3', '2')} &minus; cos θ × ${fracHtml('1', '2')} )` },
+        { s: 3, title: '③ 係数を整理（cos θ の前がマイナスになる！）', expr: `＝ <strong>${formatMath('√3')} sin θ &minus; cos θ</strong>` }
+      ];
+
+      return `
+        <div class="space-y-5">
+          <!-- 今日の問いバナー -->
+          <div class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl p-5 shadow-md space-y-1">
+            <div class="text-xs font-extrabold text-blue-100">シート 01｜展開を逆向きに考える</div>
+            <h2 class="text-base sm:text-xl font-extrabold">今日の問い：2つの項から、展開する前の「1つの sin の式」を見つけられるだろうか？</h2>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+            <!-- 問1：展開と因数分解のアナロジー -->
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
+              <div class="border-b border-slate-100 dark:border-slate-800 pb-2">
+                <span class="text-xs font-extrabold text-blue-600 dark:text-blue-400">問 1｜知っている変形からイメージしよう</span>
+                <div class="text-xl font-extrabold text-center py-3 font-mono bg-slate-50 dark:bg-slate-950 rounded-xl mt-2 border border-slate-200 dark:border-slate-800">
+                  3x ＋ 6　＝　3(x ＋ 2)
+                </div>
+              </div>
+
+              <div class="text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-200">
+                右→左、左→右へ変形するとき、それぞれ何をしているでしょう？
+              </div>
+
+              <div class="grid grid-cols-1 gap-2 text-xs">
+                <button type="button" data-s01-q1="ok" class="p-3 rounded-xl border-2 text-left font-bold transition ${s01Q1 === 'ok' ? 'border-emerald-500 bg-emerald-500/15 text-emerald-800 dark:text-emerald-200' : 'border-slate-200 dark:border-slate-700 hover:border-blue-400'}">
+                  A. 右→左は「展開（括弧を開く）」、左→右は「因数分解（まとめる）」
+                </button>
+                <button type="button" data-s01-q1="rev" class="p-3 rounded-xl border-2 text-left font-bold transition ${s01Q1 === 'rev' ? 'border-rose-500 bg-rose-500/15 text-rose-800 dark:text-rose-200' : 'border-slate-200 dark:border-slate-700 hover:border-blue-400'}">
+                  B. 右→左は「因数分解」、左→右は「展開」
+                </button>
+              </div>
+
+              ${s01Q1 ? `
+                <div class="p-3.5 rounded-xl text-xs font-bold leading-relaxed ${s01Q1 === 'ok' ? 'bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-300 text-emerald-900 dark:text-emerald-200' : 'bg-rose-50 dark:bg-rose-950/50 border border-rose-300 text-rose-900 dark:text-rose-200'}">
+                  ${s01Q1 === 'ok'
+                    ? '⭕ <strong>大正解！</strong> 三角関数の「合成」もこれとまったく同じ！<br><strong>加法定理の「展開（右→左）」を逆向き（左→右）にたどって1つにまとめる操作</strong>こそが合成の正体です！'
+                    : '❌ 右の 3(x + 2) の括弧を開いて 3x + 6 にするのが「展開」、左の 3x + 6 を 3 でくくり戻すのが「因数分解」です！ワークシートに書いておこう。'}
+                </div>
+              ` : ''}
+            </div>
+
+            <!-- 問2：加法定理での展開を1行ずつ体験 -->
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-3">
+              <div class="flex items-center justify-between flex-wrap gap-2 border-b border-slate-100 dark:border-slate-800 pb-2">
+                <div>
+                  <span class="text-xs font-extrabold text-blue-600 dark:text-blue-400">問 2｜加法定理で展開しよう</span>
+                  <h3 class="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white">2 sin(θ ＋ ${fracHtml('π', '3')}) を展開すると？</h3>
+                </div>
+                <button type="button" data-action="s01-q2-next" class="px-3 py-1 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-extrabold shadow">
+                  ${s01Q2Step >= 3 ? '🔄 最初から' : '次の手順へ &darr;'}
+                </button>
+              </div>
+
+              <div class="p-2.5 rounded-lg bg-indigo-50 dark:bg-indigo-950/50 border border-indigo-200 dark:border-indigo-800 text-xs font-bold text-indigo-900 dark:text-indigo-200 text-center">
+                加法定理：sin(θ ＋ α) ＝ sin θ cos α ＋ cos θ sin α
+              </div>
+
+              <div class="space-y-2 text-xs">
+                ${q2Lines.map(l => l.s <= s01Q2Step ? `
+                  <div class="p-3 rounded-xl border ${l.s === 3 ? 'border-emerald-400 bg-emerald-50/70 dark:bg-emerald-950/40' : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950'}">
+                    <div class="font-bold text-blue-700 dark:text-blue-300">${l.title}</div>
+                    <div class="text-sm font-extrabold mt-1">${l.expr}</div>
+                  </div>
+                ` : `
+                  <div data-s01-q2-set="${l.s}" class="cursor-pointer p-2.5 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 text-center text-slate-400 font-bold hover:border-blue-400">
+                    🔒 ${l.title}（タップで確認）
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+
+            <!-- 問3：問2を逆にたどる -->
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-3">
+              <div class="border-b border-slate-100 dark:border-slate-800 pb-2">
+                <span class="text-xs font-extrabold text-emerald-600 dark:text-emerald-400">問 3｜問2の計算を「逆向き」にたどろう！</span>
+                <h3 class="text-base font-extrabold text-slate-900 dark:text-white mt-1">${formatMath('sin θ ＋ √3 cos θ')}　は展開する前はどんな式？</h3>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs font-extrabold">
+                ${[
+                  { id: 'ok', text: `2 sin(θ ＋ ${fracHtml('π', '3')})` },
+                  { id: 'w1', text: `2 sin(θ ＋ ${fracHtml('π', '6')})` }
+                ].map(opt => `
+                  <button type="button" data-s01-q3="${opt.id}" class="p-3 rounded-xl border-2 transition ${s01Q3Ans === opt.id ? (opt.id === 'ok' ? 'border-emerald-500 bg-emerald-500/15 text-emerald-700 dark:text-emerald-300' : 'border-rose-500 bg-rose-500/15 text-rose-700 dark:text-rose-300') : 'border-slate-200 dark:border-slate-700 hover:border-blue-400'}">
+                    ${opt.text}
+                  </button>
+                `).join('')}
+              </div>
+
+              ${s01Q3Ans ? `
+                <div class="p-3 rounded-xl text-xs font-bold leading-relaxed ${s01Q3Ans === 'ok' ? 'bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-300 text-emerald-900 dark:text-emerald-200' : 'bg-rose-50 dark:bg-rose-950/50 border border-rose-300 text-rose-900 dark:text-rose-200'}">
+                  ${s01Q3Ans === 'ok'
+                    ? `⭕ <strong>大正解！</strong> 問2で展開した結果と全く同じなので、逆向きにたどると <strong>2 sin(θ ＋ π/3)</strong> に戻ります！<br><strong>【ワークシート理由メモ】</strong>2でくくると (1/2)sinθ ＋ (√3/2)cosθ となり、cos(π/3)=1/2, sin(π/3)=√3/2 に一致するから！`
+                    : '❌ 問2の結果を見比べてみよう！ sinθ の係数が 1 (= 2 × 1/2)、cosθ の係数が √3 (= 2 × √3/2) になるのは π/3（60°）のときです！'}
+                </div>
+              ` : ''}
+            </div>
+
+            <!-- 問4：負の角度の展開 -->
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-3">
+              <div class="flex items-center justify-between flex-wrap gap-2 border-b border-slate-100 dark:border-slate-800 pb-2">
+                <div>
+                  <span class="text-xs font-extrabold text-rose-600 dark:text-rose-400">問 4｜負の角度も展開してみよう</span>
+                  <h3 class="text-base font-extrabold text-slate-900 dark:text-white">2 sin(θ &minus; 30°) を展開すると？</h3>
+                </div>
+                <button type="button" data-action="s01-q4-next" class="px-3 py-1 rounded-lg bg-rose-600 hover:bg-rose-500 text-white text-xs font-extrabold shadow">
+                  ${s01Q4Step >= 3 ? '🔄 最初から' : '次の手順へ &darr;'}
+                </button>
+              </div>
+              <div class="space-y-2 text-xs">
+                ${q4Lines.map(l => l.s <= s01Q4Step ? `
+                  <div class="p-3 rounded-xl border ${l.s === 3 ? 'border-emerald-400 bg-emerald-50/70 dark:bg-emerald-950/40' : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950'}">
+                    <div class="font-bold text-rose-700 dark:text-rose-300">${l.title}</div>
+                    <div class="text-sm font-extrabold mt-1">${l.expr}</div>
+                  </div>
+                ` : `
+                  <div data-s01-q4-set="${l.s}" class="cursor-pointer p-2.5 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 text-center text-slate-400 font-bold hover:border-rose-400">
+                    🔒 ${l.title}（タップで確認）
+                  </div>
+                `).join('')}
+              </div>
+
+              <button type="button" data-tab="s02" class="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-extrabold shadow transition">
+                シート 02：係数に隠れた規則を探すへ進む &rarr;
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    /* =========================================================================
+       シート 02：係数に隠れた規則を探す
+       ========================================================================= */
+    function renderSheet02() {
+      const rows = [
+        { k: 'r1', expr: '2 sin(θ ＋ 30°)', sinC: '√3', cosC: '1', calc: '2(sinθ·√3/2 ＋ cosθ·1/2)', sqSum: '(√3)² ＋ 1² ＝ 3 ＋ 1 ＝ 4' },
+        { k: 'r2', expr: '2 sin(θ ＋ 45°)', sinC: '√2', cosC: '√2', calc: '2(sinθ·√2/2 ＋ cosθ·√2/2)', sqSum: '(√2)² ＋ (√2)² ＝ 2 ＋ 2 ＝ 4' },
+        { k: 'r3', expr: '2 sin(θ ＋ 60°)', sinC: '1', cosC: '√3', calc: '2(sinθ·1/2 ＋ cosθ·√3/2)', sqSum: '1² ＋ (√3)² ＝ 1 ＋ 3 ＝ 4' }
+      ];
+
+      const q3Num = parseFloat(s02Q3Input.trim().replace(/[０-９]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0)));
+      const q3Ok = Math.abs(q3Num - 5) < 0.01;
+
+      return `
+        <div class="space-y-5">
+          <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
+            <div class="flex items-center justify-between flex-wrap gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
+              <div>
+                <span class="text-xs font-extrabold text-blue-600 dark:text-blue-400">シート 02 問1｜同じ外側の数「2」を持つ式を展開して比べよう</span>
+                <h2 class="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white">表の行をクリックして、sin θ と cos θ の係数を埋めよう！</h2>
+              </div>
+              <button type="button" data-action="s02-reveal-all" class="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-extrabold shadow">
+                すべて表示して比較する
+              </button>
+            </div>
+
+            <div class="overflow-x-auto">
+              <table class="w-full text-center border-collapse border border-slate-200 dark:border-slate-700 text-xs sm:text-sm font-bold">
+                <thead>
+                  <tr class="bg-slate-100 dark:bg-slate-800">
+                    <th class="border border-slate-200 dark:border-slate-700 p-2.5">展開前（外側はすべて 2）</th>
+                    <th class="border border-slate-200 dark:border-slate-700 p-2.5 text-blue-700 dark:text-blue-300">sin θ の係数 (<span class="math-var">a</span>)</th>
+                    <th class="border border-slate-200 dark:border-slate-700 p-2.5 text-rose-700 dark:text-rose-300">cos θ の係数 (<span class="math-var">b</span>)</th>
+                    <th class="border border-slate-200 dark:border-slate-700 p-2.5">展開の計算メモ</th>
+                    ${s02RuleTry === 'sqsum' ? '<th class="border border-slate-200 dark:border-slate-700 p-2.5 bg-emerald-100 dark:bg-emerald-900/50 text-emerald-800 dark:text-emerald-200">2乗して足すと…？</th>' : ''}
+                  </tr>
+                </thead>
+                <tbody>
+                  ${rows.map(r => {
+                    const rev = s02TableRevealed[r.k];
+                    return `
+                      <tr data-s02-row="${r.k}" class="cursor-pointer hover:bg-blue-50/40 dark:hover:bg-blue-950/30 transition">
+                        <td class="border border-slate-200 dark:border-slate-700 p-3 font-extrabold">${r.expr}</td>
+                        <td class="border border-slate-200 dark:border-slate-700 p-3 text-base text-blue-700 dark:text-blue-300">${rev ? formatMath(r.sinC) : '<span class="text-slate-400 text-xs">タップで表示</span>'}</td>
+                        <td class="border border-slate-200 dark:border-slate-700 p-3 text-base text-rose-700 dark:text-rose-300">${rev ? formatMath(r.cosC) : '<span class="text-slate-400 text-xs">タップで表示</span>'}</td>
+                        <td class="border border-slate-200 dark:border-slate-700 p-3 text-xs text-slate-500 dark:text-slate-400">${rev ? formatMath(r.calc) : '—'}</td>
+                        ${s02RuleTry === 'sqsum' ? `<td class="border border-slate-200 dark:border-slate-700 p-3 text-emerald-700 dark:text-emerald-300 bg-emerald-50/50 dark:bg-emerald-950/30">${formatMath(r.sqSum)} ＝ <strong>2²</strong>！</td>` : ''}
+                      </tr>
+                    `;
+                  }).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+            <!-- 問2：外側の数 2 を復元する実験 -->
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-3 text-xs sm:text-sm">
+              <div class="font-extrabold text-indigo-600 dark:text-indigo-400">問 2｜2つの係数 (a, b) から外側の「2」を復元する実験！</div>
+              <p class="text-xs text-slate-600 dark:text-slate-300">「根号（ルート）を外すにはどうすればいい？」3つの計算を試して、3組すべてで同じ数になる規則を見つけよう！</p>
+              <div class="grid grid-cols-3 gap-2 text-xs font-extrabold">
+                <button type="button" data-s02-try="add" class="py-2.5 px-2 rounded-xl border-2 transition ${s02RuleTry === 'add' ? 'border-rose-500 bg-rose-500/15 text-rose-700 dark:text-rose-300' : 'border-slate-200 dark:border-slate-700'}">① そのまま足す<br>(a ＋ b)</button>
+                <button type="button" data-s02-try="mul" class="py-2.5 px-2 rounded-xl border-2 transition ${s02RuleTry === 'mul' ? 'border-rose-500 bg-rose-500/15 text-rose-700 dark:text-rose-300' : 'border-slate-200 dark:border-slate-700'}">② 掛ける<br>(a × b)</button>
+                <button type="button" data-s02-try="sqsum" class="py-2.5 px-2 rounded-xl border-2 transition ${s02RuleTry === 'sqsum' ? 'border-emerald-500 bg-emerald-500/15 text-emerald-700 dark:text-emerald-300' : 'border-slate-200 dark:border-slate-700'}">③ 2乗して足す<br>(a² ＋ b²)</button>
+              </div>
+              ${s02RuleTry === 'add' ? `<div class="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/50 border border-rose-300 text-xs font-bold text-rose-800 dark:text-rose-200">❌ そのまま足すと：√3+1 (≒2.73)、√2+√2 (≒2.83)、1+√3 (≒2.73)… 根号も消えず、3組で値もバラバラになってしまいます！</div>` : ''}
+              ${s02RuleTry === 'mul' ? `<div class="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/50 border border-rose-300 text-xs font-bold text-rose-800 dark:text-rose-200">❌ 掛けると：√3×1 = √3、√2×√2 = 2、1×√3 = √3… こちらも3組で同じ値になりません！</div>` : ''}
+              ${s02RuleTry === 'sqsum' ? `
+                <div class="p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 border-2 border-emerald-400 text-xs font-bold text-emerald-900 dark:text-emerald-200 leading-relaxed animate-pop">
+                  ⭕ <strong>大発見！！</strong> 2乗すると根号がきれいに外れ、3組すべてで <strong>a² ＋ b² ＝ 4（＝ 2²）</strong> になります！<br>
+                  つまり、その正の平方根を取れば外側の数 <strong>r ＝ ${formatMath('√(a²+b²)')} ＝ ${formatMath('√4')} ＝ 2</strong> が完全に復元できます！
+                </div>
+              ` : ''}
+            </div>
+
+            <!-- 問3：係数が 3 と 4 のときの予想 -->
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-3 text-xs sm:text-sm">
+              <div class="font-extrabold text-emerald-600 dark:text-emerald-400">問 3｜規則を使って予想しよう！</div>
+              <p class="font-bold text-slate-800 dark:text-slate-100">
+                3 sin θ ＋ 4 cos θ のように、係数が <strong>3 と 4</strong> のとき、外側の数 <span class="math-var">r</span> は何になると予想しますか？
+              </p>
+              <div class="flex items-center gap-2">
+                <span class="font-extrabold">外側の数 r ＝</span>
+                <input type="text" data-input="s02-q3" value="${s02Q3Input.replace(/"/g, '&quot;')}" placeholder="数字" class="w-24 px-3 py-2 rounded-xl border-2 border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-950 text-center font-mono font-extrabold">
+                <button type="button" data-action="s02-q3-check" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-extrabold shadow">判定する</button>
+              </div>
+              ${s02Q3Checked ? `
+                <div class="p-3 rounded-xl border font-bold text-xs leading-relaxed ${q3Ok ? 'border-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 text-emerald-900 dark:text-emerald-200' : 'border-rose-400 bg-rose-50 dark:bg-rose-950/50 text-rose-900 dark:text-rose-200'}">
+                  ${q3Ok
+                    ? `⭕ <strong>大正解！ 5 です！</strong><br>根拠：${formatMath('√(3²+4²)')} ＝ ${formatMath('√(9+16)')} ＝ ${formatMath('√25')} ＝ <strong>5</strong>（3 : 4 : 5 の直角三角形と同じ計算！）。`
+                    : `💡 2乗して足してからルートを取ってみよう！ 3² ＋ 4² ＝ 9 ＋ 16 ＝ 25 → ${formatMath('√25')} ＝ <strong>5</strong> です！`}
+                </div>
+              ` : ''}
+
+              <button type="button" data-tab="s03" class="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-extrabold shadow transition">
+                シート 03：式の中に隠れた直角三角形を見る &rarr;
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    /* =========================================================================
+       シート 03：式の中にある三角形（なぜ sinθ の係数が横なのか？）
+       ========================================================================= */
+    function renderSheet03() {
+      return `
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+          <!-- 左：直角三角形と係数の対応アニメーション図 -->
+          <div class="lg:col-span-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
+            <div class="border-b border-slate-100 dark:border-slate-800 pb-3 flex items-center justify-between flex-wrap gap-2">
+              <div>
+                <span class="text-xs font-extrabold text-blue-600 dark:text-blue-400">シート 03｜式の中にある直角三角形</span>
+                <h2 class="text-base font-extrabold text-slate-900 dark:text-white">横 <span class="math-var">a</span>・縦 <span class="math-var">b</span>・斜辺 <span class="math-var">r</span> を三角比で結ぼう</h2>
+              </div>
+              <div class="flex gap-1">
+                ${[1, 2, 3].map(n => `
+                  <button type="button" data-s03-step="${n}" class="px-2.5 py-1 rounded-lg text-xs font-extrabold border transition ${s03Step === n ? 'bg-blue-600 border-blue-600 text-white' : 'bg-slate-50 dark:bg-slate-800 border-slate-300 dark:border-slate-700'}">問${n}</button>
+                `).join('')}
+              </div>
+            </div>
+
+            <!-- 直角三角形 SVG -->
+            <div class="bg-slate-50 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800 p-2">
+              <svg viewBox="0 0 380 220" class="w-full h-auto select-none">
+                <polygon points="50,175 315,175 315,45" fill="rgba(59,130,246,0.08)" stroke="#334155" class="dark:stroke-slate-300" stroke-width="2.5" stroke-linejoin="round" />
+                <!-- 直角マーク -->
+                <polyline points="299,175 299,159 315,159" fill="none" stroke="#64748b" stroke-width="2" />
+                <!-- 角度 α アーク -->
+                <path d="M 50,175 L 98,175 A 48,48 0 0,0 93.1,153.8 Z" fill="rgba(245,158,11,0.25)" stroke="#f59e0b" stroke-width="2" />
+                <text x="112" y="166" font-size="16" font-weight="900" font-style="italic" font-family="Times New Roman, serif" fill="#d97706">α</text>
+
+                <!-- 横辺 a (青で強調) -->
+                <line x1="50" y1="175" x2="315" y2="175" stroke="#2563eb" stroke-width="5" stroke-linecap="round" />
+                <rect x="118" y="184" width="136" height="28" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="2" />
+                <text x="186" y="203" text-anchor="middle" font-size="13" font-weight="900" fill="#1d4ed8">
+                  ${s03Step >= 2 ? '横 a ＝ r cos α' : '横 a （sinθの係数）'}
+                </text>
+
+                <!-- 縦辺 b (ローズで強調) -->
+                <line x1="315" y1="175" x2="315" y2="45" stroke="#e11d48" stroke-width="5" stroke-linecap="round" />
+                <rect x="242" y="96" width="128" height="28" rx="8" fill="#fff1f2" stroke="#e11d48" stroke-width="2" />
+                <text x="306" y="115" text-anchor="middle" font-size="13" font-weight="900" fill="#be123c">
+                  ${s03Step >= 2 ? '縦 b ＝ r sin α' : '縦 b （cosθの係数）'}
+                </text>
+
+                <!-- 斜辺 r (緑で強調) -->
+                <line x1="50" y1="175" x2="315" y2="45" stroke="#059669" stroke-width="4.5" stroke-linecap="round" />
+                <foreignObject x="108" y="54" width="140" height="32">
+                  <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;justify-content:center;align-items:center;height:100%;">
+                    <span style="padding:2px 9px;border-radius:8px;background:#ecfdf5;border:2px solid #059669;color:#047857;font-weight:900;font-size:12.5px;white-space:nowrap;">
+                      ${s03Step >= 2 ? formatMath('斜辺 r = √(a²+b²)') : '斜めの長さ r'}
+                    </span>
+                  </div>
+                </foreignObject>
+              </svg>
+            </div>
+
+            <!-- 展開の対応カラーボックス -->
+            <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-950 border-2 border-indigo-200 dark:border-indigo-800 space-y-2 text-center text-xs sm:text-sm font-extrabold">
+              <div class="text-xs text-indigo-600 dark:text-indigo-400">問1：右辺を加法定理で展開して係数を比べる！</div>
+              <div>
+                <span class="px-2 py-1 rounded bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300"><span class="math-var">a</span></span> sin θ ＋
+                <span class="px-2 py-1 rounded bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300"><span class="math-var">b</span></span> cos θ ＝
+                <span class="math-var">r</span> sin(θ ＋ α)
+              </div>
+              <div class="text-slate-400 text-xs">⬇ 右辺を展開して sin θ, cos θ の前に並べ替えると…</div>
+              <div class="text-base">
+                ＝ <span class="px-2 py-1 rounded bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 border border-blue-400">(<span class="math-var">r</span> cos α)</span> sin θ ＋
+                <span class="px-2 py-1 rounded bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300 border border-rose-400">(<span class="math-var">r</span> sin α)</span> cos θ
+              </div>
+            </div>
+          </div>
+
+          <!-- 右：問1〜3のまとめと本質クイズ -->
+          <div class="lg:col-span-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4 text-xs sm:text-sm">
+            <div class="space-y-2.5">
+              <div class="p-3.5 rounded-xl bg-blue-50/70 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800">
+                <div class="font-extrabold text-blue-800 dark:text-blue-300">✍️ ワークシート問1・問2の記入ポイント</div>
+                <ul class="mt-1.5 space-y-1 text-xs font-bold text-slate-700 dark:text-slate-200 list-disc list-inside">
+                  <li><strong>横 <span class="math-var">a</span> の式：</strong> <span class="math-var">a</span> ＝ <span class="math-var">r</span> cos α（cos α ＝ ${fracHtml('a', 'r')}）</li>
+                  <li><strong>縦 <span class="math-var">b</span> の式：</strong> <span class="math-var">b</span> ＝ <span class="math-var">r</span> sin α（sin α ＝ ${fracHtml('b', 'r')}）</li>
+                  <li><strong>斜め <span class="math-var">r</span> と2辺の関係：</strong> <span class="math-var">r</span><sup>2</sup> ＝ <span class="math-var">a</span><sup>2</sup> ＋ <span class="math-var">b</span><sup>2</sup>　より　<span class="math-var">r</span> ＝ ${formatMath('√(a²+b²)')}（<span class="math-var">r</span> ＞ 0）</li>
+                </ul>
+              </div>
+
+              <!-- 問3の本質理解チェック -->
+              <div class="p-4 rounded-xl bg-amber-50/70 dark:bg-amber-950/30 border-2 border-amber-300 dark:border-amber-700 space-y-2.5 text-xs">
+                <div class="font-extrabold text-amber-900 dark:text-amber-200 text-sm">🔥 問3（今日の最核心！）：なぜ「sin θ の係数 a」が横軸になるの？</div>
+                <p class="font-bold text-slate-700 dark:text-slate-200">「sin だから縦じゃないの？」とよく迷います。正しい理由はどっち？</p>
+                <div class="space-y-2">
+                  <button type="button" data-s03-why="ok" class="w-full p-3 rounded-xl border-2 text-left font-bold transition ${s03WhyQuiz === 'ok' ? 'border-emerald-500 bg-emerald-500/15 text-emerald-800 dark:text-emerald-200' : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 hover:border-blue-400'}">
+                    A. 加法定理を展開すると sin θ に掛かるのは「cos α」であり、cos α が直角三角形の「横の成分」だから！
+                  </button>
+                  <button type="button" data-s03-why="bad" class="w-full p-3 rounded-xl border-2 text-left font-bold transition ${s03WhyQuiz === 'bad' ? 'border-rose-500 bg-rose-500/15 text-rose-800 dark:text-rose-200' : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 hover:border-blue-400'}">
+                    B. 式の左側に書いてある方が横、右側に書いてある方が縦と決まっているから！
+                  </button>
+                </div>
+                ${s03WhyQuiz ? `
+                  <div class="p-3 rounded-xl font-bold leading-relaxed ${s03WhyQuiz === 'ok' ? 'bg-emerald-100/70 dark:bg-emerald-950/60 text-emerald-900 dark:text-emerald-200' : 'bg-rose-100/70 dark:bg-rose-950/60 text-rose-900 dark:text-rose-200'}">
+                    ${s03WhyQuiz === 'ok'
+                      ? '⭕ <strong>本質を完全マスター！！</strong> 「sin θ × <strong>cos α</strong>」だから、sin θ の係数が <strong>r cos α（横）</strong>、cos θ の係数が <strong>r sin α（縦）</strong>になるのです！これを知っていれば、式の順番が cos θ ＋ √3 sin θ のように逆になっていても絶対に騙されません！'
+                      : '❌ 式の順番が「cos θ ＋ √3 sin θ」のように入れ替わっていたら間違えてしまいます！加法定理で <strong>sin θ に掛かるのが cos α（横）</strong>だから、sin θ の係数を横軸に置くのです！'}
+                  </div>
+                ` : ''}
+              </div>
+            </div>
+
+            <button type="button" data-tab="s04" class="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-sm font-extrabold shadow-md transition">
+              シート 04〜06：座標図に点を打って合成してみよう &rarr;
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    /* =========================================================================
+       シート 04〜06 ＆ 07〜09 共通インタラクティブ座標図ワークショップ
+       ========================================================================= */
+    function renderWorkshop(mode, activeId) {
+      const list = mode === '04'
+        ? SYNTH_PROBLEMS.filter(p => ['04', '05', '06'].includes(p.section))
+        : SYNTH_PROBLEMS.filter(p => ['07A', '08B', '09C'].includes(p.section));
+
+      const prob = list.find(p => p.id === activeId) || list[0];
+      const prog = getProg(prob.id);
+      const showVec = prog.quadOk;
+      const allDone = prog.quadOk && prog.rOk && prog.angOk;
+      const curIdx = list.findIndex(p => p.id === prob.id);
+      const nextProb = list[(curIdx + 1) % list.length];
+
+      const chosenAngObj = prog.angPicked !== null ? prob.angChoices[prog.angPicked] : null;
+
+      return `
+        <div class="space-y-4">
+          <!-- 問題切り替えタブバー -->
+          <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm space-y-2.5">
+            <div class="flex items-center justify-between flex-wrap gap-2">
+              <span class="text-xs font-extrabold text-blue-600 dark:text-blue-400">
+                ${mode === '04' ? 'シート 04〜06｜座標図から合成する例題（正の係数・負の係数・根号と負角）' : 'シート 07〜09｜個人演習 A・B・C（点 → 長さ → 角度 → 式 → 検算）'}
+              </span>
+              <span class="text-[11px] font-bold text-slate-500">角度の範囲：&minus;&pi; ＜ &alpha; ＜ &pi;</span>
+            </div>
+            <div class="flex flex-wrap gap-1.5">
+              ${list.map(p => {
+                const isCur = p.id === prob.id;
+                const isClr = clearedSet.has(p.id);
+                return `
+                  <button type="button" data-ws-select="${mode}:${p.id}" class="px-3 py-1.5 rounded-xl text-xs font-extrabold border-2 transition flex items-center gap-1 ${isCur ? 'border-blue-600 bg-blue-600 text-white shadow' : isClr ? 'border-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300' : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800'}">
+                    <span>${p.label}</span>
+                    ${isClr ? '<span>✅</span>' : ''}
+                  </button>
+                `;
+              }).join('')}
+            </div>
+          </div>
+
+          <!-- メイン作業エリア：左（座標図）× 右（ワークシート①〜⑥ステップ） -->
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+            <!-- 左：座標図 (a, b) -->
+            <div class="lg:col-span-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-extrabold text-slate-800 dark:text-slate-100">📐 ① 点 (${formatMath(prob.aDisp)}, ${formatMath(prob.bDisp)}) と線分を描く</span>
+                <button type="button" data-ws-reset="${prob.id}" class="text-[11px] font-bold text-slate-400 hover:text-blue-600">🔄 リセット</button>
+              </div>
+
+              ${renderCoordSvg(prob, showVec, true, prog.quadPicked)}
+
+              <div class="p-3 rounded-xl text-xs font-bold leading-relaxed ${prog.quadOk ? 'bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-300 text-emerald-900 dark:text-emerald-200' : prog.quadPicked ? 'bg-rose-50 dark:bg-rose-950/40 border border-rose-300 text-rose-800 dark:text-rose-200' : 'bg-blue-50 dark:bg-blue-950/40 border border-blue-200 text-blue-900 dark:text-blue-200'}">
+                ${prog.quadOk
+                  ? `⭕ <strong>プロット完了！</strong> 横 a = ${formatMath(prob.aDisp)}、縦 b = ${formatMath(prob.bDisp)} より点は<strong>${prob.quadLabel}</strong>にあります！`
+                  : prog.quadPicked
+                    ? `❌ そこは違います！ 横 a = <strong>${formatMath(prob.aDisp)}</strong>（＋なら右、−なら左）、縦 b = <strong>${formatMath(prob.bDisp)}</strong>（＋なら上、−なら下）をよく見て、もう一度座標図をクリックしよう！`
+                    : `👆 <strong>Step ① ミッション：</strong>横 a = <strong>${formatMath(prob.aDisp)}</strong>、縦 b = <strong>${formatMath(prob.bDisp)}</strong> の点はどこ？上の座標図の象限をクリックして点を打とう！`}
+              </div>
+            </div>
+
+            <!-- 右：②係数 → ③長さ r → ④角度 α → ⑤合成式 → ⑥自動検算 -->
+            <div class="lg:col-span-7 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
+              <!-- 問題式 -->
+              <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex items-center justify-between flex-wrap gap-2">
+                <div>
+                  <div class="text-[11px] font-extrabold text-slate-400">${prob.label}｜次の式を r sin(θ ＋ α) の形に合成せよ</div>
+                  <div class="text-lg sm:text-2xl font-extrabold text-slate-900 dark:text-white mt-0.5">${formatMath(prob.expr)}</div>
+                </div>
+                <div class="text-xs font-extrabold px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
+                  ② 横 <span class="text-blue-600 dark:text-blue-400">a = ${formatMath(prob.aDisp)}</span> ／ 縦 <span class="text-rose-600 dark:text-rose-400">b = ${formatMath(prob.bDisp)}</span>
+                </div>
+              </div>
+
+              <!-- Step ③ 斜めの長さ r -->
+              <div class="space-y-2">
+                <div class="text-xs font-extrabold text-emerald-700 dark:text-emerald-400">
+                  ③ 斜めの長さ <span class="math-var">r</span> ＝ ${formatMath('√(a²+b²)')} を求めよう（最も簡単な形に整理）
+                </div>
+                <div class="grid grid-cols-4 gap-2 text-xs sm:text-sm font-extrabold">
+                  ${prob.rChoices.map(rc => {
+                    const picked = prog.rPicked === rc;
+                    const isAns = rc === prob.rDisp;
+                    let cls = 'py-2.5 rounded-xl border-2 transition ';
+                    if (picked) {
+                      cls += isAns ? 'border-emerald-500 bg-emerald-500 text-white shadow' : 'border-rose-500 bg-rose-500/15 text-rose-700 dark:text-rose-300';
+                    } else {
+                      cls += 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:border-emerald-400';
+                    }
+                    return `<button type="button" data-ws-r="${prob.id}:${rc}" class="${cls}">${formatMath(rc)}</button>`;
+                  }).join('')}
+                </div>
+                ${prog.rPicked ? `
+                  <div class="text-xs font-bold ${prog.rOk ? 'text-emerald-700 dark:text-emerald-300' : 'text-rose-700 dark:text-rose-300'}">
+                    ${prog.rOk
+                      ? `⭕ 正解！ 計算式：${formatMath(prob.rCalc)}`
+                      : prog.rPicked === '√8'
+                        ? `💡 惜しい！ √8 ＝ √(4×2) ＝ <strong>2√2</strong> までルートの外に出して整理しよう！`
+                        : prog.rPicked.startsWith('−')
+                          ? `💡 斜めの長さ r は「原点からの距離」なので、必ず<strong>正の数（r ＞ 0）</strong>になります！`
+                          : `❌ 計算してみよう：${formatMath(prob.rCalc)}`}
+                  </div>
+                ` : ''}
+              </div>
+
+              <!-- Step ④ 角度 α -->
+              <div class="space-y-2">
+                <div class="text-xs font-extrabold text-indigo-700 dark:text-indigo-400">
+                  ④ 正の横軸からの角度 <span class="math-var">α</span>（範囲：&minus;π ＜ α ＜ π）を選ぼう
+                </div>
+                <div class="grid grid-cols-2 gap-2 text-xs sm:text-sm font-extrabold">
+                  ${prob.angChoices.map((ac, idx) => {
+                    const picked = prog.angPicked === idx;
+                    let cls = 'py-2.5 px-3 rounded-xl border-2 transition ';
+                    if (picked) {
+                      cls += ac.ok ? 'border-emerald-500 bg-emerald-500 text-white shadow' : 'border-rose-500 bg-rose-500/15 text-rose-700 dark:text-rose-300';
+                    } else {
+                      cls += 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:border-indigo-400';
+                    }
+                    return `<button type="button" data-ws-ang="${prob.id}:${idx}" class="${cls}">${formatMath(ac.disp)}</button>`;
+                  }).join('')}
+                </div>
+                ${chosenAngObj ? `
+                  <div class="p-3 rounded-xl text-xs font-bold leading-relaxed ${chosenAngObj.ok ? 'bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-300 text-emerald-900 dark:text-emerald-200' : 'bg-rose-50 dark:bg-rose-950/40 border border-rose-300 text-rose-900 dark:text-rose-200'}">
+                    ${chosenAngObj.ok ? `⭕ 完璧！ ${formatMath(prob.dirNote)}` : formatMath(chosenAngObj.diag)}
+                  </div>
+                ` : ''}
+              </div>
+
+              <!-- Step ⑤ 合成した式 ＋ Step ⑥ 展開による検算 -->
+              ${allDone ? `
+                <div class="p-4 rounded-2xl bg-emerald-50/70 dark:bg-emerald-950/40 border-2 border-emerald-400 space-y-3 animate-pop">
+                  <div class="flex items-center justify-between flex-wrap gap-2">
+                    <div class="text-xs font-extrabold text-emerald-800 dark:text-emerald-300">⑤ 合成した式（ワークシートに記入しよう！）</div>
+                    <button type="button" data-ws-select="${mode}:${nextProb.id}" class="px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-extrabold shadow">
+                      次の問題（${nextProb.label}）へ &rarr;
+                    </button>
+                  </div>
+                  <div class="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white bg-white dark:bg-slate-900 p-3 rounded-xl border border-emerald-300 dark:border-emerald-700 text-center">
+                    ${formatMath(prob.expr.split('（')[0])} ＝ <span class="text-emerald-700 dark:text-emerald-400">${formatMath(prob.finalDisp)}</span>
+                  </div>
+                  ${prob.markInfo ? `<div class="p-2.5 rounded-lg bg-amber-50 dark:bg-amber-950/50 border border-amber-300 text-xs text-amber-900 dark:text-amber-200">${prob.markInfo}</div>` : ''}
+                  <div class="text-xs font-bold text-slate-700 dark:text-slate-200">💡 <strong>この問題のコツ：</strong>${formatMath(prob.tip)}</div>
+
+                  <!-- ⑥ 検算ボタン -->
+                  <button type="button" data-ws-verify="${prob.id}" class="w-full py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-extrabold shadow-sm transition">
+                    ${prog.verified ? '✅ ⑥ 加法定理で展開検算済み（表示中）' : '🔍 ⑥ 加法定理で展開して元の式に戻るか検算する！'}
+                  </button>
+                  ${prog.verified ? `
+                    <div class="p-3 rounded-xl bg-white dark:bg-slate-900 border border-indigo-200 dark:border-indigo-800 text-xs space-y-1 font-bold text-slate-700 dark:text-slate-200">
+                      ${prob.verifySteps.map(s => `<div>${formatMath(s)}</div>`).join('')}
+                    </div>
+                  ` : ''}
+                </div>
+              ` : `
+                <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-dashed border-slate-300 dark:border-slate-700 text-xs text-slate-400 text-center font-bold">
+                  ① 点打ち・③ 長さ r・④ 角度 α をすべて正解すると、⑤ 合成式と ⑥ 検算が表示されます！
+                </div>
+              `}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    /* =========================================================================
+       シート 10：出口課題（自分で再現する）
+       ========================================================================= */
+    function renderSheet10() {
+      const exitProb = {
+        id: 'exit10',
+        expr: '&minus;√3 sin θ &minus; cos θ',
+        a: -Math.sqrt(3), b: -1, aDisp: '&minus;√3', bDisp: '&minus;1',
+        quad: 'Q3', quadLabel: '第3象限（左・下）',
+        rDisp: '2', deg: -150, radDisp: `&minus;${fracHtml('5π', '6')}`
+      };
+      const rOk = s10R.trim().replace(/[０-９]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0)) === '2';
+      const angNorm = s10Ang.trim().replace(/\s+/g, '').replace(/−/g, '-');
+      const angOk = angNorm === '-5π/6' || angNorm === '-5/6π' || angNorm === '-150°' || angNorm === '-150';
+
+      return `
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+          <div class="lg:col-span-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm space-y-3">
+            <div class="text-xs font-extrabold text-blue-600 dark:text-blue-400">🏁 シート 10｜出口課題の座標図</div>
+            ${renderCoordSvg(exitProb, s10Checked || s10Quad === 'Q3', true, s10Quad)}
+            <div class="text-xs font-bold text-slate-600 dark:text-slate-300">
+              ${s10Quad === 'Q3' ? '⭕ 点 (−√3, −1) は第3象限（左・下）！' : '👆 まず点 (−√3, −1) が属する象限を図上でクリックしよう！'}
+            </div>
+          </div>
+
+          <div class="lg:col-span-7 bg-white dark:bg-slate-900 border-2 border-blue-400 dark:border-blue-700 rounded-2xl p-5 shadow-sm space-y-4 text-xs sm:text-sm">
+            <div class="border-b border-slate-100 dark:border-slate-800 pb-3">
+              <span class="text-xs font-extrabold text-blue-600 dark:text-blue-400">シート 10｜自分で再現する（仕上げチャレンジ）</span>
+              <h2 class="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white mt-1">${formatMath('−√3 sin θ − cos θ')} を合成しよう！</h2>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+              <div>
+                <label class="font-extrabold block mb-1">① 斜めの長さ r ＝</label>
+                <input type="text" data-input="s10-r" value="${s10R.replace(/"/g, '&quot;')}" placeholder="例: 2" class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-950 font-mono font-bold">
+              </div>
+              <div>
+                <label class="font-extrabold block mb-1">② 角度 α（−π＜α＜π）＝</label>
+                <input type="text" data-input="s10-ang" value="${s10Ang.replace(/"/g, '&quot;')}" placeholder="例: -5π/6" class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-950 font-mono font-bold">
+              </div>
+            </div>
+
+            <div class="space-y-2 text-xs">
+              <div>
+                <label class="font-extrabold block mb-1">③ なぜ sin θ の係数を横に置くのか、自分の言葉で説明しよう：</label>
+                <input type="text" data-input="s10-why" value="${s10WhyHoriz.replace(/"/g, '&quot;')}" placeholder="例：加法定理で sinθ に掛かるのが cosα で、cosα が横を表すから。" class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-950 font-bold">
+              </div>
+              <div>
+                <label class="font-extrabold block mb-1">④ 次に公式を忘れたら、何から思い出すかメモしておこう：</label>
+                <input type="text" data-input="s10-recall" value="${s10Recall.replace(/"/g, '&quot;')}" placeholder="例：r sin(θ+α) を加法定理で展開すれば r cosα が横だとすぐ思い出せる！" class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-950 font-bold">
+              </div>
+            </div>
+
+            <button type="button" data-action="s10-check" class="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-extrabold shadow-md transition">
+              ✅ 出口課題を採点して模範解答を確認する！
+            </button>
+
+            ${s10Checked ? `
+              <div class="p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 border-2 border-emerald-400 space-y-2 text-xs leading-relaxed">
+                <div class="font-extrabold text-emerald-800 dark:text-emerald-300 text-sm">🎉 出口課題の模範解答</div>
+                <div>・点 (${formatMath('−√3')}, &minus;1) は<strong>第3象限</strong>（横が長く縦が短い → 基準角 30° = π/6）</div>
+                <div>・① 長さ r：${rOk ? '⭕ 正解！' : '👉 正解は'} <strong>2</strong>（${formatMath('√((−√3)²+(−1)²) = √4 = 2')}）</div>
+                <div>・② 角度 α：${angOk ? '⭕ 正解！' : '👉 正解は'} <strong>&minus;${fracHtml('5π', '6')}</strong>（−π ＋ π/6 ＝ −5π/6）</div>
+                <div class="text-sm font-extrabold text-slate-900 dark:text-white pt-1">
+                  最終結果：${formatMath('−√3 sin θ − cos θ')} ＝ <strong>2 sin(θ &minus; ${fracHtml('5π', '6')})</strong>
+                </div>
+                <div class="pt-2 border-t border-emerald-200 dark:border-emerald-800 font-bold">
+                  📌 <strong>記述の模範例：</strong>「r sin(θ+α) を加法定理で展開すると (r cosα)sinθ + (r sinα)cosθ となり、sinθ の係数が横成分 r cosα になるから。忘れたら加法定理の展開からすぐ再現できる！」
+                </div>
+                <button type="button" data-tab="app" class="w-full mt-2 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold shadow">
+                  🚀 さらに実力アップ！応用問題（最大・最小 ＆ 方程式）へ挑戦 &rarr;
+                </button>
+              </div>
+            ` : ''}
+          </div>
+        </div>
+      `;
+    }
+
+    /* =========================================================================
+       発展・入試攻略：波の合体ビジュアライザ ＋ 応用問題（最大最小＆三角方程式）
+       ========================================================================= */
+    function renderAppliedTab() {
+      // 波形合成 SVG 生成（a sinθ と b cosθ を足すと、1つの波 r sin(θ+α) にピタリと重なる！）
+      const r = Math.hypot(waveA, waveB);
+      const alphaRad = Math.atan2(waveB, waveA);
+      const alphaDeg = Math.round((alphaRad * 180) / Math.PI);
+
+      const W = 520, H = 220, midY = 110, padL = 42, plotW = 450, scaleY = 30;
+      const buildPath = (fn) => {
+        let d = '';
+        for (let i = 0; i <= 120; i++) {
+          const t = (i / 120) * Math.PI * 2;
+          const x = padL + (i / 120) * plotW;
+          const y = midY - fn(t) * scaleY;
+          d += (i === 0 ? `M ${x.toFixed(1)},${y.toFixed(1)}` : ` L ${x.toFixed(1)},${y.toFixed(1)}`);
+        }
+        return d;
+      };
+      const pathSin = buildPath(t => waveA * Math.sin(t));
+      const pathCos = buildPath(t => waveB * Math.cos(t));
+      const pathSum = buildPath(t => waveA * Math.sin(t) + waveB * Math.cos(t));
+
+      return `
+        <div class="space-y-5">
+          <!-- サブタブ切替 -->
+          <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <span class="text-xs font-extrabold text-indigo-600 dark:text-indigo-400">🚀 応用編｜なぜ三角関数を合成するとテスト・入試で最強の武器になるのか？</span>
+              <h2 class="text-base font-extrabold text-slate-900 dark:text-white">2つの波を1つにまとめると「最大値・最小値」も「方程式」も一気に解ける！</h2>
+            </div>
+            <div class="flex flex-wrap gap-1.5 text-xs font-extrabold">
+              <button type="button" data-app-sub="wave" class="px-3 py-1.5 rounded-xl border transition ${appSubTab === 'wave' ? 'bg-indigo-600 border-indigo-600 text-white shadow' : 'bg-slate-50 dark:bg-slate-800 border-slate-300 dark:border-slate-700'}">🌊 ① 2つの波の合体実験</button>
+              <button type="button" data-app-sub="maxmin" class="px-3 py-1.5 rounded-xl border transition ${appSubTab === 'maxmin' ? 'bg-emerald-600 border-emerald-600 text-white shadow' : 'bg-slate-50 dark:bg-slate-800 border-slate-300 dark:border-slate-700'}">📈 ② 応用1：最大値・最小値</button>
+              <button type="button" data-app-sub="eq" class="px-3 py-1.5 rounded-xl border transition ${appSubTab === 'eq' ? 'bg-rose-600 border-rose-600 text-white shadow' : 'bg-slate-50 dark:bg-slate-800 border-slate-300 dark:border-slate-700'}">🎯 ③ 応用2：三角方程式</button>
+            </div>
+          </div>
+
+          ${appSubTab === 'wave' ? `
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+              <div class="lg:col-span-8 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
+                <div class="flex items-center justify-between flex-wrap gap-2">
+                  <div class="text-xs sm:text-sm font-extrabold">
+                    <span class="text-blue-600 dark:text-blue-400">青: ${waveA.toFixed(2)} sin θ</span> ＋
+                    <span class="text-rose-600 dark:text-rose-400">赤: ${waveB.toFixed(2)} cos θ</span> ＝
+                    <span class="text-emerald-600 dark:text-emerald-400">緑(合成): ${r.toFixed(2)} sin(θ ${alphaDeg >= 0 ? '＋' : '−'} ${Math.abs(alphaDeg)}°)</span>
+                  </div>
+                </div>
+
+                <!-- 波形合体SVG -->
+                <svg viewBox="0 0 ${W} ${H}" class="w-full h-auto bg-slate-50 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800 select-none">
+                  <!-- 最大・最小ガイド線 ±r -->
+                  <line x1="${padL}" y1="${(midY - r * scaleY).toFixed(1)}" x2="${padL + plotW}" y2="${(midY - r * scaleY).toFixed(1)}" stroke="#10b981" stroke-width="1.4" stroke-dasharray="5 4" opacity="0.7" />
+                  <line x1="${padL}" y1="${(midY + r * scaleY).toFixed(1)}" x2="${padL + plotW}" y2="${(midY + r * scaleY).toFixed(1)}" stroke="#10b981" stroke-width="1.4" stroke-dasharray="5 4" opacity="0.7" />
+                  <text x="6" y="${(midY - r * scaleY + 4).toFixed(1)}" font-size="11" font-weight="800" fill="#059669">+${r.toFixed(1)}</text>
+                  <text x="6" y="${(midY + r * scaleY + 4).toFixed(1)}" font-size="11" font-weight="800" fill="#059669">-${r.toFixed(1)}</text>
+
+                  <!-- 軸 -->
+                  <line x1="${padL}" y1="${midY}" x2="${padL + plotW + 12}" y2="${midY}" stroke="#64748b" stroke-width="1.5" />
+                  <line x1="${padL}" y1="12" x2="${padL}" y2="${H - 12}" stroke="#64748b" stroke-width="1.5" />
+                  <text x="${padL + plotW / 2}" y="${midY + 16}" text-anchor="middle" font-size="11" font-weight="bold" fill="#64748b">π</text>
+                  <text x="${padL + plotW}" y="${midY + 16}" text-anchor="middle" font-size="11" font-weight="bold" fill="#64748b">2π</text>
+
+                  <!-- 青波 a sinθ と 赤波 b cosθ -->
+                  <path d="${pathSin}" fill="none" stroke="#3b82f6" stroke-width="2" stroke-dasharray="4 3" opacity="0.7" />
+                  <path d="${pathCos}" fill="none" stroke="#f43f5e" stroke-width="2" stroke-dasharray="4 3" opacity="0.7" />
+                  <!-- 合体した波 r sin(θ+α) -->
+                  <path d="${pathSum}" fill="none" stroke="#059669" stroke-width="3.8" stroke-linecap="round" />
+                </svg>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-50 dark:bg-slate-800/60 p-3.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs">
+                  <div>
+                    <label class="font-extrabold text-blue-700 dark:text-blue-300 block mb-1">sin θ の係数 a ＝ ${waveA.toFixed(2)}</label>
+                    <input type="range" min="-2.5" max="2.5" step="0.1" value="${waveA}" data-input="wave-a" class="w-full">
+                  </div>
+                  <div>
+                    <label class="font-extrabold text-rose-700 dark:text-rose-300 block mb-1">cos θ の係数 b ＝ ${waveB.toFixed(2)}</label>
+                    <input type="range" min="-2.5" max="2.5" step="0.1" value="${waveB}" data-input="wave-b" class="w-full">
+                  </div>
+                </div>
+              </div>
+
+              <div class="lg:col-span-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4 text-xs">
+                <div class="font-extrabold text-indigo-600 dark:text-indigo-400 text-sm">🎛️ ワークシートの式を波で見てみよう！</div>
+                <div class="space-y-1.5 font-bold">
+                  <button type="button" data-wave-preset="1,1.732" class="w-full py-2 px-3 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-blue-400 text-left">${formatMath('sin θ ＋ √3 cos θ')}（振幅 r = 2, ＋60°）</button>
+                  <button type="button" data-wave-preset="1,1" class="w-full py-2 px-3 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-blue-400 text-left">sin θ ＋ cos θ（振幅 r ≒ 1.41, ＋45°）</button>
+                  <button type="button" data-wave-preset="1.732,-1" class="w-full py-2 px-3 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-blue-400 text-left">${formatMath('√3 sin θ − cos θ')}（振幅 r = 2, −30°）</button>
+                  <button type="button" data-wave-preset="-1,1.732" class="w-full py-2 px-3 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-blue-400 text-left">${formatMath('−sin θ ＋ √3 cos θ')}（振幅 r = 2, ＋120°）</button>
+                </div>
+                <div class="p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-300 dark:border-emerald-700 leading-relaxed font-bold text-emerald-950 dark:text-emerald-200">
+                  🌟 <strong>ここがスゴイ！</strong><br>
+                  sin と cos の2つの波を足しても、必ず<strong>「高さ（最大値）が r、最小値が −r」のきれいな1つのサイン波</strong>になります！<br>
+                  つまり合成の <strong>r</strong> は「波の最大値（振幅）」、<strong>α</strong> は「波の横ズレ」を表しているのです！
+                </div>
+              </div>
+            </div>
+          ` : ''}
+
+          ${appSubTab === 'maxmin' ? `
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+              <div class="lg:col-span-7 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
+                <div class="flex items-center justify-between flex-wrap gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
+                  <div>
+                    <span class="text-xs font-extrabold text-emerald-600 dark:text-emerald-400">応用問題 1（定期テスト超頻出！）｜最大値・最小値</span>
+                    <h3 class="text-base font-extrabold text-slate-900 dark:text-white mt-0.5">
+                      0 ≦ θ ≦ π のとき、y ＝ ${formatMath('sin θ ＋ √3 cos θ')} の最大値と最小値を求めよ。
+                    </h3>
+                  </div>
+                  <button type="button" data-action="app-maxmin-next" class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-extrabold shadow">
+                    ${appMaxMinStep >= 4 ? '🔄 最初から' : '次のステップへ &darr;'}
+                  </button>
+                </div>
+
+                <div class="space-y-2.5 text-xs sm:text-sm">
+                  ${[
+                    { s: 1, title: 'Step ① まずは sin 1つに合成する！（シート04例①）', body: `y ＝ ${formatMath('sin θ ＋ √3 cos θ')} ＝ <strong>2 sin(θ ＋ ${fracHtml('π', '3')})</strong>` },
+                    { s: 2, title: 'Step ② 括弧の中「θ ＋ π/3」の範囲を求める！（超重要）', body: `0 ≦ θ ≦ π のすべてに ${fracHtml('π', '3')} を足すと、<strong>${fracHtml('π', '3')} ≦ θ ＋ ${fracHtml('π', '3')} ≦ ${fracHtml('4π', '3')}</strong>` },
+                    { s: 3, title: 'Step ③ 単位円上で y座標（sin）の一番上と一番下を読む！', body: `範囲 π/3 〜 4π/3 の中で：<br>・一番上は <strong>θ ＋ π/3 ＝ π/2</strong> のとき sin ＝ <strong>1</strong><br>・一番下は <strong>θ ＋ π/3 ＝ 4π/3</strong> のとき sin ＝ <strong>−√3/2</strong>（※ −1 の真下 3π/2 は範囲外！）` },
+                    { s: 4, title: 'Step ④ 外側の 2 を掛けて最大値・最小値と θ を答える！', body: `・<strong>最大値 2</strong>（θ ＋ π/3 ＝ π/2 ⇒ <strong>θ ＝ ${fracHtml('π', '6')}</strong> のとき）<br>・<strong>最小値 ${formatMath('−√3')}</strong>（θ ＋ π/3 ＝ 4π/3 ⇒ <strong>θ ＝ π</strong> のとき）` }
+                  ].map(st => st.s <= appMaxMinStep ? `
+                    <div class="p-3.5 rounded-xl border ${st.s === 4 ? 'border-emerald-400 bg-emerald-50/70 dark:bg-emerald-950/40' : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950'}">
+                      <div class="font-extrabold text-emerald-700 dark:text-emerald-300 text-xs">${st.title}</div>
+                      <div class="mt-1 font-bold leading-relaxed">${formatMath(st.body)}</div>
+                    </div>
+                  ` : `
+                    <div data-app-maxmin-set="${st.s}" class="cursor-pointer p-2.5 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 text-center text-xs text-slate-400 font-bold hover:border-emerald-400">
+                      🔒 ${st.title}（タップで開く）
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+
+              <!-- 右：単位円範囲ガイド＆ひっかけ確認クイズ -->
+              <div class="lg:col-span-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4 text-xs">
+                <div class="font-extrabold text-emerald-700 dark:text-emerald-300 text-sm">⭕ 単位円で見る「θ ＋ π/3」の動く範囲（π/3 〜 4π/3）</div>
+                <svg viewBox="0 0 280 232" class="w-full h-52 mx-auto bg-slate-50 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800">
+                  <line x1="20" y1="116" x2="260" y2="116" stroke="#94a3b8" stroke-width="1.5" />
+                  <line x1="140" y1="22" x2="140" y2="210" stroke="#94a3b8" stroke-width="1.5" />
+                  <circle cx="140" cy="116" r="74" fill="none" stroke="#cbd5e1" stroke-width="2" />
+                  <!-- 動く弧：60°(177, 51.9) → 240°(103, 180.1) 反時計回り -->
+                  <path d="M 177,51.9 A 74,74 0 1,0 103,180.1" fill="none" stroke="#10b981" stroke-width="6" stroke-linecap="round" />
+                  <!-- 最大点 (140, 42) -->
+                  <circle cx="140" cy="42" r="6" fill="#2563eb" stroke="#fff" stroke-width="2" />
+                  <foreignObject x="62" y="2" width="156" height="32">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;justify-content:center;align-items:center;height:100%;font-size:11px;font-weight:900;color:#2563eb;white-space:nowrap;">
+                      最大 sin = 1 (${fracHtml('π', '2')})
+                    </div>
+                  </foreignObject>
+                  <!-- 始点 π/3 -->
+                  <circle cx="177" cy="51.9" r="5" fill="#10b981" />
+                  <foreignObject x="184" y="34" width="84" height="34">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;align-items:center;height:100%;font-size:11px;font-weight:800;color:#059669;white-space:nowrap;">
+                      始点 ${fracHtml('π', '3')}
+                    </div>
+                  </foreignObject>
+                  <!-- 終点 4π/3 (最小) -->
+                  <circle cx="103" cy="180.1" r="6" fill="#e11d48" stroke="#fff" stroke-width="2" />
+                  <foreignObject x="4" y="190" width="154" height="38">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;justify-content:center;align-items:center;height:100%;font-size:10.5px;font-weight:900;color:#e11d48;white-space:nowrap;">
+                      最小 &minus;${fracHtml('√3', '2')} (${fracHtml('4π', '3')})
+                    </div>
+                  </foreignObject>
+                  <!-- 範囲外の真下 -->
+                  <circle cx="140" cy="190" r="4" fill="#94a3b8" />
+                  <foreignObject x="158" y="192" width="114" height="34">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;align-items:center;height:100%;font-size:10px;font-weight:800;color:#94a3b8;white-space:nowrap;">
+                      ${fracHtml('3π', '2')} は範囲外!
+                    </div>
+                  </foreignObject>
+                </svg>
+
+                <div class="p-3.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-700 space-y-2">
+                  <div class="font-extrabold text-amber-900 dark:text-amber-200">⚡ テストひっかけチェック！</div>
+                  <p class="font-bold">上の問題（0 ≦ θ ≦ π）で、「最小値は −2」と答えてしまった人はどこでミスした？</p>
+                  <div class="flex gap-2">
+                    <button type="button" data-app-mmq="range" class="flex-1 py-2 px-2 rounded-lg border-2 font-extrabold ${appMaxMinQuiz === 'range' ? 'border-emerald-500 bg-emerald-500/15 text-emerald-700 dark:text-emerald-300' : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700'}">範囲に 3π/2 が入っていないのを見落とした</button>
+                    <button type="button" data-app-mmq="r" class="flex-1 py-2 px-2 rounded-lg border-2 font-extrabold ${appMaxMinQuiz === 'r' ? 'border-rose-500 bg-rose-500/15 text-rose-700 dark:text-rose-300' : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700'}">合成の r を間違えた</button>
+                  </div>
+                  ${appMaxMinQuiz ? `<div class="font-bold ${appMaxMinQuiz === 'range' ? 'text-emerald-700 dark:text-emerald-300' : 'text-rose-700 dark:text-rose-300'}">${appMaxMinQuiz === 'range' ? '⭕ 大正解！ θの範囲が限られているときは、必ず「θ＋α の範囲」を単位円に描いて端点を確認するのが鉄則です！' : '💡 合成の r = 2 は合っていますが、θ が 0〜π までしか動かないため、真下（3π/2）まで届かず −2 にはならないのです！'}</div>` : ''}
+                </div>
+              </div>
+            </div>
+          ` : ''}
+
+          ${appSubTab === 'eq' ? `
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+              <div class="lg:col-span-7 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
+                <div class="flex items-center justify-between flex-wrap gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
+                  <div>
+                    <span class="text-xs font-extrabold text-rose-600 dark:text-rose-400">応用問題 2（入試定番！）｜三角方程式を解く</span>
+                    <h3 class="text-base font-extrabold text-slate-900 dark:text-white mt-0.5">
+                      0 ≦ θ ＜ 2π のとき、方程式 ${formatMath('√3 sin θ − cos θ')} ＝ 1 を解け。
+                    </h3>
+                  </div>
+                  <button type="button" data-action="app-eq-next" class="px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-extrabold shadow">
+                    ${appEqStep >= 4 ? '🔄 最初から' : '次のステップへ &darr;'}
+                  </button>
+                </div>
+
+                <div class="space-y-2.5 text-xs sm:text-sm">
+                  ${[
+                    { s: 1, title: 'Step ① 左辺を sin 1つに合成する！（シート07 演習A-2）', body: `${formatMath('√3 sin θ − cos θ')} ＝ 2 sin(θ &minus; ${fracHtml('π', '6')})　より、<br><strong>2 sin(θ &minus; ${fracHtml('π', '6')}) ＝ 1</strong>` },
+                    { s: 2, title: 'Step ② 両辺を 2 で割り、「sin(かたまり) ＝ 値」にする', body: `<strong>sin(θ &minus; ${fracHtml('π', '6')}) ＝ ${fracHtml('1', '2')}</strong>` },
+                    { s: 3, title: 'Step ③ かたまり「θ − π/6」の範囲を確認して解く！', body: `0 ≦ θ ＜ 2π より <strong>−${fracHtml('π', '6')} ≦ θ &minus; ${fracHtml('π', '6')} ＜ ${fracHtml('11π', '6')}</strong>。<br>この範囲で sin ＝ 1/2 となる角は <strong>${fracHtml('π', '6')}</strong> と <strong>${fracHtml('5π', '6')}</strong> の2つ！` },
+                    { s: 4, title: 'Step ④ 最後に両辺へ ＋π/6 を戻して θ を求める！', body: `θ &minus; ${fracHtml('π', '6')} ＝ ${fracHtml('π', '6')}, ${fracHtml('5π', '6')}　⇒　<strong>θ ＝ ${fracHtml('π', '3')}, π</strong>` }
+                  ].map(st => st.s <= appEqStep ? `
+                    <div class="p-3.5 rounded-xl border ${st.s === 4 ? 'border-emerald-400 bg-emerald-50/70 dark:bg-emerald-950/40' : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950'}">
+                      <div class="font-extrabold text-rose-700 dark:text-rose-300 text-xs">${st.title}</div>
+                      <div class="mt-1 font-bold leading-relaxed">${st.body}</div>
+                    </div>
+                  ` : `
+                    <div data-app-eq-set="${st.s}" class="cursor-pointer p-2.5 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 text-center text-xs text-slate-400 font-bold hover:border-rose-400">
+                      🔒 ${st.title}（タップで開く）
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+
+              <!-- 右：練習ミニチャレンジ -->
+              <div class="lg:col-span-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4 text-xs">
+                <div class="font-extrabold text-rose-700 dark:text-rose-300 text-sm">⚔️ 応用力テスト（自力で解いてみよう！ +150 XP）</div>
+                <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 font-extrabold text-sm leading-relaxed">
+                  0 ≦ θ ＜ 2π のとき、方程式<br>
+                  <span class="text-blue-600 dark:text-blue-400">sin θ ＋ cos θ ＝ 1</span> を満たす θ の組み合わせは？
+                </div>
+                <div class="grid grid-cols-1 gap-2 font-extrabold">
+                  ${[
+                    { id: 'ok', text: `θ ＝ 0, ${fracHtml('π', '2')}` },
+                    { id: 'w1', text: `θ ＝ ${fracHtml('π', '4')}, ${fracHtml('3π', '4')}` },
+                    { id: 'w2', text: `θ ＝ ${fracHtml('π', '6')}, ${fracHtml('5π', '6')}` }
+                  ].map(opt => `
+                    <button type="button" data-app-eqq="${opt.id}" class="p-3 rounded-xl border-2 text-left transition ${appEqQuiz === opt.id ? (opt.id === 'ok' ? 'border-emerald-500 bg-emerald-500/15 text-emerald-700 dark:text-emerald-300' : 'border-rose-500 bg-rose-500/15 text-rose-700 dark:text-rose-300') : 'border-slate-200 dark:border-slate-700 hover:border-rose-400'}">
+                      ${opt.text}
+                    </button>
+                  `).join('')}
+                </div>
+                ${appEqQuiz ? `
+                  <div class="p-3.5 rounded-xl border font-bold leading-relaxed ${appEqQuiz === 'ok' ? 'bg-emerald-50 dark:bg-emerald-950/50 border-emerald-400 text-emerald-900 dark:text-emerald-200' : 'bg-rose-50 dark:bg-rose-950/50 border-rose-400 text-rose-900 dark:text-rose-200'}">
+                    ${appEqQuiz === 'ok'
+                      ? `⭕ <strong>お見事！！完璧な応用力です！</strong><br>合成すると ${formatMath('√2')} sin(θ＋π/4) ＝ 1 ⇒ sin(θ＋π/4) ＝ 1/${formatMath('√2')}。<br>よって θ＋π/4 ＝ π/4, 3π/4 ⇒ 両辺から π/4 を引いて <strong>θ ＝ 0, π/2</strong>！（確かに sin0+cos0=1, sin(π/2)+cos(π/2)=1 で検算もバッチリ！）`
+                      : `💡 惜しい！ ${formatMath('√2')} sin(θ＋π/4) ＝ 1 より θ＋π/4 ＝ π/4, 3π/4 まで来たら、最後に<strong>「−π/4」を引いて θ に戻す</strong>のを忘れずに！`}
+                  </div>
+                ` : ''}
+              </div>
+            </div>
+          ` : ''}
+        </div>
+      `;
+    }
+
+    /* =========================================================================
+       一括イベント委譲（クリーン＆ノーエラー設計）
+       ========================================================================= */
+    window.addEventListener('DOMContentLoaded', () => {
+      // 参考カード内のルートも MathML 化
+      const refTable = document.getElementById('refTable');
+      if (refTable) refTable.innerHTML = formatMath(refTable.innerHTML);
+      const refSqrt = document.getElementById('refSqrtFormula');
+      if (refSqrt) refSqrt.innerHTML = formatMath('√(a²+b²)');
+
+      document.addEventListener('click', (e) => {
+        // 参考カードモーダル
+        if (e.target.closest('#openRefBtn')) {
+          document.getElementById('refModal').classList.remove('hidden');
+          return;
+        }
+        if (e.target.closest('#closeRefBtn') || e.target.closest('#closeRefBtn2')) {
+          document.getElementById('refModal').classList.add('hidden');
+          return;
+        }
+
+        // テーマ切替
+        const themeBtn = e.target.closest('[data-theme]');
+        if (themeBtn) { setTheme(themeBtn.dataset.theme); return; }
+
+        // メインタブ切替
+        const tabBtn = e.target.closest('[data-tab]');
+        if (tabBtn) { selectTab(tabBtn.dataset.tab); return; }
+
+        // 導入 00（合成の意味）
+        const s00DegBtn = e.target.closest('[data-s00-deg]');
+        if (s00DegBtn) { s00ThetaDeg = parseInt(s00DegBtn.dataset.s00Deg, 10); renderApp(); return; }
+        const s00QuizBtn = e.target.closest('[data-s00-quiz]');
+        if (s00QuizBtn) {
+          if (!s00MaxQuiz && s00QuizBtn.dataset.s00Quiz === 'less') xp += 40;
+          s00MaxQuiz = s00QuizBtn.dataset.s00Quiz;
+          s00ShowSynth = true;
+          renderApp();
+          return;
+        }
+
+        // シート 01
+        const s01q1 = e.target.closest('[data-s01-q1]');
+        if (s01q1) { if (!s01Q1 && s01q1.dataset.s01Q1 === 'ok') xp += 30; s01Q1 = s01q1.dataset.s01Q1; renderApp(); return; }
+        const s01q2s = e.target.closest('[data-s01-q2-set]');
+        if (s01q2s) { s01Q2Step = parseInt(s01q2s.dataset.s01Q2Set, 10); renderApp(); return; }
+        const s01q3 = e.target.closest('[data-s01-q3]');
+        if (s01q3) { if (!s01Q3Ans && s01q3.dataset.s01Q3 === 'ok') xp += 40; s01Q3Ans = s01q3.dataset.s01Q3; renderApp(); return; }
+        const s01q4s = e.target.closest('[data-s01-q4-set]');
+        if (s01q4s) { s01Q4Step = parseInt(s01q4s.dataset.s01Q4Set, 10); renderApp(); return; }
+
+        // シート 02
+        const s02Row = e.target.closest('[data-s02-row]');
+        if (s02Row) { s02TableRevealed[s02Row.dataset.s02Row] = true; renderApp(); return; }
+        const s02Try = e.target.closest('[data-s02-try]');
+        if (s02Try) {
+          s02RuleTry = s02Try.dataset.s02Try;
+          if (s02RuleTry === 'sqsum') {
+            s02TableRevealed = { r1: true, r2: true, r3: true };
+            xp += 50;
+          }
+          renderApp();
+          return;
+        }
+
+        // シート 03
+        const s03St = e.target.closest('[data-s03-step]');
+        if (s03St) { s03Step = parseInt(s03St.dataset.s03Step, 10); renderApp(); return; }
+        const s03Why = e.target.closest('[data-s03-why]');
+        if (s03Why) { if (!s03WhyQuiz && s03Why.dataset.s03Why === 'ok') xp += 60; s03WhyQuiz = s03Why.dataset.s03Why; renderApp(); return; }
+
+        // ワークショップ（シート 04〜06 & 07〜09）
+        const wsSel = e.target.closest('[data-ws-select]');
+        if (wsSel) {
+          const [mode, pid] = wsSel.dataset.wsSelect.split(':');
+          if (mode === '04') curId04 = pid;
+          else curId07 = pid;
+          renderApp();
+          return;
+        }
+        const wsReset = e.target.closest('[data-ws-reset]');
+        if (wsReset) {
+          delete probProgress[wsReset.dataset.wsReset];
+          renderApp();
+          return;
+        }
+        const quadZone = e.target.closest('[data-pick-quad]');
+        if (quadZone) {
+          const picked = quadZone.dataset.pickQuad;
+          if (activeTab === 's10') {
+            s10Quad = picked;
+            renderApp();
+            return;
+          }
+          const pid = activeTab === 's04' ? curId04 : curId07;
+          const prob = SYNTH_PROBLEMS.find(p => p.id === pid);
+          if (prob) {
+            const prog = getProg(pid);
+            prog.quadPicked = picked;
+            if (picked === prob.quad) {
+              if (!prog.quadOk) xp += 30;
+              prog.quadOk = true;
+              if (prog.rOk && prog.angOk) clearedSet.add(pid);
+            }
+            renderApp();
+          }
+          return;
+        }
+        const wsR = e.target.closest('[data-ws-r]');
+        if (wsR) {
+          const [pid, val] = wsR.dataset.wsR.split(':');
+          const prob = SYNTH_PROBLEMS.find(p => p.id === pid);
+          if (prob) {
+            const prog = getProg(pid);
+            prog.rPicked = val;
+            if (val === prob.rDisp) {
+              if (!prog.rOk) xp += 40;
+              prog.rOk = true;
+              if (prog.quadOk && prog.angOk) clearedSet.add(pid);
+            }
+            renderApp();
+          }
+          return;
+        }
+        const wsAng = e.target.closest('[data-ws-ang]');
+        if (wsAng) {
+          const [pid, idxStr] = wsAng.dataset.wsAng.split(':');
+          const idx = parseInt(idxStr, 10);
+          const prob = SYNTH_PROBLEMS.find(p => p.id === pid);
+          if (prob) {
+            const prog = getProg(pid);
+            prog.angPicked = idx;
+            if (prob.angChoices[idx] && prob.angChoices[idx].ok) {
+              if (!prog.angOk) xp += 50;
+              prog.angOk = true;
+              if (prog.quadOk && prog.rOk) clearedSet.add(pid);
+            }
+            renderApp();
+          }
+          return;
+        }
+        const wsVer = e.target.closest('[data-ws-verify]');
+        if (wsVer) {
+          const prog = getProg(wsVer.dataset.wsVerify);
+          if (!prog.verified) xp += 20;
+          prog.verified = !prog.verified;
+          renderApp();
+          return;
+        }
+
+        // 応用タブ
+        const appSub = e.target.closest('[data-app-sub]');
+        if (appSub) { appSubTab = appSub.dataset.appSub; renderApp(); return; }
+        const wavePre = e.target.closest('[data-wave-preset]');
+        if (wavePre) {
+          const [a, b] = wavePre.dataset.wavePreset.split(',').map(Number);
+          waveA = a; waveB = b;
+          renderApp();
+          return;
+        }
+        const mmSet = e.target.closest('[data-app-maxmin-set]');
+        if (mmSet) { appMaxMinStep = parseInt(mmSet.dataset.appMaxminSet, 10); renderApp(); return; }
+        const mmQ = e.target.closest('[data-app-mmq]');
+        if (mmQ) { if (!appMaxMinQuiz && mmQ.dataset.appMmq === 'range') xp += 60; appMaxMinQuiz = mmQ.dataset.appMmq; renderApp(); return; }
+        const eqSet = e.target.closest('[data-app-eq-set]');
+        if (eqSet) { appEqStep = parseInt(eqSet.dataset.appEqSet, 10); renderApp(); return; }
+        const eqQ = e.target.closest('[data-app-eqq]');
+        if (eqQ) { if (!appEqQuiz && eqQ.dataset.appEqq === 'ok') xp += 150; appEqQuiz = eqQ.dataset.appEqq; renderApp(); return; }
+
+        // 汎用アクション
+        const actBtn = e.target.closest('[data-action]');
+        if (actBtn) {
+          const act = actBtn.dataset.action;
+          if (act === 's00-toggle-synth') { s00ShowSynth = !s00ShowSynth; renderApp(); }
+          else if (act === 's01-q2-next') { s01Q2Step = s01Q2Step >= 3 ? 1 : s01Q2Step + 1; renderApp(); }
+          else if (act === 's01-q4-next') { s01Q4Step = s01Q4Step >= 3 ? 1 : s01Q4Step + 1; renderApp(); }
+          else if (act === 's02-reveal-all') { s02TableRevealed = { r1: true, r2: true, r3: true }; renderApp(); }
+          else if (act === 's02-q3-check') { s02Q3Checked = true; renderApp(); }
+          else if (act === 's10-check') { if (!s10Checked) xp += 120; s10Checked = true; renderApp(); }
+          else if (act === 'app-maxmin-next') { appMaxMinStep = appMaxMinStep >= 4 ? 1 : appMaxMinStep + 1; renderApp(); }
+          else if (act === 'app-eq-next') { appEqStep = appEqStep >= 4 ? 1 : appEqStep + 1; renderApp(); }
+        }
+      });
+
+      document.addEventListener('input', (e) => {
+        const inp = e.target.dataset.input;
+        if (inp === 's00-theta') { s00ThetaDeg = parseInt(e.target.value, 10); renderApp(); }
+        else if (inp === 's02-q3') s02Q3Input = e.target.value;
+        else if (inp === 's10-r') s10R = e.target.value;
+        else if (inp === 's10-ang') s10Ang = e.target.value;
+        else if (inp === 's10-why') s10WhyHoriz = e.target.value;
+        else if (inp === 's10-recall') s10Recall = e.target.value;
+        else if (inp === 'wave-a') { waveA = parseFloat(e.target.value); renderApp(); }
+        else if (inp === 'wave-b') { waveB = parseFloat(e.target.value); renderApp(); }
+      });
+
+      setTheme('light');
+      selectTab('s00');
+    });
+  </script>
+</body>
+</html>
